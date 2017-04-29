@@ -1,4 +1,5 @@
 import CommonBuild._
+import Versions._
 import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
 import de.heikoseeberger.sbtheader.license.Apache2_0
 import de.zalando.play.generator.sbt.ApiFirstPlayScalaCodeGenerator.autoImport.playScalaAutogenerateTests
@@ -9,27 +10,55 @@ name := "daf_storage_manager"
 
 version := "1.0.0"
 
+scalacOptions ++= Seq(
+  "-deprecation",
+  "-encoding", "UTF-8", // yes, this is 2 args
+  "-feature",
+  "-unchecked",
+  "-Xfatal-warnings",
+  "-Xlint",
+  "-Yno-adapted-args",
+  "-Ywarn-numeric-widen",
+  "-Ywarn-value-discard",
+  "-Ywarn-dead-code",
+  "-Xfuture"
+)
+
 lazy val root = (project in file(".")).enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser)
 
 scalaVersion := "2.11.8"
+
+val hadoopExcludes =
+  (moduleId: ModuleID) => moduleId.
+    exclude("org.slf4j", "slf4j-log4j12")
+
+val hadoopLibraries = Seq(
+  hadoopExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % "compile"),
+  hadoopExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % "test" classifier "tests"),
+  hadoopExcludes("org.apache.hadoop" % "hadoop-hdfs" % hadoopVersion % "test" classifier "tests"),
+  hadoopExcludes("org.apache.hadoop" % "hadoop-hdfs" % hadoopVersion % "test" classifier "tests" extra "type" -> "test-jar"),
+  hadoopExcludes("org.apache.hadoop" % "hadoop-hdfs" % hadoopVersion % "test" extra "type" -> "test-jar"),
+  hadoopExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % "test" classifier "tests"),
+  hadoopExcludes("org.apache.hadoop" % "hadoop-minicluster" % hadoopVersion % "test"),
+  hadoopExcludes("org.apache.hadoop" % "hadoop-common" % hadoopVersion % "test" classifier "tests" extra "type" -> "test-jar"),
+  hadoopExcludes("org.apache.hadoop" % "hadoop-mapreduce-client-jobclient" % hadoopVersion % "test" classifier "tests")
+)
 
 libraryDependencies ++= Seq(
   jdbc,
   cache,
   ws,
-  "org.webjars" % "swagger-ui" % "3.0.7",
+  "org.webjars" % "swagger-ui" % swaggerUiVersion,
   specs2 % Test,
-  "org.scalacheck" %% "scalacheck" % "1.13.5" % Test,
-  "org.specs2" %% "specs2-scalacheck" % "3.8.9" % Test,
-  "me.jeffmay" %% "play-json-tests" % "1.5.0" % Test,
-  "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test
-)
+  "com.typesafe.play" %% "play-json" % playVersion
+) ++ hadoopLibraries
 
 resolvers ++= Seq(
   "zalando-bintray" at "https://dl.bintray.com/zalando/maven",
   "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
   "jeffmay" at "https://dl.bintray.com/jeffmay/maven",
-  Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns)
+  Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns),
+  "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos/"
 )
 
 // Play provides two styles of routers, one expects its actions to be injected, the
@@ -38,7 +67,7 @@ routesGenerator := InjectedRoutesGenerator
 
 apiFirstParsers := Seq(ApiFirstSwaggerParser.swaggerSpec2Ast.value).flatten
 
-playScalaAutogenerateTests := true
+playScalaAutogenerateTests := false
 
 headers := Map(
   "sbt" -> Apache2_0("2017", "TEAM PER LA TRASFORMAZIONE DIGITALE"),

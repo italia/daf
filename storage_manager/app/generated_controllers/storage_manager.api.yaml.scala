@@ -25,7 +25,7 @@ import javax.inject._
 
 package storage_manager.api.yaml {
     // ----- Start of unmanaged code area for package Storage_managerApiYaml
-    
+        
     // ----- End of unmanaged code area for package Storage_managerApiYaml
     class Storage_managerApiYaml @Inject() (
         // ----- Start of unmanaged code area for injections Storage_managerApiYaml

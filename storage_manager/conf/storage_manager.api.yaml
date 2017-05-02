@@ -51,6 +51,11 @@ paths:
           description: Dataset's uri.
           required: true
           type: string
+        - name: format
+          in: query
+          description: Dataset's format
+          required: true
+          type: string
       tags:
         - Dataset
       responses:

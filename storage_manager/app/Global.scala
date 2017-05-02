@@ -18,7 +18,7 @@ import java.io.File
 import java.net.{URL, URLClassLoader}
 import javax.inject.Inject
 
-import com.google.inject.{AbstractModule, ImplementedBy, Singleton}
+import com.google.inject.{AbstractModule, Singleton}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.FileSystem
 import play.api.inject.ApplicationLifecycle
@@ -31,14 +31,14 @@ class Global @Inject()(lifecycle: ApplicationLifecycle) {
   lifecycle.addStopHook { () => Future.successful({}) }
 }
 
-@ImplementedBy(classOf[HadoopModule])
-trait WithFileSystem {
-  def fs: Try[FileSystem]
+@SuppressWarnings(Array("org.wartremover.warts.Var"))
+object HadoopConfDir {
+  var hadoopConfDir: Option[String] = None
 }
 
 @SuppressWarnings(Array("org.wartremover.warts.Overloading"))
 @Singleton
-class HadoopModule extends AbstractModule with WithFileSystem {
+class Module extends AbstractModule {
 
   @SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements"))
   def addPath(dir: String): Unit = {
@@ -48,8 +48,8 @@ class HadoopModule extends AbstractModule with WithFileSystem {
     ()
   }
 
-  def configure() = {
-
+  def configure(): Unit = {
+    HadoopConfDir.hadoopConfDir.foreach(addPath(_))
   }
 
   val fs: Try[FileSystem] = Try {

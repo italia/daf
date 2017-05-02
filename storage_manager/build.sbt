@@ -15,7 +15,7 @@ scalacOptions ++= Seq(
   "-encoding", "UTF-8", // yes, this is 2 args
   "-feature",
   "-unchecked",
-//  "-Xfatal-warnings",
+  "-Xfatal-warnings",
   "-Xlint",
   "-Yno-adapted-args",
   "-Ywarn-numeric-widen",
@@ -30,18 +30,33 @@ scalaVersion := "2.11.8"
 
 val hadoopExcludes =
   (moduleId: ModuleID) => moduleId.
-    exclude("org.slf4j", "slf4j-log4j12")
+    exclude("org.slf4j", "slf4j-log4j12").
+    exclude("org.slf4j", "slf4j-api")
+
+val sparkExcludes =
+  (moduleId: ModuleID) => moduleId.
+    exclude("org.slf4j", "slf4j-log4j12").
+    exclude("org.slf4j", "slf4j-api").
+    exclude("org.slf4j", "jcl-over-sl4j").
+    exclude("org.slf4j", "jul-to-sl4j")
+
+val sparkLibraries = Seq(
+  sparkExcludes("org.apache.spark" %% "spark-core" % sparkVersion % Compile),
+  sparkExcludes("org.apache.spark" %% "spark-sql" % sparkVersion % Compile),
+  "com.databricks" %% "spark-avro" % "3.2.0" % Compile
+)
 
 val hadoopLibraries = Seq(
-  hadoopExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % "compile"),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % "test" classifier "tests"),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-hdfs" % hadoopVersion % "test" classifier "tests"),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-hdfs" % hadoopVersion % "test" classifier "tests" extra "type" -> "test-jar"),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-hdfs" % hadoopVersion % "test" extra "type" -> "test-jar"),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % "test" classifier "tests"),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-minicluster" % hadoopVersion % "test"),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-common" % hadoopVersion % "test" classifier "tests" extra "type" -> "test-jar"),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-mapreduce-client-jobclient" % hadoopVersion % "test" classifier "tests")
+  hadoopExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % Compile),
+  hadoopExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % Test classifier "tests"),
+  hadoopExcludes("org.apache.hadoop" % "hadoop-hdfs" % hadoopVersion % Test classifier "tests"),
+  hadoopExcludes("org.apache.hadoop" % "hadoop-hdfs" % hadoopVersion % Test classifier "tests" extra "type" -> "test-jar"),
+  hadoopExcludes("org.apache.hadoop" % "hadoop-hdfs" % hadoopVersion % Test extra "type" -> "test-jar"),
+  hadoopExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % Test classifier "tests"),
+  hadoopExcludes("org.apache.hadoop" % "hadoop-minicluster" % hadoopVersion % Test),
+  hadoopExcludes("org.apache.hadoop" % "hadoop-common" % hadoopVersion % Test classifier "tests" extra "type" -> "test-jar"),
+  hadoopExcludes("org.apache.hadoop" % "hadoop-mapreduce-client-jobclient" % hadoopVersion % Test classifier "tests"),
+  "com.github.pathikrit" %% "better-files" % betterFilesVersion % Test
 )
 
 libraryDependencies ++= Seq(
@@ -51,9 +66,10 @@ libraryDependencies ++= Seq(
   "org.webjars" % "swagger-ui" % swaggerUiVersion,
   specs2 % Test,
   "com.typesafe.play" %% "play-json" % playVersion
-) ++ hadoopLibraries
+) ++ hadoopLibraries ++ sparkLibraries
 
 resolvers ++= Seq(
+  Resolver.sonatypeRepo("releases"),
   "zalando-bintray" at "https://dl.bintray.com/zalando/maven",
   "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
   "jeffmay" at "https://dl.bintray.com/jeffmay/maven",

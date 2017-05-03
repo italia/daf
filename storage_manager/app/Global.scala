@@ -16,31 +16,29 @@
 
 import java.io.File
 import java.net.{URL, URLClassLoader}
-import javax.inject.Inject
 
 import com.google.inject.{AbstractModule, Singleton}
-import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.FileSystem
-import play.api.inject.ApplicationLifecycle
 
-import scala.concurrent.Future
-import scala.util.Try
-
-@Singleton
-class Global @Inject()(lifecycle: ApplicationLifecycle) {
-  lifecycle.addStopHook { () => Future.successful({}) }
-}
-
-@SuppressWarnings(Array("org.wartremover.warts.Var"))
+@SuppressWarnings(Array("org.wartremover.warts.Var", "org.wartremover.warts.Null"))
 object HadoopConfDir {
+
   var hadoopConfDir: Option[String] = None
 }
 
-@SuppressWarnings(Array("org.wartremover.warts.Overloading"))
+@SuppressWarnings(
+  Array(
+    "org.wartremover.warts.Overloading",
+    "org.wartremover.warts.NonUnitStatements",
+    "org.wartremover.warts.StringPlusAny",
+    "org.wartremover.warts.Null",
+    "org.wartremover.warts.Var"
+  )
+)
 @Singleton
 class Module extends AbstractModule {
 
-  @SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements"))
+  println("STEP2")
+
   def addPath(dir: String): Unit = {
     val method = classOf[URLClassLoader].getDeclaredMethod("addURL", classOf[URL])
     method.setAccessible(true)
@@ -49,10 +47,7 @@ class Module extends AbstractModule {
   }
 
   def configure(): Unit = {
+    println("STEP3")
     HadoopConfDir.hadoopConfDir.foreach(addPath(_))
-  }
-
-  val fs: Try[FileSystem] = Try {
-    FileSystem.get(new Configuration())
   }
 }

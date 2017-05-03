@@ -2,8 +2,6 @@ import CommonBuild._
 import Versions._
 import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
 import de.heikoseeberger.sbtheader.license.Apache2_0
-import de.zalando.play.generator.sbt.ApiFirstPlayScalaCodeGenerator.autoImport.playScalaAutogenerateTests
-import play.sbt.routes.RoutesKeys.routesGenerator
 import sbt.Keys.resolvers
 
 name := "daf_storage_manager"
@@ -24,7 +22,7 @@ scalacOptions ++= Seq(
   "-Xfuture"
 )
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser)
+lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 scalaVersion := "2.11.8"
 
@@ -60,31 +58,20 @@ val hadoopLibraries = Seq(
 )
 
 libraryDependencies ++= Seq(
-  jdbc,
   cache,
   ws,
   "org.webjars" % "swagger-ui" % swaggerUiVersion,
   specs2 % Test,
+  "io.swagger" %% "swagger-play2" % "1.5.3",
   "com.typesafe.play" %% "play-json" % playVersion
 ) ++ hadoopLibraries ++ sparkLibraries
 
 resolvers ++= Seq(
   Resolver.sonatypeRepo("releases"),
-  "zalando-bintray" at "https://dl.bintray.com/zalando/maven",
-  "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
-  "jeffmay" at "https://dl.bintray.com/jeffmay/maven",
-  Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns),
   "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos/"
 )
 
-// Play provides two styles of routers, one expects its actions to be injected, the
-// other, legacy style, accesses its actions statically.
-routesGenerator := InjectedRoutesGenerator
-
-apiFirstParsers := Seq(ApiFirstSwaggerParser.swaggerSpec2Ast.value).flatten
-
-playScalaAutogenerateTests := false
-
+enablePlugins(HeaderPlugin)
 headers := Map(
   "sbt" -> Apache2_0("2017", "TEAM PER LA TRASFORMAZIONE DIGITALE"),
   "scala" -> Apache2_0("2017", "TEAM PER LA TRASFORMAZIONE DIGITALE"),
@@ -93,6 +80,7 @@ headers := Map(
   "yaml" -> Apache2_0("2017", "TEAM PER LA TRASFORMAZIONE DIGITALE", "#")
 )
 
+enablePlugins(DockerPlugin)
 dockerBaseImage := "frolvlad/alpine-oraclejdk8:latest"
 dockerCommands := dockerCommands.value.flatMap {
   case cmd@Cmd("FROM", _) => List(cmd, Cmd("RUN", "apk update && apk add bash"))

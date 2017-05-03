@@ -2,6 +2,7 @@ import java.io.{IOException, File => JFile}
 import java.net.ServerSocket
 
 import better.files._
+import controllers.Utility
 import org.apache.hadoop.fs.FileSystem
 import org.apache.hadoop.hdfs.{HdfsConfiguration, MiniDFSCluster}
 import org.apache.hadoop.test.PathUtils
@@ -13,11 +14,14 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.WSResponse
 import play.api.test.{WithServer, WsTestClient}
 
+import scala.collection.convert.decorateAsScala._
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Random, Try}
 
-final case class Person(name: String, age: Int)
+final case class Address(stret: String)
+
+final case class Person(name: String, age: Int, address: Address)
 
 @SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements", "org.wartremover.warts.Throw"))
 class ServiceSpec extends Specification with BeforeAfterAll {
@@ -38,27 +42,41 @@ class ServiceSpec extends Specification with BeforeAfterAll {
     }
   }
 
-  def application: Application = GuiceApplicationBuilder().build()
+  def application: Application = GuiceApplicationBuilder().configure("hadoop_conf_dir" -> s"").build()
 
-  "test server logic" in new WithServer(app = application, port = getAvailablePort) {
+  val limit = 1000
 
-    val sparkSession = SparkSession.builder().master("local").getOrCreate()
+  "The storage_manager" should {
+    "return a correct JSON document from a physical dataset" in new WithServer(app = application, port = getAvailablePort) {
+      val doc = {
+        val sparkSession = ServiceSpec.sparkSession
 
-    import sparkSession.implicits._
+        import sparkSession.implicits._
 
-    val persons = (1 to 1000).map(i => Person(s"Andy$i", Random.nextInt(85))).toSeq
+        val persons = (1 to limit).map(i => Person(s"Andy$i", Random.nextInt(85), Address("Via Delle Benedettine 47")))
+        val caseClassDS = persons.toDS()
+        caseClassDS.write.format("parquet").mode(SaveMode.Overwrite).save("/opendata/test.parquet")
+        caseClassDS.write.format("com.databricks.spark.avro").mode(SaveMode.Overwrite).save("/opendata/test.avro")
+        val doc = s"[${
+          caseClassDS.toDF().takeAsList(limit).asScala.map(row => {
+            Utility.rowToJson(caseClassDS.schema)(row)
+          }).mkString(",")
+        }]"
+        doc
+      }
 
-    val caseClassDS = persons.toDS()//.repartition(10)
+      WsTestClient.withClient { implicit client =>
+        val uri = "dataset:hdfs:/opendata/test.parquet"
+        val response: WSResponse = Await.result[WSResponse](client.url(s"http://localhost:$port/storage_manager/v1/physical-dataset?uri=$uri&format=parquet&limit=$limit").execute, Duration.Inf)
+        response.body must be equalTo (doc)
+      }
 
-    caseClassDS.write.format("com.databricks.spark.avro").mode(SaveMode.Overwrite).save("/opendata/test.avro")
-
-    WsTestClient.withClient { implicit client =>
-      val uri = "dataset:hdfs:/opendata/test.avro"
-      val response: WSResponse = Await.result[WSResponse](client.url(s"http://localhost:$port/storage_manager/v1/dataset?uri=$uri&format=avro").execute, Duration.Inf)
-      println(response)
+      WsTestClient.withClient { implicit client =>
+        val uri = "dataset:hdfs:/opendata/test.avro"
+        val response: WSResponse = Await.result[WSResponse](client.url(s"http://localhost:$port/storage_manager/v1/physical-dataset?uri=$uri&format=avro&limit=$limit").execute, Duration.Inf)
+        response.body must be equalTo (doc)
+      }
     }
-
-    sparkSession.stop()
   }
 
   override def beforeAll(): Unit = {
@@ -79,10 +97,11 @@ class ServiceSpec extends Specification with BeforeAfterAll {
   override def afterAll(): Unit = {
     miniCluster.foreach(_.shutdown(true))
     val _ = testDataPath.parent.parent.delete(true)
+    sparkSession.stop()
   }
 }
 
-@SuppressWarnings(Array("org.wartremover.warts.Var"))
+@SuppressWarnings(Array("org.wartremover.warts.Var", "org.wartremover.warts.Null"))
 object ServiceSpec {
 
   val (testDataPath, confPath): (File, File) = {
@@ -97,4 +116,7 @@ object ServiceSpec {
   var miniCluster: Try[MiniDFSCluster] = Failure[MiniDFSCluster](new Exception)
 
   var fileSystem: Try[FileSystem] = Failure[FileSystem](new Exception)
+
+  lazy val sparkSession = SparkSession.builder().master("local").getOrCreate()
+
 }

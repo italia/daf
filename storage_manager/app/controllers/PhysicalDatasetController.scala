@@ -39,9 +39,9 @@ class PhysicalDatasetController @Inject()(configuration: Configuration) extends 
   val sparkSession: SparkSession = SparkSession.builder().master("local").getOrCreate()
 
   @ApiOperation(value = "given a physical dataset URI it returns a json document with the first 'limit' number of rows", produces = "application/json")
-  def getDataset(@ApiParam(value = "the dataset's physical URI") uri: String,
-                 @ApiParam(value = "the dataset's format") format: String,
-                 @ApiParam(value = "max number of rows to return") limit: Int = configuration.getInt("max_number_of_rows").fold[Int](1000)(identity)) = Action {
+  def getDataset(@ApiParam(value = "the dataset's physical URI", required = true) uri: String,
+                 @ApiParam(value = "the dataset's format", required = true) format: String,
+                 @ApiParam(value = "max number of rows to return", required = false) limit: Option[Int] = Some(configuration.getInt("max_number_of_rows").fold[Int](1000)(identity))) = Action {
     val datasetURI = new URI(uri)
     val locationURI = new URI(datasetURI.getSchemeSpecificPart)
     val locationScheme = locationURI.getScheme
@@ -53,13 +53,13 @@ class PhysicalDatasetController @Inject()(configuration: Configuration) extends 
       case "hdfs" if actualFormat == "text" =>
         val location = locationURI.getSchemeSpecificPart
         val rdd = sparkSession.sparkContext.textFile(location)
-        val doc = rdd.take(limit).mkString("\n")
+        val doc = rdd.take(limit.getOrElse(0)).mkString("\n")
         Ok(doc)
       case "hdfs" =>
         val location = locationURI.getSchemeSpecificPart
         val df = sparkSession.read.format(actualFormat).load(location)
         val doc = s"[${
-          df.take(limit).map(row => {
+          df.take(limit.getOrElse(0)).map(row => {
             Utility.rowToJson(df.schema)(row)
           }).mkString(",")
         }]"

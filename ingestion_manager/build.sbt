@@ -5,7 +5,7 @@ import de.zalando.play.generator.sbt.ApiFirstPlayScalaCodeGenerator.autoImport.p
 import play.sbt.routes.RoutesKeys.routesGenerator
 import sbt.Keys.resolvers
 
-name := "daf_dataset_manager"
+name := "daf_ingestion_manager"
 
 version := "1.0.0"
 

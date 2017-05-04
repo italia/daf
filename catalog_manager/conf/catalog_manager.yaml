@@ -1,0 +1,331 @@
+# Copyright 2017 TEAM PER LA TRASFORMAZIONE DIGITALE
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Questo e' la descrizione delle API che vengono esposte da dati.gov.it.
+# Le API sono pubbliche
+
+swagger: '2.0'
+info:
+  title: Catalog Manager API
+  description: Catalog Manager API
+  version: "BETA"
+  termsOfService: http://termofservice
+  contact:
+    name: team digitale
+    url: https://teamdigitale.governo.it
+  license:
+    name: Creative Commons 4.0 International
+    url: http://creativecommons.org/licenses/by/4.0/
+host : localhost:9000
+# will be prefixed to all paths
+basePath: /api/catalog/v1.0
+# array of all schemes that your API supports
+schemes:
+  - http
+produces:
+  - application/json
+paths:
+  "/dataset_catalogs":
+    get:
+      summary: DatasetCatalog
+      description: |
+        List of MetaCatalog storeds
+      tags:
+        - DatasetCatalog
+      operationId: datasetcatalogs
+      responses:
+        200:
+          description: An array of MetaCatalog
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/MetaCatalog'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/dataset_catalog/{catalogid}":
+    get:
+      summary: DatasetCatalog
+      description: |
+        The DatasetCatalog for ....
+      tags:
+        - DatasetCatalog
+      operationId: datasetcatalogbyid
+      parameters:
+            - name: catalogid
+              in: path
+              description: Name of catalog
+              required: true
+              type: string
+      responses:
+        200:
+          description: A Catalog
+          schema:
+            type: object
+            $ref: '#/definitions/MetaCatalog'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/create/dataset":
+    post:
+      summary: DatasetCatalog
+      description: |
+        The DatasetCatalog for ....
+      tags:
+        - DatasetCatalog
+      operationId: createdatasetcatalog
+      parameters:
+      - name: catalog
+        in: body
+        description: Dataset Catalog
+        required: true
+        schema:
+          $ref: '#/definitions/MetaCatalog'
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            $ref: '#/definitions/Success'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+definitions:
+  MetaCatalog:
+    type: object
+    properties:
+      dataschema:
+         type: object
+         $ref: '#/definitions/DatasetCatalog'
+      operational:
+         type: object
+         $ref: '#/definitions/Operational'
+      conversion:
+        type: object
+        $ref: '#/definitions/ConversionSchema'
+  DatasetCatalog:
+      required:
+        - namespace
+        - type
+        - name
+      properties:
+        namespace:
+          type: string
+          description: Qualifies the name of the dataset. E.g. daf.schema.mobility
+        type:
+          type: string
+          description: It must be record at the root level of the Avro Schema
+        name:
+          type: string
+          description: Name of the dataset
+        alliases:
+          type: array
+          items:
+            type: string
+        fields:
+          type: array
+          items:
+            $ref: '#/definitions/Field'
+  Field:
+      required:
+        - name
+        - field_type
+        - metadata
+      properties:
+        name:
+          type: string
+          description: Name of the field
+        field_type:
+          $ref: '#/definitions/ActionAnyContent'
+          description: It can be a json object for complex type, or an array of string for primitive types (the latter may contains null in case the field can be nullable)
+        doc:
+          type: string
+          description: Documentation/info for user prurposes
+        default:
+          $ref: '#/definitions/ActionAnyContent'
+          description: Default value for the field
+        metadata:
+          $ref: '#/definitions/Metadata'
+          description: JSON object containing metadata information for the field
+  ActionAnyContent:
+    type: object
+    properties:
+      content_type:
+        type: string
+        enum: ["object", "array"]
+      content:
+          type: string
+  Metadata:
+    type: object
+    required:
+      - metadata_format
+      - required
+      - constr
+    properties:
+      name_lang:
+        $ref: '#/definitions/Lang'
+      metadata_format:
+        type: string
+      desc:
+        type: string
+      desc_lang:
+        $ref: '#/definitions/Lang'
+      cat:
+        type: string
+      tag:
+        type: array
+        items:
+          type: string
+      required:
+        type: integer
+        format: int32
+      constr:
+        description: Constr defines constraints that can be applied to the values of the field
+        type: array
+        items:
+          $ref: '#/definitions/MetaConstraint'
+  Lang:
+    type: object
+    properties:
+          eng:
+            type: string
+          ita:
+            type: string
+  MetaConstraint:
+    required:
+      - constraint_type
+    type: object
+    properties:
+      constraint_type:
+        type: string
+      param:
+        type: object
+        $ref: '#/definitions/ActionAnyContent'
+  Semantic:
+    required:
+      - rdfs:domain
+      - rdfs:range
+    type: object
+    properties:
+      rdfs:domain:
+        type: string
+        description: Uri of the Subject
+      rdfs:range:
+        type: string
+        description: Uri of the Object
+      owl:objectProperty:
+        type: string
+        description: Uri of the complex predicate
+      owl:datatypeProp:
+        type: string
+        description: Uri of the simple predicate
+  Operational:
+    required:
+      - id
+      - group_own
+      - read_type
+      - input_src
+    properties:
+      id:
+        type: integer
+        format: int32
+      group_own:
+        type: string
+        description: Group of ownership to which the dataset belongs. It is set to 'open' by default
+      std_schema:
+        type: string
+        description: Unique identifier for the standard schema
+      read_type:
+        type: string
+        enum: ["ts", "update"]
+        default: ts
+        description: It tells if the dataset is a TS (so it will return all appended data), or if it is an update and only the most recent timestamp needs to be returned. It can take only two values ts or update, ts is the default
+      input_src:
+        type: array
+        items:
+          $ref: '#/definitions/InputType'
+  InputType:
+      type: object
+      required:
+        - ing_type
+        - src_type
+        - url
+      properties:
+        ing_type:
+          type: string
+          enum: ["push", "pull"]
+          description: It takes two values pull or push
+        src_type:
+          type: string
+          description: The format of the input resource
+        url:
+          type: string
+          description: Where the data input for the ingestion is located
+        frequency:
+          type: string
+          description: Frequency at which the update procedure needs to be updated
+        table:
+          type: string
+  ConversionSchema:
+    type: object
+    properties:
+      fields_conv:
+        description: Array containing the conversion from the incoming schema to the vip standard one
+        type: array
+        items:
+          $ref: '#/definitions/ConversionField'
+      fields_custom:
+        description: Array containing the list of custom fields, that are on top of the ones defined in the Std Schema
+        type: array
+        items:
+          $ref: '#/definitions/CustomField'
+  ConversionField:
+    type: object
+    required:
+      - field_std
+      - formula
+    properties:
+      field_std:
+        type: string
+        description: Field name of the desired dataschema chosen
+      formula:
+        type: string
+        description: Formula to use for conversion from input data source
+  CustomField:
+    type: object
+    required:
+      - name
+    properties:
+      name:
+        type: string
+        description: Field name of the custom field
+  Error:
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+      fields:
+        type: string
+  Success:
+    type: object
+    properties:
+      message:
+        type: string
+      fields:
+        type: string

@@ -15,15 +15,15 @@
 # Routes
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
-GET   /swagger.json                               controllers.ApiHelpController.getResources
+GET   /swagger.json                                controllers.ApiHelpController.getResources
 
 # Home page
-GET   /                                           controllers.Application.index
-GET   /storage_manager/v1/physical-dataset        controllers.PhysicalDatasetController.getDataset(uri:String, format:String, limit:Option[Int])
-GET   /storage_manager/v1/physical-dataset/schema controllers.PhysicalDatasetController.getDatasetSchema(uri:String, format:String)
+GET   /                                            controllers.Application.index
+GET   /storage_manager/v1/physical-datasets        controllers.PhysicalDatasetController.getDataset(uri:String, format:String, limit:Option[Int])
+GET   /storage_manager/v1/physical-datasets/schema controllers.PhysicalDatasetController.getDatasetSchema(uri:String, format:String)
 
 ### NoDocs ###
-GET   /docs/swagger-ui/*file                      controllers.Assets.at(path:String="/public/lib/swagger-ui", file:String)
+GET   /docs/swagger-ui/*file                       controllers.Assets.at(path:String="/public/lib/swagger-ui", file:String)
 
 ### NoDocs ###
-GET   /*file                                      controllers.Assets.versioned(path="/public", file: Asset)
+GET   /*file                                       controllers.Assets.versioned(path="/public", file: Asset)

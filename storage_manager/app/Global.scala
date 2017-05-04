@@ -16,31 +16,20 @@
 
 import java.io.File
 import java.net.{URL, URLClassLoader}
-import javax.inject.Inject
 
-import com.google.inject.{AbstractModule, ImplementedBy, Singleton}
-import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.FileSystem
-import play.api.inject.ApplicationLifecycle
+import com.google.inject.{AbstractModule, Singleton}
+import play.api.{Configuration, Environment}
 
-import scala.concurrent.Future
-import scala.util.Try
-
+@SuppressWarnings(
+  Array(
+    "org.wartremover.warts.Overloading",
+    "org.wartremover.warts.NonUnitStatements",
+    "org.wartremover.warts.StringPlusAny"
+  )
+)
 @Singleton
-class Global @Inject()(lifecycle: ApplicationLifecycle) {
-  lifecycle.addStopHook { () => Future.successful({}) }
-}
+class Module(environment: Environment, configuration: Configuration) extends AbstractModule {
 
-@ImplementedBy(classOf[HadoopModule])
-trait WithFileSystem {
-  def fs: Try[FileSystem]
-}
-
-@SuppressWarnings(Array("org.wartremover.warts.Overloading"))
-@Singleton
-class HadoopModule extends AbstractModule with WithFileSystem {
-
-  @SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements"))
   def addPath(dir: String): Unit = {
     val method = classOf[URLClassLoader].getDeclaredMethod("addURL", classOf[URL])
     method.setAccessible(true)
@@ -48,11 +37,7 @@ class HadoopModule extends AbstractModule with WithFileSystem {
     ()
   }
 
-  def configure() = {
-
-  }
-
-  val fs: Try[FileSystem] = Try {
-    FileSystem.get(new Configuration())
+  def configure(): Unit = {
+    configuration.getString("hadoop_conf_dir").foreach(addPath)
   }
 }

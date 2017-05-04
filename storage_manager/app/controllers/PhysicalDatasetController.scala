@@ -38,7 +38,7 @@ class PhysicalDatasetController @Inject()(configuration: Configuration) extends 
 
   val sparkSession: SparkSession = SparkSession.builder().master("local").getOrCreate()
 
-  @ApiOperation(value = "given a physical dataset URI it returns a json document with the first 'limit' number of rows", produces = "application/json")
+  @ApiOperation(value = "given a physical dataset URI it returns a json document with the first 'limit' number of rows", produces = "application/json, text/plain")
   def getDataset(@ApiParam(value = "the dataset's physical URI", required = true) uri: String,
                  @ApiParam(value = "the dataset's format", required = true) format: String,
                  @ApiParam(value = "max number of rows to return", required = false) limit: Option[Int] = Some(configuration.getInt("max_number_of_rows").fold[Int](1000)(identity))) = Action {
@@ -54,7 +54,7 @@ class PhysicalDatasetController @Inject()(configuration: Configuration) extends 
         val location = locationURI.getSchemeSpecificPart
         val rdd = sparkSession.sparkContext.textFile(location)
         val doc = rdd.take(limit.getOrElse(0)).mkString("\n")
-        Ok(doc)
+        Ok(doc).as("text/plain")
       case "hdfs" =>
         val location = locationURI.getSchemeSpecificPart
         val df = sparkSession.read.format(actualFormat).load(location)
@@ -63,7 +63,7 @@ class PhysicalDatasetController @Inject()(configuration: Configuration) extends 
             Utility.rowToJson(df.schema)(row)
           }).mkString(",")
         }]"
-        Ok(doc)
+        Ok(doc).as(JSON)
       case _ =>
         Ok(Json.toJson(""))
     }

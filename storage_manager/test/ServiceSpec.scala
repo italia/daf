@@ -18,7 +18,9 @@ import java.io.{IOException, File => JFile}
 import java.net.ServerSocket
 
 import better.files._
+import com.databricks.spark.avro.SchemaConverters
 import controllers.Utility
+import org.apache.avro.SchemaBuilder
 import org.apache.hadoop.fs.FileSystem
 import org.apache.hadoop.hdfs.{HdfsConfiguration, MiniDFSCluster}
 import org.apache.hadoop.test.PathUtils
@@ -62,8 +64,8 @@ class ServiceSpec extends Specification with BeforeAfterAll {
   val limit = 1000
 
   "The storage_manager" should {
-    "return a correct JSON document from a physical dataset" in new WithServer(app = application, port = getAvailablePort) {
-      val (doc, txtDoc) = {
+    "manage the physical datasets correctly" in new WithServer(app = application, port = getAvailablePort) {
+      val (doc, txtDoc, schema) = {
         val sparkSession = ServiceSpec.sparkSession
 
         import sparkSession.implicits._
@@ -72,14 +74,16 @@ class ServiceSpec extends Specification with BeforeAfterAll {
         val caseClassDS = persons.toDS()
         caseClassDS.write.format("parquet").mode(SaveMode.Overwrite).save("/opendata/test.parquet")
         caseClassDS.write.format("com.databricks.spark.avro").mode(SaveMode.Overwrite).save("/opendata/test.avro")
-        caseClassDS.toDF().select("name", "age").write.format("csv").mode(SaveMode.Overwrite).save("/opendata/test.csv")
+        caseClassDS.toDF.select("name", "age").write.format("csv").mode(SaveMode.Overwrite).save("/opendata/test.csv")
         val txtDoc = caseClassDS.take(limit).map(p => s"${p.name},${p.age}").mkString("\n")
         val doc = s"[${
           caseClassDS.toDF().take(limit).map(row => {
             Utility.rowToJson(caseClassDS.schema)(row)
           }).mkString(",")
         }]"
-        (doc, txtDoc)
+        val df = sparkSession.read.format("parquet").load("/opendata/test.parquet")
+        val schema = SchemaConverters.convertStructToAvro(df.schema, SchemaBuilder.record("topLevelRecord"), "").toString(true)
+        (doc, txtDoc, schema)
       }
 
       WsTestClient.withClient { implicit client =>
@@ -98,6 +102,12 @@ class ServiceSpec extends Specification with BeforeAfterAll {
         val uri = "dataset:hdfs:/opendata/test.csv"
         val response: WSResponse = Await.result[WSResponse](client.url(s"http://localhost:$port/storage_manager/v1/physical-dataset?uri=$uri&format=text&limit=$limit").execute, Duration.Inf)
         response.body must be equalTo txtDoc
+      }
+
+      WsTestClient.withClient { implicit client =>
+        val uri = "dataset:hdfs:/opendata/test.avro"
+        val response: WSResponse = Await.result[WSResponse](client.url(s"http://localhost:$port/storage_manager/v1/physical-dataset/schema?uri=$uri&format=avro").execute, Duration.Inf)
+        response.body must be equalTo schema
       }
     }
   }

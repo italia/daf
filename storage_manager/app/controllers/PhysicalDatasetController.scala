@@ -18,8 +18,10 @@ package controllers
 
 import java.net.URI
 
+import com.databricks.spark.avro.SchemaConverters
 import com.google.inject.Inject
 import io.swagger.annotations.{Api, ApiOperation, ApiParam}
+import org.apache.avro.SchemaBuilder
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
 import play.api.Configuration
@@ -71,4 +73,28 @@ class PhysicalDatasetController @Inject()(configuration: Configuration) extends 
         Ok(Json.toJson(""))
     }
   }
+
+  @ApiOperation(value = "given a physical dataset URI it returns its AVRO schema in json format", produces = "application/json, text/plain")
+  def getDatasetSchema(@ApiParam(value = "the dataset's physical URI", required = true) uri: String,
+                 @ApiParam(value = "the dataset's format", required = true) format: String) = Action {
+    val datasetURI = new URI(uri)
+    val locationURI = new URI(datasetURI.getSchemeSpecificPart)
+    val locationScheme = locationURI.getScheme
+    val actualFormat = format match {
+      case "avro" => "com.databricks.spark.avro"
+      case format: String => format
+    }
+    locationScheme match {
+      case "hdfs" if actualFormat == "text" =>
+        Ok("No Scheme Available").as("text/plain")
+      case "hdfs" =>
+        val location = locationURI.getSchemeSpecificPart
+        val df = sparkSession.read.format(actualFormat).load(location)
+        val schema = SchemaConverters.convertStructToAvro(df.schema,SchemaBuilder.record("topLevelRecord"), "")
+        Ok(schema.toString(true)).as(JSON)
+      case _ =>
+        Ok(Json.toJson(""))
+    }
+  }
+
 }

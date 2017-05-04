@@ -18,26 +18,17 @@ import java.io.File
 import java.net.{URL, URLClassLoader}
 
 import com.google.inject.{AbstractModule, Singleton}
-
-@SuppressWarnings(Array("org.wartremover.warts.Var", "org.wartremover.warts.Null"))
-object HadoopConfDir {
-
-  var hadoopConfDir: Option[String] = None
-}
+import play.api.{Configuration, Environment}
 
 @SuppressWarnings(
   Array(
     "org.wartremover.warts.Overloading",
     "org.wartremover.warts.NonUnitStatements",
-    "org.wartremover.warts.StringPlusAny",
-    "org.wartremover.warts.Null",
-    "org.wartremover.warts.Var"
+    "org.wartremover.warts.StringPlusAny"
   )
 )
 @Singleton
-class Module extends AbstractModule {
-
-  println("STEP2")
+class Module(environment: Environment, configuration: Configuration) extends AbstractModule {
 
   def addPath(dir: String): Unit = {
     val method = classOf[URLClassLoader].getDeclaredMethod("addURL", classOf[URL])
@@ -47,7 +38,6 @@ class Module extends AbstractModule {
   }
 
   def configure(): Unit = {
-    println("STEP3")
-    HadoopConfDir.hadoopConfDir.foreach(addPath(_))
+    configuration.getString("hadoop_conf_dir").foreach(addPath)
   }
 }

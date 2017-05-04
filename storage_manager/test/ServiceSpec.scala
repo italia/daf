@@ -1,3 +1,19 @@
+/*
+ * Copyright 2017 TEAM PER LA TRASFORMAZIONE DIGITALE
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import java.io.{IOException, File => JFile}
 import java.net.ServerSocket
 
@@ -14,7 +30,6 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.WSResponse
 import play.api.test.{WithServer, WsTestClient}
 
-import scala.collection.convert.decorateAsScala._
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Random, Try}
@@ -42,13 +57,13 @@ class ServiceSpec extends Specification with BeforeAfterAll {
     }
   }
 
-  def application: Application = GuiceApplicationBuilder().configure("hadoop_conf_dir" -> s"").build()
+  def application: Application = GuiceApplicationBuilder().configure("hadoop_conf_dir" -> s"${ServiceSpec.confPath.pathAsString}").build()
 
   val limit = 1000
 
   "The storage_manager" should {
     "return a correct JSON document from a physical dataset" in new WithServer(app = application, port = getAvailablePort) {
-      val doc = {
+      val (doc, txtDoc) = {
         val sparkSession = ServiceSpec.sparkSession
 
         import sparkSession.implicits._
@@ -57,24 +72,32 @@ class ServiceSpec extends Specification with BeforeAfterAll {
         val caseClassDS = persons.toDS()
         caseClassDS.write.format("parquet").mode(SaveMode.Overwrite).save("/opendata/test.parquet")
         caseClassDS.write.format("com.databricks.spark.avro").mode(SaveMode.Overwrite).save("/opendata/test.avro")
+        caseClassDS.toDF().select("name", "age").write.format("csv").mode(SaveMode.Overwrite).save("/opendata/test.csv")
+        val txtDoc = caseClassDS.take(limit).map(p => s"${p.name},${p.age}").mkString("\n")
         val doc = s"[${
-          caseClassDS.toDF().takeAsList(limit).asScala.map(row => {
+          caseClassDS.toDF().take(limit).map(row => {
             Utility.rowToJson(caseClassDS.schema)(row)
           }).mkString(",")
         }]"
-        doc
+        (doc, txtDoc)
       }
 
       WsTestClient.withClient { implicit client =>
         val uri = "dataset:hdfs:/opendata/test.parquet"
         val response: WSResponse = Await.result[WSResponse](client.url(s"http://localhost:$port/storage_manager/v1/physical-dataset?uri=$uri&format=parquet&limit=$limit").execute, Duration.Inf)
-        response.body must be equalTo (doc)
+        response.body must be equalTo doc
       }
 
       WsTestClient.withClient { implicit client =>
         val uri = "dataset:hdfs:/opendata/test.avro"
         val response: WSResponse = Await.result[WSResponse](client.url(s"http://localhost:$port/storage_manager/v1/physical-dataset?uri=$uri&format=avro&limit=$limit").execute, Duration.Inf)
-        response.body must be equalTo (doc)
+        response.body must be equalTo doc
+      }
+
+      WsTestClient.withClient { implicit client =>
+        val uri = "dataset:hdfs:/opendata/test.csv"
+        val response: WSResponse = Await.result[WSResponse](client.url(s"http://localhost:$port/storage_manager/v1/physical-dataset?uri=$uri&format=text&limit=$limit").execute, Duration.Inf)
+        response.body must be equalTo txtDoc
       }
     }
   }
@@ -91,7 +114,6 @@ class ServiceSpec extends Specification with BeforeAfterAll {
       val confFile: File = confPath / "hdfs-site.xml"
       for {os <- confFile.newOutputStream.autoClosed} fs.getConf.writeXml(os)
     })
-    HadoopConfDir.hadoopConfDir = Some(ServiceSpec.confPath.pathAsString)
   }
 
   override def afterAll(): Unit = {
@@ -117,6 +139,6 @@ object ServiceSpec {
 
   var fileSystem: Try[FileSystem] = Failure[FileSystem](new Exception)
 
-  lazy val sparkSession = SparkSession.builder().master("local").getOrCreate()
+  lazy val sparkSession: SparkSession = SparkSession.builder().master("local").getOrCreate()
 
 }

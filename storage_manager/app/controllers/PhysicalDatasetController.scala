@@ -20,6 +20,7 @@ import java.net.URI
 
 import com.google.inject.Inject
 import io.swagger.annotations.{Api, ApiOperation, ApiParam}
+import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
 import play.api.Configuration
 import play.api.libs.json.Json
@@ -36,7 +37,9 @@ import play.api.mvc.{Action, Controller}
 @Api("physical-dataset")
 class PhysicalDatasetController @Inject()(configuration: Configuration) extends Controller {
 
-  val sparkSession: SparkSession = SparkSession.builder().master("local").getOrCreate()
+  val sparkConfig = new SparkConf()
+  sparkConfig.set("spark.driver.memory", configuration.getString("spark_driver_memory").getOrElse("128M"))
+  val sparkSession: SparkSession = SparkSession.builder().master("local").config(sparkConfig).getOrCreate()
 
   @ApiOperation(value = "given a physical dataset URI it returns a json document with the first 'limit' number of rows", produces = "application/json, text/plain")
   def getDataset(@ApiParam(value = "the dataset's physical URI", required = true) uri: String,

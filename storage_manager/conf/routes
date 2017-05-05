@@ -19,8 +19,8 @@ GET   /swagger.json                                controllers.ApiHelpController
 
 # Home page
 GET   /                                            controllers.Application.index
-GET   /storage_manager/v1/physical-datasets        controllers.PhysicalDatasetController.getDataset(uri:String, format:String, limit:Option[Int])
-GET   /storage_manager/v1/physical-datasets/schema controllers.PhysicalDatasetController.getDatasetSchema(uri:String, format:String)
+GET   /storage-manager/v1/physical-datasets        controllers.PhysicalDatasetController.getDataset(uri:String, format:String, limit:Option[Int])
+GET   /storage-manager/v1/physical-datasets/schema controllers.PhysicalDatasetController.getDatasetSchema(uri:String, format:String)
 
 ### NoDocs ###
 GET   /docs/swagger-ui/*file                       controllers.Assets.at(path:String="/public/lib/swagger-ui", file:String)

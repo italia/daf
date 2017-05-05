@@ -29,7 +29,7 @@ info:
     url: http://creativecommons.org/licenses/by/4.0/
 host : localhost:9000
 # will be prefixed to all paths
-basePath: /api/catalog/v1.0
+basePath: /catalog-manager/v1
 # array of all schemes that your API supports
 schemes:
   - http

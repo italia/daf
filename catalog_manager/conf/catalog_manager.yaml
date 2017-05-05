@@ -29,18 +29,18 @@ info:
     url: http://creativecommons.org/licenses/by/4.0/
 host : localhost:9000
 # will be prefixed to all paths
-basePath: /api/catalog/v1.0
+basePath: /catalog-manager/v1
 # array of all schemes that your API supports
 schemes:
   - http
 produces:
   - application/json
 paths:
-  "/dataset_catalogs":
+  "/dataset-catalogs":
     get:
       summary: DatasetCatalog
       description: |
-        List of MetaCatalog storeds
+        List of MetaCatalog stored
       tags:
         - DatasetCatalog
       operationId: datasetcatalogs
@@ -55,16 +55,16 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  "/dataset_catalog/{catalogid}":
+  "/dataset-catalogs/{catalog_id}":
     get:
       summary: DatasetCatalog
       description: |
-        The DatasetCatalog for ....
+        DatasetCatalog data
       tags:
         - DatasetCatalog
       operationId: datasetcatalogbyid
       parameters:
-            - name: catalogid
+            - name: catalog_id
               in: path
               description: Name of catalog
               required: true

@@ -79,7 +79,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  "/create/datasets":
+  "/create/dataset":
     post:
       summary: DatasetCatalog
       description: |

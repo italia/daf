@@ -36,7 +36,7 @@ schemes:
 produces:
   - application/json
 paths:
-  "/dataset_catalogs":
+  "/dataset-catalogs":
     get:
       summary: DatasetCatalog
       description: |
@@ -55,7 +55,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  "/dataset_catalog/{catalogid}":
+  "/dataset-catalogs/{catalogid}":
     get:
       summary: DatasetCatalog
       description: |
@@ -79,7 +79,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  "/create/dataset":
+  "/create/datasets":
     post:
       summary: DatasetCatalog
       description: |

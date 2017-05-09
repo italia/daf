@@ -14,7 +14,7 @@ GET         /favicon.ico    controllers.Assets.versioned(path="/public/swagger-u
 
 GET         /api/*file      controllers.Assets.versioned(path="/public/swagger-ui", file: Asset)
 
-->          /uber           catalog_manager.yaml.Routes
+->          /catalog-manager/v1           catalog_manager.yaml.Routes
 
 ### NoDocs ###
 GET         /docs/swagger-ui/*file    controllers.Assets.at(path:String="/public/lib/swagger-ui", file:String)

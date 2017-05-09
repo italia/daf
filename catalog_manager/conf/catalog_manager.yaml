@@ -99,7 +99,7 @@ paths:
           description: Success
           schema:
             type: object
-            $ref: '#/definitions/Success'
+            $ref: '#/definitions/Successf'
         default:
           description: Unexpected error
           schema:
@@ -117,6 +117,9 @@ definitions:
       conversion:
         type: object
         $ref: '#/definitions/ConversionSchema'
+      dcatapit:
+        type: object
+        $ref: '#/definitions/DcatApIt'
   DatasetCatalog:
       required:
         - namespace
@@ -132,10 +135,10 @@ definitions:
         name:
           type: string
           description: Name of the dataset
-        alliases:
-          type: array
-          items:
-            type: string
+        #alliases:
+        #  type: array
+        #  items:
+        #    type: string
         fields:
           type: array
           items:
@@ -143,21 +146,22 @@ definitions:
   Field:
       required:
         - name
-        - field_type
-        - metadata
+        - type
+       # - metadata
       properties:
         name:
           type: string
           description: Name of the field
-        field_type:
-          $ref: '#/definitions/ActionAnyContent'
+        type:
+         # $ref: '#/definitions/ActionAnyContent'
+          type: string
           description: It can be a json object for complex type, or an array of string for primitive types (the latter may contains null in case the field can be nullable)
         doc:
           type: string
           description: Documentation/info for user prurposes
-        default:
-          $ref: '#/definitions/ActionAnyContent'
-          description: Default value for the field
+       # default:
+       #   $ref: '#/definitions/ActionAnyContent'
+       #   description: Default value for the field
         metadata:
           $ref: '#/definitions/Metadata'
           description: JSON object containing metadata information for the field
@@ -171,33 +175,31 @@ definitions:
           type: string
   Metadata:
     type: object
-    required:
-      - metadata_format
-      - required
-      - constr
+    #  - metadata_format
+    #  - required
+    #  - constr
     properties:
-      name_lang:
-        $ref: '#/definitions/Lang'
-      metadata_format:
-        type: string
+     # name_lang:
+     #   $ref: '#/definitions/Lang'
+     # metadata_format:
+     #   type: string
       desc:
         type: string
-      desc_lang:
-        $ref: '#/definitions/Lang'
+      #name:
+      #  type: string
+      field_type:
+        type: string
+      #desc_lang:
+      #  $ref: '#/definitions/Lang'
       cat:
         type: string
       tag:
         type: array
         items:
           type: string
-      required:
-        type: integer
-        format: int32
-      constr:
-        description: Constr defines constraints that can be applied to the values of the field
-        type: array
-        items:
-          $ref: '#/definitions/MetaConstraint'
+      semantics:
+        type: object
+        $ref: '#/definitions/Semantic'
   Lang:
     type: object
     properties:
@@ -216,33 +218,41 @@ definitions:
         type: object
         $ref: '#/definitions/ActionAnyContent'
   Semantic:
-    required:
-      - rdfs:domain
-      - rdfs:range
     type: object
     properties:
-      rdfs:domain:
+      id:
         type: string
-        description: Uri of the Subject
-      rdfs:range:
-        type: string
-        description: Uri of the Object
-      owl:objectProperty:
-        type: string
-        description: Uri of the complex predicate
-      owl:datatypeProp:
-        type: string
-        description: Uri of the simple predicate
+      context:
+        type: array
+        items:
+          type: string
+   # required:
+   #   - rdfs:domain
+   #   - rdfs:range
+   # type: object
+   # properties:
+   #   rdfs:domain:
+   #     type: string
+   #     description: Uri of the Subject
+   #   rdfs:range:
+   #     type: string
+   #     description: Uri of the Object
+   #   owl:objectProperty:
+   #     type: string
+   #     description: Uri of the complex predicate
+   #   owl:datatypeProp:
+   #     type: string
+   #     description: Uri of the simple predicate
   Operational:
     required:
-      - id
+     # - id
       - group_own
       - read_type
       - input_src
     properties:
-      id:
-        type: integer
-        format: int32
+      #id:
+      #  type: integer
+      #  format: int32
       group_own:
         type: string
         description: Group of ownership to which the dataset belongs. It is set to 'open' by default
@@ -322,10 +332,49 @@ definitions:
         type: string
       fields:
         type: string
-  Success:
+  Successf:
     type: object
     properties:
       message:
         type: string
       fields:
+        type: string
+  DcatApIt:
+    type: object
+    properties:
+      dct_identifier:
+        type: string
+      dct_title:
+        $ref: '#/definitions/DcatApItValue'
+      dct_description:
+        $ref: '#/definitions/DcatApItValue'
+      dcat_theme:
+        $ref: '#/definitions/DcatApItType'
+      dct_rightsHolder:
+         $ref: '#/definitions/DcatApItType'
+      dct_accrualPeriodicity:
+        $ref: '#/definitions/DcatApItType'
+      dct_subject:
+        type: array
+        items:
+          $ref: '#/definitions/DcatApItType'
+      dct_language:
+        $ref: '#/definitions/DcatApItType'
+      dcat_keyword:
+        type: array
+        items:
+          type: string
+      dcat_spatial:
+        type: string
+  DcatApItType:
+    type: object
+    properties:
+      id:
+        type: string
+      value:
+        type: string
+  DcatApItValue:
+    type: object
+    properties:
+      value:
         type: string

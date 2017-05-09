@@ -20,9 +20,9 @@ libraryDependencies ++= Seq(
   "org.webjars" % "swagger-ui" % "3.0.7",
   specs2 % Test,
   "org.scalacheck" %% "scalacheck" % "1.13.5" % Test,
-  "org.specs2" %% "specs2-scalacheck" % "3.8.9" % Test,
+ // "org.specs2" %% "specs2-scalacheck" % "3.8.9" % Test,
   "me.jeffmay" %% "play-json-tests" % "1.5.0" % Test,
-  "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test
+  "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.0" % Test
 )
 
 resolvers ++= Seq(
@@ -38,7 +38,7 @@ routesGenerator := InjectedRoutesGenerator
 
 apiFirstParsers := Seq(ApiFirstSwaggerParser.swaggerSpec2Ast.value).flatten
 
-playScalaAutogenerateTests := true
+playScalaAutogenerateTests := false
 
 headers := Map(
   "sbt" -> Apache2_0("2017", "TEAM PER LA TRASFORMAZIONE DIGITALE"),

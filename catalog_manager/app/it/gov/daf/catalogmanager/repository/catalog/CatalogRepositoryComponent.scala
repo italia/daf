@@ -69,8 +69,6 @@ trait CatalogRepository {
 
 trait CatalogRepositoryComponent {
     val catalogRepository: CatalogRepository //= new MonitorRepository
-
-
 }
 
 

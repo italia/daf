@@ -44,8 +44,6 @@ class CatalogServiceSpec extends Specification with TestEnvironment {
       catalog must be equalTo MetaCatalog(None,None,None,None)
       //  true must equalTo(true)
     }
-    
+
   }
 }
-
-

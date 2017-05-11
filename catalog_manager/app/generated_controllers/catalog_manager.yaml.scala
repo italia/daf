@@ -18,6 +18,7 @@ import scala.util._
 import javax.inject._
 
 import it.gov.daf.catalogmanager.service.ServiceRegistry
+import scala.concurrent.Future
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -26,7 +27,7 @@ import it.gov.daf.catalogmanager.service.ServiceRegistry
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -45,12 +46,24 @@ package catalog_manager.yaml {
             Datasetcatalogs200(catalogs)
             // ----- End of unmanaged code area for action  Catalog_managerYaml.datasetcatalogs
         }
+        val createckandataset = createckandatasetAction { (dataset: Dataset) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.createckandataset
+            NotImplementedYet
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.createckandataset
+        }
         val datasetcatalogbyid = datasetcatalogbyidAction { (catalog_id: String) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbyid
             val calalog = ServiceRegistry.catalogService.getCatalogs("test")
             Datasetcatalogbyid200(calalog)
             //NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbyid
+        }
+        val ckandatasetbyid = ckandatasetbyidAction { (dataset_id: String) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.ckandatasetbyid
+            val dataset: Future[Dataset] = ServiceRegistry.catalogService.getDataset(dataset_id)
+            Ckandatasetbyid200(dataset)
+            //NotImplementedYet
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.ckandatasetbyid
         }
         val createdatasetcatalog = createdatasetcatalogAction { (catalog: MetaCatalog) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalog

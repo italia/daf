@@ -13,7 +13,7 @@ import play.api.libs.json._
 class CatalogRepositoryDev extends CatalogRepository{
 
   private val streamDataschema =
-    new FileInputStream(Environment.simple().getFile("data/data-dataschema.json"))
+    new FileInputStream(Environment.simple().getFile("data/data-mgt/data-dataschema.json"))
   private val dataschema: JsValue = try {
     Json.parse(streamDataschema)
   } finally {
@@ -21,23 +21,23 @@ class CatalogRepositoryDev extends CatalogRepository{
   }
 
   private val streamOperational =
-    new FileInputStream(Environment.simple().getFile("data/data-operational.json"))
+    new FileInputStream(Environment.simple().getFile("data/data-mgt/data-operational.json"))
   private val operationalSchema: JsValue = try {
     Json.parse(streamOperational)
   } finally {
     streamOperational.close()
   }
 
-  private val streamConversion =
-    new FileInputStream(Environment.simple().getFile("data/data-convStd.json"))
-  private val conversionSchema: JsValue = try {
-    Json.parse(streamConversion)
-  } finally {
-    streamConversion.close()
-  }
+  //private val streamConversion =
+  //  new FileInputStream(Environment.simple().getFile("data/data-convStd.json"))
+  //private val conversionSchema: JsValue = try {
+  //  Json.parse(streamConversion)
+  //} finally {
+  //  streamConversion.close()
+  //}
 
   private val streamDcat =
-    new FileInputStream(Environment.simple().getFile("data/data-dcatapit.json"))
+    new FileInputStream(Environment.simple().getFile("data/data-mgt/data-dcatapit.json"))
   private val dcatSchema: JsValue = try {
     Json.parse(streamDcat)
   } finally {
@@ -57,11 +57,11 @@ class CatalogRepositoryDev extends CatalogRepository{
     case e: JsError => None
   }
 
-  val convStdJson: JsResult[ConversionSchema] = conversionSchema.validate[ConversionSchema]
-  val conversion = convStdJson match {
-    case s: JsSuccess[ConversionSchema] => Option(s.get)
-    case e: JsError => None
-  }
+  //val convStdJson: JsResult[ConversionSchema] = conversionSchema.validate[ConversionSchema]
+  //val conversion = convStdJson match {
+  //  case s: JsSuccess[ConversionSchema] => Option(s.get)
+  //  case e: JsError => None
+ // }
 
   val dcatJson: JsResult[DcatApIt] = dcatSchema.validate[DcatApIt]
   val dcat = dcatJson match {
@@ -70,10 +70,12 @@ class CatalogRepositoryDev extends CatalogRepository{
   }
 
   def listCatalogs() :Seq[MetaCatalog] = {
-    Seq(MetaCatalog(datasetCatalog,operational,conversion,dcat))
+   // Seq(MetaCatalog(datasetCatalog,operational,conversion,dcat))
+    Seq(MetaCatalog(datasetCatalog,operational,dcat))
   }
   def getCatalogs(catalogId :String) :MetaCatalog = {
-   MetaCatalog(datasetCatalog,operational,conversion,dcat)
+  // MetaCatalog(datasetCatalog,operational,conversion,dcat)
+     MetaCatalog(datasetCatalog,operational,dcat)
   }
 
   def createCatalog() :Successf = {

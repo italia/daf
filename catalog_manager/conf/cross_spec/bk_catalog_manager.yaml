@@ -163,9 +163,9 @@ definitions:
       operational:
          type: object
          $ref: '#/definitions/Operational'
-      #conversion:
-       # type: object
-        #$ref: '#/definitions/ConversionSchema'
+      conversion:
+        type: object
+        $ref: '#/definitions/ConversionSchema'
       dcatapit:
         type: object
         $ref: '#/definitions/DcatApIt'
@@ -294,54 +294,40 @@ definitions:
    #     description: Uri of the simple predicate
   Operational:
     required:
+     # - id
+      - group_own
+      - read_type
+      - input_src
     properties:
       #id:
       #  type: integer
       #  format: int32
-      uri:
-        type: string
-        description: Unique resurce identifier of the dataset. It is calculated automatically and assigned once for all
-      id_std:
-        type: boolean
-        description: It tells if the dataset is a Standart Schema dataset (or VID). It takes values true (StdSchema Dataset), false (not a StdSchema Dataset)
       group_own:
         type: string
-        description: Group of ownership to which the dataset belongs. It is set to 'open' by default.
+        description: Group of ownership to which the dataset belongs. It is set to 'open' by default
       std_schema:
-        $ref: '#/definitions/StdSchema'
+        type: string
+        description: Unique identifier for the standard schema
       read_type:
         type: string
-      georef:
+        enum: ["ts", "update"]
+        default: ts
+        description: It tells if the dataset is a TS (so it will return all appended data), or if it is an update and only the most recent timestamp needs to be returned. It can take only two values ts or update, ts is the default
+      input_src:
         type: array
         items:
-         $ref: '#/definitions/GeoRef'
-  GeoRef:
-    type: object
-    properties:
-      lat:
-        type: number
-        format: double
-      lon:
-        type: number
-        format: double
-  StdSchema:
-   type: object
-   properties:
-    std_uri:
-      type: string
-    fields_conv:
-      type: array
-      items:
-        $ref: '#/definitions/ConversionField'
+          $ref: '#/definitions/InputType'
   InputType:
       type: object
+      required:
+        - ing_type
+        - src_type
+        - url
       properties:
-        ingestion_type:
+        ing_type:
           type: string
           enum: ["push", "pull"]
           description: It takes two values pull or push
-        origin:
-          type: string
         src_type:
           type: string
           description: The format of the input resource

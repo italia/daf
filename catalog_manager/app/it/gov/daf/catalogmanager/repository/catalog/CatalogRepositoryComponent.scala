@@ -1,7 +1,7 @@
 package it.gov.daf.catalogmanager.repository.catalog
 
 import play.api.libs.json._
-import catalog_manager.yaml.{InputTypeIng_type, _}
+import catalog_manager.yaml._
 
 
 
@@ -13,11 +13,13 @@ trait CatalogRepository {
 
     import play.api.libs.functional.syntax._
 
-    // DO NOT DELETE
+
 
     def listCatalogs() :Seq[MetaCatalog]
     def getCatalogs(catalogId :String) :MetaCatalog
     def createCatalog() :Successf
+
+    // DO NOT DELETE
 
  /* implicit val SemanticRead :Reads[Semantic] = (
     (JsPath \ "id").readNullable[String] and

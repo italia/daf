@@ -17,16 +17,18 @@
 package controllers
 
 import java.net.URI
+import java.security.PrivilegedExceptionAction
 
 import com.databricks.spark.avro.SchemaConverters
 import com.google.inject.Inject
 import io.swagger.annotations.{Api, ApiOperation, ApiParam}
 import org.apache.avro.SchemaBuilder
+import org.apache.hadoop.security.UserGroupInformation
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
 import play.api.Configuration
 import play.api.libs.json.Json
-import play.api.mvc.{Action, Controller}
+import play.api.mvc.{Action, Controller, Result}
 
 @SuppressWarnings(
   Array(
@@ -47,32 +49,39 @@ class PhysicalDatasetController @Inject()(configuration: Configuration) extends 
   def getDataset(@ApiParam(value = "the dataset's physical URI", required = true) uri: String,
                  @ApiParam(value = "the dataset's format", required = true) format: String,
                  @ApiParam(value = "max number of rows to return", required = false) limit: Option[Int]) = Action {
-    val defaultLimit = configuration.getInt("max_number_of_rows").fold[Int](throw new Exception("it shouldn;'t happen"))(identity)
-    val datasetURI = new URI(uri)
-    val locationURI = new URI(datasetURI.getSchemeSpecificPart)
-    val locationScheme = locationURI.getScheme
-    val actualFormat = format match {
-      case "avro" => "com.databricks.spark.avro"
-      case format: String => format
-    }
-    locationScheme match {
-      case "hdfs" if actualFormat == "text" =>
-        val location = locationURI.getSchemeSpecificPart
-        val rdd = sparkSession.sparkContext.textFile(location)
-        val doc = rdd.take(limit.getOrElse(defaultLimit)).mkString("\n")
-        Ok(doc).as("text/plain")
-      case "hdfs" =>
-        val location = locationURI.getSchemeSpecificPart
-        val df = sparkSession.read.format(actualFormat).load(location)
-        val doc = s"[${
-          df.take(limit.getOrElse(defaultLimit)).map(row => {
-            Utility.rowToJson(df.schema)(row)
-          }).mkString(",")
-        }]"
-        Ok(doc).as(JSON)
-      case _ =>
-        Ok(Json.toJson(""))
-    }
+
+//    val ugi = UserGroupInformation.createProxyUser("david", UserGroupInformation.getLoginUser())
+    val ugi = UserGroupInformation.createRemoteUser("david")
+    ugi.doAs(new PrivilegedExceptionAction[Result] {
+      override def run(): Result = {
+        val defaultLimit = configuration.getInt("max_number_of_rows").fold[Int](throw new Exception("it shouldn;'t happen"))(identity)
+        val datasetURI = new URI(uri)
+        val locationURI = new URI(datasetURI.getSchemeSpecificPart)
+        val locationScheme = locationURI.getScheme
+        val actualFormat = format match {
+          case "avro" => "com.databricks.spark.avro"
+          case format: String => format
+        }
+        locationScheme match {
+          case "hdfs" if actualFormat == "text" =>
+            val location = locationURI.getSchemeSpecificPart
+            val rdd = sparkSession.sparkContext.textFile(location)
+            val doc = rdd.take(limit.getOrElse(defaultLimit)).mkString("\n")
+            Ok(doc).as("text/plain")
+          case "hdfs" =>
+            val location = locationURI.getSchemeSpecificPart
+            val df = sparkSession.read.format(actualFormat).load(location)
+            val doc = s"[${
+              df.take(limit.getOrElse(defaultLimit)).map(row => {
+                Utility.rowToJson(df.schema)(row)
+              }).mkString(",")
+            }]"
+            Ok(doc).as(JSON)
+          case _ =>
+            Ok(Json.toJson(""))
+        }
+      }
+    })
   }
 
   @ApiOperation(value = "given a physical dataset URI it returns its AVRO schema in json format", produces = "application/json, text/plain")

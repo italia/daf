@@ -94,10 +94,20 @@ headers := Map(
   "yaml" -> Apache2_0("2017", "TEAM PER LA TRASFORMAZIONE DIGITALE", "#")
 )
 
-dockerBaseImage := "frolvlad/alpine-oraclejdk8:latest"
+dockerPackageMappings in Docker += (baseDirectory.value / "docker" / "krb5.conf") -> "krb5.conf"
+dockerPackageMappings in Docker += (baseDirectory.value / "docker" / "principal.keytab") -> "principal.keytab"
+dockerPackageMappings in Docker += (baseDirectory.value / "docker" / "start.sh") -> "start.sh"
+dockerBaseImage := "anapsix/alpine-java:8_jdk_unlimited"
 dockerCommands := dockerCommands.value.flatMap {
-  case cmd@Cmd("FROM", _) => List(cmd, Cmd("RUN", "apk update && apk add bash"))
+  case cmd@Cmd("FROM", _) => List(cmd,
+    Cmd("RUN", "apk update && apk add bash krb5-libs krb5"),
+    Cmd("ADD", "krb5.conf", "/etc/krb5.conf"),
+    Cmd("ADD", "principal.keytab", "/opt/docker/conf/principal.keytab"),
+    Cmd("ADD", "start.sh", "/opt/docker/bin/start.sh"),
+    Cmd("RUN", "chmod +x /opt/docker/bin/start.sh")
+  )
   case other => List(other)
 }
-dockerCommands += ExecCmd("ENTRYPOINT", s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
+//dockerCommands += ExecCmd("ENTRYPOINT", s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
+dockerCommands += ExecCmd("ENTRYPOINT", s"bin/start.sh")
 dockerExposedPorts := Seq(9000)

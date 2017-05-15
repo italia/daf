@@ -1,0 +1,32 @@
+{
+  "fields_conv": [
+    {
+      "field_std": "agency_id",
+      "formula": "agency_id"
+    },
+    {
+      "field_std": "agency_name",
+      "formula": "agency_name"
+    },
+    {
+      "field_std": "trip_id",
+      "formula": "trip_id"
+    },
+    {
+      "field_std": "agency_url",
+      "formula": "agency_url"
+    },
+    {
+      "field_std": "agency_timezone",
+      "formula": "agency_timezone"
+    },
+    {
+      "field_std": "agency_lang",
+      "formula": "agency_lang"
+    },
+    {
+      "field_std": "agency_phone",
+      "formula": "agency_phone"
+    }
+  ]
+}

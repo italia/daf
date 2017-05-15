@@ -1,0 +1,193 @@
+definitions:
+  Dataset:
+    type: object
+    properties:
+        author:
+          type: string
+        author_email:
+          type: string
+        creator_user_id:
+          type: string
+        extras:
+          type: array
+          items:
+            $ref: '#/definitions/Extra'
+        frequency:
+          type: string
+        publiser_name:
+          type: string
+        id:
+          type: string
+        metadata_created:
+          type: string
+        creator_identifier:
+          type: string
+        temporal_end:
+          type: string
+        metadata_modified:
+          type: string
+        is_open:
+          type: boolean
+        theme:
+          type: string
+        temporal_start:
+          type: string
+        state:
+          type: string
+        version:
+          type: string
+        relationships_as_object:
+          type: array
+          items:
+            type: string
+        license_id:
+          type: string
+        resources:
+          type: array
+          items:
+              $ref: '#/definitions/Resource'
+        holder_name:
+          type: string
+        tags:
+          type: array
+          items:
+              $ref: '#/definitions/Tags'
+        holder_identifier:
+          type: string
+        groups:
+          type: array
+          items:
+              $ref: '#/definitions/Group'
+        name:
+          type: string
+        isopen:
+          type: boolean
+        url:
+          type: string
+        notes:
+          type: string
+        owner_org:
+          type: string
+        modified:
+          type: string
+        publisher_identifier:
+          type: string
+        title:
+          type: string
+        revision_id:
+          type: string
+        identifier:
+          type: string
+        creator_user_id:
+          type: string
+        num_resources:
+          type: integer
+        organization:
+          $ref: '#/definitions/Organization'
+  Organization:
+    type: object
+    properties:
+      description:
+        type: string
+      created:
+        type: string
+      title:
+        type: string
+      name:
+        type: string
+      is_organization:
+        type: boolean
+      state:
+        type: string
+      image_url:
+        type: string
+      revisione_id:
+        type: string
+      #type:
+        #type: string
+      id:
+        type: string
+      approval_status:
+        type: string
+  Group:
+    type: object
+    properties:
+      display_name:
+        type: string
+      description:
+        type: string
+      image_display_url:
+        type: string
+      title:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+  Tags:
+    type: object
+    properties:
+      vocabulary_id:
+        type: string
+      state:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+  Resource:
+    type: object
+    properties:
+      cache_last_updated:
+        type: string
+      cache_url:
+        type: string
+      created:
+       type: string
+      datastore_active:
+       type: boolean
+      description:
+       type: string
+      distribution_format:
+       type: string
+      format:
+       type: string
+      hash:
+       type: string
+      id:
+       type: string
+      last_modified:
+       type: string
+      mimetype:
+       type: string
+      mimetype_inner:
+       type: string
+      name:
+       type: string
+      package_id:
+       type: string
+      position:
+       type: integer
+      resource_type:
+       type: string
+      revision_id:
+       type: string
+      size:
+       type: string
+      state:
+       type: string
+      url:
+       type: string
+      url_type:
+       type: string
+      webstore_last_updated:
+       type: string
+      webstore_url:
+       type: string
+  Extra:
+    type: object
+    properties:
+      key:
+        type: string
+      value:
+        type: string

@@ -24,8 +24,8 @@ trait TestEnvironment extends
   val catalogRepository :CatalogRepositoryDev = mock[CatalogRepositoryDev]
   val catalogService :CatalogService = new CatalogService//mock[CatalogService]
 
-  catalogRepository.getCatalogs("anything") returns MetaCatalog(None,None,None,None)
-  catalogRepository.listCatalogs() returns Seq(MetaCatalog(None,None,None,None))
+  catalogRepository.getCatalogs("anything") returns MetaCatalog(None,None,None)
+  catalogRepository.listCatalogs() returns Seq(MetaCatalog(None,None,None))
 }
 
 
@@ -37,11 +37,11 @@ class CatalogServiceSpec extends Specification with TestEnvironment {
     "catalogService.getCatalogs() return MetaCatalog" in {
       val catalog :MetaCatalog = catalogService.getCatalogs("anything")
       println(catalog)
-      catalog must be equalTo  MetaCatalog(None,None,None,None)
+      catalog must be equalTo  MetaCatalog(None,None,None)
     }
     "catalogService.listCatalogs return a list of MetaCatalog" in {
       val catalog = catalogService.listCatalogs()(0)
-      catalog must be equalTo MetaCatalog(None,None,None,None)
+      catalog must be equalTo MetaCatalog(None,None,None)
       //  true must equalTo(true)
     }
 

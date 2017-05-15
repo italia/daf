@@ -5,13 +5,16 @@ The DAF (Data Analytics Framework) is a platform meant to gather and store data 
 The DAF platform shouldn’t only provide support for data at rest and fast data (streaming), but also for storing and managing collections of unstructured data, textual documents.
 Besides providing those storing capabilities the next main goal is to provide a powerful mechanism for data integration, i.e. a way for integrating data that traditionally reside on separate siloes. Enabling the correlation of data sets normally residing on different systems/organisations can become a very powerful enabling factor for discovering new insights on the data.
 The platform should allow the data scientists to access its computational power for implementing advanced analytics algorithms.
+
 ## Logical View
 The DAF platform is ultimately an implementation of the “[data lake](https://en.wikipedia.org/wiki/Data_lake)” concept. Assembling a data lake involves a sequence of unavoidable steps meant to gather, organise and publish the data in an efficient and secure way.
 
 The most important aspect to take into account in a data lake being set up is the data governance. Data governance means data organizations and metadata management. Being able to catalog the data sets together with their metadata is the prerequisite for implementing any further steps in the data lake set up such as data ingestion/egestion and data security.
 
 The main abstraction the DAF platform is based upon is the data set. A data set means a collections of records described by some kind of schema. A data set is identified by a logical URI which identifies it in the data catalog and is associated to a physical URI that identifies the actual medium and location where the data is actually stored.
+
 ![URIs relationships](images/uris.png)
+
 A LogicalURI must be associated to one and only one PhysicalURI that can be associated to zero or more ViewURIs. Let’s explain this with an example.
 Let’s define a LogicalURI, for example, daf://open/milan/mobilita, this can be bound to the following PhysicalURI: dataset:hdfs://open/milan/mobilita and eventually to a ViewURI like: dataset:hive://mobilita/milan. That PhysicalUri represents the actual location on the Hadoop storage behind.
 
@@ -38,6 +41,7 @@ The high-level view of the architecture is pretty simple:
 * Hadoop Storage Layer
 
   This layer contains all the storage platform provided by Hadoop: HDFS, Kudu and HBase. As described above the physical URIs contain the information for accessing the data as stored on those storage platforms.
+
 ![Logical View](images/daf_arch_logical_view.png)
 
 ## Component/𝜇-Service View
@@ -71,7 +75,9 @@ The IngestionManager is also responsible for scheduling the ingestion tasks base
   The DatasetManager is also responsible for publishing the dataset into a proper serving layer. For example, a dataset operation will create an Impala external mapped on the dataset directory sitting on HDFS. This publishing operation will provide the user with the JDBC/ODBC connection informations for connecting an external tool to that table.
 
 ## Deloyment View
+
 ![Deployment View](images/daf_arch_deployment_view.png)
+
 The deployment of the entire platform is based on two disjoint clusters of machines:
 
 1. Kubernetes Cluster

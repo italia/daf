@@ -1,11 +1,5 @@
 logLevel := Level.Warn
 
-resolvers += Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns)
-
-addSbtPlugin("com.typesafe.play" % "sbt-plugin"  % "2.5.14")
-
-addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.1.5")
-
 addSbtPlugin("org.wartremover" % "sbt-wartremover" % "2.0.3")
 
 addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.3.0")

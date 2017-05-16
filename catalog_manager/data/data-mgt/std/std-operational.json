@@ -1,0 +1,20 @@
+{
+  "uri": "daf://dataset/vid/open/daf/mobility/gtfs_agency",
+  "is_std": 1,
+  "group_own": "open",
+  "read_type": "update",
+  "location":
+  [
+    {
+      "lat": 42.833333,
+      "lon": 12.833333
+    }
+  ],
+  "input_src":
+    {
+      "ing_type": "pull",
+      "src_type": "csv",
+      "url": "156.54.180.185/ftp/torino/gtfs_agency.txt"
+    }
+
+}

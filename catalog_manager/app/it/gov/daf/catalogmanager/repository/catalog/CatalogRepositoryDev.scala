@@ -14,6 +14,7 @@ class CatalogRepositoryDev extends CatalogRepository{
 
   private val streamDataschema =
     new FileInputStream(Environment.simple().getFile("data/data-mgt/data-dataschema.json"))
+   // new FileInputStream(Environment.simple().getFile("data/data-mgt/std/std-dataschema.json"))
   private val dataschema: JsValue = try {
     Json.parse(streamDataschema)
   } finally {
@@ -73,6 +74,7 @@ class CatalogRepositoryDev extends CatalogRepository{
    // Seq(MetaCatalog(datasetCatalog,operational,conversion,dcat))
     Seq(MetaCatalog(datasetCatalog,operational,dcat))
   }
+
   def getCatalogs(catalogId :String) :MetaCatalog = {
   // MetaCatalog(datasetCatalog,operational,conversion,dcat)
      MetaCatalog(datasetCatalog,operational,dcat)

@@ -36,6 +36,8 @@ scalacOptions ++= Seq(
   "-Xfuture"
 )
 
+wartremoverErrors ++= Warts.allBut(Wart.Equals)
+
 lazy val root = (project in file(".")).enablePlugins(AutomateHeaderPlugin)
 
 scalaVersion := "2.11.8"

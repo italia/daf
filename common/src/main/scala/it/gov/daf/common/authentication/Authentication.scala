@@ -17,35 +17,52 @@
 package it.gov.daf.common.authentication
 
 import org.pac4j.core.profile.{CommonProfile, ProfileManager}
-import org.pac4j.core.util.CommonHelper
 import org.pac4j.jwt.config.signature.SecretSignatureConfiguration
+import org.pac4j.jwt.credentials.authenticator.JwtAuthenticator
 import org.pac4j.jwt.profile.JwtGenerator
 import org.pac4j.play.PlayWebContext
 import org.pac4j.play.store.PlaySessionStore
 import play.api.Configuration
-import play.api.libs.json.Json
 import play.api.mvc.{RequestHeader, Result, Results}
 
-import scala.collection.JavaConversions.{asScalaBuffer, _}
+import scala.collection.convert.decorateAsScala._
+import scala.collection.mutable
 
+@SuppressWarnings(
+  Array(
+    "org.wartremover.warts.Throw"
+  )
+)
 object Authentication extends Results {
+
+  def getClaims(configuration: Configuration, requestHeader: RequestHeader): Option[mutable.Map[String, AnyRef]] = {
+    val header: Option[String] = requestHeader.headers.get("Authorization")
+    val token: Option[String] = for {
+      h <- header
+      t <- h.split("Bearer").lastOption
+    } yield t.trim
+    val secret = configuration.getString("pac4j.jwt_secret").fold[String](throw new Exception("missing secret"))(identity)
+    val jwtAuthenticator = new JwtAuthenticator()
+    jwtAuthenticator.addSignatureConfiguration(new SecretSignatureConfiguration(secret))
+    token.map(jwtAuthenticator.validateTokenAndGetClaims(_).asScala)
+  }
 
   def getProfiles(request: RequestHeader, playSessionStore: PlaySessionStore): List[CommonProfile] = {
     val webContext = new PlayWebContext(request, playSessionStore)
     val profileManager = new ProfileManager[CommonProfile](webContext)
-    val profiles = profileManager.getAll(true)
-    asScalaBuffer(profiles).toList
+    profileManager.getAll(true).asScala.toList
   }
 
   def getToken: (Configuration) => (PlaySessionStore) => (RequestHeader) => Result = (configuration: Configuration) => (playSessionStore: PlaySessionStore) => (request: RequestHeader) => {
     val secret = configuration.getString("pac4j.jwt_secret").fold[String](throw new Exception("missing secret"))(identity)
     val generator = new JwtGenerator[CommonProfile](new SecretSignatureConfiguration(secret))
-    var token: String = ""
     val profiles = getProfiles(request, playSessionStore)
-    if (CommonHelper.isNotEmpty(profiles)) {
-      token = generator.generate(profiles.get(0))
-    }
-    Ok(Json.toJson(token))
+    val token: Option[String] = profiles.headOption.map(profile => {
+      //val claims = new JWTClaimsSet.Builder().expirationTime(new Date).build()
+      //profile.addAttributes(claims.getClaims) //TODO It's possible here to add expiration and other token related info
+      generator.generate(profile)
+    })
+    Ok(token.getOrElse(""))
   }
 
 }

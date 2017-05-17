@@ -36,6 +36,9 @@ scalacOptions ++= Seq(
   "-Xfuture"
 )
 
+wartremoverErrors ++= Warts.allBut(Wart.Equals)
+wartremoverExcluded ++= routes.in(Compile).value
+
 lazy val root = (project in file(".")).enablePlugins(PlayScala, AutomateHeaderPlugin, DockerPlugin)
 
 scalaVersion := "2.11.8"

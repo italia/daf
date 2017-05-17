@@ -27,6 +27,13 @@ import org.pac4j.play.http.DefaultHttpActionAdapter
 import org.pac4j.play.store.{PlayCacheSessionStore, PlaySessionStore}
 import play.api.{Configuration, Environment}
 
+@SuppressWarnings(
+  Array(
+    "org.wartremover.warts.NonUnitStatements",
+    "org.wartremover.warts.Overloading",
+    "org.wartremover.warts.Throw"
+  )
+)
 @Singleton
 class SecurityModule(environment: Environment, configuration: Configuration) extends AbstractModule {
   override def configure(): Unit = {
@@ -46,5 +53,6 @@ class SecurityModule(environment: Environment, configuration: Configuration) ext
     config.setHttpActionAdapter(new DefaultHttpActionAdapter())
 
     bind(classOf[Config]).toInstance(config)
+    bind(classOf[JwtAuthenticator]).toInstance(jwtAuthenticator)
   }
 }

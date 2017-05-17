@@ -15,10 +15,10 @@
  */
 
 import Versions._
-import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
 import sbt.Keys.resolvers
 
-name := "daf_storage_manager"
+organization := "it.gov.daf"
+name := "common"
 
 version := "1.0.0"
 
@@ -36,7 +36,7 @@ scalacOptions ++= Seq(
   "-Xfuture"
 )
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala, AutomateHeaderPlugin, DockerPlugin)
+lazy val root = (project in file(".")).enablePlugins(AutomateHeaderPlugin)
 
 scalaVersion := "2.11.8"
 
@@ -67,19 +67,19 @@ val hadoopLibraries = Seq(
   hadoopExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % Test classifier "tests"),
   hadoopExcludes("org.apache.hadoop" % "hadoop-minicluster" % hadoopVersion % Test),
   hadoopExcludes("org.apache.hadoop" % "hadoop-common" % hadoopVersion % Test classifier "tests" extra "type" -> "test-jar"),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-mapreduce-client-jobclient" % hadoopVersion % Test classifier "tests"),
-  "com.github.pathikrit" %% "better-files" % betterFilesVersion % Test
+  hadoopExcludes("org.apache.hadoop" % "hadoop-mapreduce-client-jobclient" % hadoopVersion % Test classifier "tests")
 )
 
-libraryDependencies ++= Seq(
-  cache,
-  ws,
-  "org.webjars" % "swagger-ui" % swaggerUiVersion,
-  specs2 % Test,
+val playLibraries = Seq(
   "io.swagger" %% "swagger-play2" % "1.5.3",
-  "com.typesafe.play" %% "play-json" % playVersion,
-  "it.gov.daf" %% "common" % version.value
-) ++ hadoopLibraries ++ sparkLibraries
+  "com.typesafe.play" %% "play-cache" % playVersion,
+  "org.pac4j" % "play-pac4j" % playPac4jVersion,
+  "org.pac4j" % "pac4j-http" % pac4jVersion,
+  "org.pac4j" % "pac4j-jwt" % pac4jVersion exclude("commons-io", "commons-io"),
+  "org.pac4j" % "pac4j-ldap" % pac4jVersion
+)
+
+libraryDependencies ++= hadoopLibraries ++ sparkLibraries ++ playLibraries
 
 resolvers ++= Seq(
   Resolver.sonatypeRepo("releases"),
@@ -89,21 +89,3 @@ resolvers ++= Seq(
 licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt"))
 headerLicense := Some(HeaderLicense.ALv2("2017", "TEAM PER LA TRASFORMAZIONE DIGITALE"))
 headerMappings := headerMappings.value + (HeaderFileType.conf -> HeaderCommentStyle.HashLineComment)
-
-dockerPackageMappings in Docker += (baseDirectory.value / "docker" / "krb5.conf") -> "krb5.conf"
-dockerPackageMappings in Docker += (baseDirectory.value / "docker" / "principal.keytab") -> "principal.keytab"
-dockerPackageMappings in Docker += (baseDirectory.value / "docker" / "start.sh") -> "start.sh"
-dockerBaseImage := "anapsix/alpine-java:8_jdk_unlimited"
-dockerCommands := dockerCommands.value.flatMap {
-  case cmd@Cmd("FROM", _) => List(cmd,
-    Cmd("RUN", "apk update && apk add bash krb5-libs krb5"),
-    Cmd("ADD", "krb5.conf", "/etc/krb5.conf"),
-    Cmd("ADD", "principal.keytab", "/opt/docker/conf/principal.keytab"),
-    Cmd("ADD", "start.sh", "/opt/docker/bin/start.sh"),
-    Cmd("RUN", "chmod +x /opt/docker/bin/start.sh")
-  )
-  case other => List(other)
-}
-//dockerCommands += ExecCmd("ENTRYPOINT", s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
-dockerCommands += ExecCmd("ENTRYPOINT", s"bin/start.sh")
-dockerExposedPorts := Seq(9000)

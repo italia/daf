@@ -88,25 +88,25 @@ class ServiceSpec extends Specification with BeforeAfterAll {
 
       WsTestClient.withClient { implicit client =>
         val uri = "dataset:hdfs:/opendata/test.parquet"
-        val response: WSResponse = Await.result[WSResponse](client.url(s"http://localhost:$port/storage_manager/v1/physical-dataset?uri=$uri&format=parquet&limit=$limit").execute, Duration.Inf)
+        val response: WSResponse = Await.result[WSResponse](client.url(s"http://localhost:$port/storage-manager/v1/physical-datasets?uri=$uri&format=parquet&limit=$limit").execute, Duration.Inf)
         response.body must be equalTo doc
       }
 
       WsTestClient.withClient { implicit client =>
         val uri = "dataset:hdfs:/opendata/test.avro"
-        val response: WSResponse = Await.result[WSResponse](client.url(s"http://localhost:$port/storage_manager/v1/physical-dataset?uri=$uri&format=avro&limit=$limit").execute, Duration.Inf)
+        val response: WSResponse = Await.result[WSResponse](client.url(s"http://localhost:$port/storage-manager/v1/physical-datasets?uri=$uri&format=avro&limit=$limit").execute, Duration.Inf)
         response.body must be equalTo doc
       }
 
       WsTestClient.withClient { implicit client =>
         val uri = "dataset:hdfs:/opendata/test.csv"
-        val response: WSResponse = Await.result[WSResponse](client.url(s"http://localhost:$port/storage_manager/v1/physical-dataset?uri=$uri&format=text&limit=$limit").execute, Duration.Inf)
+        val response: WSResponse = Await.result[WSResponse](client.url(s"http://localhost:$port/storage-manager/v1/physical-datasets?uri=$uri&format=text&limit=$limit").execute, Duration.Inf)
         response.body must be equalTo txtDoc
       }
 
       WsTestClient.withClient { implicit client =>
         val uri = "dataset:hdfs:/opendata/test.avro"
-        val response: WSResponse = Await.result[WSResponse](client.url(s"http://localhost:$port/storage_manager/v1/physical-dataset/schema?uri=$uri&format=avro").execute, Duration.Inf)
+        val response: WSResponse = Await.result[WSResponse](client.url(s"http://localhost:$port/storage-manager/v1/physical-datasets/schema?uri=$uri&format=avro").execute, Duration.Inf)
         response.body must be equalTo schema
       }
     }

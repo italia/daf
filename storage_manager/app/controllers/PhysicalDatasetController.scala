@@ -55,8 +55,8 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
     case ex: Throwable => Ok(Json.toJson(ex.getMessage)).copy(header = ResponseHeader(Http.Status.INTERNAL_SERVER_ERROR, Map.empty))
   }
 
-  private def executeRequest(block: => Result)(exceptionManager: Throwable => Result) = {
-    Try(block) match {
+  private def CheckedAction(action: Request[AnyContent] => Result)(exceptionManager: Throwable => Result) = (request: Request[AnyContent]) => {
+    Try(action(request)) match {
       case Success(response) => response
       case Failure(exception) => exceptionManager(exception)
     }
@@ -71,8 +71,8 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
                  @ApiParam(value = "the dataset's format", required = true) format: String,
                  @ApiParam(value = "max number of rows to return", required = false) limit: Option[Int]): Action[AnyContent] =
     Action {
-      request =>
-        executeRequest {
+      CheckedAction {
+        request =>
           val defaultLimit = configuration.getInt("max_number_of_rows").fold[Int](throw new Exception("it shouldn;'t happen"))(identity)
           val datasetURI = new URI(uri)
           val locationURI = new URI(datasetURI.getSchemeSpecificPart)
@@ -99,15 +99,15 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
             case scheme =>
               throw new NotImplementedError(s"storage scheme: $scheme not supported")
           }
-        }(exceptionManager)
+      }(exceptionManager)
     }
 
   @ApiOperation(value = "given a physical dataset URI it returns its AVRO schema in json format", produces = "application/json")
   def getDatasetSchema(@ApiParam(value = "the dataset's physical URI", required = true) uri: String,
                        @ApiParam(value = "the dataset's format", required = true) format: String): Action[AnyContent] =
     Action {
-      request =>
-        executeRequest {
+      CheckedAction {
+        request =>
           val datasetURI = new URI(uri)
           val locationURI = new URI(datasetURI.getSchemeSpecificPart)
           val locationScheme = locationURI.getScheme
@@ -126,7 +126,7 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
             case scheme =>
               throw new NotImplementedError(s"storage scheme: $scheme not supported")
           }
-        }(exceptionManager)
+      }(exceptionManager)
     }
 
   @ApiOperation(value = "it returns the JWT token given username and password", produces = "text/plain")

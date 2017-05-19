@@ -22,8 +22,8 @@ trait CatalogServiceComponent {
     def getCatalogs(catalogId :String) :MetaCatalog = {
       catalogRepository.getCatalogs(catalogId)
     }
-    def createCatalog() :Successf = {
-      catalogRepository.createCatalog()
+    def createCatalog(metaCatalog: MetaCatalog) :Successf = {
+      catalogRepository.createCatalog(metaCatalog)
     }
 
     def getDataset(catalogId :String) :Future[Dataset] = {

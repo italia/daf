@@ -80,7 +80,7 @@ class CatalogRepositoryDev extends CatalogRepository{
      MetaCatalog(datasetCatalog,operational,dcat)
   }
 
-  def createCatalog() :Successf = {
+  def createCatalog(metaCatalog: MetaCatalog) :Successf = {
       Successf(None,None)
   }
 }

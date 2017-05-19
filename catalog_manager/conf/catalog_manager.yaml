@@ -87,6 +87,10 @@ paths:
       tags:
         - DatasetCatalog
       operationId: createdatasetcatalog
+      consumes:
+        - application/json
+      produces:
+        - application/json
       parameters:
       - name: catalog
         in: body

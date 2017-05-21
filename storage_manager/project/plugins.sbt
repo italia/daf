@@ -4,7 +4,7 @@ resolvers += Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-
 
 addSbtPlugin("com.typesafe.play" % "sbt-plugin"  % "2.5.14")
 
-addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.1.5")
+addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.2.0-M9")
 
 addSbtPlugin("org.wartremover" % "sbt-wartremover" % "2.0.3")
 

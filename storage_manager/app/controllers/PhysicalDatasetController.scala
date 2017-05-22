@@ -20,6 +20,7 @@ import java.lang.reflect.UndeclaredThrowableException
 import java.net.URI
 import java.security.PrivilegedExceptionAction
 
+import akka.actor.ActorSystem
 import com.databricks.spark.avro.SchemaConverters
 import com.google.inject.Inject
 import io.swagger.annotations.{Api, ApiOperation, ApiParam, Authorization}
@@ -30,10 +31,13 @@ import org.apache.spark.SparkConf
 import org.apache.spark.sql.{AnalysisException, SparkSession}
 import org.pac4j.play.store.PlaySessionStore
 import play.api.Configuration
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
 import play.api.mvc._
 import play.mvc.Http
 
+import scala.concurrent.duration._
+import scala.language.postfixOps
 import scala.sys.process.Process
 import scala.util.{Failure, Success, Try}
 
@@ -47,7 +51,7 @@ import scala.util.{Failure, Success, Try}
   )
 )
 @Api("physical-dataset")
-class PhysicalDatasetController @Inject()(configuration: Configuration, val playSessionStore: PlaySessionStore) extends Controller {
+class PhysicalDatasetController @Inject()(configuration: Configuration, val playSessionStore: PlaySessionStore, system: ActorSystem) extends Controller {
 
   private val sparkConfig = new SparkConf()
   sparkConfig.set("spark.driver.memory", configuration.getString("spark_driver_memory").getOrElse("128M"))
@@ -58,6 +62,11 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
 
   private val process = Process(s"/usr/bin/kinit -kt ${configuration.getString("keytab").getOrElse("")} ${configuration.getString("principal").getOrElse("")}")
   process.!
+  
+  system.scheduler.schedule(1 seconds, 3600 seconds) { //TODO Magic number, shall we put them in the configuration?
+    val process = Process(s"/usr/bin/kinit -kt ${configuration.getString("keytab").getOrElse("")} ${configuration.getString("principal").getOrElse("")}")
+    val result = process.!
+  }
 
   UserGroupInformation.loginUserFromSubject(null)
 

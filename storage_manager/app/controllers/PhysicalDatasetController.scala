@@ -34,6 +34,7 @@ import play.api.libs.json.Json
 import play.api.mvc._
 import play.mvc.Http
 
+import scala.sys.process.Process
 import scala.util.{Failure, Success, Try}
 
 @SuppressWarnings(
@@ -41,7 +42,8 @@ import scala.util.{Failure, Success, Try}
     "org.wartremover.warts.Throw",
     "org.wartremover.warts.NonUnitStatements",
     "org.wartremover.warts.Nothing",
-    "org.wartremover.warts.IsInstanceOf"
+    "org.wartremover.warts.IsInstanceOf",
+    "org.wartremover.warts.Null"
   )
 )
 @Api("physical-dataset")
@@ -54,28 +56,29 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
 
   private val hadoopConfiguration = new org.apache.hadoop.conf.Configuration()
 
-  UserGroupInformation.setConfiguration(hadoopConfiguration)
-  UserGroupInformation.
-    loginUserFromKeytab(
-      configuration.getString("principal").getOrElse(""),
-      configuration.getString("keytab").getOrElse("")
-    )
+  private val process = Process(s"/usr/bin/kinit -kt ${configuration.getString("keytab").getOrElse("")} ${configuration.getString("principal").getOrElse("")}")
+  process.!
+
+  UserGroupInformation.loginUserFromSubject(null)
 
   private val proxyUser = UserGroupInformation.getCurrentUser
 
   Authentication(configuration, playSessionStore)
 
-  private val exceptionManager = (exception: Throwable) => exception match {
+  private val exceptionManager: PartialFunction[Throwable, Result] = (exception: Throwable) => exception match {
     case ex: AnalysisException =>
       Ok(Json.toJson(ex.getMessage)).copy(header = ResponseHeader(Http.Status.NOT_FOUND, Map.empty))
     case ex: NotImplementedError =>
       Ok(Json.toJson(ex.getMessage)).copy(header = ResponseHeader(Http.Status.NOT_IMPLEMENTED, Map.empty))
     case ex: UndeclaredThrowableException if ex.getUndeclaredThrowable.isInstanceOf[AnalysisException] =>
       Ok(Json.toJson(ex.getMessage)).copy(header = ResponseHeader(Http.Status.NOT_FOUND, Map.empty))
-    case ex: AccessControlException =>
-      Ok(Json.toJson(ex.getMessage)).copy(header = ResponseHeader(Http.Status.UNAUTHORIZED, Map.empty))
     case ex: Throwable =>
       Ok(Json.toJson(ex.getMessage)).copy(header = ResponseHeader(Http.Status.INTERNAL_SERVER_ERROR, Map.empty))
+  }
+
+  private val hadoopExceptionManager: PartialFunction[Throwable, Result] = (exception: Throwable) => exception match {
+    case ex: AccessControlException =>
+      Ok(Json.toJson(ex.getMessage)).copy(header = ResponseHeader(Http.Status.UNAUTHORIZED, Map.empty))
   }
 
   private def CheckedAction(exceptionManager: Throwable => Result)(action: Request[AnyContent] => Result) = (request: Request[AnyContent]) => {
@@ -103,7 +106,7 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
                  @ApiParam(value = "the dataset's format", required = true) format: String,
                  @ApiParam(value = "max number of rows to return", required = false) limit: Option[Int]): Action[AnyContent] =
     Action {
-      CheckedAction(exceptionManager) {
+      CheckedAction(exceptionManager orElse hadoopExceptionManager) {
         HadoopDoAsAction {
           request =>
             val defaultLimit = configuration.getInt("max_number_of_rows").getOrElse(throw new Exception("it shouldn;'t happen"))

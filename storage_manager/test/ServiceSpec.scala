@@ -90,7 +90,7 @@ class ServiceSpec extends Specification with BeforeAfterAll {
       private val token = WsTestClient.withClient { implicit client =>
         val response: WSResponse = Await.result[WSResponse](client.
           url(s"http://localhost:$port/storage-manager/v1/get-token").
-          withAuth("test", "test", WSAuthScheme.BASIC).
+          withAuth("david", "david", WSAuthScheme.BASIC).
           execute, Duration.Inf)
         response.body
       }
@@ -128,6 +128,15 @@ class ServiceSpec extends Specification with BeforeAfterAll {
         val uri = "dataset:hdfs:/opendata/test.parquet"
         val response: WSResponse = Await.result[WSResponse](client.
           url(s"http://localhost:$port/storage-manager/v1/physical-datasets?uri=$uri&format=parquet&limit=$limit").
+          withAuth("david", "david", WSAuthScheme.BASIC).
+          execute, Duration.Inf)
+        response.body must be equalTo doc
+      }
+
+      WsTestClient.withClient { implicit client =>
+        val uri = "dataset:hdfs:/opendata/test.parquet"
+        val response: WSResponse = Await.result[WSResponse](client.
+          url(s"http://localhost:$port/storage-manager/v1/physical-datasets?uri=$uri&format=parquet&limit=$limit").
           withHeaders("Authorization" -> s" Bearer $token").
           execute, Duration.Inf)
         response.body must be equalTo doc
@@ -156,6 +165,7 @@ class ServiceSpec extends Specification with BeforeAfterAll {
           execute, Duration.Inf)
         response.body must be equalTo schema
       }
+      
     }
   }
 
@@ -164,6 +174,8 @@ class ServiceSpec extends Specification with BeforeAfterAll {
     conf.setBoolean("dfs.permissions", true)
     System.clearProperty(MiniDFSCluster.PROP_TEST_BUILD_DATA)
     conf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, testDataPath.pathAsString)
+    conf.set(s"hadoop.proxyuser.${System.getProperties.get("user.name")}.groups", "*")
+    conf.set(s"hadoop.proxyuser.${System.getProperties.get("user.name")}.hosts", "*")
     val builder = new MiniDFSCluster.Builder(conf)
     miniCluster = Try(builder.build())
     fileSystem = miniCluster.map(_.getFileSystem)

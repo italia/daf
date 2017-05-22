@@ -24,14 +24,13 @@ spec:
       mountPath: /application/conf
       subPath: storage-manager/conf
       readOnly: true
-    - name: glusterfsvol 
-      mountPath: /etc/hadoop/conf
-      subPath: etc/hadoop/conf
-      readOnly: true
     - name: hosts
       mountPath: /etc/extra_hosts
     - name: krb5conf
       mountPath: /etc/krb5.conf
+    - name: hadoopconf
+      mountPath: /etc/hadoop/conf
+      readOnly: true
   securityContext:
     supplementalGroups: [1330600009]
   volumes:
@@ -43,4 +42,7 @@ spec:
       path: /etc/hosts
   - name: krb5conf 
     hostPath:
-      path: /etc/krb5.conf                
+      path: /etc/krb5.conf
+  - name: hadoopconf
+    hostPath:
+      path: /etc/hadoop/conf

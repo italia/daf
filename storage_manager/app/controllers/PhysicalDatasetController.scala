@@ -25,7 +25,7 @@ import com.google.inject.Inject
 import io.swagger.annotations.{Api, ApiOperation, ApiParam, Authorization}
 import it.gov.daf.common.authentication.Authentication
 import org.apache.avro.SchemaBuilder
-import org.apache.hadoop.security.UserGroupInformation
+import org.apache.hadoop.security.{AccessControlException, UserGroupInformation}
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.{AnalysisException, SparkSession}
 import org.pac4j.play.store.PlaySessionStore
@@ -45,7 +45,7 @@ import scala.util.{Failure, Success, Try}
   )
 )
 @Api("physical-dataset")
-class PhysicalDatasetController @Inject()(configuration: Configuration, val playSessionStore: PlaySessionStore) extends Controller /*with Security[CommonProfile]*/ {
+class PhysicalDatasetController @Inject()(configuration: Configuration, val playSessionStore: PlaySessionStore) extends Controller {
 
   private val sparkConfig = new SparkConf()
   sparkConfig.set("spark.driver.memory", configuration.getString("spark_driver_memory").getOrElse("128M"))
@@ -63,6 +63,8 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
 
   private val proxyUser = UserGroupInformation.getCurrentUser
 
+  Authentication(configuration, playSessionStore)
+
   private val exceptionManager = (exception: Throwable) => exception match {
     case ex: AnalysisException =>
       Ok(Json.toJson(ex.getMessage)).copy(header = ResponseHeader(Http.Status.NOT_FOUND, Map.empty))
@@ -70,6 +72,8 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
       Ok(Json.toJson(ex.getMessage)).copy(header = ResponseHeader(Http.Status.NOT_IMPLEMENTED, Map.empty))
     case ex: UndeclaredThrowableException if ex.getUndeclaredThrowable.isInstanceOf[AnalysisException] =>
       Ok(Json.toJson(ex.getMessage)).copy(header = ResponseHeader(Http.Status.NOT_FOUND, Map.empty))
+    case ex: AccessControlException =>
+      Ok(Json.toJson(ex.getMessage)).copy(header = ResponseHeader(Http.Status.UNAUTHORIZED, Map.empty))
     case ex: Throwable =>
       Ok(Json.toJson(ex.getMessage)).copy(header = ResponseHeader(Http.Status.INTERNAL_SERVER_ERROR, Map.empty))
   }
@@ -81,8 +85,8 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
     }
   }
 
-  private def HadoopDoAsAction(playSessionStore: PlaySessionStore)(action: Request[AnyContent] => Result) = (request: Request[AnyContent]) => {
-    val profiles = Authentication.getProfiles(request, playSessionStore)
+  private def HadoopDoAsAction(action: Request[AnyContent] => Result) = (request: Request[AnyContent]) => {
+    val profiles = Authentication.getProfiles(request)
     val user = profiles.headOption.map(_.getUsername).getOrElse("anonymous")
     val ugi = UserGroupInformation.createProxyUser(user, proxyUser)
     ugi.doAs(new PrivilegedExceptionAction[Result]() {
@@ -100,7 +104,7 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
                  @ApiParam(value = "max number of rows to return", required = false) limit: Option[Int]): Action[AnyContent] =
     Action {
       CheckedAction(exceptionManager) {
-        HadoopDoAsAction(playSessionStore) {
+        HadoopDoAsAction {
           request =>
             val defaultLimit = configuration.getInt("max_number_of_rows").getOrElse(throw new Exception("it shouldn;'t happen"))
             val datasetURI = new URI(uri)
@@ -137,7 +141,7 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
                        @ApiParam(value = "the dataset's format", required = true) format: String): Action[AnyContent] =
     Action {
       CheckedAction(exceptionManager) {
-        HadoopDoAsAction(playSessionStore) {
+        HadoopDoAsAction {
           request =>
             val datasetURI = new URI(uri)
             val locationURI = new URI(datasetURI.getSchemeSpecificPart)
@@ -164,7 +168,7 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
   @ApiOperation(value = "it returns the JWT token given username and password", produces = "text/plain")
   def getToken: Action[AnyContent] =
     Action {
-      Authentication.getToken(configuration)(playSessionStore)
+      Authentication.getToken
     }
 
 }

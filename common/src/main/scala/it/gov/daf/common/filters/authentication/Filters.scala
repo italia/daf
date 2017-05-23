@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package it.gov.daf.common.authentication
+package it.gov.daf.common.filters.authentication
 
 import javax.inject.Inject
 

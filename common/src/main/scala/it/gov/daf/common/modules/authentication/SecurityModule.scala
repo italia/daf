@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package it.gov.daf.common.authentication
+package it.gov.daf.common.modules.authentication
 
 import com.google.inject.{AbstractModule, Singleton}
 import org.pac4j.core.client.Clients

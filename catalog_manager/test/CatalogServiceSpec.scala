@@ -1,7 +1,10 @@
-import catalog_manager.yaml.MetaCatalog
+import catalog_manager.yaml.{Dataset, MetaCatalog}
 import it.gov.daf.catalogmanager.repository.catalog.CatalogRepositoryComponent
 import it.gov.daf.catalogmanager.repository.catalog.CatalogRepositoryDev
+import it.gov.daf.catalogmanager.repository.ckan.{CkanRepository, CkanRepositoryComponent, CkanRepositoryDev}
 import it.gov.daf.catalogmanager.service.CatalogServiceComponent
+
+import scala.concurrent.Future
 
 //import org.scalatestplus.play._
 import org.specs2.mutable.Specification
@@ -19,10 +22,14 @@ import scala.collection.mutable
 trait TestEnvironment extends
   CatalogServiceComponent with
   CatalogRepositoryComponent with
+  CkanRepositoryComponent with
   Mockito
 {
   val catalogRepository :CatalogRepositoryDev = mock[CatalogRepositoryDev]
-  val catalogService :CatalogService = new CatalogService//mock[CatalogService]
+  val ckanRepository: CkanRepositoryDev = mock[CkanRepositoryDev]
+  val catalogService :CatalogService = new CatalogService
+  //mock[CatalogService]
+
 
   catalogRepository.getCatalogs("anything") returns MetaCatalog(None,None,None)
   catalogRepository.listCatalogs() returns Seq(MetaCatalog(None,None,None))

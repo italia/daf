@@ -27,7 +27,7 @@ import scala.concurrent.Future
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -53,7 +53,7 @@ package catalog_manager.yaml {
         }
         val datasetcatalogbyid = datasetcatalogbyidAction { (catalog_id: String) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbyid
-            val calalog = ServiceRegistry.catalogService.getCatalogs("test")
+            val calalog = ServiceRegistry.catalogService.getCatalogs(catalog_id)
             Datasetcatalogbyid200(calalog)
             //NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbyid
@@ -67,7 +67,9 @@ package catalog_manager.yaml {
         }
         val createdatasetcatalog = createdatasetcatalogAction { (catalog: MetaCatalog) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalog
-            NotImplementedYet
+            val created: Successf = ServiceRegistry.catalogService.createCatalog(catalog)
+            Createdatasetcatalog200(created)
+           //NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalog
         }
     

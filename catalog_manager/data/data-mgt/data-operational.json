@@ -31,19 +31,17 @@
     ]
   },
   "read_type": "update",
-  "location": {"format": "Array(json)", "required": 0, "__comment": "An array of geographic coordinate that identifies a point to a polygon.", "val":
+  "location":
     [
       {
         "lat": 45.07049,
         "lon": 7.68682
       }
-    ]
-  },
+    ],
   "input_src":
   {
     "ing_type": "pull",
     "src_type": "csv",
-    "url": "/Users/lilloraffa/Development/data/daf_injftp/it_torino/agency.txt"
+    "url": "/Users/ale/Development/it_digital/big_data/project/raffa_inj/daf-injection/src/main/resources/agency.txt"
   }
-
 }

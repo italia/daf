@@ -9,6 +9,9 @@ name := "daf_ingestion_manager"
 
 version := "1.0.0"
 
+lazy val sparkVersion = "2.0.0"
+lazy val spark = "org.apache.spark"
+
 lazy val root = (project in file(".")).enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser)
 
 scalaVersion := "2.11.8"
@@ -22,14 +25,18 @@ libraryDependencies ++= Seq(
   "org.scalacheck" %% "scalacheck" % "1.13.5" % Test,
   "org.specs2" %% "specs2-scalacheck" % "3.8.9" % Test,
   "me.jeffmay" %% "play-json-tests" % "1.5.0" % Test,
-  "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test
+  "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test,
+  "it.teamdigitale" %% "injection-module" % "0.1.0" exclude("org.apache.avro", "avro")
 )
+
+
 
 resolvers ++= Seq(
   "zalando-bintray" at "https://dl.bintray.com/zalando/maven",
   "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
   "jeffmay" at "https://dl.bintray.com/jeffmay/maven",
-  Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns)
+  Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns),
+  Resolver.mavenLocal
 )
 
 // Play provides two styles of routers, one expects its actions to be injected, the

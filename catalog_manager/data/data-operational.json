@@ -10,11 +10,10 @@
       }
     ]
   },
-  "input_src": [
+  "input_src":
     {
       "ing_type": "pull",
       "src_type": "csv",
       "url": "156.54.180.185/ftp/torino/gtfs_agency.txt"
     }
-  ]
 }

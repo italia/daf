@@ -17,7 +17,7 @@ trait CatalogRepository {
 
     def listCatalogs() :Seq[MetaCatalog]
     def getCatalogs(catalogId :String) :MetaCatalog
-    def createCatalog() :Successf
+    def createCatalog(metaCatalog: MetaCatalog) :Successf
 
     // DO NOT DELETE
 
@@ -73,5 +73,11 @@ trait CatalogRepositoryComponent {
     val catalogRepository: CatalogRepository //= new MonitorRepository
 }
 
+object CatalogRepository {
+    def apply(config: String): CatalogRepository = config match {
+        case "dev" => new CatalogRepositoryDev
+        case "prod" => new CatalogRepositoryMongo
+    }
+}
 
 

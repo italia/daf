@@ -22,10 +22,9 @@ scalacOptions ++= Seq(
 
 wartremoverErrors ++= Warts.allBut(Wart.Nothing, Wart.PublicInference, Wart.Any, Wart.Equals)
 wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value / "target" / "scala-2.11" / "routes").toSeq
-wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value / "target" / "scala-2.11" / "routes").toSeq
 wartremoverExcluded ++= routes.in(Compile).value
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser, AutomateHeaderPlugin, DockerPlugin)
+lazy val root = (project in file(".")).enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser, /*AutomateHeaderPlugin,*/ DockerPlugin)
 
 scalaVersion := "2.11.8"
 
@@ -52,11 +51,7 @@ libraryDependencies ++= Seq(
   ws,
   "org.webjars" % "swagger-ui" % swaggerUiVersion,
   "it.gov.daf" %% "common" % version.value,
-  specs2 % Test,
-  "org.scalacheck" %% "scalacheck" % "1.12.4" % Test,
-  "org.specs2" %% "specs2-scalacheck" % "3.6" % Test,
-  "me.jeffmay" %% "play-json-tests" % "1.3.0" % Test,
-  "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test
+  specs2 % Test
 ) ++ hadoopLibraries
 
 resolvers ++= Seq(
@@ -74,6 +69,8 @@ routesGenerator := InjectedRoutesGenerator
 apiFirstParsers := Seq(ApiFirstSwaggerParser.swaggerSpec2Ast.value).flatten
 
 playScalaAutogenerateTests := false
+
+playScalaCustomTemplateLocation := Some(baseDirectory.value / "templates")
 
 licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt"))
 headerLicense := Some(HeaderLicense.ALv2("2017", "TEAM PER LA TRASFORMAZIONE DIGITALE"))

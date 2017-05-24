@@ -38,10 +38,12 @@ object Authentication extends Results {
 
   var configuration: Option[Configuration] = None
   var playSessionStore: Option[PlaySessionStore] = None
+  var secret: Option[String] = None
 
   def apply(configuration: Configuration, playSessionStore: PlaySessionStore): Unit = {
     this.configuration = Some(configuration)
     this.playSessionStore = Some(playSessionStore)
+    this.secret = this.configuration.flatMap(_.getString("pac4j.jwt_secret"))
   }
 
   def getClaims(requestHeader: RequestHeader): Option[mutable.Map[String, AnyRef]] = {
@@ -50,7 +52,6 @@ object Authentication extends Results {
       h <- header
       t <- h.split("Bearer").lastOption
     } yield t.trim
-    val secret: Option[String] = configuration.flatMap(_.getString("pac4j.jwt_secret"))
     val jwtAuthenticator = new JwtAuthenticator()
     jwtAuthenticator.addSignatureConfiguration(new SecretSignatureConfiguration(secret.getOrElse(throw new Exception("missing secret"))))
     token.map(jwtAuthenticator.validateTokenAndGetClaims(_).asScala)
@@ -62,8 +63,7 @@ object Authentication extends Results {
     profileManager.getAll(true).asScala.toList
   }
 
-  def getToken: (RequestHeader) => Result = (request: RequestHeader) => {
-    val secret = configuration.flatMap(_.getString("pac4j.jwt_secret"))
+  def getStringToken: (RequestHeader) => Option[String] = (request: RequestHeader) => {
     val generator = new JwtGenerator[CommonProfile](new SecretSignatureConfiguration(secret.getOrElse(throw new Exception("missing secret"))))
     val profiles = getProfiles(request)
     val token: Option[String] = profiles.headOption.map(profile => {
@@ -71,7 +71,11 @@ object Authentication extends Results {
       //profile.addAttributes(claims.getClaims) //TODO It's possible here to add expiration and other token related info
       generator.generate(profile)
     })
-    Ok(token.getOrElse(""))
+    token
+  }
+
+  def getToken: (RequestHeader) => Result = (request: RequestHeader) => {
+    Ok(getStringToken(request).getOrElse(""))
   }
 
 }

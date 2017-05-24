@@ -4,11 +4,9 @@ resolvers += "zalando-bintray"  at "https://dl.bintray.com/zalando/maven"
 
 resolvers += "scalaz-bintray"   at "http://dl.bintray.com/scalaz/releases"
 
-resolvers += Resolver.bintrayIvyRepo("kamon-io", "sbt-plugins")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin"  % "2.5.14")
 
 addSbtPlugin("de.zalando" % "sbt-api-first-hand" % "0.2.3")
-
-addSbtPlugin("com.typesafe.play" % "sbt-plugin"  % "2.5.14")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.2.0-M9")
 

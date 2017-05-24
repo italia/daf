@@ -87,6 +87,10 @@ paths:
       tags:
         - DatasetCatalog
       operationId: createdatasetcatalog
+      consumes:
+        - application/json
+      produces:
+        - application/json
       parameters:
       - name: catalog
         in: body
@@ -315,6 +319,17 @@ definitions:
         type: array
         items:
          $ref: '#/definitions/GeoRef'
+      input_src:
+        $ref: '#/definitions/InputSrc'
+  InputSrc:
+    type: object
+    properties:
+      ing_type:
+        type: string
+      src_type:
+        type: string
+      url:
+        type: string
   GeoRef:
     type: object
     properties:

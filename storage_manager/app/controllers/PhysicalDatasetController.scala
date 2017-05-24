@@ -31,14 +31,11 @@ import org.apache.spark.SparkConf
 import org.apache.spark.sql.{AnalysisException, SparkSession}
 import org.pac4j.play.store.PlaySessionStore
 import play.api.Configuration
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
 import play.api.mvc._
 import play.mvc.Http
 
-import scala.concurrent.duration._
 import scala.language.postfixOps
-import scala.sys.process.Process
 import scala.util.{Failure, Success, Try}
 
 @SuppressWarnings(
@@ -57,17 +54,7 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
   sparkConfig.set("spark.driver.memory", configuration.getString("spark_driver_memory").getOrElse("128M"))
 
   private val sparkSession = SparkSession.builder().master("local").config(sparkConfig).getOrCreate()
-
-  private val hadoopConfiguration = new org.apache.hadoop.conf.Configuration()
-
-  private val process = Process(s"/usr/bin/kinit -kt ${configuration.getString("keytab").getOrElse("")} ${configuration.getString("principal").getOrElse("")}")
-  process.!
-  
-  system.scheduler.schedule(1 seconds, 3600 seconds) { //TODO Magic number, shall we put them in the configuration?
-    val process = Process(s"/usr/bin/kinit -kt ${configuration.getString("keytab").getOrElse("")} ${configuration.getString("principal").getOrElse("")}")
-    val result = process.!
-  }
-
+ 
   UserGroupInformation.loginUserFromSubject(null)
 
   private val proxyUser = UserGroupInformation.getCurrentUser

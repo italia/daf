@@ -66,7 +66,7 @@ class ServiceSpec extends Specification with BeforeAfterAll {
       private val token = WsTestClient.withClient { implicit client =>
         val response: WSResponse = Await.result[WSResponse](client.
           url(s"http://localhost:$port/security-manager/v1/get-token").
-          withAuth("david", "david", WSAuthScheme.BASIC).
+          withAuth("david", "Grc_61734", WSAuthScheme.BASIC).
           execute, Duration.Inf)
         response.body
       }

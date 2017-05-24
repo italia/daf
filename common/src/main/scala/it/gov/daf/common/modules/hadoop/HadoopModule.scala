@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package modules
+package it.gov.daf.common.modules.hadoop
 
 /*
  * Copyright 2017 TEAM PER LA TRASFORMAZIONE DIGITALE
@@ -38,6 +38,8 @@ import java.net.{URL, URLClassLoader}
 import com.google.inject.{AbstractModule, Singleton}
 import play.api.{Configuration, Environment}
 
+import scala.sys.process.Process
+
 @SuppressWarnings(
   Array(
     "org.wartremover.warts.Overloading",
@@ -47,6 +49,11 @@ import play.api.{Configuration, Environment}
 )
 @Singleton
 class HadoopModule(environment: Environment, configuration: Configuration) extends AbstractModule {
+
+  private val hadoopConfiguration = new org.apache.hadoop.conf.Configuration()
+
+  private val process = Process(s"/usr/bin/kinit -kt ${configuration.getString("keytab").getOrElse("")} ${configuration.getString("principal").getOrElse("")}")
+  process.!
 
   def addPath(dir: String): Unit = {
     val method = classOf[URLClassLoader].getDeclaredMethod("addURL", classOf[URL])

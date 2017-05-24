@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package it.gov.daf.common.authentication
+package it.gov.daf.common.filters.authentication
 
 import javax.inject.Inject
 
-import org.pac4j.play.filters.SecurityFilter
+//import org.pac4j.play.filters.SecurityFilter
 import play.api.http.HttpFilters
 
 class Filters @Inject()(securityFilter: SecurityFilter) extends HttpFilters {

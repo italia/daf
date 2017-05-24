@@ -25,7 +25,8 @@ import org.apache.spark.sql.types._
 @SuppressWarnings(
   Array(
     "org.wartremover.warts.Null",
-    "org.wartremover.warts.AsInstanceOf"
+    "org.wartremover.warts.AsInstanceOf",
+    "org.wartremover.warts.Any"
   )
 )
 object Utility {

@@ -35,7 +35,20 @@ schemes:
   - http
 produces:
   - application/json
+securityDefinitions:
+  basicAuth:
+    type: basic
+    description: HTTP Basic Authentication. Works over `HTTP` and `HTTPS`
 paths:
+  "/test":
+    get:
+      security:
+       - basicAuth: []
+      responses:
+        200:
+          description:  Will send `Authenticated` if authentication is successful, otherwise it will send `Unauthorized`
+          schema:
+            $ref: '#/definitions/Token'
   "/dataset-catalogs":
     get:
       summary: DatasetCatalog
@@ -305,8 +318,9 @@ definitions:
       uri:
         type: string
         description: Unique resurce identifier of the dataset. It is calculated automatically and assigned once for all
-      id_std:
-        type: boolean
+      is_std:
+        type: integer
+        format: int32
         description: It tells if the dataset is a Standart Schema dataset (or VID). It takes values true (StdSchema Dataset), false (not a StdSchema Dataset)
       group_own:
         type: string
@@ -665,4 +679,9 @@ definitions:
       key:
         type: string
       value:
+        type: string
+  Token:
+    type: object
+    properties:
+      token:
         type: string

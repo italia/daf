@@ -10,6 +10,7 @@ import scala.concurrent.Future
 
 trait CkanRepository {
   def getDataset(datasetId :String): Future[Dataset]
+  //def createDataset()
 }
 
 trait CkanRepositoryComponent {

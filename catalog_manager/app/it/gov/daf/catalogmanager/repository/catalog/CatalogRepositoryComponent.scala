@@ -1,8 +1,6 @@
 package it.gov.daf.catalogmanager.repository.catalog
 
-import play.api.libs.json._
 import catalog_manager.yaml._
-
 
 
 /**
@@ -75,7 +73,7 @@ trait CatalogRepositoryComponent {
 
 object CatalogRepository {
     def apply(config: String): CatalogRepository = config match {
-        case "dev" => new CatalogRepositoryDev
+        case "dev" => new CatalogRepositoryFile
         case "prod" => new CatalogRepositoryMongo
     }
 }

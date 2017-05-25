@@ -1,6 +1,6 @@
 package it.gov.daf.catalogmanager.repository.catalog
 
-import java.io.FileInputStream
+import java.io.{FileInputStream, FileWriter}
 
 import catalog_manager.yaml._
 import play.Environment
@@ -81,6 +81,6 @@ class CatalogRepositoryDev extends CatalogRepository{
   }
 
   def createCatalog(metaCatalog: MetaCatalog) :Successf = {
-      Successf(None,None)
+    Successf(None,None)
   }
 }

@@ -1,0 +1,16 @@
+target
+.idea
+logs
+.swagger-codegen-ignore
+client/.gitignore
+client/.swagger-codegen-ignore
+client/build.gradle
+client/build.sbt
+client/git_push.sh
+client/gradle.properties
+client/gradle/
+client/gradlew
+client/gradlew.bat
+client/pom.xml
+client/settings.gradle
+client/src/

@@ -9,7 +9,10 @@ name := "daf-catalog-manager"
 
 version := "1.0.0"
 
+lazy val client = project in file("client")
+
 lazy val root = (project in file(".")).enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser)
+.dependsOn(client)
 
 scalaVersion := "2.11.8"
 

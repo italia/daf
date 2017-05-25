@@ -1,14 +1,14 @@
-package it.gov.daf.catalogmanager.utils
+package it.gov.daf.catalogmanager.utilities
 
 import java.io.File
 
-import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
+//import akka.actor.ActorSystem
+//import akka.stream.ActorMaterializer
 import com.typesafe.config.ConfigFactory
 import org.asynchttpclient.AsyncHttpClientConfig
-import play.api.{Configuration, Environment, Mode}
 import play.api.libs.ws.WSConfigParser
 import play.api.libs.ws.ahc.{AhcConfigBuilder, AhcWSClientConfig}
+import play.api.{Configuration, Environment, Mode}
 
 /**
   * Created by ale on 11/05/17.

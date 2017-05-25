@@ -16,8 +16,11 @@
 
 import java.io.{IOException, File => JFile}
 import java.net.ServerSocket
+import java.util.Base64
 
 import better.files._
+import it.gov.daf.securitymanagerclient.api.JWTTokenApi
+import it.gov.daf.securitymanagerclient.invoker.ApiInvoker
 import org.apache.hadoop.fs.FileSystem
 import org.apache.hadoop.hdfs.{HdfsConfiguration, MiniDFSCluster}
 import org.apache.hadoop.test.PathUtils
@@ -32,10 +35,6 @@ import play.api.test.{WithServer, WsTestClient}
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Try}
-
-final case class Address(stret: String)
-
-final case class Person(name: String, age: Int, address: Address)
 
 @SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements", "org.wartremover.warts.Throw"))
 class ServiceSpec extends Specification with BeforeAfterAll {
@@ -56,9 +55,10 @@ class ServiceSpec extends Specification with BeforeAfterAll {
     }
   }
 
-  def application: Application = GuiceApplicationBuilder().configure("hadoop_conf_dir" -> s"${ServiceSpec.confPath.pathAsString}").build()
-
-  private val limit = 1000
+  def application: Application = GuiceApplicationBuilder().
+    configure("hadoop_conf_dir" -> s"${ServiceSpec.confPath.pathAsString}").
+    configure("pac4j.authenticator" -> "test").
+    build()
 
   "The security_manager" should {
     "manage user tokens correctly" in new WithServer(app = application, port = getAvailablePort) {
@@ -66,12 +66,21 @@ class ServiceSpec extends Specification with BeforeAfterAll {
       private val token = WsTestClient.withClient { implicit client =>
         val response: WSResponse = Await.result[WSResponse](client.
           url(s"http://localhost:$port/security-manager/v1/get-token").
-          withAuth("david", "Grc_61734", WSAuthScheme.BASIC).
+          withAuth("david", "david", WSAuthScheme.BASIC).
           execute, Duration.Inf)
         response.body
       }
 
-      println(token)
+      val invoker = new ApiInvoker()
+      val client = new JWTTokenApi(defBasePath = s"http://localhost:$port/security-manager/v1", defApiInvoker = invoker)
+
+      val plainCreds = "david:david"
+      val plainCredsBytes = plainCreds.getBytes
+      val base64CredsBytes = Base64.getEncoder.encode(plainCredsBytes)
+      val base64Creds = new String(base64CredsBytes)
+
+      client.addHeader("Authorization", s"Basic $base64Creds")
+      client.getToken().map(token => s""""$token"""") must be equalTo Some(token)
 
     }
   }

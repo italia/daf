@@ -1,10 +1,11 @@
-import Versions._
 import CommonBuild._
+import Versions._
 import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
 
-name := "daf_security_manager"
+organization in ThisBuild := "it.gov.daf"
+name := "daf-security-manager"
 
-version := "1.0.0"
+version in ThisBuild := "1.0.0"
 
 scalacOptions ++= Seq(
   "-deprecation",
@@ -24,9 +25,13 @@ wartremoverErrors ++= Warts.allBut(Wart.Nothing, Wart.PublicInference, Wart.Any,
 wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value / "target" / "scala-2.11" / "routes").toSeq
 wartremoverExcluded ++= routes.in(Compile).value
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser, /*AutomateHeaderPlugin,*/ DockerPlugin)
+lazy val client = project in file("client")
 
-scalaVersion := "2.11.8"
+lazy val root = (project in file(".")).
+  enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser, /*AutomateHeaderPlugin,*/ DockerPlugin).
+  dependsOn(client)
+
+scalaVersion in ThisBuild := "2.11.8"
 
 val hadoopExcludes =
   (moduleId: ModuleID) => moduleId.
@@ -88,3 +93,32 @@ daemonUser := "daf"
 dockerCommands += ExecCmd("ENTRYPOINT", s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
 dockerExposedPorts := Seq(9000)
 dockerRepository := Option("10.103.136.239:5000")
+
+val generateClientLibraries = taskKey[Unit]("")
+
+val swaggercodegen = sys.props("os.name") match {
+  case s if s.startsWith("Windows") => "swagger-codegen.cmd"
+  case _ => "swagger-codegen"
+}
+
+generateClientLibraries := Process(swaggercodegen ::
+  "generate" ::
+  "-i" ::
+  s"file://${baseDirectory.value}/conf/security_manager.yaml" ::
+  "-l" ::
+  "scala" ::
+  "--artifact-id" ::
+  s"${name.value}-client" ::
+  "--model-package" ::
+  "it.gov.daf.securitymanagerclient.model" ::
+  "--api-package" ::
+  "it.gov.daf.securitymanagerclient.api" ::
+  "--invoker-package" ::
+  "it.gov.daf.securitymanagerclient.invoker" ::
+  "--template-dir" ::
+  s"${baseDirectory.value}/templates" ::
+  "--additional-properties" ::
+  s"projectName=${name.value}" ::
+  Nil, new File("client")).!
+
+generateClientLibraries <<= generateClientLibraries dependsOn generateClientLibraries

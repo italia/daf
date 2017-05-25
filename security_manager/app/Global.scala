@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-package controllers
+import javax.inject.Inject
 
-import play.api.mvc._
+import com.google.inject.{AbstractModule, Singleton}
+import play.api.inject.ApplicationLifecycle
 
-class Application extends Controller {
+import scala.concurrent.Future
 
-  def index: Action[AnyContent] = Action {
-    Ok(views.html.index("Your new application is ready."))
-  }
+@Singleton
+class Global @Inject()(lifecycle: ApplicationLifecycle) {
+  lifecycle.addStopHook { () => Future.successful({}) }
+}
 
+@SuppressWarnings(Array("org.wartremover.warts.Overloading"))
+@Singleton
+class Module extends AbstractModule {
+  def configure() = {}
 }

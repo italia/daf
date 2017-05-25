@@ -1,26 +1,11 @@
-/*
- * Copyright 2017 TEAM PER LA TRASFORMAZIONE DIGITALE
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
+import CommonBuild._
 import Versions._
 import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
-import sbt.Keys.resolvers
 
-name := "daf-storage-manager"
+organization in ThisBuild := "it.gov.daf"
+name := "daf-security-manager"
 
-version := "1.0.0"
+version in ThisBuild := "1.0.0"
 
 scalacOptions ++= Seq(
   "-deprecation",
@@ -36,30 +21,22 @@ scalacOptions ++= Seq(
   "-Xfuture"
 )
 
-wartremoverErrors ++= Warts.allBut(Wart.Equals)
+wartremoverErrors ++= Warts.allBut(Wart.Nothing, Wart.PublicInference, Wart.Any, Wart.Equals)
+wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value / "target" / "scala-2.11" / "routes").toSeq
 wartremoverExcluded ++= routes.in(Compile).value
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala, AutomateHeaderPlugin, DockerPlugin)
+lazy val client = project in file("client")
 
-scalaVersion := "2.11.8"
+lazy val root = (project in file(".")).
+  enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser, /*AutomateHeaderPlugin,*/ DockerPlugin).
+  dependsOn(client)
+
+scalaVersion in ThisBuild := "2.11.8"
 
 val hadoopExcludes =
   (moduleId: ModuleID) => moduleId.
     exclude("org.slf4j", "slf4j-log4j12").
     exclude("org.slf4j", "slf4j-api")
-
-val sparkExcludes =
-  (moduleId: ModuleID) => moduleId.
-    exclude("org.slf4j", "slf4j-log4j12").
-    exclude("org.slf4j", "slf4j-api").
-    exclude("org.slf4j", "jcl-over-sl4j").
-    exclude("org.slf4j", "jul-to-sl4j")
-
-val sparkLibraries = Seq(
-  sparkExcludes("org.apache.spark" %% "spark-core" % sparkVersion % Compile),
-  sparkExcludes("org.apache.spark" %% "spark-sql" % sparkVersion % Compile),
-  "com.databricks" %% "spark-avro" % "3.2.0" % Compile
-)
 
 val hadoopLibraries = Seq(
   hadoopExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % Compile),
@@ -78,16 +55,27 @@ libraryDependencies ++= Seq(
   cache,
   ws,
   "org.webjars" % "swagger-ui" % swaggerUiVersion,
-  specs2 % Test,
-  "io.swagger" %% "swagger-play2" % "1.5.3",
-  "com.typesafe.play" %% "play-json" % playVersion,
-  "it.gov.daf" %% "common" % version.value
-) ++ hadoopLibraries ++ sparkLibraries
+  "it.gov.daf" %% "common" % version.value,
+  specs2 % Test
+) ++ hadoopLibraries
 
 resolvers ++= Seq(
-  Resolver.sonatypeRepo("releases"),
+  "zalando-bintray" at "https://dl.bintray.com/zalando/maven",
+  "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
+  "jeffmay" at "https://dl.bintray.com/jeffmay/maven",
+  Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns),
   "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos/"
 )
+
+// Play provides two styles of routers, one expects its actions to be injected, the
+// other, legacy style, accesses its actions statically.
+routesGenerator := InjectedRoutesGenerator
+
+apiFirstParsers := Seq(ApiFirstSwaggerParser.swaggerSpec2Ast.value).flatten
+
+playScalaAutogenerateTests := false
+
+playScalaCustomTemplateLocation := Some(baseDirectory.value / "templates")
 
 licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt"))
 headerLicense := Some(HeaderLicense.ALv2("2017", "TEAM PER LA TRASFORMAZIONE DIGITALE"))
@@ -105,3 +93,32 @@ daemonUser := "daf"
 dockerCommands += ExecCmd("ENTRYPOINT", s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
 dockerExposedPorts := Seq(9000)
 dockerRepository := Option("10.103.136.239:5000")
+
+val generateClientLibraries = taskKey[Unit]("")
+
+val swaggercodegen = sys.props("os.name") match {
+  case s if s.startsWith("Windows") => "swagger-codegen.cmd"
+  case _ => "swagger-codegen"
+}
+
+generateClientLibraries := Process(swaggercodegen ::
+  "generate" ::
+  "-i" ::
+  s"file://${baseDirectory.value}/conf/security_manager.yaml" ::
+  "-l" ::
+  "scala" ::
+  "--artifact-id" ::
+  s"${name.value}-client" ::
+  "--model-package" ::
+  "it.gov.daf.securitymanagerclient.model" ::
+  "--api-package" ::
+  "it.gov.daf.securitymanagerclient.api" ::
+  "--invoker-package" ::
+  "it.gov.daf.securitymanagerclient.invoker" ::
+  "--template-dir" ::
+  s"${baseDirectory.value}/templates" ::
+  "--additional-properties" ::
+  s"projectName=${name.value}" ::
+  Nil, new File("client")).!
+
+generateClientLibraries <<= generateClientLibraries dependsOn generateClientLibraries

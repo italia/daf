@@ -5,6 +5,8 @@ import de.zalando.play.generator.sbt.ApiFirstPlayScalaCodeGenerator.autoImport.p
 import play.sbt.routes.RoutesKeys.routesGenerator
 import sbt.Keys.resolvers
 
+organization in ThisBuild := "it.gov.daf"
+
 name := "daf-catalog-manager"
 
 version := "1.0.0"

@@ -18,7 +18,7 @@ import Versions._
 import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
 import sbt.Keys.resolvers
 
-name := "daf_storage_manager"
+name := "daf-storage-manager"
 
 version := "1.0.0"
 

@@ -25,6 +25,7 @@ import org.ldaptive.{BindConnectionInitializer, ConnectionConfig, Credential, De
 import org.pac4j.core.client.Clients
 import org.pac4j.core.config.Config
 import org.pac4j.http.client.direct.{DirectBasicAuthClient, HeaderClient}
+import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordAuthenticator
 import org.pac4j.jwt.config.signature.SecretSignatureConfiguration
 import org.pac4j.jwt.credentials.authenticator.JwtAuthenticator
 import org.pac4j.ldap.profile.service.LdapProfileService
@@ -45,14 +46,15 @@ class SecurityModule(environment: Environment, configuration: Configuration) ext
 
   private def getLdapAuthenticator = {
     val dnResolver = new FormatDnResolver
-    dnResolver.setFormat("uid=%s,cn=users,cn=accounts,dc=daf,dc=gov,dc=it")
+    dnResolver.setFormat(configuration.getString("pac4j.ldap.user_dn_pattern").getOrElse(""))
     val connectionConfig = new ConnectionConfig
     connectionConfig.setConnectTimeout(Duration.ofMillis(500))
     connectionConfig.setResponseTimeout(Duration.ofMillis(1000))
-    connectionConfig.setLdapUrl("ldaps://idm.daf.gov.it:636")
+    connectionConfig.setLdapUrl(configuration.getString("pac4j.ldap.url").getOrElse(""))
     connectionConfig.setConnectionInitializer(
-      new BindConnectionInitializer("uid=admin,cn=users,cn=accounts,dc=daf,dc=gov,dc=it", new Credential("UePh9que")))
-    //connectionConfig.setUseSSL(true)
+      new BindConnectionInitializer(configuration.getString("pac4j.ldap.bind_dn").getOrElse(""),
+        new Credential(configuration.getString("pac4j.ldap.bind_pwd").getOrElse(""))))
+    //connectionConfig.setUseSSL(true) //TODO fix it in order to use SSL
     val connectionFactory = new DefaultConnectionFactory
     connectionFactory.setConnectionConfig(connectionConfig)
     val poolConfig = new PoolConfig
@@ -87,7 +89,15 @@ class SecurityModule(environment: Environment, configuration: Configuration) ext
   override def configure(): Unit = {
     bind(classOf[PlaySessionStore]).to(classOf[PlayCacheSessionStore])
 
-    val directBasicAuthClient = new DirectBasicAuthClient(getLdapAuthenticator)
+    val authenticatorConf = configuration.getString("pac4j.authenticator").getOrElse("ldap")
+
+    val authenticator = authenticatorConf match {
+      case "ldap" => getLdapAuthenticator
+      case "test" => new SimpleTestUsernamePasswordAuthenticator
+      case _ => getLdapAuthenticator
+    }
+
+    val directBasicAuthClient = new DirectBasicAuthClient(authenticator)
 
     val secret = configuration.getString("pac4j.jwt_secret").fold[String](throw new Exception("missing secret"))(identity)
 

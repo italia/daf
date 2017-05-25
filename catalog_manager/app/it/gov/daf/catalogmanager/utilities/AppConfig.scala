@@ -1,7 +1,7 @@
-package it.gov.daf.catalogmanager.utils
+package it.gov.daf.catalogmanager.utilities
 
 /**
-  * Created by ale on 11/05/17.
+  * Created by ale on 11/05/17.g
   */
 
 import javax.inject.Inject

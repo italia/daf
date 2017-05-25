@@ -3,17 +3,16 @@ package it.gov.daf.catalogmanager.repository.catalog
 import catalog_manager.yaml.{MetaCatalog, Successf}
 import com.mongodb.DBObject
 import com.mongodb.casbah.MongoClient
-import it.gov.daf.catalogmanager.utils.ConfigReader
 import org.bson.types.ObjectId
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import com.mongodb.casbah.Imports._
+import it.gov.daf.catalogmanager.utilities.ConfigReader
+
 
 /**
   * Created by ale on 18/05/17.
   */
 class CatalogRepositoryMongo extends  CatalogRepository{
-
-
 
   private val mongoHost: String = ConfigReader.getDbHost
   private val mongoPort = ConfigReader.getDbPort
@@ -40,11 +39,6 @@ class CatalogRepositoryMongo extends  CatalogRepository{
 
   @SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf"))
   def getCatalogs(catalogId :String) :MetaCatalog = {
-    //val objectId : ObjectId = new ObjectId(catalogId)
-    //val query = MongoDBObject("_id" -> objectId)
-    //println(query)
-    println("CATALOGID")
-    println(catalogId)
     val objectId : ObjectId = new ObjectId(catalogId)
     val query = MongoDBObject("_id" -> objectId)
     val mongoClient = MongoClient(mongoHost, mongoPort)

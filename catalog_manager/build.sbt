@@ -9,7 +9,10 @@ name := "daf-catalog-manager"
 
 version := "1.0.0"
 
+lazy val client = project in file("client")
+
 lazy val root = (project in file(".")).enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser)
+.dependsOn(client)
 
 scalaVersion := "2.11.8"
 
@@ -23,14 +26,16 @@ libraryDependencies ++= Seq(
  // "org.specs2" %% "specs2-scalacheck" % "3.8.9" % Test,
   "me.jeffmay" %% "play-json-tests" % "1.5.0" % Test,
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.0" % Test,
-  "org.mongodb" %% "casbah" % "3.1.1"
+  "org.mongodb" %% "casbah" % "3.1.1",
+  "it.teamdigitale" %% "injection-module" % "0.1.0" exclude("org.apache.avro", "avro")
 )
 
 resolvers ++= Seq(
   "zalando-bintray" at "https://dl.bintray.com/zalando/maven",
   "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
   "jeffmay" at "https://dl.bintray.com/jeffmay/maven",
-  Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns)
+  Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns),
+  Resolver.mavenLocal
 )
 
 // Play provides two styles of routers, one expects its actions to be injected, the
@@ -61,3 +66,32 @@ dockerExposedPorts := Seq(9000)
 wartremoverErrors ++= Warts.allBut(Wart.Nothing, Wart.PublicInference, Wart.Any, Wart.Equals)
 
 wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value / "target" / "scala-2.11" / "routes").toSeq
+
+val generateClientLibraries = taskKey[Unit]("")
+
+val swaggercodegen = sys.props("os.name") match {
+  case s if s.startsWith("Windows") => "swagger-codegen.cmd"
+  case _ => "swagger-codegen"
+}
+
+generateClientLibraries := Process(swaggercodegen ::
+  "generate" ::
+  "-i" ::
+  s"file://${baseDirectory.value}/conf/catalog_manager.yaml" ::
+  "-l" ::
+  "scala" ::
+  "--artifact-id" ::
+  s"${name.value}-client" ::
+  "--model-package" ::
+  "it.gov.daf.catalogmanagerclient.model" ::
+  "--api-package" ::
+  "it.gov.daf.catalogmanagerclient.api" ::
+  "--invoker-package" ::
+  "it.gov.daf.catalogmanagerclient.invoker" ::
+  "--template-dir" ::
+  s"${baseDirectory.value}/templates" ::
+  "--additional-properties" ::
+  s"projectName=${name.value}" ::
+  Nil, new File("client")).!
+
+generateClientLibraries <<= generateClientLibraries dependsOn generateClientLibraries

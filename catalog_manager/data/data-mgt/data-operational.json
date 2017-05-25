@@ -1,5 +1,7 @@
 {
   "group_own": "open",
+  "uri": "daf://dataset/vid/mobility/gtfs_agency",
+  "is_std": 1,
   "std_schema":
   {
     "std_uri": "daf://dataset/vid/mobility/gtfs_agency",

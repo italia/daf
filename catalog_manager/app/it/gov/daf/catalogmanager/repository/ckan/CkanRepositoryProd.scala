@@ -3,9 +3,8 @@ package it.gov.daf.catalogmanager.repository.ckan
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import catalog_manager.yaml.Dataset
-import it.gov.daf.catalogmanager.utils.ConfigReader
 import play.api.libs.ws.ahc.AhcWSClient
-import it.gov.daf.catalogmanager.utils.WebServiceUtil
+import it.gov.daf.catalogmanager.utilities.{ConfigReader, WebServiceUtil}
 import play.api.libs.json.{JsError, JsSuccess, JsValue}
 
 import scala.concurrent.Future
@@ -25,7 +24,6 @@ class CkanRepositoryProd extends CkanRepository{
   val CKAN_URL = ConfigReader.getCkanHost
 
   def getDataset(datasetId :String) :Future[Dataset] = {
-
     val url = CKAN_URL + "/api/3/action/package_show?id=" + datasetId
     println("URL " + url)
     val wsClient = AhcWSClient(WebServiceUtil.ahcConfig)

@@ -27,7 +27,7 @@ libraryDependencies ++= Seq(
   "me.jeffmay" %% "play-json-tests" % "1.5.0" % Test,
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.0" % Test,
   "org.mongodb" %% "casbah" % "3.1.1",
-  "it.teamdigitale" %% "injection-module" % "0.1.0" exclude("org.apache.avro", "avro")
+  "it.teamdigitale" %% "ingestion-module" % "0.1.0" exclude("org.apache.avro", "avro")
 )
 
 resolvers ++= Seq(

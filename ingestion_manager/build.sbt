@@ -5,8 +5,8 @@ import de.zalando.play.generator.sbt.ApiFirstPlayScalaCodeGenerator.autoImport.p
 import play.sbt.routes.RoutesKeys.routesGenerator
 import sbt.Keys.resolvers
 
+organization in ThisBuild := "it.gov.daf"
 name := "daf-ingestion-manager"
-
 version := "1.0.0"
 
 lazy val sparkVersion = "2.0.0"
@@ -27,6 +27,7 @@ libraryDependencies ++= Seq(
   "me.jeffmay" %% "play-json-tests" % "1.5.0" % Test,
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test,
   "it.teamdigitale" %% "ingestion-module" % "0.1.0" exclude("org.apache.avro", "avro")
+
 )
 
 

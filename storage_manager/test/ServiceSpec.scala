@@ -60,7 +60,10 @@ class ServiceSpec extends Specification with BeforeAfterAll {
     }
   }
 
-  def application: Application = GuiceApplicationBuilder().configure("hadoop_conf_dir" -> s"${ServiceSpec.confPath.pathAsString}").build()
+  def application: Application = GuiceApplicationBuilder().
+    configure("hadoop_conf_dir" -> s"${ServiceSpec.confPath.pathAsString}").
+    configure("pac4j.authenticator" -> "test").
+    build()
 
   private val limit = 1000
 
@@ -165,7 +168,7 @@ class ServiceSpec extends Specification with BeforeAfterAll {
           execute, Duration.Inf)
         response.body must be equalTo schema
       }
-      
+
     }
   }
 

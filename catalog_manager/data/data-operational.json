@@ -2,7 +2,7 @@
   "group_own": "open",
   "std_schema": "std-gtfs_agency",
   "read_type": "update",
-  "location": {"format": "Array(json)", "required": 0, "__comment": "An array of geographic coordinate that identifies a point to a polygon.", "val":
+  "location":
     [
       {
         "lat": 45.07049,

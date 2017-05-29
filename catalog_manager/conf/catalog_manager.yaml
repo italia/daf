@@ -263,6 +263,9 @@ definitions:
         type: array
         items:
           type: string
+      required:
+        type: integer
+        format: int32
       semantics:
         type: object
         $ref: '#/definitions/Semantic'

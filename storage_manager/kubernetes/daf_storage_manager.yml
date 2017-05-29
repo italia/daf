@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
       - name: storage-manager
-        image: 10.103.136.239:5000/daf_storage_manager:1.0.0
+        image: 10.103.136.239:5000/daf-storage-manager:1.0.0
         imagePullPolicy: Always
         lifecycle:
           postStart:

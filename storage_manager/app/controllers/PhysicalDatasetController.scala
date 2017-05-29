@@ -86,7 +86,7 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
 
   private def HadoopDoAsAction(action: Request[AnyContent] => Result) = (request: Request[AnyContent]) => {
     val profiles = Authentication.getProfiles(request)
-    val user = profiles.headOption.map(_.getUsername).getOrElse("anonymous")
+    val user = profiles.headOption.map(_.getId).getOrElse("anonymous")
     val ugi = UserGroupInformation.createProxyUser(user, proxyUser)
     ugi.doAs(new PrivilegedExceptionAction[Result]() {
       override def run: Result = action(request)

@@ -7,12 +7,8 @@ package it.gov.daf.catalogmanager.repository.catalog
 import java.io.{FileInputStream, FileWriter}
 
 import catalog_manager.yaml._
-import it.teamDigitale.daf.datastructures.Model.Schema
 import play.Environment
 import play.api.libs.json._
-import it.teamDigitale.daf.utils._
-import it.teamDigitale.daf.datastructures.{ConvSchema, StdSchema}
-import it.teamDigitale.daf.schemamanager.SchemaManager
 import scala.util.Success
 import scala.util.Failure
 
@@ -98,15 +94,15 @@ class CatalogRepositoryFile extends CatalogRepository{
     val fw = new FileWriter("data/data-mgt/data.json", true)
     val metaCatalogJs = Json.toJson(metaCatalog)
     println(Json.stringify(metaCatalogJs))
-    val stdSchemaJs: JsValue = ((metaCatalogJs \ "operational") \ "std_schema").get //.validate[StdSchema]
-    val stdSchema: StdSchema  = JsonConverter.fromJson[StdSchema](Json.stringify(stdSchemaJs))
-    val schema = JsonConverter.fromJson[Schema](Json.stringify(metaCatalogJs))
-    val convSchema: Try[ConvSchema] = schema.convertToConvSchema()
-    val newSchema = new SchemaManager().getSchemaFromJson(Json.stringify(metaCatalogJs))
-    val uri = newSchema match {
-      case Success(x) => x.operational.uri.getOrElse("")
-      case Failure(_) => ""
-    }
+  //  val stdSchemaJs: JsValue = ((metaCatalogJs \ "operational") \ "std_schema").get //.validate[StdSchema]
+  //  val stdSchema: StdSchema  = JsonConverter.fromJson[StdSchema](Json.stringify(stdSchemaJs))
+  //  val schema = JsonConverter.fromJson[Schema](Json.stringify(metaCatalogJs))
+  //  val convSchema: Try[ConvSchema] = schema.convertToConvSchema()
+  //  val newSchema = new SchemaManager().getSchemaFromJson(Json.stringify(metaCatalogJs))
+  //  val uri = newSchema match {
+  //    case Success(x) => x.operational.uri.getOrElse("")
+  //    case Failure(_) => ""
+  //  }
     val random = scala.util.Random
     val id = random.nextInt(1000).toString
     val data = Json.obj(id -> metaCatalogJs)

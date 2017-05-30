@@ -1,0 +1,3 @@
+[submodule "livy-src"]
+	path = livy/livy
+	url = https://github.com/cloudera/livy

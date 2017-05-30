@@ -37,7 +37,6 @@ class CatalogRepositoryMongo extends  CatalogRepository{
   }
 
 
-  @SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf"))
   def getCatalogs(catalogId :String) :MetaCatalog = {
     val objectId : ObjectId = new ObjectId(catalogId)
     val query = MongoDBObject("_id" -> objectId)
@@ -62,7 +61,6 @@ class CatalogRepositoryMongo extends  CatalogRepository{
     metaCatalog
   }
 
-  @SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf"))
   def createCatalog(metaCatalog: MetaCatalog) :Successf = {
     println("MongoHost : " + mongoHost)
     import catalog_manager.yaml.ResponseWrites.MetaCatalogWrites

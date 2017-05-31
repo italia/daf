@@ -318,9 +318,12 @@ definitions:
       #id:
       #  type: integer
       #  format: int32
-      uri:
+      logical_uri:
         type: string
-        description: Unique resurce identifier of the dataset. It is calculated automatically and assigned once for all
+        description: Unique resource identifier of the dataset. It is calculated automatically and assigned once for all
+      physical_uri:
+        type: string
+        description: Physical uri. Physical storage path
       is_std:
         type: integer
         format: int32

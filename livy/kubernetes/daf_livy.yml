@@ -1,32 +1,34 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: storage-manager
+  name: livy
   labels:
-    app: storage-manager
+    app: livy
 spec:
-  type: NodePort
   ports:
-  - port: 9000
-    protocol: TCP
-    name: http
+  - port: 8998
+
   selector:
-    app: storage-manager
+    app: livy
+  clusterIP: None
 ---
 apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
-  name: storage-manager-deployment
+  name: livy-deployment
 spec:
   replicas: 3
+  strategy:
+      type: Recreate
   template:
     metadata:
       labels:
-        app: storage-manager
+        app: livy
     spec:
+      hostNetwork: true
       containers:
-      - name: storage-manager
-        image: 10.103.136.239:5000/daf-storage-manager:1.0.0
+      - name: livy
+        image: 10.103.136.239:5000/daf-livy:1.0.0
         imagePullPolicy: Always
         lifecycle:
           postStart:
@@ -34,14 +36,14 @@ spec:
              command: ["/bin/sh", "-c", "cat /etc/extra_hosts >> /etc/hosts"]
         ports:
         - name: client
-          containerPort: 9000
+          containerPort: 8998
         securityContext:
           privileged: true
           runAsUser: 0
         volumeMounts:
         - name: glusterfsvol
-          mountPath: /opt/docker/conf
-          subPath: storage-manager/conf
+          mountPath: /livy/conf
+          subPath: livy/conf
           readOnly: true
         - name: hosts
           mountPath: /etc/extra_hosts

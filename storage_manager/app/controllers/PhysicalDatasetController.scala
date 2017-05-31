@@ -20,7 +20,6 @@ import java.lang.reflect.UndeclaredThrowableException
 import java.net.URI
 import java.security.PrivilegedExceptionAction
 
-import akka.actor.ActorSystem
 import com.databricks.spark.avro.SchemaConverters
 import com.google.inject.Inject
 import io.swagger.annotations.{Api, ApiOperation, ApiParam, Authorization}
@@ -48,7 +47,7 @@ import scala.util.{Failure, Success, Try}
   )
 )
 @Api("physical-dataset")
-class PhysicalDatasetController @Inject()(configuration: Configuration, val playSessionStore: PlaySessionStore, system: ActorSystem) extends Controller {
+class PhysicalDatasetController @Inject()(configuration: Configuration, val playSessionStore: PlaySessionStore) extends Controller {
 
   private val sparkConfig = new SparkConf()
   sparkConfig.set("spark.driver.memory", configuration.getString("spark_driver_memory").getOrElse("128M"))
@@ -104,7 +103,7 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
     Action {
       CheckedAction(exceptionManager orElse hadoopExceptionManager) {
         HadoopDoAsAction {
-          request =>
+          _ =>
             val defaultLimit = configuration.getInt("max_number_of_rows").getOrElse(throw new Exception("it shouldn;'t happen"))
             val datasetURI = new URI(uri)
             val locationURI = new URI(datasetURI.getSchemeSpecificPart)
@@ -141,7 +140,7 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
     Action {
       CheckedAction(exceptionManager) {
         HadoopDoAsAction {
-          request =>
+          _ =>
             val datasetURI = new URI(uri)
             val locationURI = new URI(datasetURI.getSchemeSpecificPart)
             val locationScheme = locationURI.getScheme

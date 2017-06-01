@@ -178,7 +178,7 @@
     "dcatapit": {
       "dct_title": {
         "it": null,
-        "`val`": "GTFS Agency"
+        "value": "GTFS Agency"
       },
       "dcat_keyword": [
         "gtfs",
@@ -190,7 +190,7 @@
       "dct_subject": [
         {
           "id": "http://eurovoc.europa.eu/4512",
-          "`val`": "public transport",
+          "value": "public transport",
           "it": null
         }
       ],
@@ -199,28 +199,27 @@
       "dcat_spatial": "http://www.geonames.org/3165524",
       "dct_description": {
         "it": null,
-        "`val`": "One or more transit agencies that provide the data in this feed"
+        "value": "One or more transit agencies that provide the data in this feed"
       },
       "dct_language": {
         "id": "http://publications.europa.eu/resource/authority/language/ITA",
-        "`val`": null
+        "value": null
       },
       "dct_accrualPeriodicity": {
         "id": "http://publications.europa.eu/resource/authority/frequency/BIMONTHLY",
-        "`val`": "bimonthly",
+        "value": "bimonthly",
         "it": null
       },
       "dcat_theme": {
         "id": "http://publications.europa.eu/resource/authority/data-theme/TRAN",
-        "`val`": "Trasporti",
+        "value": "Trasporti",
         "it": null
       },
       "dct_rightsHolder": {
         "id": "http://www.comune.torino.it/",
-        "`val`": "Torino",
+        "value": "Torino",
         "it": null
       }
     }
-  },
-  "267":{"dataschema":{"namespace":"it.gov.daf.dataset.open.torino","`type`":"record","name":"GTFS Agency","fields":[{"name":"agency_id","`type`":"string","doc":"","metadata":{"semantics":{"id":null,"context":null},"desc":"Uniquely identifies a transit agency. A transit feed may represent data from more than one agency. The agency_id is dataset unique. This field is optional for transit feeds that only contain data for a single agency.","tag":["agenzia trasporto pubblico","public transportation agency","id"],"field_type":"dimension","required":1,"cat":"mobility/transportation/agency/name"}},{"name":"agency_name","`type`":"string","doc":"","metadata":{"semantics":{"id":null,"context":null},"desc":"Agency Name. The agency_name field contains the full name of the transit agency. Google Maps will display this name.","tag":["agenzia trasporto pubblico","public transportation agency","name"],"field_type":"textval","required":1,"cat":"mobility/transportation/agency/name"}},{"name":"agency_url","`type`":"string","doc":"","metadata":{"semantics":{"id":null,"context":null},"desc":"Agency URL. Contains the URL of the transit agency. The value must be a fully qualified URL that includes http:// or https://, and any special characters in the URL must be correctly escaped. See http://www.w3.org/Addressing/URL/4_URI_Recommentations.html for a description of how to create fully qualified URL values.","tag":["agenzia trasporto pubblico","public transportation agency","url"],"field_type":"textval","required":1,"cat":"mobility/transportation/agency/info/"}},{"name":"agency_timezone","`type`":"string","doc":"","metadata":{"semantics":{"id":"http://vocab.gtfs.org/terms#Agency_timezone","context":["http://vocab.gtfs.org/terms#Agency"]},"desc":"Contains the timezone where the transit agency is located. Timezone names never contain the space character but may contain an underscore. Please refer to http://en.wikipedia.org/wiki/List_of_tz_zones for a list of valid values. If multiple agencies are specified in the feed, each must have the same agency_timezone.","tag":["agenzia trasporto pubblico","public transportation agency","timezone"],"field_type":"textval","required":1,"cat":"mobility/transportation/agency/info/"}},{"name":"agency_lang","`type`":"string","doc":"","metadata":{"semantics":{"id":"http://vocab.gtfs.org/terms#Agency_language","context":["http://vocab.gtfs.org/terms#Agency"]},"desc":"Language. Contains a two-letter ISO 639-1 code for the primary language used by this transit agency. The language code is case-insensitive (both en and EN are accepted). This setting defines capitalization rules and other language-specific settings for all text contained in this transit agency's feed. Please refer to http://www.loc.gov/standards/iso639-2/php/code_list.php for a list of valid values.","tag":["agenzia trasporto pubblico","public transportation agency","language"],"field_type":"textval","required":1,"cat":"mobility/transportation/agency/info/"}},{"name":"agency_phone","`type`":"string","doc":"","metadata":{"semantics":{"id":"http://vocab.gtfs.org/terms#Agency_phone","context":["http://vocab.gtfs.org/terms#Agency"]},"desc":"Contains a single voice telephone number for the specified agency. This field is a string value that presents the telephone number as typical for the agency's service area. It can and should contain punctuation marks to group the digits of the number. Dialable text (for example, TriMet's 503-238-RIDE) is permitted, but the field must not contain any other descriptive text.","tag":["agenzia trasporto pubblico","public transportation agency","phone"],"field_type":"textval","required":1,"cat":"mobility/transportation/agency/info/"}}]},"operational":{"georef":null,"physical_uri":"data/daf_testdatalake/ord/Torino/Trasporti/open/GTFS Agency","input_src":{"ing_type":"pull","src_type":"csv","url":"/Users/ale/Development/it_digital/big_data/project/raffa_inj/daf-injection/src/main/resources/agency.txt"},"read_type":"update","std_schema":{"std_uri":"952","fields_conv":[{"field_std":"agency_id","formula":"agency_id"},{"field_std":"agency_name","formula":"agency_name"},{"field_std":"agency_url","formula":"agency_url"},{"field_std":"agency_timezone","formula":"agency_timezone"},{"field_std":"agency_lang","formula":"agency_lang"},{"field_std":"agency_phone","formula":"agency_phone"}]},"is_std":0,"logical_uri":"daf://dataset/ord/open/Torino/Trasporti/GTFS Agency","group_own":"open"},"dcatapit":{"dct_title":{"it":null,"`val`":"GTFS Agency"},"dcat_keyword":["gtfs","public transportation","agency","trasporto pubblico","aziende trasporto"],"dct_subject":[{"id":"http://eurovoc.europa.eu/4512","`val`":"public transport","it":null}],"dcat_landingPage":null,"dct_identifier":"ABC1234","dcat_spatial":"http://www.geonames.org/3165524","dct_description":{"it":null,"`val`":"One or more transit agencies that provide the data in this feed"},"dct_language":{"id":"http://publications.europa.eu/resource/authority/language/ITA","`val`":null},"dct_accrualPeriodicity":{"id":"http://publications.europa.eu/resource/authority/frequency/BIMONTHLY","`val`":"bimonthly","it":null},"dcat_theme":{"id":"http://publications.europa.eu/resource/authority/data-theme/TRAN","`val`":"Trasporti","it":null},"dct_rightsHolder":{"id":"http://www.comune.torino.it/","`val`":"Torino","it":null}}}
+  }
 }

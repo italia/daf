@@ -471,25 +471,26 @@ definitions:
     properties:
       it:
         type: string
-      val:
+      value:
         type: string
   DcatApItType:
     type: object
     properties:
       id:
         type: string
-      val:
+      value:
         type: string
   DcatApItTypeLang:
     type: object
     properties:
       id:
         type: string
-      val:
+      value:
         type: string
       it:
         type: string
-  DcatApItValue:
+    DcatApIt
+    ue:
     type: object
     properties:
       value:

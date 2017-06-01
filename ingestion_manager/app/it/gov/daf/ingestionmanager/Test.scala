@@ -1,10 +1,8 @@
-package it.gov.daf.injestionmanager
+package it.gov.daf.ingestionmanager
 
-import it.teamDigitale.daf.schema.schemaMgmt.{ConvSchemaGetter, StdSchemaGetter, SchemaMgmt}
-
-import it.teamDigitale.daf.injestion.DataInjCsv
-
-import it.teamDigitale.daf.injestion.DataInjCsv
+import it.teamDigitale.daf.datamanagers.examples.{ConvSchemaGetter, StdSchemaGetter}
+import it.teamDigitale.daf.ingestion.DataInjCsv
+import it.teamDigitale.daf.schemamanager.SchemaMgmt
 
 /**
   * Created by ale on 17/05/17.

@@ -14,7 +14,7 @@ version := "1.0.0"
 lazy val client = project in file("client")
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser)
-.dependsOn(client)
+.dependsOn(client).aggregate(client)
 
 scalaVersion := "2.11.8"
 
@@ -94,7 +94,7 @@ generateClientLibraries := Process(swaggercodegen ::
   "--template-dir" ::
   s"${baseDirectory.value}/templates" ::
   "--additional-properties" ::
-  s"projectName=${name.value}" ::
+  s"projectName=${name.value},groupId=${organization.value}" ::
   Nil, new File("client")).!
 
 generateClientLibraries <<= generateClientLibraries dependsOn generateClientLibraries

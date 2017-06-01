@@ -34,26 +34,42 @@ package it.gov.daf.common.modules.hadoop
 
 import java.io.File
 import java.net.{URL, URLClassLoader}
+import javax.inject.Inject
 
+import akka.actor.ActorSystem
 import com.google.inject.{AbstractModule, Singleton}
 import play.api.{Configuration, Environment}
 
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
+import scala.language.postfixOps
 import scala.sys.process.Process
 
 @SuppressWarnings(
   Array(
+    "org.wartremover.warts.NonUnitStatements"
+  )
+)
+class SchedulingTask @Inject()(val system: ActorSystem, val configuration: Configuration) {
+  system.scheduler.schedule(10 seconds, 12 * 60 minutes) { //TODO make those magic numbers configurable
+    val process = Process(s"/usr/bin/kinit -kt ${configuration.getString("keytab").getOrElse("")} ${configuration.getString("principal").getOrElse("")}")
+    val _ = process.!
+  }
+}
+
+@SuppressWarnings(
+  Array(
     "org.wartremover.warts.Overloading",
-    "org.wartremover.warts.NonUnitStatements",
-    "org.wartremover.warts.StringPlusAny"
+    "org.wartremover.warts.NonUnitStatements"
   )
 )
 @Singleton
-class HadoopModule(environment: Environment, configuration: Configuration) extends AbstractModule {
-
+class HadoopModule @Inject()(val environment: Environment, val configuration: Configuration) extends AbstractModule {
+  
   private val hadoopConfiguration = new org.apache.hadoop.conf.Configuration()
 
   private val process = Process(s"/usr/bin/kinit -kt ${configuration.getString("keytab").getOrElse("")} ${configuration.getString("principal").getOrElse("")}")
-  process.!
+  private val _ = process.!
 
   def addPath(dir: String): Unit = {
     val method = classOf[URLClassLoader].getDeclaredMethod("addURL", classOf[URL])
@@ -63,6 +79,7 @@ class HadoopModule(environment: Environment, configuration: Configuration) exten
   }
 
   def configure(): Unit = {
+    bind(classOf[SchedulingTask]).asEagerSingleton()
     configuration.getString("hadoop_conf_dir").foreach(addPath)
   }
 }

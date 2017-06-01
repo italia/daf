@@ -325,8 +325,7 @@ definitions:
         type: string
         description: Physical uri. Physical storage path
       is_std:
-        type: integer
-        format: int32
+        type: boolean
         description: It tells if the dataset is a Standart Schema dataset (or VID). It takes values true (StdSchema Dataset), false (not a StdSchema Dataset)
       group_own:
         type: string

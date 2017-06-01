@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
       - name: security-manager
-        image: 10.103.136.239:5000/daf_security_manager:1.0.0
+        image: 10.103.136.239:5000/daf-security-manager:1.0.0
         imagePullPolicy: Always
         lifecycle:
           postStart:
@@ -40,7 +40,7 @@ spec:
           runAsUser: 0
         volumeMounts:
         - name: glusterfsvol
-          mountPath: /application/conf
+          mountPath: /opt/docker/conf
           subPath: security-manager/conf
           readOnly: true
         - name: hosts

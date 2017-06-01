@@ -2,7 +2,7 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-GET         /spec/injestion_manager.yaml   controllers.Swagger.swaggerSpec(name="injestion_manager.yaml")
+GET         /spec/ingestion_manager.yaml   controllers.Swagger.swaggerSpec(name="ingestion_manager.yaml")
 
 GET         /               controllers.Assets.versioned(path="/public/swagger-ui", file: Asset = "index.html")
 
@@ -14,7 +14,7 @@ GET         /favicon.ico    controllers.Assets.versioned(path="/public/swagger-u
 
 GET         /api/*file      controllers.Assets.versioned(path="/public/swagger-ui", file: Asset)
 
-->          /injestion-manager/v1            injestion_manager.yaml.Routes
+->          /ingestion-manager/v1            ingestion_manager.yaml.Routes
 
 
 ### NoDocs ###

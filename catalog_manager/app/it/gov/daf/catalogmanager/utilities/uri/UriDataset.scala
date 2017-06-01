@@ -60,7 +60,7 @@ object UriDataset  {
   def convertToUriDataset(optionalSchema :MetaCatalog) = Try {
     (optionalSchema.operational, optionalSchema.dcatapit) match {
       case (Some(operational), Some(dcatapit)) =>
-        val typeDs = if (operational.is_std.get == 1)
+        val typeDs = if (operational.is_std.get)
           DatasetType.STANDARD
         else
           DatasetType.ORDINARY

@@ -193,7 +193,6 @@
       }
     }
   },
-
   "ordinaryWithStandard": {
   "dataschema": {
     "namespace": "it.gov.daf.dataset.open.torino",

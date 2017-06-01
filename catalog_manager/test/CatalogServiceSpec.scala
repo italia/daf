@@ -18,7 +18,6 @@ import scala.collection.mutable
   * Created by ale on 05/05/17.
   */
 
-@SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements", "org.wartremover.warts.Throw"))
 trait TestEnvironment extends
   CatalogServiceComponent with
   CatalogRepositoryComponent with
@@ -37,7 +36,6 @@ trait TestEnvironment extends
 
 
 
-@SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements", "org.wartremover.warts.Throw"))
 class CatalogServiceSpec extends Specification with TestEnvironment {
 
   "A CatalogService" should  {

@@ -14,7 +14,6 @@ import play.api.{Configuration, Environment, Mode}
   * Created by ale on 11/05/17.
   */
 
-@SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements", "org.wartremover.warts.Throw"))
 object WebServiceUtil {
 
   val configuration = Configuration.reference ++ Configuration(ConfigFactory.parseString(

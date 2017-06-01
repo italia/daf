@@ -14,7 +14,7 @@ version := "1.0.0"
 lazy val client = project in file("client")
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser)
-.dependsOn(client)
+.dependsOn(client).aggregate(client)
 
 scalaVersion := "2.11.8"
 
@@ -31,6 +31,7 @@ libraryDependencies ++= Seq(
   "org.mongodb" %% "casbah" % "3.1.1" //,
   //"it.teamdigitale" %% "ingestion-module" % "0.1.0" exclude("org.apache.avro", "avro")
 )
+
 
 resolvers ++= Seq(
   "zalando-bintray" at "https://dl.bintray.com/zalando/maven",
@@ -65,9 +66,9 @@ dockerCommands += ExecCmd("ENTRYPOINT", s"bin/${name.value}", "-Dconfig.file=con
 dockerExposedPorts := Seq(9000)
 
 // Wart Remover Plugin Configuration
-wartremoverErrors ++= Warts.allBut(Wart.Nothing, Wart.PublicInference, Wart.Any, Wart.Equals)
+//wartremoverErrors ++= Warts.allBut(Wart.Nothing, Wart.PublicInference, Wart.Any, Wart.Equals)
 
-wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value / "target" / "scala-2.11" / "routes").toSeq
+//wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value / "target" / "scala-2.11" / "routes").toSeq
 
 val generateClientLibraries = taskKey[Unit]("")
 
@@ -93,7 +94,7 @@ generateClientLibraries := Process(swaggercodegen ::
   "--template-dir" ::
   s"${baseDirectory.value}/templates" ::
   "--additional-properties" ::
-  s"projectName=${name.value}" ::
+  s"projectName=${name.value},groupId=${organization.value}" ::
   Nil, new File("client")).!
 
 generateClientLibraries <<= generateClientLibraries dependsOn generateClientLibraries

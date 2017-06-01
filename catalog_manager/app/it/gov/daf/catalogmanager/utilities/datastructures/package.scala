@@ -17,7 +17,7 @@ package object datastructures {
     ConvSchema(
        uri = schema.operational.get.logical_uri,
       name = schema.dcatapit.get.dct_title.get.`val`.get,
-      isStd = (schema.operational.get.is_std.get > 0),
+      isStd = schema.operational.get.is_std.get,
       theme = schema.dcatapit.get.dcat_theme.get.`val`.get,
       cat = schema.dcatapit.get.dct_subject.get.map(x => x.`val`.get),
       groupOwn = schema.operational.get.group_own.get,

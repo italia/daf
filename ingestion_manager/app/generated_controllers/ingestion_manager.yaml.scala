@@ -24,6 +24,7 @@ import it.teamDigitale.daf.ingestion.IngestionManager
 import it.teamDigitale.daf.schemamanager.SchemaManager
 import it.gov.daf.catalogmanagerclient.api.DatasetCatalogApi
 import it.gov.daf.catalogmanagerclient.invoker.ApiInvoker
+import it.gov.daf.catalogmanagerclient.model.MetaCatalog
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -31,11 +32,8 @@ import it.gov.daf.catalogmanagerclient.invoker.ApiInvoker
  */
 
 package ingestion_manager.yaml {
-
-    import it.gov.daf.catalogmanagerclient.model.MetaCatalog
-    import it.teamDigitale.daf.datastructures.Model.Schema
     // ----- Start of unmanaged code area for package Ingestion_managerYaml
-                                
+                                            
     // ----- End of unmanaged code area for package Ingestion_managerYaml
     class Ingestion_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Ingestion_managerYaml
@@ -66,16 +64,17 @@ package ingestion_manager.yaml {
         val addDataset = addDatasetAction { input: (File, String) =>
             val (upfile, uri) = input
             // ----- Start of unmanaged code area for action  Ingestion_managerYaml.addDataset
+            println("")
             val schema: Option[MetaCatalog] = catalogManagerApi.datasetcatalogbyid(uri)
 
            // val tryschema: Try[Schema] = dm.getSchemaFromUri(uriCatalogManager, uri)
 
-            val res: Try[Boolean] = schema.map(s =>  ingestionManager.write(s))
+            val res: Option[Boolean] = schema.map(s =>  ingestionManager.write(s))
 
             val httpres= res match {
-                case Success(true) => Successfull(Some("Dataset stored"))
-                case Success(false) => Successfull(Some("ERROR dataset cannot be stored"))
-                case Failure(ex) => Successfull(Some(s"ERROR dataset cannot be stored due: ${ex.getMessage}"))
+                case Some(true) => Successfull(Some("Dataset stored"))
+                case Some(false) => Successfull(Some("ERROR dataset cannot be stored"))
+                case None => Successfull(Some(s"ERROR dataset cannot be stored"))
             }
             AddDataset200(httpres)
             // ----- End of unmanaged code area for action  Ingestion_managerYaml.addDataset

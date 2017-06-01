@@ -53,7 +53,7 @@ paths:
       parameters:
         - name: Authorization
           in: header
-          description: an    authorization header
+          description: the authorization header
           required: true
           type: string
       responses:

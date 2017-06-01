@@ -96,31 +96,65 @@
     }
 
 
-    def createCatalog(metaCatalog: MetaCatalog) :Successf = {
-      import catalog_manager.yaml.ResponseWrites.MetaCatalogWrites
-      val fw = new FileWriter("data/data-mgt/data.json", true)
-      val metaCatalogJs = Json.toJson(metaCatalog)
-      println(Json.stringify(metaCatalogJs))
-
+    def testCreateCatalog(metaCatalog: MetaCatalog) = {
       metaCatalog match {
         case MetaCatalog(Some(dataSchema), Some(operational), _) =>
           if(operational.std_schema.isDefined ) {
             val stdUri = operational.std_schema.get.std_uri.get
+          }
+      }
+    }
 
-            val res: Try[Boolean] = Try(getCatalogs(stdUri)).map(CatalogManager.writeOrdinaryWithStandard(metaCatalog, _))
+    def createCatalog(metaCatalog: MetaCatalog) :Successf = {
+      import catalog_manager.yaml.ResponseWrites.MetaCatalogWrites
 
+      val fw = new FileWriter("data/data-mgt/data.json", true)
+      val metaCatalogJs = Json.toJson(metaCatalog)
+
+      val msg: String = metaCatalog match {
+        case MetaCatalog(Some(dataSchema), Some(operational), _) =>
+          if(operational.std_schema.isDefined ) {
+            val stdUri = operational.std_schema.get.std_uri.get
+            val res: Try[(Boolean, MetaCatalog)] = Try(getCatalogs(stdUri))
+              .map(CatalogManager.writeOrdinaryWithStandard(metaCatalog, _))
+            res match {
+              case Success((true, meta)) =>
+                val random = scala.util.Random
+                val id = random.nextInt(1000).toString
+                val data = Json.obj(id -> Json.toJson(meta))
+                fw.write(Json.stringify(data) + "\n")
+                fw.close()
+                val msg = "Catalog Added"
+                msg
+              case _ =>
+                println("Error");
+                val msg = "Error"
+                msg
+            }
           } else {
-
+            val random = scala.util.Random
+            val id = random.nextInt(1000).toString
+            val res: Try[(Boolean, MetaCatalog)]= Try(CatalogManager.writeOrdinary(metaCatalog))
+            val msg = res match {
+              case Success((true, meta)) =>
+                val random = scala.util.Random
+                val id = random.nextInt(1000).toString
+                val data = Json.obj(id -> Json.toJson(meta))
+                fw.write(Json.stringify(data) + "\n")
+                fw.close()
+                val msg = "Catalog Added"
+                msg
+              case _ =>
+                println("Error");
+                val msg = "Error"
+                msg
+            }
+            msg
           }
 
-        case _ => println("")
+        case _ => println(""); val msg = "Error"; msg
       }
 
-      val random = scala.util.Random
-      val id = random.nextInt(1000).toString
-      val data = Json.obj(id -> metaCatalogJs)
-    //  fw.write(Json.stringify(data) + "\n")
-    //  fw.close()
-      Successf(Some("Metacatalog added"),Some("Metacatalog added"))
+      Successf(Some(msg),Some(msg))
     }
   }

@@ -17,7 +17,7 @@
 
 swagger: '2.0'
 info:
-  title: Injestion Manager API
+  title: Ingestion Manager API
   description: Catalog Manager API
   version: "BETA"
   termsOfService: http://termofservice
@@ -29,7 +29,7 @@ info:
     url: http://creativecommons.org/licenses/by/4.0/
 host : localhost:9001
 # will be prefixed to all paths
-basePath: /injestion-manager/v1
+basePath: /ingestion-manager/v1
 # array of all schemes that your API supports
 schemes:
   - http
@@ -38,12 +38,12 @@ produces:
 paths:
   "/test":
     get:
-      summary: Injestion Catalog
+      summary: Ingestion Catalog
       description: |
-        Test Injestion
+        Test Ingestion
       tags:
-        - Test Injestion
-      operationId: testinjestion
+        - Test Ingestion
+      operationId: testingestion
       responses:
         200:
           description: Successfull
@@ -53,6 +53,34 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  "/add-datasets/{uri}":
+     post:
+       tags:
+       - Ingestion
+       summary: Add dataset, as append
+       operationId: addDataset
+       consumes:
+          - multipart/form-data
+       parameters:
+       - in: formData
+         name: upfile
+         type: file
+         required: true
+         description: The file to upload
+       - name: uri
+         in: path
+         description: uri of the dataset into the catalog manager
+         required: true
+         type: string
+       responses:
+         200:
+           description: successful operation
+           schema:
+             $ref: '#/definitions/Successfull'
+         default:
+           description: Unexpected error
+           schema:
+             $ref: '#/definitions/Error'
 definitions:
   Error:
     properties:

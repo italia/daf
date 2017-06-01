@@ -1,6 +1,7 @@
 import CommonBuild._
 import Versions._
 import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
+import eu.unicredit.swagger.dependencies.{DefaultClientGenerator, DefaultJsonGenerator, DefaultModelGenerator}
 
 organization in ThisBuild := "it.gov.daf"
 name := "daf-security-manager"
@@ -21,11 +22,21 @@ scalacOptions ++= Seq(
   "-Xfuture"
 )
 
-wartremoverErrors ++= Warts.allBut(Wart.Nothing, Wart.PublicInference, Wart.Any, Wart.Equals)
+wartremoverErrors ++= Warts.allBut(Wart.Nothing, Wart.PublicInference, Wart.Any, Wart.Equals, Wart.Option2Iterable)
 wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value / "target" / "scala-2.11" / "routes").toSeq
 wartremoverExcluded ++= routes.in(Compile).value
 
-lazy val client = project in file("client")
+lazy val client = (project in file("client")).
+  settings(Seq(
+    name := "daf-security-manager-client",
+    swaggerGenerateClient := true,
+    swaggerCodeGenPackage := "it.gov.daf.securitymanager",
+    swaggerSourcesDir := file(s"${baseDirectory.value}/../conf"),
+    libraryDependencies ++= DefaultClientGenerator.dependencies ++
+      DefaultModelGenerator.dependencies ++
+      DefaultJsonGenerator.dependencies
+  )).
+  enablePlugins(SwaggerCodegenPlugin)
 
 lazy val root = (project in file(".")).
   enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser, /*AutomateHeaderPlugin,*/ DockerPlugin).
@@ -93,32 +104,3 @@ daemonUser := "daf"
 dockerCommands += ExecCmd("ENTRYPOINT", s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
 dockerExposedPorts := Seq(9000)
 dockerRepository := Option("10.103.136.239:5000")
-
-val generateClientLibraries = taskKey[Unit]("")
-
-val swaggercodegen = sys.props("os.name") match {
-  case s if s.startsWith("Windows") => "swagger-codegen.cmd"
-  case _ => "swagger-codegen"
-}
-
-generateClientLibraries := Process(swaggercodegen ::
-  "generate" ::
-  "-i" ::
-  s"file://${baseDirectory.value}/conf/security_manager.yaml" ::
-  "-l" ::
-  "scala" ::
-  "--artifact-id" ::
-  s"${name.value}-client" ::
-  "--model-package" ::
-  "it.gov.daf.securitymanagerclient.model" ::
-  "--api-package" ::
-  "it.gov.daf.securitymanagerclient.api" ::
-  "--invoker-package" ::
-  "it.gov.daf.securitymanagerclient.invoker" ::
-  "--template-dir" ::
-  s"${baseDirectory.value}/templates" ::
-  "--additional-properties" ::
-  s"projectName=${name.value},groupId=${organization.value}" ::
-  Nil, new File("client")).!
-
-generateClientLibraries <<= generateClientLibraries dependsOn generateClientLibraries

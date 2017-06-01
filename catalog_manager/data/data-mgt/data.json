@@ -172,7 +172,7 @@
           }
         ]
       },
-      "id_std": null,
+      "is_std": 1,
       "group_own": "open"
     },
     "dcatapit": {

@@ -1,7 +1,6 @@
 import CommonBuild._
 import Versions._
 import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
-import eu.unicredit.swagger.dependencies.{DefaultClientGenerator, DefaultJsonGenerator, DefaultModelGenerator}
 
 organization in ThisBuild := "it.gov.daf"
 name := "daf-security-manager"
@@ -31,10 +30,12 @@ lazy val client = (project in file("client")).
     name := "daf-security-manager-client",
     swaggerGenerateClient := true,
     swaggerCodeGenPackage := "it.gov.daf.securitymanager",
+    swaggerModelFilesSplitting := "oneFilePerModel",
     swaggerSourcesDir := file(s"${baseDirectory.value}/../conf"),
-    libraryDependencies ++= DefaultClientGenerator.dependencies ++
-      DefaultModelGenerator.dependencies ++
-      DefaultJsonGenerator.dependencies
+    libraryDependencies ++= Seq(
+      "com.typesafe.play" %% "play-json" % playVersion,
+      "com.typesafe.play" %% "play-ws" %  playVersion
+    )
   )).
   enablePlugins(SwaggerCodegenPlugin)
 
@@ -103,4 +104,4 @@ dockerCommands := dockerCommands.value.flatMap {
 daemonUser := "daf"
 dockerCommands += ExecCmd("ENTRYPOINT", s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
 dockerExposedPorts := Seq(9000)
-dockerRepository := Option("10.103.136.239:5000")
+dockerRepository := Option("10.98.74.120:5000")

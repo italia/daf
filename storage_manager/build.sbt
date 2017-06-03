@@ -27,7 +27,7 @@ scalacOptions ++= Seq(
   "-encoding", "UTF-8", // yes, this is 2 args
   "-feature",
   "-unchecked",
-  "-Xfatal-warnings",
+//  "-Xfatal-warnings",
   "-Xlint",
   "-Yno-adapted-args",
   "-Ywarn-numeric-widen",
@@ -104,4 +104,4 @@ dockerCommands := dockerCommands.value.flatMap {
 daemonUser := "daf"
 dockerCommands += ExecCmd("ENTRYPOINT", s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
 dockerExposedPorts := Seq(9000)
-dockerRepository := Option("10.103.136.239:5000")
+dockerRepository := Option("10.98.74.120:5000")

@@ -81,8 +81,11 @@ class ServiceSpec extends Specification with BeforeAfterAll {
 
       val client = new Security_managerClient(ws)(s"http://localhost:$port")
 
-      Await.result(client.token(s"Basic $base64Creds").map(token => s""""$token""""), Duration.Inf) must be equalTo token
+      val token2 = Await.result(client.token(s"Basic $base64Creds"), Duration.Inf)
 
+      s""""$token2"""" must be equalTo token
+
+      Await.result(client.token(s"Bearer $token2").map(token => s""""$token""""), Duration.Inf) must be equalTo token
     }
   }
 

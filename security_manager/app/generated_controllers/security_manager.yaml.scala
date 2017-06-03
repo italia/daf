@@ -1,12 +1,26 @@
 
+import play.api.mvc.{Action,Controller}
+
+import play.api.data.validation.Constraint
+
+import play.api.i18n.MessagesApi
+
+import play.api.inject.{ApplicationLifecycle,ConfigurationProvider}
+
+import de.zalando.play.controllers._
+
+import PlayBodyParsing._
+
+import PlayValidations._
+
+import scala.util._
+
 import javax.inject._
 
 import de.zalando.play.controllers.PlayBodyParsing._
 import it.gov.daf.common.authentication.Authentication
 import org.pac4j.play.store.PlaySessionStore
 import play.api.Configuration
-import play.api.i18n.MessagesApi
-import play.api.inject.{ApplicationLifecycle, ConfigurationProvider}
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -15,7 +29,7 @@ import play.api.inject.{ApplicationLifecycle, ConfigurationProvider}
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                    
+                                                
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -39,8 +53,7 @@ package security_manager.yaml {
         // ----- End of unmanaged code area for constructor Security_managerYaml
         val token = tokenAction { (authorization: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.token
-            Authentication.getToken(currentRequest)
-      Token200(Authentication.getStringToken(currentRequest).getOrElse(""))
+            Token200(Authentication.getStringToken(currentRequest).getOrElse(""))
             // ----- End of unmanaged code area for action  Security_managerYaml.token
         }
     

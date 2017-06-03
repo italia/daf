@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nexus
+  labels:
+    app: nexus
+spec:
+  type: NodePort
+  ports:
+  - port: 8081
+    protocol: TCP
+    name: http
+  - port: 5000
+    protocol: TCP
+    name: docker
+  selector:
+    app: nexus
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: nexus
+  namespace: default
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: nexus
+    spec:
+      containers:
+        - name: nexus
+          image: sonatype/nexus3:3.3.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8081
+            - containerPort: 5000
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          volumeMounts:
+            - name: glusterfsvol
+              mountPath: /nexus-data
+              subPath: nexus/nexus-data
+      volumes:
+        - name: glusterfsvol
+          persistentVolumeClaim:
+            claimName: gluster-claim

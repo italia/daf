@@ -163,10 +163,4 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
       }
     }
 
-  @ApiOperation(value = "it returns the JWT token given username and password", produces = "text/plain")
-  def getToken: Action[AnyContent] =
-    Action {
-      Authentication.getToken
-    }
-
 }

@@ -90,14 +90,6 @@ class ServiceSpec extends Specification with BeforeAfterAll {
         (doc, txtDoc, schema)
       }
 
-      private val token = WsTestClient.withClient { implicit client =>
-        val response: WSResponse = Await.result[WSResponse](client.
-          url(s"http://localhost:$port/storage-manager/v1/get-token").
-          withAuth("david", "david", WSAuthScheme.BASIC).
-          execute, Duration.Inf)
-        response.body
-      }
-
       //Test with missing authentication information
       WsTestClient.withClient { implicit client =>
         val uri = "dataset:hdfs:/opendata/test.parquet"
@@ -112,7 +104,7 @@ class ServiceSpec extends Specification with BeforeAfterAll {
         val uri = "dataset:hdfs:/opendata/WRONG.parquet"
         val response: WSResponse = Await.result[WSResponse](client.
           url(s"http://localhost:$port/storage-manager/v1/physical-datasets?uri=$uri&format=parquet&limit=$limit").
-          withHeaders("Authorization" -> s" Bearer $token").
+          withAuth("david", "david", WSAuthScheme.BASIC).
           execute, Duration.Inf)
         response.status must be equalTo Status.NOT_FOUND
       }
@@ -122,7 +114,7 @@ class ServiceSpec extends Specification with BeforeAfterAll {
         val uri = "dataset:WRONG:/opendata/WRONG.parquet"
         val response: WSResponse = Await.result[WSResponse](client.
           url(s"http://localhost:$port/storage-manager/v1/physical-datasets?uri=$uri&format=parquet&limit=$limit").
-          withHeaders("Authorization" -> s" Bearer $token").
+          withAuth("david", "david", WSAuthScheme.BASIC).
           execute, Duration.Inf)
         response.status must be equalTo Status.NOT_IMPLEMENTED
       }
@@ -140,7 +132,7 @@ class ServiceSpec extends Specification with BeforeAfterAll {
         val uri = "dataset:hdfs:/opendata/test.parquet"
         val response: WSResponse = Await.result[WSResponse](client.
           url(s"http://localhost:$port/storage-manager/v1/physical-datasets?uri=$uri&format=parquet&limit=$limit").
-          withHeaders("Authorization" -> s" Bearer $token").
+          withAuth("david", "david", WSAuthScheme.BASIC).
           execute, Duration.Inf)
         response.body must be equalTo doc
       }
@@ -148,7 +140,7 @@ class ServiceSpec extends Specification with BeforeAfterAll {
       WsTestClient.withClient { implicit client =>
         val uri = "dataset:hdfs:/opendata/test.avro"
         val response: WSResponse = Await.result[WSResponse](client.url(s"http://localhost:$port/storage-manager/v1/physical-datasets?uri=$uri&format=avro&limit=$limit").
-          withHeaders("Authorization" -> s"Bearer $token").
+          withAuth("david", "david", WSAuthScheme.BASIC).
           execute, Duration.Inf)
         response.body must be equalTo doc
       }
@@ -156,7 +148,7 @@ class ServiceSpec extends Specification with BeforeAfterAll {
       WsTestClient.withClient { implicit client =>
         val uri = "dataset:hdfs:/opendata/test.csv"
         val response: WSResponse = Await.result[WSResponse](client.url(s"http://localhost:$port/storage-manager/v1/physical-datasets?uri=$uri&format=text&limit=$limit").
-          withHeaders("Authorization" -> s"Bearer $token").
+          withAuth("david", "david", WSAuthScheme.BASIC).
           execute, Duration.Inf)
         response.body must be equalTo txtDoc
       }
@@ -164,7 +156,7 @@ class ServiceSpec extends Specification with BeforeAfterAll {
       WsTestClient.withClient { implicit client =>
         val uri = "dataset:hdfs:/opendata/test.avro"
         val response: WSResponse = Await.result[WSResponse](client.url(s"http://localhost:$port/storage-manager/v1/physical-datasets/schema?uri=$uri&format=avro").
-          withHeaders("Authorization" -> s"Bearer $token").
+          withAuth("david", "david", WSAuthScheme.BASIC).
           execute, Duration.Inf)
         response.body must be equalTo schema
       }

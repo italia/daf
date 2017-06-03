@@ -28,7 +28,7 @@ spec:
       hostNetwork: true
       containers:
       - name: livy
-        image: 10.103.136.239:5000/daf-livy:1.0.0
+        image: 10.98.74.120:5000/daf-livy:1.0.0
         imagePullPolicy: Always
         lifecycle:
           postStart:
@@ -52,6 +52,8 @@ spec:
         - name: hadoopconf
           mountPath: /etc/hadoop/conf
           readOnly: true
+      imagePullSecrets:
+      - name: regsecret
       securityContext:
         supplementalGroups: [1330600009]
       volumes:

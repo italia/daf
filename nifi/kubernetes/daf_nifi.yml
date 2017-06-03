@@ -28,7 +28,7 @@ spec:
       hostNetwork: true
       containers:
       - name: nifi
-        image: 10.103.136.239:5000/daf-nifi:1.0.0
+        image: 10.98.74.120:5000/daf-nifi:1.0.0
         imagePullPolicy: Always
         lifecycle:
           postStart:
@@ -54,6 +54,8 @@ spec:
           readOnly: true
       securityContext:
         supplementalGroups: [1330600009]
+      imagePullSecrets:
+      - name: regsecret
       volumes:
       - name: glusterfsvol
         persistentVolumeClaim:

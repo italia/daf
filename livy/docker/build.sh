@@ -10,7 +10,7 @@ unzip -o ../livy/assembly/target/livy-server*.zip
 mv livy-server-* livy-server
 rm -rf spark2-2.1.0-cloudera1/build
 (cd spark-spark2-2.1.0-cloudera1; find . -name "*.class" | xargs rm)
-docker build -t 10.103.136.239:5000/daf-livy:1.0.0 .
-docker push 10.103.136.239:5000/daf-livy:1.0.0
+docker build -t 10.98.74.120:5000/daf-livy:1.0.0 .
+docker push 10.98.74.120:5000/daf-livy:1.0.0
 rm -rf spark-spark2-2.1.0-cloudera1
 rm -rf livy-server*

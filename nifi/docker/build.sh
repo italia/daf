@@ -6,6 +6,6 @@ wget -O nifi.tar.gz  http://it.apache.contactlab.it/nifi/1.2.0/nifi-1.2.0-bin.ta
     mv nifi-1.2.0 nifi
     rm -rf nifi/conf
 
-docker build -t 10.103.136.239:5000/daf-nifi:1.0.0 .
-docker push 10.103.136.239:5000/daf-nifi:1.0.0
+docker build -t 10.98.74.120:5000/daf-nifi:1.0.0 .
+docker push 10.98.74.120:5000/daf-nifi:1.0.0
 rm -rf nifi

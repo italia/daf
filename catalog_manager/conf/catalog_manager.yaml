@@ -488,12 +488,6 @@ definitions:
         type: string
       it:
         type: string
-    DcatApIt
-    ue:
-    type: object
-    properties:
-      value:
-        type: string
   Dataset:
     type: object
     properties:

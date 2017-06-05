@@ -95,7 +95,7 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
   @ApiOperation(
     value = "given a physical dataset URI it returns a json document with the first 'limit' number of rows",
     produces = "application/json, text/plain",
-    authorizations = Array(new Authorization(value = "basic"))
+    authorizations = Array(new Authorization(value = "basicAuth"))
   )
   def getDataset(@ApiParam(value = "the dataset's physical URI", required = true) uri: String,
                  @ApiParam(value = "the dataset's format", required = true) format: String,
@@ -137,7 +137,7 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
   @ApiOperation(
     value = "given a physical dataset URI it returns its AVRO schema in json format",
     produces = "application/json",
-    authorizations = Array(new Authorization(value = "basic"))
+    authorizations = Array(new Authorization(value = "basicAuth"))
   )
   def getDatasetSchema(@ApiParam(value = "the dataset's physical URI", required = true) uri: String,
                        @ApiParam(value = "the dataset's format", required = true) format: String): Action[AnyContent] =

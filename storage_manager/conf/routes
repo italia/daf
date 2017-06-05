@@ -15,7 +15,7 @@
 # Routes
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
-GET   /storage-manager/swagger.json                controllers.ApiHelpController.getResources
+GET   /storage-manager/swagger.json                controllers.WithSecurityInfoApiHelpController.getResources
 
 # Home page
 GET   /                                            controllers.Application.index

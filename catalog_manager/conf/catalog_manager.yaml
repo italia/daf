@@ -175,8 +175,10 @@ definitions:
     type: object
     properties:
       dataschema:
-         type: object
-         $ref: '#/definitions/DatasetCatalog'
+        properties:
+          avro:
+            type: object
+            $ref: '#/definitions/Avro'
       operational:
          type: object
          $ref: '#/definitions/Operational'
@@ -186,7 +188,7 @@ definitions:
       dcatapit:
         type: object
         $ref: '#/definitions/DcatApIt'
-  DatasetCatalog:
+  Avro:
       required:
         - namespace
         - type
@@ -201,6 +203,9 @@ definitions:
         name:
           type: string
           description: Name of the dataset
+        aliases:
+          type: string
+          description: Alises for dataset
         #alliases:
         #  type: array
         #  items:
@@ -222,12 +227,12 @@ definitions:
          # $ref: '#/definitions/ActionAnyContent'
           type: string
           description: It can be a json object for complex type, or an array of string for primitive types (the latter may contains null in case the field can be nullable)
-        doc:
+  FlatSchema:
+      properties:
+        name:
           type: string
-          description: Documentation/info for user prurposes
-       # default:
-       #   $ref: '#/definitions/ActionAnyContent'
-       #   description: Default value for the field
+        type:
+          type: string
         metadata:
           $ref: '#/definitions/Metadata'
           description: JSON object containing metadata information for the field
@@ -269,6 +274,10 @@ definitions:
       semantics:
         type: object
         $ref: '#/definitions/Semantic'
+      constr:
+        type: array
+        items:
+          $ref: '#/definitions/Constr'
   Lang:
     type: object
     properties:
@@ -295,6 +304,13 @@ definitions:
         type: array
         items:
           type: string
+  Constr:
+    type: object
+    properties:
+      type:
+        type: string
+      param:
+        type: string
    # required:
    #   - rdfs:domain
    #   - rdfs:range

@@ -50,12 +50,6 @@ paths:
       operationId: token
       security:
         - basicAuth: []
-      parameters:
-        - name: Authorization
-          in: header
-          description: The authorization header
-          required: true
-          type: string
       responses:
         200:
           description: The JWT token

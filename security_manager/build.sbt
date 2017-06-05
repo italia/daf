@@ -29,6 +29,7 @@ lazy val client = (project in file("client")).
   settings(Seq(
     name := "daf-security-manager-client",
     swaggerGenerateClient := true,
+    swaggerClientCodeGenClass := new it.gov.daf.swaggergenerators.DafClientGenerator,
     swaggerCodeGenPackage := "it.gov.daf.securitymanager",
     swaggerModelFilesSplitting := "oneFilePerModel",
     swaggerSourcesDir := file(s"${baseDirectory.value}/../conf"),

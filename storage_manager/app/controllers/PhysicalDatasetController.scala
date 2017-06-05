@@ -53,7 +53,7 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
   sparkConfig.set("spark.driver.memory", configuration.getString("spark_driver_memory").getOrElse("128M"))
 
   private val sparkSession = SparkSession.builder().master("local").config(sparkConfig).getOrCreate()
- 
+
   UserGroupInformation.loginUserFromSubject(null)
 
   private val proxyUser = UserGroupInformation.getCurrentUser
@@ -134,7 +134,11 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
       }
     }
 
-  @ApiOperation(value = "given a physical dataset URI it returns its AVRO schema in json format", produces = "application/json")
+  @ApiOperation(
+    value = "given a physical dataset URI it returns its AVRO schema in json format",
+    produces = "application/json",
+    authorizations = Array(new Authorization(value = "basic"))
+  )
   def getDatasetSchema(@ApiParam(value = "the dataset's physical URI", required = true) uri: String,
                        @ApiParam(value = "the dataset's format", required = true) format: String): Action[AnyContent] =
     Action {

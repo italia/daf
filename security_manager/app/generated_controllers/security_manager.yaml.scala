@@ -29,7 +29,7 @@ import play.api.Configuration
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                
+                                                        
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -51,7 +51,7 @@ package security_manager.yaml {
       )
     )
         // ----- End of unmanaged code area for constructor Security_managerYaml
-        val token = tokenAction { (authorization: String) =>  
+        val token = tokenAction {  _ =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.token
             Token200(Authentication.getStringToken(currentRequest).getOrElse(""))
             // ----- End of unmanaged code area for action  Security_managerYaml.token

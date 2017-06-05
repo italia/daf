@@ -48,7 +48,7 @@ object WithSecurityInfoApiListingCache {
       // no config, do nothing
     }
     val cache = Some(swagger)
-    cache.fold(())(_.setHost(host))
+    cache.fold(())(_.setHost(null))
     cache.fold(())(_.setSecurityDefinitions(Map[String, SecuritySchemeDefinition]("basicAuth" -> new BasicAuthDefinition()).asJava))
     cache
   }

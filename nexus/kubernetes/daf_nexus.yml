@@ -5,6 +5,7 @@ metadata:
   labels:
     app: nexus
 spec:
+  clusterIP: 10.98.74.120
   type: NodePort
   ports:
   - port: 8081

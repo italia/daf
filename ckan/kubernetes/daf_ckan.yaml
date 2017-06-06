@@ -11,10 +11,10 @@ spec:
   selector:
     app: ckan
 ---
-apiVersion: v1
-kind: ReplicationController
+apiVersion: apps/v1beta1
+kind: Deployment
 metadata:
-  name: ckan
+  name: ckan-deployment
 spec:
   replicas: 1
   template:

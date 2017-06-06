@@ -52,8 +52,6 @@ spec:
           readOnly: true
       imagePullSecrets:
         - name: regsecret
-      securityContext:
-        supplementalGroups: [1330600009]
       volumes:
       - name: glusterfsvol
         persistentVolumeClaim:

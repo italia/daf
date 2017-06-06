@@ -1,7 +1,6 @@
 package it.gov.daf.catalogmanager.utilities
 
 import it.gov.daf.catalogmanager.utilities.datastructures.{ConvSchema, StdSchema}
-import it.gov.daf.catalogmanagerclient.model.{DatasetCatalog, MetaCatalog}
 
 /**
   * Created by fabiana on 19/05/17.

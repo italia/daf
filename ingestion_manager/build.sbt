@@ -14,21 +14,28 @@ lazy val spark = "org.apache.spark"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser)
 
-scalaVersion := "2.11.8"
+scalaVersion in ThisBuild := "2.11.8"
+
+
+def dependencyToProvide(scope: String = "compile") = Seq(
+  spark %% "spark-core" % sparkVersion % scope exclude("com.fasterxml.jackson.core", "jackson-databind"),
+  spark %% "spark-sql" % sparkVersion % scope exclude("com.fasterxml.jackson.core", "jackson-databind"),
+  spark %% "spark-streaming" % sparkVersion % scope exclude("com.fasterxml.jackson.core", "jackson-databind")
+)
 
 libraryDependencies ++= Seq(
   jdbc,
   cache,
   ws,
-  "org.webjars" % "swagger-ui" % "3.0.7",
+  "org.webjars" % "swagger-ui" % "3.0.10", //excludeAll( ExclusionRule(organization = "com.fasterxml.jackson.core") ),
+  "it.gov.daf" %% "daf-catalog-manager-client" % "1.0.0",
+  "org.json4s" %% "json4s-jackson" % "3.5.2"  exclude("com.fasterxml.jackson.core", "jackson-databind"),
+  "com.databricks" %% "spark-avro" % "3.2.0",
   specs2 % Test,
   "org.scalacheck" %% "scalacheck" % "1.13.5" % Test,
   "org.specs2" %% "specs2-scalacheck" % "3.8.9" % Test,
-  "me.jeffmay" %% "play-json-tests" % "1.5.0" % Test,
-  "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test,
-  "it.teamdigitale" %% "ingestion-module" % "0.1.0" exclude("org.apache.avro", "avro")
-
-)
+  //"me.jeffmay" %% "play-json-tests" % "1.5.0" % Test,
+  "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test) ++ dependencyToProvide()
 
 
 
@@ -65,6 +72,13 @@ dockerCommands += ExecCmd("ENTRYPOINT", s"bin/${name.value}", "-Dconfig.file=con
 dockerExposedPorts := Seq(9000)
 
 // Wart Remover Plugin Configuration
-wartremoverErrors ++= Warts.allBut(Wart.Nothing, Wart.PublicInference, Wart.Any, Wart.Equals)
+wartremoverErrors ++= Warts.allBut(Wart.Nothing,
+  Wart.PublicInference,
+  Wart.Any,
+  Wart.Equals,
+  Wart.AsInstanceOf,
+  Wart.DefaultArguments,
+  Wart.OptionPartial)
 
-wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value / "target" / "scala-2.11" / "routes").toSeq
+//wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value / "target" / "scala-2.11" / "routes").toSeq
+wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value).toSeq

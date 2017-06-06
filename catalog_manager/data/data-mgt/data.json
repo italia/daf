@@ -135,12 +135,12 @@
     },
     "operational": {
       "georef": null,
-      "logical_uri":  "952",
-      "physical_uri": "952",
+      "logical_uri":  "/logical/standard",
+      "physical_uri": "/physical/standard",
       "input_src": {
         "ing_type": "pull",
         "src_type": "csv",
-        "url": "/Users/ale/Development/it_digital/big_data/project/raffa_inj/daf-injection/src/main/resources/agency.txt"
+        "url": "/this/should/not/be/used"
       },
       "read_type": "update",
       "is_std": true,
@@ -329,15 +329,44 @@
   },
   "operational": {
     "georef": null,
-    "logical_uri":  "ordinaryWithoutStandard",
-    "physical_uri": "ordinaryWithoutStandard",
+    "logical_uri":  "/logical/ordinaryWithStandard",
+    "physical_uri": "/physical/ordinaryWithStandard",
     "input_src": {
       "ing_type": "pull",
       "src_type": "csv",
-      "url": "/Users/ale/Development/it_digital/big_data/project/raffa_inj/daf-injection/src/main/resources/agency.txt"
+      "url": "/this/should/not/be/used"
     },
     "read_type": "update",
     "is_std": false,
+    "std_schema": {
+      "std_uri": "standard",
+      "fields_conv": [
+        {
+          "field_std": "agency_id",
+          "formula": "agency_id"
+        },
+        {
+          "field_std": "agency_name",
+          "formula": "agency_name"
+        },
+        {
+          "field_std": "agency_url",
+          "formula": "agency_url"
+        },
+        {
+          "field_std": "agency_timezone",
+          "formula": "agency_timezone"
+        },
+        {
+          "field_std": "agency_lang",
+          "formula": "agency_lang"
+        },
+        {
+          "field_std": "agency_phone",
+          "formula": "agency_phone"
+        }
+      ]
+    },
     "group_own": "open"
   },
   "dcatapit": {
@@ -388,7 +417,7 @@
   }
 },
 
-  "ordinaryWhitoutStandard": {
+  "ordinaryWithoutStandard": {
     "dataschema": {
       "namespace": "it.gov.daf.dataset.open.torino",
       "`type`": "record",
@@ -524,43 +553,14 @@
     },
     "operational": {
       "georef": null,
-      "logical_uri":  "952",
-      "physical_uri": "952",
+      "logical_uri":  "logical/ordinaryWithoutStandard",
+      "physical_uri": "physical/ordinaryWithoutStandard",
       "input_src": {
         "ing_type": "pull",
         "src_type": "csv",
-        "url": "/Users/ale/Development/it_digital/big_data/project/raffa_inj/daf-injection/src/main/resources/agency.txt"
+        "url": "/this/should/not/be/used"
       },
       "read_type": "update",
-      "std_schema": {
-        "std_uri": "952",
-        "fields_conv": [
-          {
-            "field_std": "agency_id",
-            "formula": "agency_id"
-          },
-          {
-            "field_std": "agency_name",
-            "formula": "agency_name"
-          },
-          {
-            "field_std": "agency_url",
-            "formula": "agency_url"
-          },
-          {
-            "field_std": "agency_timezone",
-            "formula": "agency_timezone"
-          },
-          {
-            "field_std": "agency_lang",
-            "formula": "agency_lang"
-          },
-          {
-            "field_std": "agency_phone",
-            "formula": "agency_phone"
-          }
-        ]
-      },
       "is_std": false,
       "group_own": "open"
     },

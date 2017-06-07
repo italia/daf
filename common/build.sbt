@@ -20,7 +20,7 @@ import sbt.Keys.resolvers
 organization := "it.gov.daf"
 name := "common"
 
-version := "1.0.0"
+version := "1.0-SNAPSHOT"
 
 scalacOptions ++= Seq(
   "-deprecation",
@@ -91,3 +91,13 @@ resolvers ++= Seq(
 licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt"))
 headerLicense := Some(HeaderLicense.ALv2("2017", "TEAM PER LA TRASFORMAZIONE DIGITALE"))
 headerMappings := headerMappings.value + (HeaderFileType.conf -> HeaderCommentStyle.HashLineComment)
+
+publishTo := {
+  val nexus = "http://nexus.default.svc.cluster.local:8081/repository/"
+  if (isSnapshot.value)
+    Some("snapshots" at nexus + "maven-snapshots/")
+  else
+    Some("releases"  at nexus + "maven-releases/")
+}
+
+credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")

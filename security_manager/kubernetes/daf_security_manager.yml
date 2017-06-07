@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
       - name: security-manager
-        image: 10.98.74.120:5000/daf-security-manager:1.0.0
+        image: 10.98.74.120:5000/daf-security-manager:1.0-SNAPSHOT
         imagePullPolicy: Always
         lifecycle:
           postStart:

@@ -5,7 +5,7 @@ import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
 organization in ThisBuild := "it.gov.daf"
 name := "daf-security-manager"
 
-version in ThisBuild := "1.0.0"
+version in ThisBuild := "1.0-SNAPSHOT"
 
 scalacOptions ++= Seq(
   "-deprecation",
@@ -77,7 +77,8 @@ resolvers ++= Seq(
   "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
   "jeffmay" at "https://dl.bintray.com/jeffmay/maven",
   Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns),
-  "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos/"
+  "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos/",
+  "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/"
 )
 
 // Play provides two styles of routers, one expects its actions to be injected, the
@@ -106,3 +107,13 @@ daemonUser := "daf"
 dockerCommands += ExecCmd("ENTRYPOINT", s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
 dockerExposedPorts := Seq(9000)
 dockerRepository := Option("10.98.74.120:5000")
+
+publishTo in ThisBuild := {
+  val nexus = "http://nexus.default.svc.cluster.local:8081/repository/"
+  if (isSnapshot.value)
+    Some("snapshots" at nexus + "maven-snapshots/")
+  else
+    Some("releases"  at nexus + "maven-releases/")
+}
+
+credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")

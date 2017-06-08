@@ -20,14 +20,14 @@ import sbt.Keys.resolvers
 
 name := "daf-storage-manager"
 
-version := "1.0.0"
+version := "1.0-SNAPSHOT"
 
 scalacOptions ++= Seq(
   "-deprecation",
   "-encoding", "UTF-8", // yes, this is 2 args
   "-feature",
   "-unchecked",
-//  "-Xfatal-warnings",
+  "-Xfatal-warnings",
   "-Xlint",
   "-Yno-adapted-args",
   "-Ywarn-numeric-widen",
@@ -86,7 +86,8 @@ libraryDependencies ++= Seq(
 
 resolvers ++= Seq(
   Resolver.sonatypeRepo("releases"),
-  "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos/"
+  "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos/",
+  "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/"
 )
 
 licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt"))
@@ -105,3 +106,13 @@ daemonUser := "daf"
 dockerCommands += ExecCmd("ENTRYPOINT", s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
 dockerExposedPorts := Seq(9000)
 dockerRepository := Option("10.98.74.120:5000")
+
+publishTo := {
+  val nexus = "http://nexus.default.svc.cluster.local:8081/repository/"
+  if (isSnapshot.value)
+    Some("snapshots" at nexus + "maven-snapshots/")
+  else
+    Some("releases"  at nexus + "maven-releases/")
+}
+
+credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")

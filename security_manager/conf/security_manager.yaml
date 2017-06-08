@@ -40,14 +40,14 @@ securityDefinitions:
     type: basic
     description: HTTP Basic Authentication. Works over `HTTP` and `HTTPS`
 paths:
-  "/get-token":
+  "/token":
     get:
       summary: Get Token
       description: |
         It returns the JWT token
       tags:
         - JWT Token
-      operationId: get-token
+      operationId: token
       security:
         - basicAuth: []
       responses:

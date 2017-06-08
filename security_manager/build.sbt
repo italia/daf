@@ -5,7 +5,7 @@ import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
 organization in ThisBuild := "it.gov.daf"
 name := "daf-security-manager"
 
-version in ThisBuild := "1.0.0"
+version in ThisBuild := "1.0-SNAPSHOT"
 
 scalacOptions ++= Seq(
   "-deprecation",
@@ -21,11 +21,24 @@ scalacOptions ++= Seq(
   "-Xfuture"
 )
 
-wartremoverErrors ++= Warts.allBut(Wart.Nothing, Wart.PublicInference, Wart.Any, Wart.Equals)
+wartremoverErrors ++= Warts.allBut(Wart.Nothing, Wart.PublicInference, Wart.Any, Wart.Equals, Wart.Option2Iterable)
 wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value / "target" / "scala-2.11" / "routes").toSeq
 wartremoverExcluded ++= routes.in(Compile).value
 
-lazy val client = project in file("client")
+lazy val client = (project in file("client")).
+  settings(Seq(
+    name := "daf-security-manager-client",
+    swaggerGenerateClient := true,
+    swaggerClientCodeGenClass := new it.gov.daf.swaggergenerators.DafClientGenerator,
+    swaggerCodeGenPackage := "it.gov.daf.securitymanager",
+    swaggerModelFilesSplitting := "oneFilePerModel",
+    swaggerSourcesDir := file(s"${baseDirectory.value}/../conf"),
+    libraryDependencies ++= Seq(
+      "com.typesafe.play" %% "play-json" % playVersion,
+      "com.typesafe.play" %% "play-ws" %  playVersion
+    )
+  )).
+  enablePlugins(SwaggerCodegenPlugin)
 
 lazy val root = (project in file(".")).
   enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser, /*AutomateHeaderPlugin,*/ DockerPlugin).
@@ -64,7 +77,8 @@ resolvers ++= Seq(
   "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
   "jeffmay" at "https://dl.bintray.com/jeffmay/maven",
   Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns),
-  "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos/"
+  "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos/",
+  "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/"
 )
 
 // Play provides two styles of routers, one expects its actions to be injected, the
@@ -92,33 +106,14 @@ dockerCommands := dockerCommands.value.flatMap {
 daemonUser := "daf"
 dockerCommands += ExecCmd("ENTRYPOINT", s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
 dockerExposedPorts := Seq(9000)
-dockerRepository := Option("10.103.136.239:5000")
+dockerRepository := Option("10.98.74.120:5000")
 
-val generateClientLibraries = taskKey[Unit]("")
-
-val swaggercodegen = sys.props("os.name") match {
-  case s if s.startsWith("Windows") => "swagger-codegen.cmd"
-  case _ => "swagger-codegen"
+publishTo in ThisBuild := {
+  val nexus = "http://nexus.default.svc.cluster.local:8081/repository/"
+  if (isSnapshot.value)
+    Some("snapshots" at nexus + "maven-snapshots/")
+  else
+    Some("releases"  at nexus + "maven-releases/")
 }
 
-generateClientLibraries := Process(swaggercodegen ::
-  "generate" ::
-  "-i" ::
-  s"file://${baseDirectory.value}/conf/security_manager.yaml" ::
-  "-l" ::
-  "scala" ::
-  "--artifact-id" ::
-  s"${name.value}-client" ::
-  "--model-package" ::
-  "it.gov.daf.securitymanagerclient.model" ::
-  "--api-package" ::
-  "it.gov.daf.securitymanagerclient.api" ::
-  "--invoker-package" ::
-  "it.gov.daf.securitymanagerclient.invoker" ::
-  "--template-dir" ::
-  s"${baseDirectory.value}/templates" ::
-  "--additional-properties" ::
-  s"projectName=${name.value},groupId=${organization.value}" ::
-  Nil, new File("client")).!
-
-generateClientLibraries <<= generateClientLibraries dependsOn generateClientLibraries
+credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")

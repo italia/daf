@@ -9,14 +9,28 @@ organization in ThisBuild := "it.gov.daf"
 
 name := "daf-catalog-manager"
 
-version := "1.0.0"
+version in ThisBuild := "1.0.0"
 
-lazy val client = project in file("client")
+val playVersion = "2.5.14"
+
+lazy val client = (project in file("client")).
+  settings(Seq(
+    name := "daf-catalog-manager-client",
+    swaggerGenerateClient := true,
+    swaggerClientCodeGenClass := new it.gov.daf.swaggergenerators.DafClientGenerator,
+    swaggerCodeGenPackage := "it.gov.daf.catalogmanager",
+    swaggerSourcesDir := file(s"${baseDirectory.value}/../conf"),
+    libraryDependencies ++= Seq(
+      "com.typesafe.play" %% "play-json" % playVersion,
+      "com.typesafe.play" %% "play-ws" %  playVersion
+    )
+  )).
+  enablePlugins(SwaggerCodegenPlugin)
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser)
 .dependsOn(client).aggregate(client)
 
-scalaVersion := "2.11.8"
+scalaVersion in ThisBuild := "2.11.8"
 
 libraryDependencies ++= Seq(
   jdbc,
@@ -76,31 +90,3 @@ dockerRepository := Option("10.98.74.120:5000")
 
 //wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value / "target" / "scala-2.11" / "routes").toSeq
 
-val generateClientLibraries = taskKey[Unit]("")
-
-val swaggercodegen = sys.props("os.name") match {
-  case s if s.startsWith("Windows") => "swagger-codegen.cmd"
-  case _ => "swagger-codegen"
-}
-
-generateClientLibraries := Process(swaggercodegen ::
-  "generate" ::
-  "-i" ::
-  s"file://${baseDirectory.value}/conf/catalog_manager.yaml" ::
-  "-l" ::
-  "scala" ::
-  "--artifact-id" ::
-  s"${name.value}-client" ::
-  "--model-package" ::
-  "it.gov.daf.catalogmanagerclient.model" ::
-  "--api-package" ::
-  "it.gov.daf.catalogmanagerclient.api" ::
-  "--invoker-package" ::
-  "it.gov.daf.catalogmanagerclient.invoker" ::
-  "--template-dir" ::
-  s"${baseDirectory.value}/templates" ::
-  "--additional-properties" ::
-  s"projectName=${name.value},groupId=${organization.value}" ::
-  Nil, new File("client")).!
-
-generateClientLibraries <<= generateClientLibraries dependsOn generateClientLibraries

@@ -20,11 +20,55 @@ import javax.inject._
 import java.io.File
 
 import com.typesafe.config.ConfigFactory
-import it.teamDigitale.daf.ingestion.IngestionManager
-import it.teamDigitale.daf.schemamanager.SchemaManager
-import it.gov.daf.catalogmanagerclient.api.DatasetCatalogApi
-import it.gov.daf.catalogmanagerclient.invoker.ApiInvoker
-import it.gov.daf.catalogmanagerclient.model.MetaCatalog
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
+import scala.concurrent.ExecutionContext.Implicits.global
+import it.gov.daf.ingestionmanager.IngestionManager
+import play.api.libs.ws.ahc.{AhcWSClient,AhcWSRequest}
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
+import scala.concurrent.ExecutionContext.Implicits.global
+import it.gov.daf.ingestionmanager.IngestionManager
+import play.api.http.Writeable
+import play.api.libs.ws.ahc.{AhcWSClient,AhcWSRequest}
+import scala.concurrent.{Await,Future}
+import scala.concurrent.duration.Duration
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
+import scala.concurrent.ExecutionContext.Implicits.global
+import it.gov.daf.ingestionmanager.IngestionManager
+import play.api.http.Writeable
+import play.api.libs.ws.ahc.{AhcWSClient,AhcWSRequest}
+import scala.concurrent.{Await,Future}
+import scala.concurrent.duration.Duration
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
+import scala.concurrent.ExecutionContext.Implicits.global
+import it.gov.daf.ingestionmanager.IngestionManager
+import play.api.http.Writeable
+import play.api.libs.ws.ahc.{AhcWSClient,AhcWSRequest}
+import scala.concurrent.{Await,Future}
+import scala.concurrent.duration.Duration
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
+import it.gov.daf.catalogmanager.client.Catalog_managerClient
+import scala.concurrent.ExecutionContext.Implicits.global
+import it.gov.daf.ingestionmanager.IngestionManager
+import play.api.http.Writeable
+import play.api.libs.ws.ahc.{AhcWSClient,AhcWSRequest}
+import scala.concurrent.{Await,Future}
+import scala.concurrent.duration.Duration
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
+import it.gov.daf.catalogmanager.client.Catalog_managerClient
+import scala.concurrent.ExecutionContext.Implicits.global
+import it.gov.daf.ingestionmanager.IngestionManager
+import play.api.http.Writeable
+import play.api.libs.ws.ahc.{AhcWSClient,AhcWSRequest}
+import scala.concurrent.{Await,Future}
+import scala.concurrent.duration.Duration
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -33,7 +77,17 @@ import it.gov.daf.catalogmanagerclient.model.MetaCatalog
 
 package ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Ingestion_managerYaml
-                                            
+                            import akka.actor.ActorSystem
+                    import akka.stream.ActorMaterializer
+                    import it.gov.daf.catalogmanager.client.Catalog_managerClient
+
+                    import scala.concurrent.ExecutionContext.Implicits.global
+                    import it.gov.daf.ingestionmanager.IngestionManager
+                    import play.api.http.Writeable
+                    import play.api.libs.ws.ahc.{AhcWSClient, AhcWSRequest}
+
+                    import scala.concurrent.{Await, Future}
+                    import scala.concurrent.duration.Duration
     // ----- End of unmanaged code area for package Ingestion_managerYaml
     class Ingestion_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Ingestion_managerYaml
@@ -46,11 +100,11 @@ package ingestion_manager.yaml {
         // ----- Start of unmanaged code area for constructor Ingestion_managerYaml
         val ingestionManager = new IngestionManager()
         val uriCatalogManager = ConfigFactory.load().getString("WebServices.catalogUrl")
-        val dm = new SchemaManager
 
-        val invoker = new ApiInvoker()
-        //val client = new JWTTokenApi(defBasePath = s"http://localhost:$port/security-manager/v1", defApiInvoker = invoker)
-        val catalogManagerApi: DatasetCatalogApi = new DatasetCatalogApi(defApiInvoker = invoker)
+
+//        val invoker = new ApiInvoker()
+//        //val client = new JWTTokenApi(defBasePath = s"http://localhost:$port/security-manager/v1", defApiInvoker = invoker)
+//        val catalogManagerApi: DatasetCatalogApi = new DatasetCatalogApi(defApiInvoker = invoker)
 
 
 
@@ -65,18 +119,28 @@ package ingestion_manager.yaml {
             val (upfile, uri) = input
             // ----- Start of unmanaged code area for action  Ingestion_managerYaml.addDataset
             println("")
-            val schema: Option[MetaCatalog] = catalogManagerApi.datasetcatalogbyid(uri)
+            implicit val system: ActorSystem = ActorSystem()
+            implicit val materializer: ActorMaterializer = ActorMaterializer()
+            val client: AhcWSClient = AhcWSClient()
+            val catalogManager = new Catalog_managerClient(client)(uriCatalogManager)
+            //val service = s"$uriCatalogManager/dataset-catalogs/$uri"
+            //val response = ingestionManager.connect(client)(service)
 
-           // val tryschema: Try[Schema] = dm.getSchemaFromUri(uriCatalogManager, uri)
+          val response = catalogManager.datasetcatalogbyid("",uri)
+            val res = response
+              .map(s =>  ingestionManager.write(s, upfile))
+              .map{
+                  case Success(true) => Successfull(Some("Dataset stored"))
+                  case Success(false) => Successfull(Some("ERROR dataset cannot be stored"))
+                  case Failure(ex) => Successfull(Some(s"ERROR ${ex.getMessage}"))
+              }
+             // .map( AddDataset200(_))
 
-            val res: Option[Boolean] = schema.map(s =>  ingestionManager.write(s))
-
-            val httpres= res match {
-                case Some(true) => Successfull(Some("Dataset stored"))
-                case Some(false) => Successfull(Some("ERROR dataset cannot be stored"))
-                case None => Successfull(Some(s"ERROR dataset cannot be stored"))
-            }
-            AddDataset200(httpres)
+            client.close()
+            val r = Await.result(res, Duration.Inf)
+            println(r)
+            AddDataset200(r)
+            //AddDataset200(Successfull(Some("Dataset stored")))
             // ----- End of unmanaged code area for action  Ingestion_managerYaml.addDataset
         }
     

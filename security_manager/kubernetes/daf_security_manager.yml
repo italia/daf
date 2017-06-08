@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
       - name: security-manager
-        image: 10.103.136.239:5000/daf-security-manager:1.0.0
+        image: 10.98.74.120:5000/daf-security-manager:1.0-SNAPSHOT
         imagePullPolicy: Always
         lifecycle:
           postStart:
@@ -50,8 +50,8 @@ spec:
         - name: hadoopconf
           mountPath: /etc/hadoop/conf
           readOnly: true
-      securityContext:
-        supplementalGroups: [1330600009]
+      imagePullSecrets:
+        - name: regsecret
       volumes:
       - name: glusterfsvol
         persistentVolumeClaim:

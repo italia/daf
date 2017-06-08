@@ -1,32 +1,34 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: storage-manager
+  name: nifi
   labels:
-    app: storage-manager
+    app: nifi
 spec:
-  type: NodePort
   ports:
-  - port: 9000
-    protocol: TCP
-    name: http
+  - port: 9090 
+
   selector:
-    app: storage-manager
+    app: nifi 
+  clusterIP: None
 ---
 apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
-  name: storage-manager-deployment
+  name: nifi-deployment
 spec:
   replicas: 3
+  strategy:
+      type: Recreate
   template:
     metadata:
       labels:
-        app: storage-manager
+        app: nifi
     spec:
+      hostNetwork: true
       containers:
-      - name: storage-manager
-        image: 10.98.74.120:5000/daf-storage-manager:1.0-SNAPSHOT
+      - name: nifi
+        image: 10.98.74.120:5000/daf-nifi:1.0.0
         imagePullPolicy: Always
         lifecycle:
           postStart:
@@ -34,15 +36,15 @@ spec:
              command: ["/bin/sh", "-c", "cat /etc/extra_hosts >> /etc/hosts"]
         ports:
         - name: client
-          containerPort: 9000
+          containerPort: 9090
         securityContext:
           privileged: true
           runAsUser: 0
         volumeMounts:
         - name: glusterfsvol
-          mountPath: /opt/docker/conf
-          subPath: storage-manager/conf
-          readOnly: true
+          mountPath: /nificonf
+          subPath: nifi/conf
+          readOnly: false
         - name: hosts
           mountPath: /etc/extra_hosts
         - name: krb5conf

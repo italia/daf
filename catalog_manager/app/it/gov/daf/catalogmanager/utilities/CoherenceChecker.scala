@@ -1,8 +1,7 @@
 package it.gov.daf.catalogmanager.utilities
 
-import catalog_manager.yaml.{MetaCatalog, MetadataCat}
 
-
+import catalog_manager.yaml.MetaCatalog
 import scala.util.Try
 
 

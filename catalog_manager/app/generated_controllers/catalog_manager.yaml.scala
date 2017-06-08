@@ -27,7 +27,7 @@ import scala.concurrent.Future
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                                                                        
+
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -50,11 +50,10 @@ package catalog_manager.yaml {
             // Datasetcatalogs200(catalogs)
             // ----- End of unmanaged code area for action  Catalog_managerYaml.datasetcatalogs
         }
-        val gettest = gettestAction {  _ =>  
-            // ----- Start of unmanaged code area for action  Catalog_managerYaml.gettest
-            Gettest200(Token(None))
-            //NotImplementedYet
-            // ----- End of unmanaged code area for action  Catalog_managerYaml.gettest
+        val test = testAction {  _ =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.test
+            NotImplementedYet
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.test
         }
         val createckandataset = createckandatasetAction { (dataset: Dataset) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.createckandataset
@@ -82,6 +81,6 @@ package catalog_manager.yaml {
            //NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalog
         }
-    
+
     }
 }

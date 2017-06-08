@@ -44,6 +44,7 @@ paths:
     get:
       security:
        - basicAuth: []
+      operationId: test
       responses:
         200:
           description:  Will send `Authenticated` if authentication is successful, otherwise it will send `Unauthorized`
@@ -248,14 +249,6 @@ definitions:
         metadata:
           $ref: '#/definitions/Metadata'
           description: JSON object containing metadata information for the field
-  ActionAnyContent:
-    type: object
-    properties:
-      content_type:
-        type: string
-        enum: ["object", "array"]
-      content:
-          type: string
   Metadata:
     type: object
     #  - metadata_format
@@ -297,16 +290,6 @@ definitions:
             type: string
           ita:
             type: string
-  MetaConstraint:
-    required:
-      - constraint_type
-    type: object
-    properties:
-      constraint_type:
-        type: string
-      param:
-        type: object
-        $ref: '#/definitions/ActionAnyContent'
   Semantic:
     type: object
     properties:

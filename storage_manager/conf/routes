@@ -15,11 +15,10 @@
 # Routes
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
-GET   /swagger.json                                controllers.ApiHelpController.getResources
+GET   /storage-manager/swagger.json                controllers.WithSecurityInfoApiHelpController.getResources
 
 # Home page
 GET   /                                            controllers.Application.index
-GET   /storage-manager/v1/get-token                controllers.PhysicalDatasetController.getToken
 GET   /storage-manager/v1/physical-datasets        controllers.PhysicalDatasetController.getDataset(uri:String, format:String, limit:Option[Int])
 GET   /storage-manager/v1/physical-datasets/schema controllers.PhysicalDatasetController.getDatasetSchema(uri:String, format:String)
 

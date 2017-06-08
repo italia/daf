@@ -19,8 +19,7 @@ import java.net.ServerSocket
 import java.util.Base64
 
 import better.files._
-import it.gov.daf.securitymanagerclient.api.JWTTokenApi
-import it.gov.daf.securitymanagerclient.invoker.ApiInvoker
+import it.gov.daf.securitymanager.client.Security_managerClient
 import org.apache.hadoop.fs.FileSystem
 import org.apache.hadoop.hdfs.{HdfsConfiguration, MiniDFSCluster}
 import org.apache.hadoop.test.PathUtils
@@ -29,10 +28,12 @@ import org.specs2.mutable.Specification
 import org.specs2.specification.BeforeAfterAll
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.ws.ahc.AhcWSClient
 import play.api.libs.ws.{WSAuthScheme, WSResponse}
 import play.api.test.{WithServer, WsTestClient}
 
 import scala.concurrent.Await
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Try}
 
@@ -65,23 +66,26 @@ class ServiceSpec extends Specification with BeforeAfterAll {
 
       private val token = WsTestClient.withClient { implicit client =>
         val response: WSResponse = Await.result[WSResponse](client.
-          url(s"http://localhost:$port/security-manager/v1/get-token").
+          url(s"http://localhost:$port/security-manager/v1/token").
           withAuth("david", "david", WSAuthScheme.BASIC).
           execute, Duration.Inf)
         response.body
       }
 
-      val invoker = new ApiInvoker()
-      val client = new JWTTokenApi(defBasePath = s"http://localhost:$port/security-manager/v1", defApiInvoker = invoker)
+      val ws: AhcWSClient = AhcWSClient()
 
       val plainCreds = "david:david"
       val plainCredsBytes = plainCreds.getBytes
       val base64CredsBytes = Base64.getEncoder.encode(plainCredsBytes)
       val base64Creds = new String(base64CredsBytes)
 
-      client.addHeader("Authorization", s"Basic $base64Creds")
-      client.getToken().map(token => s""""$token"""") must be equalTo Some(token)
+      val client = new Security_managerClient(ws)(s"http://localhost:$port")
 
+      val token2 = Await.result(client.token(s"Basic $base64Creds"), Duration.Inf)
+
+      s""""$token2"""" must be equalTo token
+
+      Await.result(client.token(s"Bearer $token2").map(token => s""""$token""""), Duration.Inf) must be equalTo token
     }
   }
 

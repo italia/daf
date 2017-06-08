@@ -12,13 +12,12 @@ import scala.util.Try
 
 package object datastructures {
 
-  def convertToConvSchema(schema: MetaCatalog) = Try{
+ /* def convertToConvSchema(schema: MetaCatalog) = Try{
     println("ale")
     ConvSchema(
-      uri = schema.operational.get.logical_uri,
       name = schema.dcatapit.get.dct_title.get.value.get,
       isStd = schema.operational.get.is_std.get,
-      theme = schema.dcatapit.get.dcat_theme.get.value.get,
+      theme = schema.dcatapit.get.dct_theme.get.value.get,
       cat = schema.dcatapit.get.dct_subject.get.map(x => x.value.get),
       groupOwn = schema.operational.get.group_own.get,
       owner = schema.dcatapit.get.dct_rightsHolder.get.value.get,
@@ -37,15 +36,15 @@ package object datastructures {
 
     StdSchema(
             name = schema.dcatapit.get.dct_title.get.value.get,
-            nameDataset = schema.dataschema.get.name,
+            nameDataset = schema.dataschema.get.avro.get.name,
             uri = schema.operational.get.logical_uri.get,
-            theme = schema.dcatapit.get.dcat_theme.get.value.get,
+            theme = schema.dcatapit.get.dct_theme.get.value.get,
             cat = schema.dcatapit.get.dct_subject.get.map(x => x.value.get),
             groupOwn = schema.operational.get.group_own.get,
             owner = schema.dcatapit.get.dct_rightsHolder.get.value.get,
             dataSchema = schema.dataschema.get
           )
-  }
+   } */
 
   object DatasetType extends Enumeration {
     val STANDARD = Value("std")

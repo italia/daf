@@ -4,7 +4,6 @@ import catalog_manager.yaml.{DatasetCatalog, InputSrc, ConversionField}
 
 case class ConvSchema (
                         name: String,
-                        uri: Option[String],
                         isStd: Boolean = false,
                         theme: String,
                         cat: Seq[String] = Seq(),

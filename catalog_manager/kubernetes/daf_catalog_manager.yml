@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalog-manager
+  labels:
+    app: catalog-manager
+spec:
+  type: NodePort
+  ports:
+  - port: 9000
+    protocol: TCP
+    name: http
+  selector:
+    app: security-manager
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: catalog-manager-deployment
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: catalog-manager
+    spec:
+      containers:
+      - name: catalog-manager
+        image: 10.98.74.120:5000/daf-catalog-manager:1.0.0
+        imagePullPolicy: Always
+        lifecycle:
+          postStart:
+            exec:
+             command: ["/bin/sh", "-c", "cat /etc/extra_hosts >> /etc/hosts"]
+        ports:
+        - name: client
+          containerPort: 9000
+        securityContext:
+          privileged: true
+          runAsUser: 0
+        volumeMounts:
+        - name: glusterfsvol
+          mountPath: /opt/docker/conf
+          subPath: catalog-manager/conf
+          readOnly: true
+        - name: hosts
+          mountPath: /etc/extra_hosts
+        - name: krb5conf
+          mountPath: /etc/krb5.conf
+        - name: hadoopconf
+          mountPath: /etc/hadoop/conf
+          readOnly: true
+      imagePullSecrets:
+        - name: regsecret
+      volumes:
+      - name: glusterfsvol
+        persistentVolumeClaim:
+          claimName: gluster-claim
+      - name: hosts
+        hostPath:
+          path: /etc/hosts
+      - name: krb5conf
+        hostPath:
+          path: /etc/krb5.conf
+      - name: hadoopconf
+        hostPath:
+          path: /etc/hadoop/conf

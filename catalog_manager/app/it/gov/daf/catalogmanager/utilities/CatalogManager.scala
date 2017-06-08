@@ -1,7 +1,6 @@
 package it.gov.daf.catalogmanager.utilities
 
 import catalog_manager.yaml.{MetaCatalog, StdSchema}
-import it.gov.daf.catalogmanager.utilities.datastructures.{ConvSchema, convertToConvSchema, convertToStdSchema}
 import it.gov.daf.catalogmanager.utilities.uri.UriDataset
 import play.api.Logger
 import play.api.libs.json.Json
@@ -31,8 +30,7 @@ object CatalogManager {
               val random = scala.util.Random
               val id = random.nextInt(1000).toString
               val data = Json.obj(id -> Json.toJson(meta))
-           //   fw.write(Json.stringify(data) + "\n")
-           //   fw.close()
+
               val msg = "Catalog Added"
               msg
             case _ =>
@@ -66,10 +64,7 @@ object CatalogManager {
 
   def writeOrdinaryWithStandard(metaCatalogOrdinary: MetaCatalog, metaCatalogStandard: MetaCatalog ): (Boolean, MetaCatalog) = {
 
-    val checkSchema = for {
-      convSchema <- convertToConvSchema(metaCatalogOrdinary)
-      stdSchema <- convertToStdSchema(metaCatalogStandard)
-    } yield CoherenceChecker.checkCoherenceSchemas(convSchema, stdSchema)
+    val checkSchema: Try[Boolean] = CoherenceChecker.checkCoherenceSchemas(metaCatalogOrdinary, metaCatalogStandard)
 
     checkSchema match {
       case Success(value) =>

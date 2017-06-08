@@ -64,6 +64,11 @@ paths:
             type: array
             items:
               $ref: '#/definitions/MetaCatalog'
+        401:
+          description: |
+            No Catalogs found list empty
+          schema:
+            type: string
         default:
           description: Unexpected error
           schema:
@@ -175,10 +180,8 @@ definitions:
     type: object
     properties:
       dataschema:
-        properties:
-          avro:
-            type: object
-            $ref: '#/definitions/Avro'
+        type: object
+        $ref: '#/definitions/DatasetCatalog'
       operational:
          type: object
          $ref: '#/definitions/Operational'
@@ -188,6 +191,15 @@ definitions:
       dcatapit:
         type: object
         $ref: '#/definitions/DcatApIt'
+  DatasetCatalog:
+     type: object
+     properties:
+      avro:
+        $ref: '#/definitions/Avro'
+      flatSchema:
+        type: array
+        items:
+          $ref: '#/definitions/FlatSchema'
   Avro:
       required:
         - namespace
@@ -203,7 +215,7 @@ definitions:
         name:
           type: string
           description: Name of the dataset
-        aliases:
+        alliases:
           type: string
           description: Alises for dataset
         #alliases:
@@ -265,9 +277,9 @@ definitions:
       cat:
         type: string
       tag:
-        type: array
-        items:
-          type: string
+       # type: array
+       # items:
+        type: string
       required:
         type: integer
         format: int32
@@ -301,9 +313,9 @@ definitions:
       id:
         type: string
       context:
-        type: array
-        items:
-          type: string
+        #type: array
+        #items:
+        type: string
   Constr:
     type: object
     properties:
@@ -454,6 +466,9 @@ definitions:
         type: string
   DcatApIt:
     type: object
+    #required:
+    # - dct_theme
+    # - dct_rightsHolder
     properties:
       dct_identifier:
         type: string
@@ -461,7 +476,7 @@ definitions:
         $ref: '#/definitions/DcatApItLang'
       dct_description:
         $ref: '#/definitions/DcatApItLang'
-      dcat_theme:
+      dct_theme:
         $ref: '#/definitions/DcatApItTypeLang'
       dct_rightsHolder:
          $ref: '#/definitions/DcatApItTypeLang'

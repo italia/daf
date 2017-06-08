@@ -27,7 +27,7 @@ import scala.concurrent.Future
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                    
+                                                                                        
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -42,8 +42,12 @@ package catalog_manager.yaml {
         // ----- End of unmanaged code area for constructor Catalog_managerYaml
         val datasetcatalogs = datasetcatalogsAction {  _ =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.datasetcatalogs
-            val catalogs = ServiceRegistry.catalogService.listCatalogs()
-            Datasetcatalogs200(catalogs)
+            val catalogs  = ServiceRegistry.catalogService.listCatalogs()
+            catalogs match {
+                case List() => Datasetcatalogs401("No data")
+                case _ => Datasetcatalogs200(catalogs)
+            }
+            // Datasetcatalogs200(catalogs)
             // ----- End of unmanaged code area for action  Catalog_managerYaml.datasetcatalogs
         }
         val gettest = gettestAction {  _ =>  

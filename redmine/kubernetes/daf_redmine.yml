@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: redmine
+spec:
+  ports:
+  - name: redmine
+    port: 3000
+    targetPort: 3000
+    protocol: TCP
+  selector:
+    app: redmine
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: redmine-deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: redmine
+    spec:
+      containers:
+        - name: redmine-postgres
+          image: postgres:9.4
+          env:
+            - name: POSTGRES_USER
+              value: redmine
+            - name: POSTGRES_PASSWORD
+              value: redmine
+            - name: POSTGRES_DB
+              value: redmine
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: glusterfsvol
+              mountPath: /var/lib/postgresql/data
+              subPath: redmine/postgres/data
+        - name: redmine
+          image: redmine:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          env:
+            - name: REDMINE_DB_USERNAME
+              value: "redmine"
+            - name: REDMINE_DB_PASSWORD
+              value: "redmine"
+            - name: REDMINE_DB_DATABASE
+              value: "redmine"
+            - name: REDMINE_DB_POSTGRES
+              value: "localhost"
+            - name: REDMINE_DB_PORT
+              value: "5432"
+          volumeMounts:
+            - name: glusterfsvol
+              mountPath: /usr/src/redmine/files
+              subPath: redmine/files
+              readOnly: false
+            - name: hosts
+              mountPath: /etc/hosts
+      imagePullSecrets:
+        - name: regsecret
+      volumes:
+      - name: glusterfsvol
+        persistentVolumeClaim:
+          claimName: gluster-claim
+      - name: hosts
+        hostPath:
+          path: /etc/hosts

@@ -102,7 +102,6 @@ dockerCommands := dockerCommands.value.flatMap {
   )
   case other => List(other)
 }
-daemonUser := "daf"
 dockerCommands += ExecCmd("ENTRYPOINT", s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
 dockerExposedPorts := Seq(9000)
 dockerRepository := Option("10.98.74.120:5000")

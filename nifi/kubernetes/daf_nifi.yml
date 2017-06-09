@@ -7,7 +7,6 @@ metadata:
 spec:
   ports:
   - port: 9090 
-
   selector:
     app: nifi 
   clusterIP: None
@@ -52,6 +51,9 @@ spec:
         - name: hadoopconf
           mountPath: /etc/hadoop/conf
           readOnly: true
+        - name: home
+          mountPath: /home
+          readOnly: false
       imagePullSecrets:
       - name: regsecret
       volumes:
@@ -67,3 +69,6 @@ spec:
       - name: hadoopconf
         hostPath:
           path: /etc/hadoop/conf
+      - name: home
+        hostPath:
+          path: /home

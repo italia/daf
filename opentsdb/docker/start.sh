@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
-tsdtmp=${TMPDIR-'/tmp'}/tsd    # For best performance, make sure
-mkdir -p "$tsdtmp"             # your temporary directory uses tmpfs
-/opentsdb/tsdb tsd -port=4242 --staticroot=build/staticroot --cachedir="$tsdtmp"
+kinit -kt /etc/opentsdb/daf.keytab daf@PLATFORM.DAF.LOCAL
+
+export JVMARGS="-Djava.security.auth.login.config=/etc/opentsdb/jaas.conf"
+
+/usr/share/opentsdb/bin/tsdb tsd --staticroot=/usr/share/opentsdb/static --cachedir=/tmp/opentsdb --port=4242
+

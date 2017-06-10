@@ -41,3 +41,9 @@ curl -i -X POST \
   --data 'name=daf-storage-manager-swagger-json' \
   --data 'uris=/storage-manager/swagger.json' \
   --data 'upstream_url=http://storage-manager.default.svc.cluster.local:9000/storage-manager/swagger.json'
+
+curl -i -X POST \
+  --url http://kong-admin.default.svc.cluster.local:8001/apis/ \
+  --data 'name=daf-opentsdb' \
+  --data 'uris=/opentsdb/v1' \
+  --data 'upstream_url=http://opentsdb.default.svc.cluster.local:4242'

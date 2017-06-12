@@ -1,34 +1,32 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: livy
+  name: opentsdb
   labels:
-    app: livy
+    app: opentsdb
 spec:
+  type: NodePort
   ports:
-  - port: 8998
-
+  - port: 4242
+    protocol: TCP
+    name: http
   selector:
-    app: livy
-  clusterIP: None
+    app: opentsdb
 ---
 apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
-  name: livy-deployment
+  name: opentsdb-deployment
 spec:
-  replicas: 1
-  strategy:
-      type: Recreate
+  replicas: 3
   template:
     metadata:
       labels:
-        app: livy
+        app: opentsdb
     spec:
-      hostNetwork: true
       containers:
-      - name: livy
-        image: 10.98.74.120:5000/daf-livy:1.0.0
+      - name: opentsdb
+        image: 10.98.74.120:5000/daf-opentsdb:1.0.0
         imagePullPolicy: Always
         lifecycle:
           postStart:
@@ -36,21 +34,25 @@ spec:
              command: ["/bin/sh", "-c", "cat /etc/extra_hosts >> /etc/hosts"]
         ports:
         - name: client
-          containerPort: 8998
+          containerPort: 4242
         securityContext:
           privileged: true
           runAsUser: 0
         volumeMounts:
         - name: glusterfsvol
-          mountPath: /livy/conf
-          subPath: livy/conf
+          mountPath: /etc/opentsdb
+          subPath: opentsdb/conf
           readOnly: true
+        - name: glusterfsvol
+          mountPath: /tmp/opentsdb
+          subPath: opentsdb/tmp
+          readOnly: false
         - name: hosts
           mountPath: /etc/extra_hosts
         - name: krb5conf
           mountPath: /etc/krb5.conf
-        - name: hadoopconf
-          mountPath: /etc/hadoop/conf
+        - name: hbaseconf
+          mountPath: /etc/hbase/conf
           readOnly: true
       imagePullSecrets:
       - name: regsecret
@@ -64,6 +66,6 @@ spec:
       - name: krb5conf
         hostPath:
           path: /etc/krb5.conf
-      - name: hadoopconf
+      - name: hbaseconf
         hostPath:
-          path: /etc/hadoop/conf
+          path: /etc/hbase/conf

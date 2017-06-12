@@ -109,7 +109,7 @@
         }
 
       }).toList.filter( x => x.operational match {
-        case Some(o) => o.physical_uri.get.equals(catalogId)
+        case Some(o) => o.logical_uri.get.equals(catalogId)
         case None => false
       })
       results match {

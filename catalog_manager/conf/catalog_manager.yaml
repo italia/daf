@@ -94,6 +94,10 @@ paths:
           schema:
             type: object
             $ref: '#/definitions/MetaCatalog'
+        401:
+          description: Error Message
+          schema:
+            type: string
         default:
           description: Unexpected error
           schema:

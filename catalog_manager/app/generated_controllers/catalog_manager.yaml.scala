@@ -27,7 +27,7 @@ import scala.concurrent.Future
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                                        
+                    
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -42,8 +42,12 @@ package catalog_manager.yaml {
         // ----- End of unmanaged code area for constructor Catalog_managerYaml
         val datasetcatalogs = datasetcatalogsAction {  _ =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.datasetcatalogs
-            val catalogs = ServiceRegistry.catalogService.listCatalogs()
-            Datasetcatalogs200(catalogs)
+            val catalogs  = ServiceRegistry.catalogService.listCatalogs()
+            catalogs match {
+                case List() => Datasetcatalogs401("No data")
+                case _ => Datasetcatalogs200(catalogs)
+            }
+            // Datasetcatalogs200(catalogs)
             // ----- End of unmanaged code area for action  Catalog_managerYaml.datasetcatalogs
         }
         val test = testAction {  _ =>  
@@ -58,8 +62,13 @@ package catalog_manager.yaml {
         }
         val datasetcatalogbyid = datasetcatalogbyidAction { (catalog_id: String) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbyid
-            val calalog = ServiceRegistry.catalogService.getCatalogs(catalog_id)
-            Datasetcatalogbyid200(calalog)
+            val catalog = ServiceRegistry.catalogService.getCatalogs(catalog_id)
+            catalog match {
+                case MetaCatalog(None,None,None) => Datasetcatalogbyid401("Error no data with that logical_uri")
+                case  _ => Datasetcatalogbyid200(catalog)
+            }
+
+            //Datasetcatalogbyid200(catalog)
             //NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbyid
         }
@@ -77,15 +86,6 @@ package catalog_manager.yaml {
            //NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalog
         }
-    
-     // Dead code for absent methodCatalog_managerYaml.gettest
-     /*
-            // ----- Start of unmanaged code area for action  Catalog_managerYaml.gettest
-            Gettest200(Token(None))
-            //NotImplementedYet
-            // ----- End of unmanaged code area for action  Catalog_managerYaml.gettest
-     */
-
     
     }
 }

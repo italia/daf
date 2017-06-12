@@ -65,6 +65,11 @@ paths:
             type: array
             items:
               $ref: '#/definitions/MetaCatalog'
+        401:
+          description: |
+            No Catalogs found list empty
+          schema:
+            type: string
         default:
           description: Unexpected error
           schema:
@@ -89,6 +94,10 @@ paths:
           schema:
             type: object
             $ref: '#/definitions/MetaCatalog'
+        401:
+          description: Error Message
+          schema:
+            type: string
         default:
           description: Unexpected error
           schema:
@@ -176,8 +185,8 @@ definitions:
     type: object
     properties:
       dataschema:
-         type: object
-         $ref: '#/definitions/DatasetCatalog'
+        type: object
+        $ref: '#/definitions/DatasetCatalog'
       operational:
          type: object
          $ref: '#/definitions/Operational'
@@ -188,6 +197,15 @@ definitions:
         type: object
         $ref: '#/definitions/DcatApIt'
   DatasetCatalog:
+     type: object
+     properties:
+      avro:
+        $ref: '#/definitions/Avro'
+      flatSchema:
+        type: array
+        items:
+          $ref: '#/definitions/FlatSchema'
+  Avro:
       required:
         - namespace
         - type
@@ -202,6 +220,9 @@ definitions:
         name:
           type: string
           description: Name of the dataset
+        alliases:
+          type: string
+          description: Alises for dataset
         #alliases:
         #  type: array
         #  items:
@@ -223,23 +244,15 @@ definitions:
          # $ref: '#/definitions/ActionAnyContent'
           type: string
           description: It can be a json object for complex type, or an array of string for primitive types (the latter may contains null in case the field can be nullable)
-        doc:
+  FlatSchema:
+      properties:
+        name:
           type: string
-          description: Documentation/info for user prurposes
-       # default:
-       #   $ref: '#/definitions/ActionAnyContent'
-       #   description: Default value for the field
+        type:
+          type: string
         metadata:
           $ref: '#/definitions/Metadata'
           description: JSON object containing metadata information for the field
-  ActionAnyContent:
-    type: object
-    properties:
-      content_type:
-        type: string
-        enum: ["object", "array"]
-      content:
-          type: string
   Metadata:
     type: object
     #  - metadata_format
@@ -261,15 +274,19 @@ definitions:
       cat:
         type: string
       tag:
-        type: array
-        items:
-          type: string
+       # type: array
+       # items:
+        type: string
       required:
         type: integer
         format: int32
       semantics:
         type: object
         $ref: '#/definitions/Semantic'
+      constr:
+        type: array
+        items:
+          $ref: '#/definitions/Constr'
   Lang:
     type: object
     properties:
@@ -277,25 +294,22 @@ definitions:
             type: string
           ita:
             type: string
-  MetaConstraint:
-    required:
-      - constraint_type
-    type: object
-    properties:
-      constraint_type:
-        type: string
-      param:
-        type: object
-        $ref: '#/definitions/ActionAnyContent'
   Semantic:
     type: object
     properties:
       id:
         type: string
       context:
-        type: array
-        items:
-          type: string
+        #type: array
+        #items:
+        type: string
+  Constr:
+    type: object
+    properties:
+      type:
+        type: string
+      param:
+        type: string
    # required:
    #   - rdfs:domain
    #   - rdfs:range
@@ -439,6 +453,9 @@ definitions:
         type: string
   DcatApIt:
     type: object
+    #required:
+    # - dct_theme
+    # - dct_rightsHolder
     properties:
       dct_identifier:
         type: string
@@ -446,7 +463,7 @@ definitions:
         $ref: '#/definitions/DcatApItLang'
       dct_description:
         $ref: '#/definitions/DcatApItLang'
-      dcat_theme:
+      dct_theme:
         $ref: '#/definitions/DcatApItTypeLang'
       dct_rightsHolder:
          $ref: '#/definitions/DcatApItTypeLang'
@@ -471,28 +488,23 @@ definitions:
     properties:
       it:
         type: string
-      val:
+      value:
         type: string
   DcatApItType:
     type: object
     properties:
       id:
         type: string
-      val:
+      value:
         type: string
   DcatApItTypeLang:
     type: object
     properties:
       id:
         type: string
-      val:
+      value:
         type: string
       it:
-        type: string
-  DcatApItValue:
-    type: object
-    properties:
-      value:
         type: string
   Dataset:
     type: object

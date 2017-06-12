@@ -4,7 +4,7 @@
     * Created by ale on 23/05/17.
     */
 
-  import java.io.{FileInputStream, FileWriter}
+  import java.io.{File, FileInputStream, FileWriter}
 
   import catalog_manager.yaml._
   import it.gov.daf.catalogmanager.utilities.{CatalogManager, CoherenceChecker}
@@ -82,33 +82,48 @@
     }
 
     def listCatalogs() :Seq[MetaCatalog] = {
-      // Seq(MetaCatalog(datasetCatalog,operational,conversion,dcat))
-      Seq(MetaCatalog(datasetCatalog,operational,dcat))
+      val file: File = Environment.simple().getFile("data/data-mgt/data_test.json")
+      val lines = scala.io.Source.fromFile(file).getLines()
+      val results= lines.map(line => {
+        val metaCatalogJs = Json.parse(line)
+        val metaCatalogResult: JsResult[MetaCatalog] = metaCatalogJs.validate[MetaCatalog]
+        metaCatalogResult match {
+          case s: JsSuccess[MetaCatalog] => s.get
+          case e: JsError => MetaCatalog(None, None, None)
+        }
+
+      }).toList
+      results
     }
 
     def getCatalogs(catalogId :String) :MetaCatalog = {
-      // MetaCatalog(datasetCatalog,operational,conversion,dcat)
-      val metaCatalogResult: JsResult[MetaCatalog] = (metaSchema \ catalogId).validate[MetaCatalog]
-      metaCatalogResult match {
-        case s: JsSuccess[MetaCatalog] => s.get
-        case e: JsError => MetaCatalog(None,None,None)
+
+      val file: File = Environment.simple().getFile("data/data-mgt/data_test.json")
+      val lines = scala.io.Source.fromFile(file).getLines()
+      val results: Seq[MetaCatalog] = lines.map(line => {
+        val metaCatalogJs = Json.parse(line)
+        val metaCatalogResult: JsResult[MetaCatalog] = metaCatalogJs.validate[MetaCatalog]
+        metaCatalogResult match {
+          case s: JsSuccess[MetaCatalog] => s.get
+          case e: JsError => MetaCatalog(None, None, None)
+        }
+
+      }).toList.filter( x => x.operational match {
+        case Some(o) => o.logical_uri.get.equals(catalogId)
+        case None => false
+      })
+      results match {
+        case List() => MetaCatalog(None,None,None)
+        case _ => results(0)
       }
     }
 
 
-    def testCreateCatalog(metaCatalog: MetaCatalog) = {
-      metaCatalog match {
-        case MetaCatalog(Some(dataSchema), Some(operational), _) =>
-          if(operational.std_schema.isDefined ) {
-            val stdUri = operational.std_schema.get.std_uri.get
-          }
-      }
-    }
 
     def createCatalog(metaCatalog: MetaCatalog) :Successf = {
       import catalog_manager.yaml.ResponseWrites.MetaCatalogWrites
 
-      val fw = new FileWriter("data/data-mgt/data.json", true)
+      val fw = new FileWriter("data/data-mgt/data_test.json", true)
       val metaCatalogJs = Json.toJson(metaCatalog)
 
       val msg: String = metaCatalog match {
@@ -119,9 +134,10 @@
               .map(CatalogManager.writeOrdinaryWithStandard(metaCatalog, _))
             res match {
               case Success((true, meta)) =>
-                val random = scala.util.Random
-                val id = random.nextInt(1000).toString
-                val data = Json.obj(id -> Json.toJson(meta))
+              //  val random = scala.util.Random
+              //  val id = random.nextInt(1000).toString
+              //  val data = Json.obj(id -> Json.toJson(meta))
+                val data = Json.toJson(meta)
                 fw.write(Json.stringify(data) + "\n")
                 fw.close()
                 val msg = "Catalog Added"
@@ -132,14 +148,12 @@
                 msg
             }
           } else {
-            val random = scala.util.Random
-            val id = random.nextInt(1000).toString
             val res: Try[(Boolean, MetaCatalog)]= Try(CatalogManager.writeOrdinary(metaCatalog))
             val msg = res match {
               case Success((true, meta)) =>
-                val random = scala.util.Random
-                val id = random.nextInt(1000).toString
-                val data = Json.obj(id -> Json.toJson(meta))
+               // val random = scala.util.Random
+               // val id = random.nextInt(1000).toString
+                val data = Json.toJson(meta) //Json.obj(id -> Json.toJson(meta))
                 fw.write(Json.stringify(data) + "\n")
                 fw.close()
                 val msg = "Catalog Added"

@@ -39,9 +39,9 @@ class CatalogRepositoryMongo extends  CatalogRepository{
   }
 
 
-  def getCatalogs(catalogId :String) :MetaCatalog = {
-    val objectId : ObjectId = new ObjectId(catalogId)
-    val query = MongoDBObject("_id" -> objectId)
+  def getCatalogs(logicalUri :String) :MetaCatalog = {
+    //val objectId : ObjectId = new ObjectId(catalogId)
+    val query = MongoDBObject("operational.logical_uri" -> logicalUri)
     val mongoClient = MongoClient(mongoHost, mongoPort)
     val db = mongoClient("catalog_manager")
     val coll = db("catalog_test")
@@ -63,21 +63,6 @@ class CatalogRepositoryMongo extends  CatalogRepository{
     metaCatalog
   }
 
- /* def createCatalog(metaCatalog: MetaCatalog) :Successf = {
-    println("MongoHost : " + mongoHost)
-    import catalog_manager.yaml.ResponseWrites.MetaCatalogWrites
-    val mongoClient = MongoClient(mongoHost, mongoPort)
-    val db = mongoClient("catalog_manager")
-    val coll = db("catalog")
-    val json: JsValue = MetaCatalogWrites.writes(metaCatalog)
-    println("TEST Insert")
-    println(Json.stringify(json))
-    val obj = com.mongodb.util.JSON.parse(json.toString()).asInstanceOf[DBObject]
-    val inserted = coll.insert(obj)
-    mongoClient.close()
-    Successf(Option("Catalog saved"),Option("Catalog saved"))
-  } */
-
   def createCatalog(metaCatalog: MetaCatalog) :Successf = {
 
     import catalog_manager.yaml.ResponseWrites.MetaCatalogWrites
@@ -94,8 +79,6 @@ class CatalogRepositoryMongo extends  CatalogRepository{
             .map(CatalogManager.writeOrdinaryWithStandard(metaCatalog, _))
           res match {
             case Success((true, meta)) =>
-              val random = scala.util.Random
-              val id = random.nextInt(1000).toString
               val json: JsValue = MetaCatalogWrites.writes(meta)
               val obj = com.mongodb.util.JSON.parse(json.toString()).asInstanceOf[DBObject]
               val inserted = coll.insert(obj)
@@ -113,9 +96,6 @@ class CatalogRepositoryMongo extends  CatalogRepository{
           val res: Try[(Boolean, MetaCatalog)]= Try(CatalogManager.writeOrdinary(metaCatalog))
           val msg = res match {
             case Success((true, meta)) =>
-              val random = scala.util.Random
-              val id = random.nextInt(1000).toString
-              val data = Json.obj(id -> Json.toJson(meta))
               val json: JsValue = MetaCatalogWrites.writes(meta)
               val obj = com.mongodb.util.JSON.parse(json.toString()).asInstanceOf[DBObject]
               val inserted = coll.insert(obj)

@@ -36,6 +36,7 @@ libraryDependencies ++= Seq(
   jdbc,
   cache,
   ws,
+  filters,
   "org.webjars" % "swagger-ui" % "3.0.7",
   specs2 % Test,
   "org.scalacheck" %% "scalacheck" % "1.13.5" % Test,
@@ -71,13 +72,18 @@ headers := Map(
   "yaml" -> Apache2_0("2017", "TEAM PER LA TRASFORMAZIONE DIGITALE", "#")
 )
 
-dockerBaseImage := "frolvlad/alpine-oraclejdk8:latest"
+dockerBaseImage := "anapsix/alpine-java:8_jdk_unlimited"
 dockerCommands := dockerCommands.value.flatMap {
-  case cmd@Cmd("FROM", _) => List(cmd, Cmd("RUN", "apk update && apk add bash"))
+  case cmd@Cmd("FROM", _) => List(cmd,
+    Cmd("RUN", "apk update && apk add bash krb5-libs krb5"),
+    Cmd("RUN", "ln -sf /etc/krb5.conf /opt/jdk/jre/lib/security/krb5.conf")
+  )
   case other => List(other)
 }
+
 dockerCommands += ExecCmd("ENTRYPOINT", s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
 dockerExposedPorts := Seq(9000)
+dockerRepository := Option("10.98.74.120:5000")
 
 // Wart Remover Plugin Configuration
 //wartremoverErrors ++= Warts.allBut(Wart.Nothing, Wart.PublicInference, Wart.Any, Wart.Equals)

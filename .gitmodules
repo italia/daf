@@ -1,6 +1,6 @@
-[submodule "livy-src"]
-	path = livy/livy
-	url = https://github.com/cloudera/livy
 [submodule "kong/kubernetes"]
 	path = kong/kubernetes
 	url = https://github.com/Mashape/kong-dist-kubernetes.git
+[submodule "livy/livy"]
+	path = livy/livy
+	url = https://github.com/teamdigitale/livy.git

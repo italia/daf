@@ -63,6 +63,7 @@ class SecurityModule(environment: Environment, configuration: Configuration) ext
     connectionConfig.setUseSSL(true) //TODO Shall we keep SSL mandatory
     val sslConfig = new SslConfig()
     sslConfig.setTrustManagers() //TODO no more certificate validation, shall we keep it in this way?
+    connectionConfig.setSslConfig(sslConfig)
     val connectionFactory = new DefaultConnectionFactory
     connectionFactory.setConnectionConfig(connectionConfig)
     val poolConfig = new PoolConfig

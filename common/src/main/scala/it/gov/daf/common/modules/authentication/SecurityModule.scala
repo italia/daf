@@ -16,11 +16,13 @@
 
 package it.gov.daf.common.modules.authentication
 
+import java.security.InvalidParameterException
 import java.time.Duration
 
 import com.google.inject.{AbstractModule, Singleton}
 import org.ldaptive.auth.{Authenticator, FormatDnResolver, PooledBindAuthenticationHandler}
 import org.ldaptive.pool._
+import org.ldaptive.ssl.SslConfig
 import org.ldaptive.{BindConnectionInitializer, ConnectionConfig, Credential, DefaultConnectionFactory}
 import org.pac4j.core.client.Clients
 import org.pac4j.core.config.Config
@@ -48,13 +50,20 @@ class SecurityModule(environment: Environment, configuration: Configuration) ext
     val dnResolver = new FormatDnResolver
     dnResolver.setFormat(configuration.getString("pac4j.ldap.user_dn_pattern").getOrElse(""))
     val connectionConfig = new ConnectionConfig
-    connectionConfig.setConnectTimeout(Duration.ofMillis(500))
-    connectionConfig.setResponseTimeout(Duration.ofMillis(1000))
-    connectionConfig.setLdapUrl(configuration.getString("pac4j.ldap.url").getOrElse(""))
+    connectionConfig.setConnectTimeout(Duration.ofMillis(configuration.getLong("pac4j.ldap.connect_timeout").getOrElse(500)))
+    connectionConfig.setResponseTimeout(Duration.ofMillis(configuration.getLong("pac4j.ldap.response_timeout").getOrElse(1000)))
+    connectionConfig.setLdapUrl(
+      configuration.getString("pac4j.ldap.url").getOrElse(throw new InvalidParameterException(s"Missing mandatory parameter pac4j.ldap.url"))
+    )
     connectionConfig.setConnectionInitializer(
-      new BindConnectionInitializer(configuration.getString("pac4j.ldap.bind_dn").getOrElse(""),
-        new Credential(configuration.getString("pac4j.ldap.bind_pwd").getOrElse(""))))
-    //connectionConfig.setUseSSL(true) //TODO fix it in order to use SSL
+      new BindConnectionInitializer(configuration.getString("pac4j.ldap.bind_dn").
+        getOrElse(throw new InvalidParameterException(s"Missing mandatory pac4j.ldap.bind_dn")),
+        new Credential(configuration.getString("pac4j.ldap.bind_pwd").
+          getOrElse(throw new InvalidParameterException(s"Missing mandatory pac4j.ldap.bind_pwd")))))
+    connectionConfig.setUseSSL(true) //TODO Shall we keep SSL mandatory
+    val sslConfig = new SslConfig()
+    sslConfig.setTrustManagers() //TODO no more certificate validation, shall we keep it in this way?
+    connectionConfig.setSslConfig(sslConfig)
     val connectionFactory = new DefaultConnectionFactory
     connectionFactory.setConnectionConfig(connectionConfig)
     val poolConfig = new PoolConfig
@@ -82,7 +91,7 @@ class SecurityModule(environment: Environment, configuration: Configuration) ext
     // pac4j:
     val authenticator = new LdapProfileService(connectionFactory, ldaptiveAuthenticator, "dummy")
     authenticator.setAttributes("")
-    authenticator.setUsernameAttribute("uid")
+    authenticator.setUsernameAttribute(configuration.getString("pac4j.ldap.username_attribute").getOrElse("uid"))
     authenticator
   }
 

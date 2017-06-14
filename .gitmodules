@@ -4,3 +4,6 @@
 [submodule "livy/livy"]
 	path = livy/livy
 	url = https://github.com/teamdigitale/livy.git
+[submodule "opentsdb/spark-opentsdb"]
+	path = opentsdb/spark-opentsdb
+	url = https://github.com/teamdigitale/spark-opentsdb.git

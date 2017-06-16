@@ -47,7 +47,6 @@ class CatalogServiceSpec extends Specification with TestEnvironment {
     "catalogService.listCatalogs return a list of MetaCatalog" in {
       val catalog = catalogService.listCatalogs()(0)
       catalog must be equalTo MetaCatalog(None,None,None)
-      //  true must equalTo(true)
     }
 
   }

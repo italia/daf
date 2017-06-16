@@ -3,11 +3,11 @@ package it.gov.daf.ingestionmanager
 import java.io.File
 
 import com.databricks.spark.avro.SchemaConverters
-import it.gov.daf.catalogmanager.MetaCatalog
+import it.gov.daf.catalogmanager.{Avro, MetaCatalog}
 import it.gov.daf.datastructures.Schema
 import org.apache.spark.sql.functions.{col, expr}
 import org.apache.spark.sql.types.StructType
-import org.apache.spark.sql.{DataFrame, SaveMode}
+import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 import org.apache.spark.{SparkConf, SparkContext}
 import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
@@ -29,12 +29,12 @@ import play.Logger
 class IngestionManager {
 
   val conf = new SparkConf().setAppName("Injestion").setMaster("local[2]")
-  val sc = new SparkContext(conf)
-  val sqlContext = new org.apache.spark.sql.SQLContext(sc)
+
+  private val sparkSession = SparkSession.builder().master("local").config(conf).getOrCreate()
 
 
   private def readCSV(path: String, customSchema: StructType, isHeaderDefined: Boolean = true, sep: String = ",") = Try {
-    sqlContext.read
+    sparkSession.read
       .format("com.databricks.spark.csv")
       .option("header", isHeaderDefined) // Use first line of all files as header
       .option("delimiter", sep)
@@ -56,8 +56,7 @@ class IngestionManager {
         val newdf = df.withColumn("ts", expr("'" + timestamp + "'"))
         val partitionList = List("ts")
         (newdf, partitionList)
-//      case DatasetType.RAW => //not yet implemented
-//        df
+
     }
   }
 
@@ -75,89 +74,30 @@ class IngestionManager {
   }
 
   def readAvroSchema(string: String): org.apache.avro.Schema = {
+    println(string)
     new Parser().parse(string)
   }
 
-//  def write(schema: String, file: File, sep: String = ",", isHeaderDefined: Boolean = true): Try[Boolean] =  Try{
-//
-//    val jObjectSchema: JValue = parse(schema).asInstanceOf[JObject]
-//    val dbAvroSchema = (jObjectSchema \ "dataschema").toOption.map(_.values.toString)
-//    val physicalUrl = (jObjectSchema \ "operational" \ "physical_uri").toOption.map(_.values.toString)
-//    val isStd = (jObjectSchema \ "operational" \ "is_std").toOption.map(_.asInstanceOf[Boolean])
-//    val implementStdSchema = (jObjectSchema \ "operational" \ "std_schema").toOption match {
-//      case Some(_) => true
-//      case None => false
-//    }
-//    val rightsHolder = (jObjectSchema \ "dcatapit" \ "dct_rightsHolder" \ "value").toOption.map(_.values.toString)
-//
-//
-//    implicit val formats = DefaultFormats
-//
-//    val avroSchema = readAvroSchema(org.json4s.jackson.Serialization.write(dbAvroSchema))
-//
-//    //val inputPath = schema.operational.get.inputSrc.url
-//    //val outputPath = datastructures.convertToUriDatabase(schema).get.getUrl() // schema.convertToUriDataset().get.getUrl()
-//
-//    val customSchema: StructType = SchemaConverters.toSqlType(avroSchema).dataType.asInstanceOf[StructType]
-//
-//    val res = for {
-//      df <- readCSV(file.getAbsolutePath, customSchema, isHeaderDefined, sep)
-//      path <- physicalUrl.map(Success(_)).getOrElse(Failure(new Throwable("No physicalUrl into catalog entry")))
-//      rh <- rightsHolder.map(Success(_)).getOrElse(Failure(new Throwable("No physicalUrl into catalog entry")))
-//      schema = Schema(isStd.getOrElse(false), implementStdSchema, path, rh)
-//      out <- writeDF(df, schema, path)
-//    } yield out
-//
-//
-//    res match {
-//      case Success(_) =>
-//       Logger.info(s"Dataframe correctly stored in ${physicalUrl.get}")
-//        true
-//      case Failure(ex) =>
-//        Logger.error(s"Dataset reading failed due a Conversion Exception ${ex.getMessage} \n${ex.getStackTrace.mkString("\n\t")}")
-//        false
-//    }
-//  }
-//
-//  def connect(WS: WSClient) (baseUrl: String) = {
-//    WS.url(s"$baseUrl").get().map({ resp =>
-//      if ((resp.status >= 200) && (resp.status <= 299)) Json.parse(resp.body).as[String]
-//      else throw new java.lang.RuntimeException("unexpected response status: " + resp.status + " " + resp.body.toString)
-//    })
-//  }
 
   def write(schema: MetaCatalog, file: File, sep: String = ",", isHeaderDefined: Boolean = true): Try[Boolean] =  Try{
 
-    val dbAvroSchema = schema.dataschema
+    val dbAvroSchema = schema.dataschema.flatMap(_.avro)
     val isStd_implementSchema = schema.operational.map(x => (x.is_std.getOrElse(false), x.std_schema.isDefined))
     val physicalUrl = schema.operational.map(_.physical_uri.getOrElse(""))
     val rightsHolder = for{
       dct <- schema.dcatapit
       rh <- dct.dct_rightsHolder
-      r <- rh.id
+      r <- rh.value
     } yield r
 
-//    val jObjectSchema: JValue = parse(schema).asInstanceOf[JObject]
-//    val dbAvroSchema = (jObjectSchema \ "dataschema").toOption.map(_.values.toString)
-//    val physicalUrl = (jObjectSchema \ "operational" \ "physical_uri").toOption.map(_.values.toString)
-//    val isStd = (jObjectSchema \ "operational" \ "is_std").toOption.map(_.asInstanceOf[Boolean])
-//    val implementStdSchema = (jObjectSchema \ "operational" \ "std_schema").toOption match {
-//      case Some(_) => true
-//      case None => false
-//    }
-//    val rightsHolder = (jObjectSchema \ "dcatapit" \ "dct_rightsHolder" \ "value").toOption.map(_.values.toString)
 
 
     implicit val formats = DefaultFormats
 
-    val avroSchema = readAvroSchema(org.json4s.jackson.Serialization.write(dbAvroSchema))
-
-    //val inputPath = schema.operational.get.inputSrc.url
-    //val outputPath = datastructures.convertToUriDatabase(schema).get.getUrl() // schema.convertToUriDataset().get.getUrl()
-
-    val customSchema: StructType = SchemaConverters.toSqlType(avroSchema).dataType.asInstanceOf[StructType]
-
     val res = for {
+      tryAvroSchema <- dbAvroSchema.map(Success(_)).getOrElse(Failure(new Throwable("No Avro schema")))
+      avroSchema <- Try(readAvroSchema(org.json4s.jackson.Serialization.write(dbAvroSchema)))
+      customSchema = SchemaConverters.toSqlType(avroSchema).dataType.asInstanceOf[StructType]
       df <- readCSV(file.getAbsolutePath, customSchema, isHeaderDefined, sep)
       path <- physicalUrl.map(Success(_)).getOrElse(Failure(new Throwable("No physicalUrl into catalog entry")))
       rh <- rightsHolder.map(Success(_)).getOrElse(Failure(new Throwable("No rightHolder into catalog entry")))

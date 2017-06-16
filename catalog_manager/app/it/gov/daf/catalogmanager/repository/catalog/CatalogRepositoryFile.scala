@@ -134,16 +134,12 @@
               .map(CatalogManager.writeOrdinaryWithStandard(metaCatalog, _))
             res match {
               case Success((true, meta)) =>
-              //  val random = scala.util.Random
-              //  val id = random.nextInt(1000).toString
-              //  val data = Json.obj(id -> Json.toJson(meta))
                 val data = Json.toJson(meta)
                 fw.write(Json.stringify(data) + "\n")
                 fw.close()
                 val msg = "Catalog Added"
                 msg
               case _ =>
-                println("Error");
                 val msg = "Error"
                 msg
             }
@@ -151,22 +147,19 @@
             val res: Try[(Boolean, MetaCatalog)]= Try(CatalogManager.writeOrdinary(metaCatalog))
             val msg = res match {
               case Success((true, meta)) =>
-               // val random = scala.util.Random
-               // val id = random.nextInt(1000).toString
-                val data = Json.toJson(meta) //Json.obj(id -> Json.toJson(meta))
+                val data = Json.toJson(meta)
                 fw.write(Json.stringify(data) + "\n")
                 fw.close()
                 val msg = "Catalog Added"
                 msg
               case _ =>
-                println("Error");
                 val msg = "Error"
                 msg
             }
             msg
           }
 
-        case _ => println(""); val msg = "Error"; msg
+        case _ =>  val msg = "Error"; msg
       }
 
       Successf(Some(msg),Some(msg))

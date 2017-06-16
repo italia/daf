@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: superset
+  labels:
+    app: superset
+spec:
+  ports:
+  - port: 8088
+
+  selector:
+    app: superset
+  clusterIP: None
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: superset-deployment
+spec:
+  replicas: 1
+  strategy:
+      type: Recreate
+  template:
+    metadata:
+      labels:
+        app: superset
+    spec:
+      hostNetwork: true
+      containers:
+      - name: superset
+        image: 10.98.74.120:5000/daf-superset:1.0.0
+        imagePullPolicy: Always
+        lifecycle:
+          postStart:
+            exec:
+             command: ["/bin/sh", "-c", "cat /etc/extra_hosts >> /etc/hosts"]
+        ports:
+        - name: client
+          containerPort: 8088
+        securityContext:
+          privileged: true
+          runAsUser: 0
+        volumeMounts:
+        - name: glusterfsvol
+          mountPath: /home/superset/.superset
+          subPath: superset/conf
+          readOnly: false
+        - name: hosts
+          mountPath: /etc/extra_hosts
+        - name: krb5conf
+          mountPath: /etc/krb5.conf
+        - name: hadoopconf
+          mountPath: /etc/hadoop/conf
+          readOnly: true
+      - name: superset-redis
+        image: redis:latest
+        ports:
+          - containerPort: 6379
+      imagePullSecrets:
+      - name: regsecret
+      volumes:
+      - name: glusterfsvol
+        persistentVolumeClaim:
+          claimName: gluster-claim
+      - name: hosts
+        hostPath:
+          path: /etc/hosts
+      - name: krb5conf
+        hostPath:
+          path: /etc/krb5.conf
+      - name: hadoopconf
+        hostPath:
+          path: /etc/hadoop/conf

@@ -16,7 +16,8 @@
 
 import javax.inject.Inject
 
-import com.google.inject.{ AbstractModule, Singleton }
+import com.google.inject.{AbstractModule, Singleton}
+import it.gov.daf.catalogmanager.listeners.{IngestionListener, IngestionListenerImpl}
 import play.api.inject.ApplicationLifecycle
 
 import scala.concurrent.Future
@@ -29,5 +30,8 @@ class Global @Inject() (lifecycle: ApplicationLifecycle) {
 
 @Singleton
 class Module extends AbstractModule {
-  def configure() = {}
+  def configure() = {
+    bind(classOf[IngestionListener]).to(classOf[IngestionListenerImpl]).asEagerSingleton()
+  }
+
 }

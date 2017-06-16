@@ -43,7 +43,8 @@ libraryDependencies ++= Seq(
  // "org.specs2" %% "specs2-scalacheck" % "3.8.9" % Test,
   "me.jeffmay" %% "play-json-tests" % "1.5.0" % Test,
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.0" % Test,
-  "org.mongodb" %% "casbah" % "3.1.1" //,
+  "org.mongodb" %% "casbah" % "3.1.1", //,
+  "net.caoticode.dirwatcher" %% "dir-watcher" % "0.1.0"
   //"it.teamdigitale" %% "ingestion-module" % "0.1.0" exclude("org.apache.avro", "avro")
 )
 

@@ -17,6 +17,7 @@ import scala.util._
 
 import javax.inject._
 
+import it.gov.daf.catalogmanager.listeners.IngestionListenerImpl
 import it.gov.daf.catalogmanager.service.ServiceRegistry
 import scala.concurrent.Future
 
@@ -27,7 +28,7 @@ import scala.concurrent.Future
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                    
+                                    
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -62,7 +63,10 @@ package catalog_manager.yaml {
         }
         val datasetcatalogbyid = datasetcatalogbyidAction { (catalog_id: String) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbyid
-            val catalog = ServiceRegistry.catalogService.getCatalogs(catalog_id)
+            val logical_uri = new java.net.URI(catalog_id)
+            println("Alessandro Test")
+            println(logical_uri)
+            val catalog = ServiceRegistry.catalogService.getCatalogs(logical_uri.toString)
             catalog match {
                 case MetaCatalog(None,None,None) => Datasetcatalogbyid401("Error no data with that logical_uri")
                 case  _ => Datasetcatalogbyid200(catalog)

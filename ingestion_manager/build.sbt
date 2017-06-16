@@ -12,7 +12,11 @@ version := "1.0.0"
 lazy val sparkVersion = "2.0.0"
 lazy val spark = "org.apache.spark"
 
+val playVersion = "2.5.14"
+
+
 lazy val root = (project in file(".")).enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser)
+
 
 scalaVersion in ThisBuild := "2.11.8"
 
@@ -29,7 +33,7 @@ libraryDependencies ++= Seq(
   ws,
   "org.webjars" % "swagger-ui" % "3.0.10", //excludeAll( ExclusionRule(organization = "com.fasterxml.jackson.core") ),
   "it.gov.daf" %% "daf-catalog-manager-client" % "1.0.0",
-  "org.json4s" %% "json4s-jackson" % "3.5.2"  exclude("com.fasterxml.jackson.core", "jackson-databind"),
+//  "org.json4s" %% "json4s-jackson" % "3.5.2"  exclude("com.fasterxml.jackson.core", "jackson-databind"),
   "com.databricks" %% "spark-avro" % "3.2.0",
   specs2 % Test,
   "org.scalacheck" %% "scalacheck" % "1.13.5" % Test,

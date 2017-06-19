@@ -137,7 +137,7 @@
                 val data = Json.toJson(meta)
                 fw.write(Json.stringify(data) + "\n")
                 fw.close()
-                val msg = "Catalog Added"
+                val msg = meta.operational.get.logical_uri.get
                 msg
               case _ =>
                 val msg = "Error"
@@ -150,7 +150,8 @@
                 val data = Json.toJson(meta)
                 fw.write(Json.stringify(data) + "\n")
                 fw.close()
-                val msg = "Catalog Added"
+                val msg = meta.operational.get.logical_uri.get
+              //  val fields = meta.operational.get.logical_uri.get
                 msg
               case _ =>
                 val msg = "Error"

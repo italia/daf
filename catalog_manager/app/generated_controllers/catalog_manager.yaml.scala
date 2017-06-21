@@ -28,10 +28,11 @@ import scala.concurrent.Future
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                    
+                                        
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
+         ingestionListener : IngestionListenerImpl,
 
         // ----- End of unmanaged code area for injections Catalog_managerYaml
         val messagesApi: MessagesApi,
@@ -64,16 +65,13 @@ package catalog_manager.yaml {
         val datasetcatalogbyid = datasetcatalogbyidAction { (catalog_id: String) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbyid
             val logical_uri = new java.net.URI(catalog_id)
-            println("Alessandro Test")
-            println(logical_uri)
             val catalog = ServiceRegistry.catalogService.getCatalogs(logical_uri.toString)
             catalog match {
                 case MetaCatalog(None,None,None) => Datasetcatalogbyid401("Error no data with that logical_uri")
-                case  _ => Datasetcatalogbyid200(catalog)
+                case  _ =>   ingestionListener.addDirListener(catalog) ; Datasetcatalogbyid200(catalog)
             }
 
             //Datasetcatalogbyid200(catalog)
-            //NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbyid
         }
         val ckandatasetbyid = ckandatasetbyidAction { (dataset_id: String) =>  

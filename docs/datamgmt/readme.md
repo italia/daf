@@ -15,7 +15,7 @@ Dataset in DAF are of three types: standard, ordinary and raw.
 
 ## Where to go from here
 We advise you read the following .md file to get the full flavor of data management in DAF. In particular, we'd suggest the following order:
-1. [Datasets & Metadata in DAF](https://github.com/bianchi74/daf/blob/master/docs/metadata/readme.md)
-2. [Operation](https://github.com/bianchi74/daf/blob/master/docs/operations/readme.md)
-3. [Dataset Services](https://github.com/bianchi74/daf/blob/master/docs/datasetsrv/readme.md)
+1. [Datasets & Metadata in DAF](metadata/)
+2. [Operation](operations/)
+3. [Dataset Services](datasetsrv/)
 4. TBC - More to come ...

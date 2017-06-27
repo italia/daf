@@ -3,11 +3,11 @@
 ## Index
 
 - [Introduction](introduction/)
-- [Logical Components](logicalComponents/readme.md)
-- [Architecture](docs/architecture/readme.md)
-- [Data Management](docs/datamgmt/readme.md)
-- [Security](docs/security/readme.md)
+- [Logical Components](logicalComponents/)
+- [Architecture](docs/architecture/)
+- [Data Management](docs/datamgmt/)
+- [Security](docs/security/)
 
-To do list:
-- Software Factory rules: draft currently available on *Google Drive*   
+To-do-list:
+- **Software Factory rules** (draft currently available on *Google Drive*)   
 - Installation and deployment

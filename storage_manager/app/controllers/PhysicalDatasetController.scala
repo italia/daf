@@ -20,11 +20,14 @@ import java.lang.reflect.UndeclaredThrowableException
 import java.net.URI
 import java.security.PrivilegedExceptionAction
 
+import akka.stream.scaladsl.{Source, StreamConverters}
+import akka.util.ByteString
 import com.databricks.spark.avro.SchemaConverters
 import com.google.inject.Inject
 import io.swagger.annotations.{Api, ApiOperation, ApiParam, Authorization}
 import it.gov.daf.common.authentication.Authentication
 import org.apache.avro.SchemaBuilder
+import org.apache.hadoop.fs._
 import org.apache.hadoop.security.{AccessControlException, UserGroupInformation}
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.{AnalysisException, SparkSession}
@@ -43,16 +46,27 @@ import scala.util.{Failure, Success, Try}
     "org.wartremover.warts.NonUnitStatements",
     "org.wartremover.warts.Nothing",
     "org.wartremover.warts.IsInstanceOf",
-    "org.wartremover.warts.Null"
+    "org.wartremover.warts.Null",
+    "org.wartremover.warts.Var",
+    "org.wartremover.warts.AsInstanceOf"
   )
 )
 @Api("physical-dataset")
 class PhysicalDatasetController @Inject()(configuration: Configuration, val playSessionStore: PlaySessionStore) extends Controller {
 
+  private val defaultLimit = configuration.getInt("max_number_of_rows").getOrElse(throw new Exception("it shouldn't happen"))
+
+  private val defaultChunkSize = configuration.getInt("chunk_size").getOrElse(throw new Exception("it shouldn't happen"))
+
   private val sparkConfig = new SparkConf()
   sparkConfig.set("spark.driver.memory", configuration.getString("spark_driver_memory").getOrElse("128M"))
 
   private val sparkSession = SparkSession.builder().master("local").config(sparkConfig).getOrCreate()
+
+  private val fileSystem: FileSystem = {
+    val conf = new org.apache.hadoop.conf.Configuration()
+    FileSystem.get(conf)
+  }
 
   UserGroupInformation.loginUserFromSubject(null)
 
@@ -67,6 +81,8 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
       Ok(Json.toJson(ex.getMessage)).copy(header = ResponseHeader(Http.Status.NOT_IMPLEMENTED, Map.empty))
     case ex: UndeclaredThrowableException if ex.getUndeclaredThrowable.isInstanceOf[AnalysisException] =>
       Ok(Json.toJson(ex.getMessage)).copy(header = ResponseHeader(Http.Status.NOT_FOUND, Map.empty))
+    case ex: InvalidPathException =>
+      Ok(Json.toJson(ex.getMessage)).copy(header = ResponseHeader(Http.Status.BAD_REQUEST, Map.empty))
     case ex: Throwable =>
       Ok(Json.toJson(ex.getMessage)).copy(header = ResponseHeader(Http.Status.INTERNAL_SERVER_ERROR, Map.empty))
   }
@@ -94,17 +110,17 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
 
   @ApiOperation(
     value = "given a physical dataset URI it returns a json document with the first 'limit' number of rows",
-    produces = "application/json, text/plain",
+    produces = "application/json, text/plain, application/octet-stream",
     authorizations = Array(new Authorization(value = "basicAuth"))
   )
   def getDataset(@ApiParam(value = "the dataset's physical URI", required = true) uri: String,
                  @ApiParam(value = "the dataset's format", required = true) format: String,
-                 @ApiParam(value = "max number of rows to return", required = false) limit: Option[Int]): Action[AnyContent] =
+                 @ApiParam(value = "max number of rows/chunks to return", required = false) limit: Option[Int],
+                 @ApiParam(value = "chunk size", required = false) chunk_size: Option[Int]): Action[AnyContent] =
     Action {
       CheckedAction(exceptionManager orElse hadoopExceptionManager) {
         HadoopDoAsAction {
           _ =>
-            val defaultLimit = configuration.getInt("max_number_of_rows").getOrElse(throw new Exception("it shouldn;'t happen"))
             val datasetURI = new URI(uri)
             val locationURI = new URI(datasetURI.getSchemeSpecificPart)
             val locationScheme = locationURI.getScheme
@@ -118,6 +134,14 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
                 val rdd = sparkSession.sparkContext.textFile(location)
                 val doc = rdd.take(limit.getOrElse(defaultLimit)).mkString("\n")
                 Ok(doc).as("text/plain")
+              case "hdfs" if actualFormat == "raw" =>
+                val location = locationURI.getSchemeSpecificPart
+                val path = new Path(location)
+                if (fileSystem.isDirectory(path))
+                  throw new InvalidPathException("The specified location is not a file")
+                val data: FSDataInputStream = fileSystem.open(path)
+                val dataContent: Source[ByteString, _] = StreamConverters.fromInputStream(() => data, chunk_size.getOrElse(defaultChunkSize))
+                Ok.chunked(dataContent.take(limit.getOrElse(defaultLimit).asInstanceOf[Long])).as("application/octet-stream")
               case "hdfs" =>
                 val location = locationURI.getSchemeSpecificPart
                 val df = sparkSession.read.format(actualFormat).load(location)

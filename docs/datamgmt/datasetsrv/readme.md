@@ -2,7 +2,7 @@
 Dataset is one of the fundamental entities of DAF. Here we discuss the microservices designed to perform operations on Datasets.
 
 ## Dataset Catalog Manager
-The Catalog Manager is an API manage the creation, update and deletion of datasets in DAF. In particular, it takes care of the metadata information associated to a Dataset ([see here for more info on metadata](../datamgmt/metadata/readme.md)).
+The Catalog Manager is an API manage the creation, update and deletion of datasets in DAF. In particular, it takes care of the metadata information associated to a Dataset.
 A list of endpoints and functionalities about the [Catalog Manager is here](api_catalogmanager.md)
 
 ## Data Ingestion Manager

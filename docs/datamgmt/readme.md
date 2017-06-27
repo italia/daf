@@ -19,10 +19,3 @@ We advise you read the following .md file to get the full flavor of data managem
 2. [Operation](https://github.com/bianchi74/daf/blob/master/docs/operations/readme.md)
 3. [Dataset Services](https://github.com/bianchi74/daf/blob/master/docs/datasetsrv/readme.md)
 4. TBC - More to come ...
-
-
-2. [Data Structure & Ingestion Pipeline](https://github.com/bianchi74/daf/blob/master/docs/datamgmt/operations/ingestion_dataset_add.md)
-3. [Ingestion & HDFS Structure](https://github.com/bianchi74/daf/blob/master/docs/datamgmt/operations/ingestion_hdfs_structure.md)
-4. [ssss]
-5.
-TBC - More to come ...

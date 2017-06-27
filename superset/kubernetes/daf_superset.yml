@@ -5,12 +5,13 @@ metadata:
   labels:
     app: superset
 spec:
+  type: NodePort
   ports:
   - port: 8088
-
+    protocol: TCP
+    name: http
   selector:
     app: superset
-  clusterIP: None
 ---
 apiVersion: apps/v1beta1
 kind: Deployment
@@ -18,8 +19,6 @@ metadata:
   name: superset-deployment
 spec:
   replicas: 1
-  strategy:
-      type: Recreate
   template:
     metadata:
       labels:

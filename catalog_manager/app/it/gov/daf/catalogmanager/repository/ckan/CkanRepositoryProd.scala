@@ -5,7 +5,7 @@ import akka.stream.ActorMaterializer
 import catalog_manager.yaml.Dataset
 import play.api.libs.ws.ahc.AhcWSClient
 import it.gov.daf.catalogmanager.utilities.{ConfigReader, WebServiceUtil}
-import play.api.libs.json.{JsError, JsSuccess, JsValue}
+import play.api.libs.json.{JsError, JsString, JsSuccess, JsValue}
 
 import scala.concurrent.Future
 
@@ -44,5 +44,8 @@ class CkanRepositoryProd extends CkanRepository{
     }
     result
   }
+
+  def createDataset(jsonDataset: JsValue): Unit = println("TODO")
+  def dataset(datasetId: String): JsValue = JsString("TODO")
 
 }

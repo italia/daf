@@ -83,7 +83,7 @@ class CatalogRepositoryMongo extends  CatalogRepository{
               val obj = com.mongodb.util.JSON.parse(json.toString()).asInstanceOf[DBObject]
               val inserted = coll.insert(obj)
               mongoClient.close()
-              val msg = "Catalog Added"
+              val msg = meta.operational.get.logical_uri.get
               msg
             case _ =>
               println("Error");
@@ -99,7 +99,7 @@ class CatalogRepositoryMongo extends  CatalogRepository{
               val json: JsValue = MetaCatalogWrites.writes(meta)
               val obj = com.mongodb.util.JSON.parse(json.toString()).asInstanceOf[DBObject]
               val inserted = coll.insert(obj)
-              val msg = "Catalog Added"
+              val msg = meta.operational.get.logical_uri.get
               msg
             case _ =>
               println("Error");

@@ -74,7 +74,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  "/dataset-catalogs/{catalog_id}":
+  "/catalog-ds/get/{catalog_id}":
     get:
       summary: DatasetCatalog
       description: |
@@ -102,7 +102,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  "/create/catalog-dataset":
+  "/catalog-ds/add/":
     post:
       summary: DatasetCatalog
       description: |

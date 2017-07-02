@@ -18,6 +18,16 @@ GET         /api/*file      controllers.Assets.versioned(path="/public/swagger-u
 
 ->          /catalog-manager/v1           catalog_manager.yaml.Routes
 
+
+# Temporary Ckan API outside swagger file
+GET /ckan/organizations                         controllers.ckan.CkanController.getOrganizations
+GET /ckan/organizations/:organizationId         controllers.ckan.CkanController.getOganizationRevisionList(organizationId :String)
+GET /ckan/dataset/:datasetId                    controllers.ckan.CkanController.getDataset(datasetId :String)
+GET /ckan/organization/datasets/:organizationId controllers.ckan.CkanController.getOrganizationDataset(organizationId :String)
+
+POST   /ckan/createDataset                      controllers.ckan.CkanController.createDataset
+
+
 ### NoDocs ###
 GET         /docs/swagger-ui/*file    controllers.Assets.at(path:String="/public/lib/swagger-ui", file:String)
 

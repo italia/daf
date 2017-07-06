@@ -12,7 +12,7 @@ DAF has a the following twofold goal:
 
 This documentation focuses on the Big Data Platform.
 
-A key concept underlying the DAF platform is the [**dataset**](../dataset/). 
+A key concept underlying the DAF platform is the [**dataset**](../datamgmt/dataset). 
 
 In a nutshell, you can think the DAF platform as a big data environment offering capabilities for:
 
@@ -23,6 +23,9 @@ In a nutshell, you can think the DAF platform as a big data environment offering
 
 The following image provides an architectural overview of the DAF:
 
-[Insert Image](https://docs.google.com/presentation/d/1LDDrG7VsYoXXIbfbg6tQ9z7DfHw7ukkNnwVygt6jOOQ/edit)
+[Update and Insert Image](https://docs.google.com/presentation/d/1LDDrG7VsYoXXIbfbg6tQ9z7DfHw7ukkNnwVygt6jOOQ/edit)
 
-Continue your tour looking a more detailed description of the [DAF architecture](architecture/).
+Continue your tour looking documentation about:
+
+* [Data Management in DAF](../datamgmt)
+* the [DAF architecture](../architecture/)

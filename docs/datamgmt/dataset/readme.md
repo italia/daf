@@ -6,7 +6,7 @@ In fact all data stored in the DAF are organized into logical entities called da
 A *dataset* is a combination of metadata, data, and other operational info needed to manage ingestion, update, lookup, creation of views and alike. It is general purpose, in the sense that it can be used to model both batch, streaming, semi-structured data.
 
 
-#Types of dataset
+## Types of dataset
 
 Dataset in the DAF platform are of three types:
 
@@ -16,7 +16,7 @@ Dataset in the DAF platform are of three types:
 
 - **Raw datasets** are those with the lowest level of information: DAF works more as a storage layer with simple look up mechanism via rest API. They are mostly used to manage Open Data without stringent metadata information.
 
-# Dataset lifecycle
+## Dataset lifecycle
 
 The lifecycle of a dataset is based on three main steps:
 
@@ -24,7 +24,7 @@ The lifecycle of a dataset is based on three main steps:
 An authenticated user registers can add a dataset to the DAF platform filling the [dataset registration form](../gui/registrationForm.md).
 Then data related to the registered dataset can be moved from the source towards the DAF. The DAF platform provides APIs both for batch and streaming data ingestion. When data are received by the DAF platform, they are stored as raw data in the DAF datalake. Depending on the information provided by the dataset's owner during the registration phase, a dataset can be converted into standard big data serializazion formats (eg. Avro and Parquet) and 'stored' into operational databases (eg. HBase, Impala, etc). For more information about the ingestion phase see the [Data Ingestion](../data-ingestion) documentation.
 
-2. *Dataset analysis* - once a dataset is available and properly saved in the datalake, the user can move to the analysis phase. The DAF platform provides several tools for the processing and analysing datasets. [Here]() a list of the available tools.
+2. *Dataset analysis* - once a dataset is available and properly saved in the datalake, the user can move to the analysis phase. The DAF platform provides several tools for the processing and analysing datasets. [Here](???) a list of the available tools.
 
 3. *Data and insights publishing* - ...
 

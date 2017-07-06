@@ -1,5 +1,5 @@
 # Data in use
-sdsds
+
 
 ## Analysis & Data visualization
 One of the key features of DAF are analytical functionalities. It offers en environment where data scientists and analysts can perform analysis on data, run statistical & machine learning models and produce data visualizations and reports. The following are the tools we plan to make available for analysis at the time of writing:

@@ -8,4 +8,5 @@ We introduce the philosophy behind the data management architecture of the DAF p
 - [*Data ingestion*](data-ingestion)
 - [*Data at rest*](data-at-rest)
 - [*Data in use*](data-in-use)
-- [*Data egestion process and insight publication*](data-egestion).
+- [*Data egestion*](data-egestion)
+- [*Data insight publication*](data-insight-publication)

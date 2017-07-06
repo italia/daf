@@ -1,13 +1,12 @@
 # Data & Analytics Framework (DAF) - Developer Documentation
 
 
-- [Introduction](introduction/)
 
-- Main documents:
-  - [Data Management](datamgmt/)
-  - [Architectural overview](architecture/)
-  - DAF Technologies Ecosystem - **coming soon**
-  - [Security & Privacy issues](security/)
-  - User Manual - **coming soon**
+- [Introduction](introduction)
+- [Data Management](datamgmt)
+- [Architectural overview](architecture)
+- [DAF Technologies Ecosystem](ecosystem) - **coming soon**
+- [Security & Privacy issues](security) - **coming soon**
+- [User Manual](userManual)
   
   

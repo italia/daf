@@ -28,7 +28,7 @@ import scala.concurrent.Future
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                        
+            
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -62,18 +62,6 @@ package catalog_manager.yaml {
             NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.createckandataset
         }
-        val datasetcatalogbyid = datasetcatalogbyidAction { (catalog_id: String) =>  
-            // ----- Start of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbyid
-            val logical_uri = new java.net.URI(catalog_id)
-            val catalog = ServiceRegistry.catalogService.getCatalogs(logical_uri.toString)
-            catalog match {
-                case MetaCatalog(None,None,None) => Datasetcatalogbyid401("Error no data with that logical_uri")
-                case  _ =>   ingestionListener.addDirListener(catalog) ; Datasetcatalogbyid200(catalog)
-            }
-
-            //Datasetcatalogbyid200(catalog)
-            // ----- End of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbyid
-        }
         val ckandatasetbyid = ckandatasetbyidAction { (dataset_id: String) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.ckandatasetbyid
             val dataset: Future[Dataset] = ServiceRegistry.catalogService.getDataset(dataset_id)
@@ -81,9 +69,25 @@ package catalog_manager.yaml {
             //NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.ckandatasetbyid
         }
+        val datasetcatalogbyid = datasetcatalogbyidAction { (catalog_id: String) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbyid
+            val logical_uri = new java.net.URI(catalog_id)
+            val catalog = ServiceRegistry.catalogService.getCatalogs(logical_uri.toString)
+            catalog match {
+                case MetaCatalog(None,None,None) => Datasetcatalogbyid401("Error no data with that logical_uri")
+                case  _ =>   Datasetcatalogbyid200(catalog)
+            }
+
+            //Datasetcatalogbyid200(catalog)
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbyid
+        }
         val createdatasetcatalog = createdatasetcatalogAction { (catalog: MetaCatalog) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalog
             val created: Successf = ServiceRegistry.catalogService.createCatalog(catalog)
+            if (!created.message.get.toLowerCase.equals("error")) {
+                val logicalUri = created.message.get
+                ingestionListener.addDirListener(catalog, logicalUri)
+            }
             Createdatasetcatalog200(created)
            //NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalog

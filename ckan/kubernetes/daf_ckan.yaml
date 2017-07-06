@@ -8,6 +8,10 @@ spec:
     port: 5000
     targetPort: 5000
     protocol: TCP
+  - name: mongodb
+    port: 27017
+    targetPort: 27017
+    protocol: TCP
   selector:
     app: ckan
 ---
@@ -72,6 +76,23 @@ spec:
               value: "localhost"
             - name: SOLR_PORT_8983_TCP_PORT
               value: "8983"
+        - name: mongodb
+          image: bitnami/mongodb:latest
+          volumeMounts:
+            - name: glusterfsvol
+              mountPath: /bitnami
+              subPath: ckan/mongodb
+          ports:
+            - containerPort: 27017
+          env:
+            - name: MONGODB_ROOT_PASSWORD
+              value: "mongo"
+            - name: MONGODB_USERNAME
+              value: "ckan"
+            - name: MONGODB_PASSWORD
+              value: "ckan"
+            - name: MONGODB_DATABASE
+              value: "ckan"
       imagePullSecrets:
         - name: regsecret
       volumes:

@@ -30,7 +30,7 @@ import scala.annotation.tailrec
 
 package iot_ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Iot_ingestion_managerYaml
-                
+                        
     // ----- End of unmanaged code area for package Iot_ingestion_managerYaml
     class Iot_ingestion_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Iot_ingestion_managerYaml

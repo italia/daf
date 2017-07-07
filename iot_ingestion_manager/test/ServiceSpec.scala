@@ -18,9 +18,12 @@ import java.io.{IOException, File => JFile}
 import java.net.ServerSocket
 import java.util.Base64
 
+import ServiceSpec._
+import better.files.{File, _}
 import it.gov.daf.iotingestionmanager.client.Iot_ingestion_managerClient
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.{HBaseTestingUtility, TableName}
+import org.apache.hadoop.test.PathUtils
 import org.apache.spark.SparkConf
 import org.apache.spark.opentsdb.OpenTSDBConfigurator
 import org.specs2.mutable.Specification
@@ -59,7 +62,7 @@ class ServiceSpec extends Specification with BeforeAfterAll {
   }
 
   def application: Application = GuiceApplicationBuilder().
-    //    configure("hadoop_conf_dir" -> s"${ServiceSpec.confPath.pathAsString}").
+    configure("hadoop_conf_dir" -> s"${ServiceSpec.confPath.pathAsString}").
     configure("pac4j.authenticator" -> "test").
     build()
 
@@ -73,6 +76,7 @@ class ServiceSpec extends Specification with BeforeAfterAll {
       val base64Creds = new String(base64CredsBytes)
       val client = new Iot_ingestion_managerClient(ws)(s"http://localhost:$port")
       val result = Await.result(client.start(s"Basic $base64Creds"), Duration.Inf)
+      println(result)
     }
   }
 
@@ -91,6 +95,8 @@ class ServiceSpec extends Specification with BeforeAfterAll {
     hbaseUtil.createTable(TableName.valueOf("tsdb"), Array("t"))
     hbaseUtil.createTable(TableName.valueOf("tsdb-tree"), Array("t"))
     hbaseUtil.createTable(TableName.valueOf("tsdb-meta"), Array("name"))
+    val confFile: File = confPath / "hbase-site.xml"
+    for {os <- confFile.newOutputStream.autoClosed} baseConf.writeXml(os)
     ()
   }
 
@@ -106,6 +112,14 @@ class ServiceSpec extends Specification with BeforeAfterAll {
 @SuppressWarnings(Array("org.wartremover.warts.Var", "org.wartremover.warts.Null"))
 object ServiceSpec {
 
+  private val (testDataPath, confPath) = {
+    val testDataPath = s"${PathUtils.getTestDir(classOf[ServiceSpec]).getCanonicalPath}/MiniCluster"
+    val confPath = s"$testDataPath/conf"
+    (
+      testDataPath.toFile.createIfNotExists(asDirectory = true, createParents = false),
+      confPath.toFile.createIfNotExists(asDirectory = true, createParents = false)
+    )
+  }
 }
 
 class TestOpenTSDBConfigurator(mapConf: Map[String, String]) extends OpenTSDBConfigurator with Serializable {

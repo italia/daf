@@ -21,7 +21,7 @@ Dataset in the DAF platform are of three types:
 The lifecycle of a dataset is based on three main steps:
 
 1. *Creation of a Dataset*  
-An authenticated user registers can add a dataset to the DAF platform filling the [dataset registration form](../gui/registrationForm.md).
+An authenticated user registers can add a dataset to the DAF platform filling the [dataset registration form](../../../docs-usr/adding-a-new-dataset).
 Then data related to the registered dataset can be moved from the source towards the DAF. The DAF platform provides APIs both for batch and streaming data ingestion. When data are received by the DAF platform, they are stored as raw data in the DAF datalake. Depending on the information provided by the dataset's owner during the registration phase, a dataset can be converted into standard big data serializazion formats (eg. Avro and Parquet) and 'stored' into operational databases (eg. HBase, Impala, etc). For more information about the ingestion phase see the [Data Ingestion](../data-ingestion) documentation.
 
 2. *Dataset analysis* - once a dataset is available and properly saved in the datalake, the user can move to the analysis phase. The DAF platform provides several tools for the processing and analysing datasets. [Here](???) a list of the available tools.

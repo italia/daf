@@ -2,7 +2,6 @@
 
 Welcome to the project homepage.
 
-*Insert a very short description of the project.*
 
-
-* [Documentation index](docs/)
+* [Documentation for developers](docs-dev)
+* [User Manual](docs-usr)

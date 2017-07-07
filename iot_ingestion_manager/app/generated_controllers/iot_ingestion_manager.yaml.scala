@@ -30,7 +30,7 @@ import scala.annotation.tailrec
 
 package iot_ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Iot_ingestion_managerYaml
-                        
+                            
     // ----- End of unmanaged code area for package Iot_ingestion_managerYaml
     class Iot_ingestion_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Iot_ingestion_managerYaml
@@ -69,9 +69,7 @@ package iot_ingestion_manager.yaml {
         // ----- End of unmanaged code area for constructor Iot_ingestion_managerYaml
         val start = startAction {  _ =>  
             // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.start
-            println(environment.mode)
-
-      val conf = if (environment.mode != Mode.Test)
+            val conf = if (environment.mode != Mode.Test)
         new SparkConf().
           setMaster("yarn-client").
           setAppName("iot-ingestion-manager").

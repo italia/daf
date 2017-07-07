@@ -59,6 +59,26 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  "/stop":
+    get:
+      summary: Stop the Spark Streaming job
+      description: |
+        It stops the Spark Streaming job
+      tags:
+        - Stops the Spark Streaming job
+      operationId: stop
+      security:
+        - basicAuth: []
+      responses:
+        200:
+          description: The job has been stopped successfully
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
 definitions:
   Error:
     properties:

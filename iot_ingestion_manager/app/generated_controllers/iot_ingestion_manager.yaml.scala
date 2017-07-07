@@ -19,9 +19,11 @@ import javax.inject._
 
 import java.net.URLClassLoader
 import de.zalando.play.controllers.PlayBodyParsing._
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.{SparkConf,SparkContext}
 import play.api.{Environment,Mode}
 import scala.annotation.tailrec
+import scala.util.{Failure,Success,Try}
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -30,7 +32,14 @@ import scala.annotation.tailrec
 
 package iot_ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Iot_ingestion_managerYaml
-                            
+    
+  @SuppressWarnings(
+    Array(
+      "org.wartremover.warts.Throw",
+      "org.wartremover.warts.While",
+      "org.wartremover.warts.Var"
+    )
+  )
     // ----- End of unmanaged code area for package Iot_ingestion_managerYaml
     class Iot_ingestion_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Iot_ingestion_managerYaml
@@ -66,38 +75,65 @@ package iot_ingestion_manager.yaml {
 
     val uberJarLocation: String = getJar(this.getClass)
 
+    val conf = if (environment.mode != Mode.Test)
+      new SparkConf().
+        setMaster("yarn-client").
+        setAppName("iot-ingestion-manager").
+        setJars(List(uberJarLocation)).
+        set("spark.yarn.jars", "local:/opt/cloudera/parcels/SPARK2/lib/spark2/jars/*").
+        set("spark.serializer", "org.apache.spark.serializer.KryoSerializer").
+        set("spark.io.compression.codec", "lzf").
+        set("spark.speculation", "false").
+        set("spark.shuffle.manager", "sort").
+        set("spark.shuffle.service.enabled", "true").
+        set("spark.dynamicAllocation.enabled", "true").
+        set("spark.dynamicAllocation.minExecutors", "8").
+        set("spark.dynamicAllocation.initialExecutors", "8").
+        set("spark.executor.cores", Integer.toString(1)).
+        set("spark.executor.memory", "2048m")
+    else
+      new SparkConf().
+        setMaster("local").
+        setAppName("iot-ingestion-manager")
+
+    private def createThread = new Thread(new Runnable {
+      override def run(): Unit = {
+        sparkSession match {
+          case Failure(ex) => sparkSession = Try {
+            val sparkSession = SparkSession.builder().config(conf).getOrCreate()
+            addClassPathJars(sparkSession.sparkContext, getClass.getClassLoader)
+            sparkSession
+          }
+            while (!sparkSession.getOrElse(throw new RuntimeException).sparkContext.isStopped)
+              Thread.sleep(100)
+          case Success(sparkSession) => ()
+        }
+      }
+    })
+
+    var thread: Option[Thread] = None
+
+    var sparkSession: Try[SparkSession] = Failure[SparkSession](new RuntimeException())
+
         // ----- End of unmanaged code area for constructor Iot_ingestion_managerYaml
         val start = startAction {  _ =>  
             // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.start
-            val conf = if (environment.mode != Mode.Test)
-        new SparkConf().
-          setMaster("yarn-client").
-          setAppName("iot-ingestion-manager").
-          setJars(List(uberJarLocation)).
-          set("spark.yarn.jars", "local:/opt/cloudera/parcels/SPARK2/lib/spark2/jars/*").
-          set("spark.serializer", "org.apache.spark.serializer.KryoSerializer").
-          set("spark.io.compression.codec", "lzf").
-          set("spark.speculation", "false").
-          set("spark.shuffle.manager", "sort").
-          set("spark.shuffle.service.enabled", "true").
-          set("spark.dynamicAllocation.enabled", "true").
-          set("spark.dynamicAllocation.minExecutors", "8").
-          set("spark.dynamicAllocation.initialExecutors", "8").
-          set("spark.executor.cores", Integer.toString(1)).
-          set("spark.executor.memory", "2048m")
-      else
-        new SparkConf().
-          setMaster("local").
-          setAppName("iot-ingestion-manager")
-
-      val sc = new SparkContext(conf)
-      addClassPathJars(sc, getClass.getClassLoader)
-
-      val rdd = sc.parallelize(1 to 10000)
-      val count = rdd.count()
-      sc.stop()
-      Start200(s"$count")
+            thread = Some(createThread)
+      thread.foreach(_.start())
+      Start200("Ok")
             // ----- End of unmanaged code area for action  Iot_ingestion_managerYaml.start
+        }
+        val stop = stopAction {  _ =>  
+            // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.stop
+            sparkSession match {
+        case Failure(ex) => ()
+        case Success(ss) => {
+          ss.stop()
+          sparkSession = Failure[SparkSession](new RuntimeException())
+        }
+      }
+      Stop200("Ok")
+            // ----- End of unmanaged code area for action  Iot_ingestion_managerYaml.stop
         }
     
     }

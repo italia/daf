@@ -75,8 +75,11 @@ class ServiceSpec extends Specification with BeforeAfterAll {
       val base64CredsBytes = Base64.getEncoder.encode(plainCredsBytes)
       val base64Creds = new String(base64CredsBytes)
       val client = new Iot_ingestion_managerClient(ws)(s"http://localhost:$port")
-      val result = Await.result(client.start(s"Basic $base64Creds"), Duration.Inf)
-      println(result)
+      val result1 = Await.result(client.start(s"Basic $base64Creds"), Duration.Inf)
+
+      Thread.sleep(1000)
+
+      val result2 = Await.result(client.stop(s"Basic $base64Creds"), Duration.Inf)
     }
   }
 
@@ -101,10 +104,10 @@ class ServiceSpec extends Specification with BeforeAfterAll {
   }
 
   override def afterAll(): Unit = {
-    hbaseUtil.deleteTable("tsdb-uid")
-    hbaseUtil.deleteTable("tsdb")
-    hbaseUtil.deleteTable("tsdb-tree")
-    hbaseUtil.deleteTable("tsdb-meta")
+    //hbaseUtil.deleteTable("tsdb-uid")
+    //hbaseUtil.deleteTable("tsdb")
+    //hbaseUtil.deleteTable("tsdb-tree")
+    //hbaseUtil.deleteTable("tsdb-meta")
     hbaseUtil.shutdownMiniCluster()
   }
 }

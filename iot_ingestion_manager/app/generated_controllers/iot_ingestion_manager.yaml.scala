@@ -1,29 +1,16 @@
 
-import play.api.mvc.{Action,Controller}
-
-import play.api.data.validation.Constraint
-
-import play.api.i18n.MessagesApi
-
-import play.api.inject.{ApplicationLifecycle,ConfigurationProvider}
-
-import de.zalando.play.controllers._
-
-import PlayBodyParsing._
-
-import PlayValidations._
-
-import scala.util._
-
+import java.net.URLClassLoader
 import javax.inject._
 
-import java.net.URLClassLoader
 import de.zalando.play.controllers.PlayBodyParsing._
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.{SparkConf,SparkContext}
-import play.api.{Environment,Mode}
+import org.apache.spark.{SparkConf, SparkContext}
+import play.api.i18n.MessagesApi
+import play.api.inject.{ApplicationLifecycle, ConfigurationProvider}
+import play.api.{Environment, Mode}
+
 import scala.annotation.tailrec
-import scala.util.{Failure,Success,Try}
+import scala.util.{Failure, Success, Try}
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -32,7 +19,7 @@ import scala.util.{Failure,Success,Try}
 
 package iot_ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Iot_ingestion_managerYaml
-    
+        
   @SuppressWarnings(
     Array(
       "org.wartremover.warts.Throw",
@@ -53,13 +40,12 @@ package iot_ingestion_manager.yaml {
     @tailrec
     private def addClassPathJars(sparkContext: SparkContext, classLoader: ClassLoader): Unit = {
       classLoader match {
-        case urlClassLoader: URLClassLoader => {
+        case urlClassLoader: URLClassLoader =>
           urlClassLoader.getURLs.foreach { classPathUrl =>
             if (classPathUrl.toExternalForm.endsWith(".jar") && !classPathUrl.toExternalForm.contains("test-interface")) {
               sparkContext.addJar(classPathUrl.toExternalForm)
             }
           }
-        }
         case _ =>
       }
       if (classLoader.getParent != null) {
@@ -68,14 +54,14 @@ package iot_ingestion_manager.yaml {
     }
 
     //given a class it returns the jar (in the classpath) containing that class
-    def getJar(klass: Class[_]): String = {
+    private def getJar(klass: Class[_]): String = {
       val codeSource = klass.getProtectionDomain.getCodeSource
       codeSource.getLocation.getPath
     }
 
-    val uberJarLocation: String = getJar(this.getClass)
+    private val uberJarLocation: String = getJar(this.getClass)
 
-    val conf = if (environment.mode != Mode.Test)
+    private val conf = if (environment.mode != Mode.Test)
       new SparkConf().
         setMaster("yarn-client").
         setAppName("iot-ingestion-manager").
@@ -96,43 +82,50 @@ package iot_ingestion_manager.yaml {
         setMaster("local").
         setAppName("iot-ingestion-manager")
 
-    private def createThread = new Thread(new Runnable {
-      override def run(): Unit = {
-        sparkSession match {
-          case Failure(ex) => sparkSession = Try {
-            val sparkSession = SparkSession.builder().config(conf).getOrCreate()
-            addClassPathJars(sparkSession.sparkContext, getClass.getClassLoader)
-            sparkSession
-          }
-            while (!sparkSession.getOrElse(throw new RuntimeException).sparkContext.isStopped)
-              Thread.sleep(100)
-          case Success(sparkSession) => ()
-        }
+    private def thread(block: => Unit): Thread = {
+      val thread = new Thread {
+        override def run(): Unit = block
       }
-    })
+      thread.start()
+      thread
+    }
 
-    var thread: Option[Thread] = None
+    var jobThread: Option[Thread] = None
 
     var sparkSession: Try[SparkSession] = Failure[SparkSession](new RuntimeException())
 
         // ----- End of unmanaged code area for constructor Iot_ingestion_managerYaml
         val start = startAction {  _ =>  
             // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.start
-            thread = Some(createThread)
-      thread.foreach(_.start())
-      Start200("Ok")
+            synchronized {
+        jobThread = Some(thread {
+          sparkSession match {
+            case Failure(_) => sparkSession = Try {
+              val sparkSession = SparkSession.builder().config(conf).getOrCreate()
+              addClassPathJars(sparkSession.sparkContext, getClass.getClassLoader)
+              sparkSession
+            }
+              while (!sparkSession.getOrElse(throw new RuntimeException).sparkContext.isStopped)
+                Thread.sleep(100)
+            case Success(ss) => ()
+          }
+        })
+        Start200("Ok")
+      }
             // ----- End of unmanaged code area for action  Iot_ingestion_managerYaml.start
         }
         val stop = stopAction {  _ =>  
             // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.stop
-            sparkSession match {
-        case Failure(ex) => ()
-        case Success(ss) => {
-          ss.stop()
-          sparkSession = Failure[SparkSession](new RuntimeException())
+            synchronized {
+        sparkSession match {
+          case Failure(ex) => ()
+          case Success(ss) =>
+            ss.stop()
+            jobThread.foreach(_.join())
+            sparkSession = Failure[SparkSession](new RuntimeException())
         }
+        Stop200("Ok")
       }
-      Stop200("Ok")
             // ----- End of unmanaged code area for action  Iot_ingestion_managerYaml.stop
         }
     

@@ -1,0 +1,152 @@
+{
+  "namespace": "it.gov.daf.dataset.vid.open",
+  "type": "record",
+  "name": "GTFS_Agency",
+  "fields" :
+  [
+    {
+      "name": "agency_id",
+      "type": "string",
+      "doc": "",
+      "metadata":
+      {
+        "required": 1,
+        "desc": "Uniquely identifies a transit agency. A transit feed may represent data from more than one agency. The agency_id is dataset unique. This field is optional for transit feeds that only contain data for a single agency.",
+        "field_type": "dimension",
+        "cat": "mobility/transportation/agency/name",
+        "tag": ["agenzia trasporto pubblico", "public transportation agency", "id"],
+        "semantics":
+        {
+          "@id": "http://vocab.gtfs.org/terms#Agency_id",
+          "@context": ["http://vocab.gtfs.org/terms#Agency"]
+        }
+      }
+    },
+    {
+      "name": "agency_name",
+      "type": "string",
+      "doc": "",
+      "metadata":
+      {
+        "required": 1,
+        "desc": "Agency Name. The agency_name field contains the full name of the transit agency. Google Maps will display this name.",
+        "field_type": "textval",
+        "cat": "mobility/transportation/agency/name",
+        "tag": ["agenzia trasporto pubblico", "public transportation agency", "name"],
+        "semantics":
+        {
+          "@id": "http://vocab.gtfs.org/terms#Agency_name",
+          "@context": ["http://vocab.gtfs.org/terms#Agency"]
+        }
+      }
+    },
+    {
+      "name": "agency_url",
+      "type": "string",
+      "doc": "",
+      "metadata":
+      {
+        "required": 1,
+        "desc": "Agency URL. Contains the URL of the transit agency. The value must be a fully qualified URL that includes http:// or https://, and any special characters in the URL must be correctly escaped. See http://www.w3.org/Addressing/URL/4_URI_Recommentations.html for a description of how to create fully qualified URL values.",
+        "field_type": "textval",
+        "cat": "mobility/transportation/agency/info/",
+        "tag": ["agenzia trasporto pubblico", "public transportation agency", "url"],
+        "semantics":
+        {
+          "@id": "http://vocab.gtfs.org/terms#Agency_url",
+          "@context": ["http://vocab.gtfs.org/terms#Agency"]
+        }
+      }
+    },
+    {
+      "name": "agency_timezone",
+      "type": "string",
+      "doc": "",
+      "metadata":
+      {
+        "required": 1,
+        "desc": "Contains the timezone where the transit agency is located. Timezone names never contain the space character but may contain an underscore. Please refer to http://en.wikipedia.org/wiki/List_of_tz_zones for a list of valid values. If multiple agencies are specified in the feed, each must have the same agency_timezone.",
+        "field_type": "textval",
+        "cat": "mobility/transportation/agency/info/",
+        "tag": ["agenzia trasporto pubblico", "public transportation agency", "timezone"],
+        "semantics":
+        {
+          "@id": "http://vocab.gtfs.org/terms#Agency_timezone",
+          "@context": ["http://vocab.gtfs.org/terms#Agency"]
+        }
+      }
+    },
+    {
+      "name": "agency_lang",
+      "type": "string",
+      "doc": "",
+      "metadata":
+      {
+        "required": 0,
+        "desc": "Language. Contains a two-letter ISO 639-1 code for the primary language used by this transit agency. The language code is case-insensitive (both en and EN are accepted). This setting defines capitalization rules and other language-specific settings for all text contained in this transit agency's feed. Please refer to http://www.loc.gov/standards/iso639-2/php/code_list.php for a list of valid values.",
+        "field_type": "textval",
+        "cat": "mobility/transportation/agency/info/",
+        "tag": ["agenzia trasporto pubblico", "public transportation agency", "language"],
+        "semantics":
+        {
+          "@id": "http://vocab.gtfs.org/terms#Agency_language",
+          "@context": ["http://vocab.gtfs.org/terms#Agency"]
+        }
+      }
+    },
+    {
+      "name": "agency_phone",
+      "type": "string",
+      "doc": "",
+      "metadata":
+      {
+        "required": 0,
+        "desc": "Contains a single voice telephone number for the specified agency. This field is a string value that presents the telephone number as typical for the agency's service area. It can and should contain punctuation marks to group the digits of the number. Dialable text (for example, TriMet's 503-238-RIDE) is permitted, but the field must not contain any other descriptive text.",
+        "field_type": "textval",
+        "cat": "mobility/transportation/agency/info/",
+        "tag": ["agenzia trasporto pubblico", "public transportation agency", "phone"],
+        "semantics":
+        {
+          "@id": "http://vocab.gtfs.org/terms#Agency_phone",
+          "@context": ["http://vocab.gtfs.org/terms#Agency"]
+        }
+      }
+    },
+    {
+      "name": "agency_fare_url",
+      "type": "string",
+      "doc": "",
+      "metadata":
+      {
+        "required": 0,
+        "desc": "Specifies the URL of a web page that allows a rider to purchase tickets or other fare instruments for that agency online. The value must be a fully qualified URL that includes http:// or https://, and any special characters in the URL must be correctly escaped. See http://www.w3.org/Addressing/URL/4_URI_Recommentations.html for a description of how to create fully qualified URL values.",
+        "field_type": "textval",
+        "cat": "mobility/transportation/agency/info/",
+        "tag": ["agenzia trasporto pubblico", "public transportation agency", "fare", "tariffa", "url"],
+        "semantics":
+        {
+          "@id": "http://vocab.gtfs.org/terms#Agency_fare_url",
+          "@context": ["http://vocab.gtfs.org/terms#Agency"]
+        }
+      }
+    },
+    {
+      "name": "agency_email",
+      "type": "string",
+      "doc": "",
+      "metadata":
+      {
+        "required": 0,
+        "desc": "Contains a single valid email address actively monitored by the agency’s customer service department. This email address will be considered a direct contact point where transit riders can reach a customer service representative at the agency.",
+        "field_type": "textval",
+        "cat": "mobility/transportation/agency/info/",
+        "tag": ["agenzia trasporto pubblico", "public transportation agency", "email"],
+        "semantics":
+        {
+          "@id": "http://vocab.gtfs.org/terms#Agency_fare_url",
+          "@context": ["http://vocab.gtfs.org/terms#Agency"]
+        }
+      }
+    }
+  ]
+}

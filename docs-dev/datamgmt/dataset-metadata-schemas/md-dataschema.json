@@ -1,0 +1,50 @@
+{
+  "namespace": {"format": "string", "required": 1, "__comment": "Qualifies the name of the dataset. E.g. daf.schema.mobility"},
+  "type": {"format": "string", "required": 1, "__comment": "It must be 'record' at the root level of the Avro Schema"},
+  "name": {"format": "string", "required": 1, "__comment": "Name of the dataset"},
+  "aliases": {"format": "Array(string)", "required": 0, "__comment": "Other aliases of the dataset. It can be used to store old names"},
+  "fields" : [
+    {
+      "name": {"format": "string", "required": 1, "__comment": "Name of the field."},
+      "type": {"format": "json", "required": 1, "__comment": "It can be a json object for complex type, or an array of string for primitive types (the latter may contains 'null' in case the field can be nullable)."},
+      "doc": {"format": "string", "required": 0, "__comment": "Documentation/info for user prurposes."},
+      "default": {"format": "multiple", "required": 0, "__comment": "Default value for the field"},
+      "metadata": {"format": "json", "required": 0, "__comment": "JSON object containing metadata information for the field.", "val":
+        {
+          "name_lang": {"format": "json", "required": 0, "val":
+            {
+              "eng": {"format": "string", "required": 0},
+              "ita": {"format": "string", "required": 0},
+            }
+          },
+          "desc": {"format": "string", "required": 0},
+          "desc_lang": {"format": "json", "required": 0, "val":
+            {
+              "eng": {"format": "string", "required": 0},
+              "ita": {"format": "string", "required": 0},
+            }
+          },
+          "required": {"format": "string", "required": 1, "__comment": "It indicates if a field need to be present in the incoming data file (1) or not (0)."},
+          "field_type": {"format": "string", "required": 0, "__comment": "It describes the type of info contained in the field."},
+          "cat": {"format": "string", "required": 0, "__comment": "The most 'in-depth' (or nested) category that better describes the field."},
+          "tag": {"format": "Array(string)", "required": 0},
+          "constr": {"format": "Array(json)", "required": 0, "__comment": "Constr defines constraints that can be applied to the values of the field", "val":
+            [
+              {
+                "type": {"format": "string", "required": 1},
+                "param": {"format": "any", "required": 1, "__comment": "Here param can take different format based on the type of constraint (es. List, String, ecc)"}
+              },
+            ]
+          },
+          "semantics": {"format": "json", "required": 0, "__comment": "Contains the semantic info described into the ontology for the entity described in the field.", "val":
+            {
+              "@id": {"format": "string", "required": 0, "__comment": "Uri of the object contained in the field."},
+              "@context": {"format": "Array(string)", "required": 0, "__comment": "Array of URIs that are associated with the object described by the considered field."}
+            }
+          }
+        }
+      },
+    },
+
+  ]
+}

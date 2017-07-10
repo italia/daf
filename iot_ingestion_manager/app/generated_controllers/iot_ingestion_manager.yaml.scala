@@ -19,12 +19,14 @@ import javax.inject._
 
 import java.net.URLClassLoader
 import java.security.PrivilegedExceptionAction
+import common.OpenTSDBStreamManager
 import de.zalando.play.controllers.PlayBodyParsing._
 import it.gov.daf.common.authentication.Authentication
 import org.apache.hadoop.security.UserGroupInformation
+import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import org.apache.spark.opentsdb.OpenTSDBContext
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.streaming.{Seconds,StreamingContext}
+import org.apache.spark.streaming.{Milliseconds,StreamingContext}
 import org.apache.spark.{SparkConf,SparkContext}
 import org.pac4j.play.store.PlaySessionStore
 import play.api.mvc.{AnyContent,Request}
@@ -39,7 +41,7 @@ import scala.util.{Failure,Success,Try}
 
 package iot_ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Iot_ingestion_managerYaml
-        
+                                                                                                    
   @SuppressWarnings(
     Array(
       "org.wartremover.warts.Throw",
@@ -103,7 +105,7 @@ package iot_ingestion_manager.yaml {
         set("spark.dynamicAllocation.initialExecutors", "8").
         set("spark.executor.cores", Integer.toString(1)).
         set("spark.executor.memory", "2048m").
-        set("spark.executor.extraJavaOptions","-Djava.security.auth.login.config=/tmp/jaas.conf")
+        set("spark.executor.extraJavaOptions", "-Djava.security.auth.login.config=/tmp/jaas.conf")
     else
       new SparkConf().
         setMaster("local").
@@ -153,12 +155,35 @@ package iot_ingestion_manager.yaml {
                 }
 
                 streamingContext = Try {
-                  val ssc = sparkSession.map(ss => new StreamingContext(ss.sparkContext, Seconds(1)))
-                  ssc.foreach(_.start())
+                  val ssc = sparkSession.map(ss => new StreamingContext(ss.sparkContext, Milliseconds(500)))
                   ssc
                 }.flatten
 
                 openTSDBContext = sparkSession.map(new OpenTSDBContext(_))
+
+                val brokers = configuration.getString("bootstrap.servers").getOrElse(throw new RuntimeException)
+
+                val groupId = configuration.getString("group.id").getOrElse(throw new RuntimeException)
+
+                val topics = Set(configuration.getString("topic").getOrElse(throw new RuntimeException))
+
+                val kafkaParams = Map[String, AnyRef](
+                  "bootstrap.servers" -> brokers,
+                  "key.deserializer" -> classOf[ByteArrayDeserializer],
+                  "value.deserializer" -> classOf[ByteArrayDeserializer],
+                  "enable.auto.commit" -> (false: java.lang.Boolean),
+                  "group.id" -> groupId
+                )
+
+                val streamManager = streamingContext.map(new OpenTSDBStreamManager(_, topics, kafkaParams))
+
+                val inputStream = streamManager.map(_.getStream)
+
+                inputStream.foreach(is => {
+                  is.foreachRDD(_.collect().foreach(println(_)))
+                })
+
+                streamingContext.foreach(_.start())
 
                 while (!sparkSession.getOrElse(throw new RuntimeException).sparkContext.isStopped)
                   Thread.sleep(100)
@@ -178,6 +203,7 @@ package iot_ingestion_manager.yaml {
             case Failure(_) => ()
             case Success(ss) =>
               streamingContext.foreach(_.stop(false))
+              streamingContext.foreach(_.awaitTermination())
               ss.stop()
               jobThread.foreach(_.join())
               sparkSession = Failure[SparkSession](new RuntimeException())

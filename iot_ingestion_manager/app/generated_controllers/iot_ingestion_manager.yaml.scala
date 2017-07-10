@@ -22,7 +22,9 @@ import java.security.PrivilegedExceptionAction
 import de.zalando.play.controllers.PlayBodyParsing._
 import it.gov.daf.common.authentication.Authentication
 import org.apache.hadoop.security.UserGroupInformation
+import org.apache.spark.opentsdb.OpenTSDBContext
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.streaming.{Seconds,StreamingContext}
 import org.apache.spark.{SparkConf,SparkContext}
 import org.pac4j.play.store.PlaySessionStore
 import play.api.mvc.{AnyContent,Request}
@@ -37,7 +39,7 @@ import scala.util.{Failure,Success,Try}
 
 package iot_ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Iot_ingestion_managerYaml
-            
+        
   @SuppressWarnings(
     Array(
       "org.wartremover.warts.Throw",
@@ -100,7 +102,8 @@ package iot_ingestion_manager.yaml {
         set("spark.dynamicAllocation.minExecutors", "8").
         set("spark.dynamicAllocation.initialExecutors", "8").
         set("spark.executor.cores", Integer.toString(1)).
-        set("spark.executor.memory", "2048m")
+        set("spark.executor.memory", "2048m").
+        set("spark.executor.extraJavaOptions","-Djava.security.auth.login.config=/tmp/jaas.conf")
     else
       new SparkConf().
         setMaster("local").
@@ -131,6 +134,10 @@ package iot_ingestion_manager.yaml {
 
     private var sparkSession: Try[SparkSession] = Failure[SparkSession](new RuntimeException())
 
+    private var streamingContext: Try[StreamingContext] = Failure[StreamingContext](new RuntimeException())
+
+    private var openTSDBContext: Try[OpenTSDBContext] = Failure[OpenTSDBContext](new RuntimeException())
+
         // ----- End of unmanaged code area for constructor Iot_ingestion_managerYaml
         val start = startAction {  _ =>  
             // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.start
@@ -138,11 +145,21 @@ package iot_ingestion_manager.yaml {
         synchronized {
           jobThread = Some(thread {
             sparkSession match {
-              case Failure(_) => sparkSession = Try {
-                val sparkSession = SparkSession.builder().config(conf).getOrCreate()
-                addClassPathJars(sparkSession.sparkContext, getClass.getClassLoader)
-                sparkSession
-              }
+              case Failure(_) =>
+                sparkSession = Try {
+                  val ss = SparkSession.builder().config(conf).getOrCreate()
+                  addClassPathJars(ss.sparkContext, getClass.getClassLoader)
+                  ss
+                }
+
+                streamingContext = Try {
+                  val ssc = sparkSession.map(ss => new StreamingContext(ss.sparkContext, Seconds(1)))
+                  ssc.foreach(_.start())
+                  ssc
+                }.flatten
+
+                openTSDBContext = sparkSession.map(new OpenTSDBContext(_))
+
                 while (!sparkSession.getOrElse(throw new RuntimeException).sparkContext.isStopped)
                   Thread.sleep(100)
               case Success(_) => ()
@@ -160,6 +177,7 @@ package iot_ingestion_manager.yaml {
           sparkSession match {
             case Failure(_) => ()
             case Success(ss) =>
+              streamingContext.foreach(_.stop(false))
               ss.stop()
               jobThread.foreach(_.join())
               sparkSession = Failure[SparkSession](new RuntimeException())

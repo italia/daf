@@ -114,6 +114,9 @@ val hadoopLibraries = Seq(
   sparkExcludes("org.apache.spark" %% "spark-yarn" % sparkVersion % "compile"),
   sparkExcludes("org.apache.spark" %% "spark-mllib" % sparkVersion % "compile"),
   sparkExcludes("org.apache.spark" %% "spark-streaming" % sparkVersion % "compile"),
+  sparkExcludes("org.apache.spark" %% "spark-streaming-kafka-0-10" % sparkVersion % "compile"),
+  "org.apache.kafka" %% "kafka" % kafkaVersion % "compile",
+  "org.apache.kafka" % "kafka-clients" % kafkaVersion % "compile",
   hbaseExcludes("org.apache.hbase" % "hbase-client" % hbaseVersion % "compile"),
   hbaseExcludes("org.apache.hbase" % "hbase-protocol" % hbaseVersion % "compile"),
   hbaseExcludes("org.apache.hbase" % "hbase-hadoop-compat" % hbaseVersion % "compile"),
@@ -142,6 +145,8 @@ val hadoopLibraries = Seq(
   hadoopHBaseExcludes("org.apache.hadoop" % "hadoop-minicluster" % hadoopVersion % "test"),
   hadoopHBaseExcludes("org.apache.hadoop" % "hadoop-common" % hadoopVersion % "test" classifier "tests" extra "type" -> "test-jar"),
   hadoopHBaseExcludes("org.apache.hadoop" % "hadoop-mapreduce-client-jobclient" % hadoopVersion % "test" classifier "tests"),
+  "org.apache.kafka" %% "kafka" % kafkaVersion % "test" classifier "test",
+  "org.apache.kafka" % "kafka-clients" % kafkaVersion % "test" classifier "test",
   "com.github.pathikrit" %% "better-files" % betterFilesVersion % Test
 )
 

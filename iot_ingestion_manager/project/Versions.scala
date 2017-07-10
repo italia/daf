@@ -4,6 +4,8 @@ object Versions {
 
   val hbaseVersion = "1.2.0-cdh5.9.0"
 
+  val kafkaVersion = "0.10.0-kafka-2.1.0"
+
   val sparkVersion = "2.1.0.cloudera1"
 
   val sparkOpenTSDBVersion = "2.0"

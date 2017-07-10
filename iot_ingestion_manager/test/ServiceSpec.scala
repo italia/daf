@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-import java.io.{IOException, File => JFile}
+import java.io.{FileNotFoundException, IOException, File => JFile}
 import java.net.ServerSocket
-import java.util.Base64
+import java.util.{Base64, Properties}
 
 import ServiceSpec._
-import better.files.{File, _}
+import better.files._
 import it.gov.daf.iotingestionmanager.client.Iot_ingestion_managerClient
+import kafka.server.{KafkaConfig, KafkaServer}
+import kafka.utils.{MockTime, TestUtils, ZkUtils}
+import org.I0Itec.zkclient.ZkClient
+import org.I0Itec.zkclient.serialize.ZkSerializer
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.{HBaseTestingUtility, TableName}
 import org.apache.hadoop.test.PathUtils
@@ -36,16 +40,36 @@ import play.api.test.WithServer
 import scala.collection.convert.decorateAsScala._
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import scala.util.{Failure, Random, Try}
 
 @SuppressWarnings(
   Array(
     "org.wartremover.warts.NonUnitStatements",
     "org.wartremover.warts.Throw",
     "org.wartremover.warts.Null",
-    "org.wartremover.warts.Var"
+    "org.wartremover.warts.Var",
+    "org.wartremover.warts.AsInstanceOf"
   )
 )
 class ServiceSpec extends Specification with BeforeAfterAll {
+
+  val TIMEOUT = 1000
+
+  val POLL = 1000L
+
+  val ZKHOST = "127.0.0.1"
+
+  val NUMBROKERS = 1
+
+  val NUMPARTITIONS = NUMBROKERS * 4
+
+  val BROKERHOST = "127.0.0.1"
+
+  var zkUtils: Try[ZkUtils] = Failure[ZkUtils](new Exception(""))
+
+  var kafkaServers: Array[Try[KafkaServer]] = new Array[Try[KafkaServer]](NUMBROKERS)
+
+  var logDir: Try[JFile] = Failure[JFile](new Exception(""))
 
   def getAvailablePort: Int = {
     try {
@@ -59,6 +83,54 @@ class ServiceSpec extends Specification with BeforeAfterAll {
       case e: IOException =>
         throw new IllegalStateException(s"Cannot find available port: ${e.getMessage}", e)
     }
+  }
+
+  def constructTempDir(dirPrefix: String): Try[JFile] = Try {
+    val rndrange = 10000000
+    val file = new JFile(System.getProperty("java.io.tmpdir"), s"$dirPrefix${Random.nextInt(rndrange)}")
+    if (!file.mkdirs())
+      throw new RuntimeException("could not create temp directory: " + file.getAbsolutePath)
+    file.deleteOnExit()
+    file
+  }
+
+  def deleteDirectory(path: JFile): Boolean = {
+    if (!path.exists()) {
+      throw new FileNotFoundException(path.getAbsolutePath)
+    }
+    var ret = true
+    if (path.isDirectory)
+      path.listFiles().foreach(f => ret = ret && deleteDirectory(f))
+    ret && path.delete()
+  }
+
+  def makeZkUtils(zkPort: String): Try[ZkUtils] = Try {
+    val zkConnect = s"$ZKHOST:$zkPort"
+    val zkClient = new ZkClient(zkConnect, Integer.MAX_VALUE, TIMEOUT, new ZkSerializer {
+      def serialize(data: Object): Array[Byte] = data.asInstanceOf[String].getBytes("UTF-8")
+
+      def deserialize(bytes: Array[Byte]): Object = new String(bytes, "UTF-8")
+    })
+    ZkUtils.apply(zkClient, isZkSecurityEnabled = false)
+  }
+
+  def makeKafkaServer(zkConnect: String, brokerId: Int): Try[KafkaServer] = Try {
+    logDir = constructTempDir("kafka-local")
+    val brokerPort = getAvailablePort
+    val brokerProps = new Properties()
+    brokerProps.setProperty("zookeeper.connect", zkConnect)
+    brokerProps.setProperty("broker.id", s"$brokerId")
+    logDir.foreach(f => brokerProps.setProperty("log.dirs", f.getAbsolutePath))
+    brokerProps.setProperty("listeners", s"PLAINTEXT://$BROKERHOST:$brokerPort")
+    val config = new KafkaConfig(brokerProps)
+    val mockTime = new MockTime()
+    TestUtils.createServer(config, mockTime)
+  }
+
+  def shutdownKafkaServers(): Unit = {
+    kafkaServers.foreach(_.foreach(_.shutdown()))
+    kafkaServers.foreach(_.foreach(_.awaitShutdown()))
+    logDir.foreach(deleteDirectory)
   }
 
   def application: Application = GuiceApplicationBuilder().
@@ -90,7 +162,7 @@ class ServiceSpec extends Specification with BeforeAfterAll {
   override def beforeAll(): Unit = {
     hbaseUtil.startMiniCluster(4)
     val conf = new SparkConf().
-      setAppName("spark-opentsdb-local-test").
+      setAppName("daf-iot-manager-local-test").
       setMaster("local[4]").
       set("spark.io.compression.codec", "lzf")
     baseConf = hbaseUtil.getConfiguration
@@ -100,6 +172,18 @@ class ServiceSpec extends Specification with BeforeAfterAll {
     hbaseUtil.createTable(TableName.valueOf("tsdb-meta"), Array("name"))
     val confFile: File = confPath / "hbase-site.xml"
     for {os <- confFile.newOutputStream.autoClosed} baseConf.writeXml(os)
+
+    val zkPort = baseConf.get("hbase.zookeeper.property.clientPort")
+
+    zkUtils = for {
+      zkUtils <- makeZkUtils(zkPort)
+    } yield zkUtils
+
+    for (i <- 0 until NUMBROKERS)
+      kafkaServers(i) = for {
+        kafkaServer <- makeKafkaServer(s"$ZKHOST:$zkPort", i)
+      } yield kafkaServer
+
     ()
   }
 
@@ -108,6 +192,7 @@ class ServiceSpec extends Specification with BeforeAfterAll {
     //hbaseUtil.deleteTable("tsdb")
     //hbaseUtil.deleteTable("tsdb-tree")
     //hbaseUtil.deleteTable("tsdb-meta")
+    shutdownKafkaServers()
     hbaseUtil.shutdownMiniCluster()
   }
 }

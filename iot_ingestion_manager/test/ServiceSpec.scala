@@ -21,15 +21,20 @@ import java.util.{Base64, Properties}
 import ServiceSpec._
 import better.files._
 import it.gov.daf.iotingestionmanager.client.Iot_ingestion_managerClient
-import kafka.server.{KafkaConfig, KafkaServer}
+import it.gov.teamdigitale.iotingestion.common.SerializerDeserializer
+import it.gov.teamdigitale.iotingestion.event.Event
+import kafka.server.{KafkaConfig, KafkaServer, RunningAsBroker}
 import kafka.utils.{MockTime, TestUtils, ZkUtils}
 import org.I0Itec.zkclient.ZkClient
 import org.I0Itec.zkclient.serialize.ZkSerializer
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.{HBaseTestingUtility, TableName}
 import org.apache.hadoop.test.PathUtils
+import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
 import org.apache.spark.SparkConf
 import org.apache.spark.opentsdb.OpenTSDBConfigurator
+import org.json4s.DefaultFormats
+import org.json4s.native.JsonMethods._
 import org.specs2.mutable.Specification
 import org.specs2.specification.BeforeAfterAll
 import play.api.Application
@@ -48,30 +53,29 @@ import scala.util.{Failure, Random, Try}
     "org.wartremover.warts.Throw",
     "org.wartremover.warts.Null",
     "org.wartremover.warts.Var",
-    "org.wartremover.warts.AsInstanceOf"
+    "org.wartremover.warts.AsInstanceOf",
+    "org.wartremover.warts.TraversableOps",
+    "org.wartremover.warts.StringPlusAny",
+    "org.wartremover.warts.While"
   )
 )
 class ServiceSpec extends Specification with BeforeAfterAll {
 
-  val TIMEOUT = 1000
+  private val TIMEOUT = 1000
 
-  val POLL = 1000L
+  private val NUMBROKERS = 1
 
-  val ZKHOST = "127.0.0.1"
+  private val BROKERHOST = "127.0.0.1"
 
-  val NUMBROKERS = 1
+  private var zkUtils: Try[ZkUtils] = Failure[ZkUtils](new Exception(""))
 
-  val NUMPARTITIONS = NUMBROKERS * 4
+  private var kafkaServers: Array[Try[KafkaServer]] = new Array[Try[KafkaServer]](NUMBROKERS)
 
-  val BROKERHOST = "127.0.0.1"
+  private var logDir: Try[JFile] = Failure[JFile](new Exception(""))
 
-  var zkUtils: Try[ZkUtils] = Failure[ZkUtils](new Exception(""))
+  private var producer: KafkaProducer[Array[Byte], Array[Byte]] = _
 
-  var kafkaServers: Array[Try[KafkaServer]] = new Array[Try[KafkaServer]](NUMBROKERS)
-
-  var logDir: Try[JFile] = Failure[JFile](new Exception(""))
-
-  def getAvailablePort: Int = {
+  private def getAvailablePort: Int = {
     try {
       val socket = new ServerSocket(0)
       try {
@@ -85,7 +89,7 @@ class ServiceSpec extends Specification with BeforeAfterAll {
     }
   }
 
-  def constructTempDir(dirPrefix: String): Try[JFile] = Try {
+  private def constructTempDir(dirPrefix: String): Try[JFile] = Try {
     val rndrange = 10000000
     val file = new JFile(System.getProperty("java.io.tmpdir"), s"$dirPrefix${Random.nextInt(rndrange)}")
     if (!file.mkdirs())
@@ -94,7 +98,7 @@ class ServiceSpec extends Specification with BeforeAfterAll {
     file
   }
 
-  def deleteDirectory(path: JFile): Boolean = {
+  private def deleteDirectory(path: JFile): Boolean = {
     if (!path.exists()) {
       throw new FileNotFoundException(path.getAbsolutePath)
     }
@@ -104,8 +108,8 @@ class ServiceSpec extends Specification with BeforeAfterAll {
     ret && path.delete()
   }
 
-  def makeZkUtils(zkPort: String): Try[ZkUtils] = Try {
-    val zkConnect = s"$ZKHOST:$zkPort"
+  private def makeZkUtils(zkPort: String): Try[ZkUtils] = Try {
+    val zkConnect = s"localhost:$zkPort"
     val zkClient = new ZkClient(zkConnect, Integer.MAX_VALUE, TIMEOUT, new ZkSerializer {
       def serialize(data: Object): Array[Byte] = data.asInstanceOf[String].getBytes("UTF-8")
 
@@ -114,7 +118,7 @@ class ServiceSpec extends Specification with BeforeAfterAll {
     ZkUtils.apply(zkClient, isZkSecurityEnabled = false)
   }
 
-  def makeKafkaServer(zkConnect: String, brokerId: Int): Try[KafkaServer] = Try {
+  private def makeKafkaServer(zkConnect: String, brokerId: Int): Try[KafkaServer] = Try {
     logDir = constructTempDir("kafka-local")
     val brokerPort = getAvailablePort
     val brokerProps = new Properties()
@@ -124,18 +128,27 @@ class ServiceSpec extends Specification with BeforeAfterAll {
     brokerProps.setProperty("listeners", s"PLAINTEXT://$BROKERHOST:$brokerPort")
     val config = new KafkaConfig(brokerProps)
     val mockTime = new MockTime()
-    TestUtils.createServer(config, mockTime)
+    val server = TestUtils.createServer(config, mockTime)
+    while (!(server.brokerState.currentState == RunningAsBroker.state)) {
+      Thread.sleep(100)
+    }
+    server
   }
 
-  def shutdownKafkaServers(): Unit = {
+  private def shutdownKafkaServers(): Unit = {
     kafkaServers.foreach(_.foreach(_.shutdown()))
     kafkaServers.foreach(_.foreach(_.awaitShutdown()))
     logDir.foreach(deleteDirectory)
   }
 
-  def application: Application = GuiceApplicationBuilder().
-    configure("hadoop_conf_dir" -> s"${ServiceSpec.confPath.pathAsString}").
+  private def getBootstrapServers: String = kafkaServers.
+    map(tks => s"localhost:${tks.getOrElse(throw new RuntimeException).config.listeners.head._2.port}").
+    mkString(",")
+
+  private def application: Application = GuiceApplicationBuilder().
+    configure("hadoop_conf_dir" -> ServiceSpec.confPath.pathAsString).
     configure("pac4j.authenticator" -> "test").
+    configure("bootstrap.servers" -> getBootstrapServers).
     build()
 
   "This test" should {
@@ -148,6 +161,29 @@ class ServiceSpec extends Specification with BeforeAfterAll {
       val base64Creds = new String(base64CredsBytes)
       val client = new Iot_ingestion_managerClient(ws)(s"http://localhost:$port")
       val result1 = Await.result(client.start(s"Basic $base64Creds"), Duration.Inf)
+
+      Thread.sleep(4000)
+
+      for (i <- 1 to 200) {
+        val jsonEvent =
+          """{"id": "TorinoFDT",
+             |"ts": 1488532860000,
+             |"event_type_id": 1,
+             |"source": "-1965613475",
+             |"location": "45.06766-7.66662",
+             |"service": "http://opendata.5t.torino.it/get_fdt",
+             |"body": {"bytes": "<FDT_data period=\"5\" accuracy=\"100\" lng=\"7.66662\" lat=\"45.06766\" direction=\"positive\" offset=\"55\" Road_name=\"Corso Vinzaglio(TO)\" Road_LCD=\"40201\" lcd1=\"40202\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.5t.torino.it/simone/ns/traffic_data\">\n    <speedflow speed=\"20.84\" flow=\"528.00\"/>\n  </FDT_data>"},
+             |"attributes": {"period": "5", "offset": "55", "Road_name": "Corso Vinzaglio(TO)", "Road_LCD": "40201", "accuracy": "100", "FDT_data": "40202", "flow": "528.00", "speed": "20.84", "direction": "positive"}
+             |}""".stripMargin
+
+        implicit val formats: DefaultFormats = DefaultFormats
+        val event = parse(jsonEvent, true).extract[Event]
+        val eventBytes = SerializerDeserializer.serialize(event)
+
+
+        val record = new ProducerRecord[Array[Byte], Array[Byte]]("daf-iot-events", s"$i".getBytes(), eventBytes)
+        producer.send(record)
+      }
 
       Thread.sleep(1000)
 
@@ -181,17 +217,24 @@ class ServiceSpec extends Specification with BeforeAfterAll {
 
     for (i <- 0 until NUMBROKERS)
       kafkaServers(i) = for {
-        kafkaServer <- makeKafkaServer(s"$ZKHOST:$zkPort", i)
+        kafkaServer <- makeKafkaServer(s"localhost:$zkPort", i)
       } yield kafkaServer
 
+    val brokerPort = kafkaServers.head.map[Int](server => {
+      server.config.listeners.head._2.port
+    }).getOrElse(throw new Exception("It shouldn't be here ..."))
+
+    // setup producer
+    val producerProps = new Properties()
+    producerProps.setProperty("bootstrap.servers", s"$BROKERHOST:$brokerPort")
+    producerProps.setProperty("key.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer")
+    producerProps.setProperty("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer")
+    producer = new KafkaProducer[Array[Byte], Array[Byte]](producerProps)
     ()
   }
 
   override def afterAll(): Unit = {
-    //hbaseUtil.deleteTable("tsdb-uid")
-    //hbaseUtil.deleteTable("tsdb")
-    //hbaseUtil.deleteTable("tsdb-tree")
-    //hbaseUtil.deleteTable("tsdb-meta")
+    producer.close()
     shutdownKafkaServers()
     hbaseUtil.shutdownMiniCluster()
   }

@@ -53,7 +53,7 @@ lazy val common = (project in file("common")).
   ) ++ sbtavrohugger.SbtAvrohugger.specificAvroSettings)
 
 lazy val root = (project in file(".")).
-  enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser, /*AutomateHeaderPlugin,*/ DockerPlugin).
+  enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser, AutomateHeaderPlugin, DockerPlugin).
   dependsOn(client, common).aggregate(client, common)
 
 scalaVersion in ThisBuild := "2.11.8"
@@ -147,6 +147,7 @@ val hadoopLibraries = Seq(
   hadoopHBaseExcludes("org.apache.hadoop" % "hadoop-mapreduce-client-jobclient" % hadoopVersion % "test" classifier "tests"),
   "org.apache.kafka" %% "kafka" % kafkaVersion % "test" classifier "test",
   "org.apache.kafka" % "kafka-clients" % kafkaVersion % "test" classifier "test",
+  "org.json4s" %% "json4s-native" % json4sVersion % "test",
   "com.github.pathikrit" %% "better-files" % betterFilesVersion % Test
 )
 

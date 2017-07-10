@@ -17,6 +17,10 @@ import scala.util._
 
 import javax.inject._
 
+import de.zalando.play.controllers.PlayBodyParsing._
+import it.gov.daf.common.authentication.Authentication
+import org.pac4j.play.store.PlaySessionStore
+import play.api.Configuration
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -25,11 +29,12 @@ import javax.inject._
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-            
+                                                                
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
-
+                                        val configuration: Configuration,
+                                        val playSessionStore: PlaySessionStore,
         // ----- End of unmanaged code area for injections Security_managerYaml
         val messagesApi: MessagesApi,
         lifecycle: ApplicationLifecycle,
@@ -37,10 +42,18 @@ package security_manager.yaml {
     ) extends Security_managerYamlBase {
         // ----- Start of unmanaged code area for constructor Security_managerYaml
 
+    Authentication(configuration, playSessionStore)
+
+    @SuppressWarnings(
+      Array(
+        "org.wartremover.warts.StringPlusAny",
+        "org.wartremover.warts.NonUnitStatements"
+      )
+    )
         // ----- End of unmanaged code area for constructor Security_managerYaml
         val token = tokenAction {  _ =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.token
-            NotImplementedYet
+            Token200(Authentication.getStringToken(currentRequest).getOrElse(""))
             // ----- End of unmanaged code area for action  Security_managerYaml.token
         }
     

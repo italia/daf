@@ -53,7 +53,7 @@ lazy val common = (project in file("common")).
   ) ++ sbtavrohugger.SbtAvrohugger.specificAvroSettings)
 
 lazy val root = (project in file(".")).
-  enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser, /*AutomateHeaderPlugin,*/ DockerPlugin).
+  enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser, AutomateHeaderPlugin, DockerPlugin).
   dependsOn(client, common).aggregate(client, common)
 
 scalaVersion in ThisBuild := "2.11.8"
@@ -114,6 +114,9 @@ val hadoopLibraries = Seq(
   sparkExcludes("org.apache.spark" %% "spark-yarn" % sparkVersion % "compile"),
   sparkExcludes("org.apache.spark" %% "spark-mllib" % sparkVersion % "compile"),
   sparkExcludes("org.apache.spark" %% "spark-streaming" % sparkVersion % "compile"),
+  sparkExcludes("org.apache.spark" %% "spark-streaming-kafka-0-10" % sparkVersion % "compile"),
+  "org.apache.kafka" %% "kafka" % kafkaVersion % "compile",
+  "org.apache.kafka" % "kafka-clients" % kafkaVersion % "compile",
   hbaseExcludes("org.apache.hbase" % "hbase-client" % hbaseVersion % "compile"),
   hbaseExcludes("org.apache.hbase" % "hbase-protocol" % hbaseVersion % "compile"),
   hbaseExcludes("org.apache.hbase" % "hbase-hadoop-compat" % hbaseVersion % "compile"),
@@ -142,6 +145,9 @@ val hadoopLibraries = Seq(
   hadoopHBaseExcludes("org.apache.hadoop" % "hadoop-minicluster" % hadoopVersion % "test"),
   hadoopHBaseExcludes("org.apache.hadoop" % "hadoop-common" % hadoopVersion % "test" classifier "tests" extra "type" -> "test-jar"),
   hadoopHBaseExcludes("org.apache.hadoop" % "hadoop-mapreduce-client-jobclient" % hadoopVersion % "test" classifier "tests"),
+  "org.apache.kafka" %% "kafka" % kafkaVersion % "test" classifier "test",
+  "org.apache.kafka" % "kafka-clients" % kafkaVersion % "test" classifier "test",
+  "org.json4s" %% "json4s-native" % json4sVersion % "test",
   "com.github.pathikrit" %% "better-files" % betterFilesVersion % Test
 )
 
@@ -172,6 +178,8 @@ routesGenerator := InjectedRoutesGenerator
 apiFirstParsers := Seq(ApiFirstSwaggerParser.swaggerSpec2Ast.value).flatten
 
 playScalaAutogenerateTests := false
+
+playScalaCustomTemplateLocation := Some(baseDirectory.value / "templates")
 
 licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt"))
 headerLicense := Some(HeaderLicense.ALv2("2017", "TEAM PER LA TRASFORMAZIONE DIGITALE"))

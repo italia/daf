@@ -16,44 +16,31 @@
 
 package common
 
-import it.gov.teamdigitale.iotingestion.common.SerializerDeserializer
+import cats.data.Kleisli
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
 import org.apache.spark.streaming.kafka010.KafkaUtils
 import org.apache.spark.streaming.kafka010.LocationStrategies.PreferConsistent
-import it.gov.teamdigitale.iotingestion.event.Event
 
+import scala.reflect.ClassTag
 import scala.util.Try
 
-abstract class IoTInputStreamManager(
-                    @transient val ssc: StreamingContext,
-                    topics: Set[String],
-                    kafkaParams: Map[String, AnyRef]
-                 ) extends Serializable {
+object TransformersStream {
 
-  def getStream(): DStream[Event] = {
 
+  def getTransformersStream[B: ClassTag](
+                                          ssc: StreamingContext,
+                                          topics: Set[String],
+                                          kafkaParams: Map[String, AnyRef],
+                                          transform: Kleisli[Try, Array[Byte], B]
+                                        ): DStream[B] = {
     val inputStream = KafkaUtils.createDirectStream(ssc, PreferConsistent, Subscribe[Array[Byte], Array[Byte]](topics, kafkaParams))
-    inputStream.mapPartitions { rdd =>
-      rdd.flatMap { el =>
-        val data = SerializerDeserializer.deserialize(el.value())
-        data.toOption
-      }
-    }
+    inputStream.flatMap(cr => {
+      val dp = transform(cr.value)
+      dp.toOption
+    })
+
   }
-
-  def write(inputStream: DStream[Event]): Try[Unit]
-
-}
-
-class OpenTSDBStreamManager(
-                              ssc: StreamingContext,
-                              topics: Set[String],
-                              kafkaParams: Map[String, AnyRef]
-                           ) extends IoTInputStreamManager(ssc, topics, kafkaParams) {
-
-  def write(inputStream: DStream[Event]): Try[Unit] = ???
-
 
 }

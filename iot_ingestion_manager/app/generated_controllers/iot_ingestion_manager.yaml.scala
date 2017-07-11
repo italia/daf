@@ -19,7 +19,8 @@ import javax.inject._
 
 import java.net.URLClassLoader
 import java.security.PrivilegedExceptionAction
-import common.OpenTSDBStreamManager
+import common.Transformers._
+import common.TransformersStream._
 import de.zalando.play.controllers.PlayBodyParsing._
 import it.gov.daf.common.authentication.Authentication
 import org.apache.hadoop.security.UserGroupInformation
@@ -41,7 +42,7 @@ import scala.util.{Failure,Success,Try}
 
 package iot_ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Iot_ingestion_managerYaml
-                                                                                                    
+        
   @SuppressWarnings(
     Array(
       "org.wartremover.warts.Throw",
@@ -163,9 +164,15 @@ package iot_ingestion_manager.yaml {
 
                 val brokers = configuration.getString("bootstrap.servers").getOrElse(throw new RuntimeException)
 
+                println(brokers)
+
                 val groupId = configuration.getString("group.id").getOrElse(throw new RuntimeException)
 
+                println(groupId)
+
                 val topics = Set(configuration.getString("topic").getOrElse(throw new RuntimeException))
+
+                println(topics)
 
                 val kafkaParams = Map[String, AnyRef](
                   "bootstrap.servers" -> brokers,
@@ -175,15 +182,15 @@ package iot_ingestion_manager.yaml {
                   "group.id" -> groupId
                 )
 
-                val streamManager = streamingContext.map(new OpenTSDBStreamManager(_, topics, kafkaParams))
-
-                val inputStream = streamManager.map(_.getStream)
-
-                inputStream.foreach(is => {
-                  is.foreachRDD(_.collect().foreach(println(_)))
-                })
-
-                streamingContext.foreach(_.start())
+                streamingContext foreach {
+                  ssc =>
+                    println("About to create the stream")
+                    getTransformersStream(ssc, topics, kafkaParams, avroByteArrayToEvent >>>> eventToDatapoint).print(10)
+                    println("Stream created")
+                    println("About to start the context")
+                    ssc.start()
+                    println("Context started")
+                }
 
                 while (!sparkSession.getOrElse(throw new RuntimeException).sparkContext.isStopped)
                   Thread.sleep(100)

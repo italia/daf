@@ -11,7 +11,7 @@
     </appender>
 
     <logger name="play" level="ERROR"/>
-    <logger name="application" level="ERROR"/>
+    <logger name="application" level="INFO"/>
 
     <root level="ERROR">
         <appender-ref ref="STDOUT"/>

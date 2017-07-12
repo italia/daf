@@ -1,39 +1,28 @@
 
-import play.api.mvc.{Action,Controller}
-
-import play.api.data.validation.Constraint
-
-import play.api.i18n.MessagesApi
-
-import play.api.inject.{ApplicationLifecycle,ConfigurationProvider}
-
-import de.zalando.play.controllers._
-
-import PlayBodyParsing._
-
-import PlayValidations._
-
-import scala.util._
-
-import javax.inject._
-
 import java.net.URLClassLoader
 import java.security.PrivilegedExceptionAction
-import common.Transformers._
-import common.TransformersStream._
+import javax.inject._
+
+import common.Transformers.{avroByteArrayToEvent, eventToDatapoint, _}
 import de.zalando.play.controllers.PlayBodyParsing._
 import it.gov.daf.common.authentication.Authentication
 import org.apache.hadoop.security.UserGroupInformation
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import org.apache.spark.opentsdb.OpenTSDBContext
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.streaming.{Milliseconds,StreamingContext}
-import org.apache.spark.{SparkConf,SparkContext}
+import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
+import org.apache.spark.streaming.kafka010.KafkaUtils
+import org.apache.spark.streaming.kafka010.LocationStrategies.PreferConsistent
+import org.apache.spark.streaming.{Milliseconds, StreamingContext}
+import org.apache.spark.{SparkConf, SparkContext}
 import org.pac4j.play.store.PlaySessionStore
-import play.api.mvc.{AnyContent,Request}
-import play.api.{Configuration,Environment,Mode}
+import play.api.i18n.MessagesApi
+import play.api.inject.{ApplicationLifecycle, ConfigurationProvider}
+import play.api.mvc.{AnyContent, Request}
+import play.api.{Configuration, Environment, Mode}
+
 import scala.annotation.tailrec
-import scala.util.{Failure,Success,Try}
+import scala.util.{Failure, Success, Try}
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -42,7 +31,7 @@ import scala.util.{Failure,Success,Try}
 
 package iot_ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Iot_ingestion_managerYaml
-        
+    
   @SuppressWarnings(
     Array(
       "org.wartremover.warts.Throw",
@@ -102,9 +91,9 @@ package iot_ingestion_manager.yaml {
         set("spark.shuffle.manager", "sort").
         set("spark.shuffle.service.enabled", "true").
         set("spark.dynamicAllocation.enabled", "true").
-        set("spark.dynamicAllocation.minExecutors", "8").
-        set("spark.dynamicAllocation.initialExecutors", "8").
-        set("spark.executor.cores", Integer.toString(1)).
+        set("spark.dynamicAllocation.minExecutors", "4").
+        set("spark.dynamicAllocation.initialExecutors", "4").
+        set("spark.executor.cores", Integer.toString(2)).
         set("spark.executor.memory", "2048m").
         set("spark.executor.extraJavaOptions", "-Djava.security.auth.login.config=/tmp/jaas.conf")
     else
@@ -139,6 +128,8 @@ package iot_ingestion_manager.yaml {
 
     private var streamingContext: Try[StreamingContext] = Failure[StreamingContext](new RuntimeException())
 
+    private var stopFlag = true
+
     private var openTSDBContext: Try[OpenTSDBContext] = Failure[OpenTSDBContext](new RuntimeException())
 
         // ----- End of unmanaged code area for constructor Iot_ingestion_managerYaml
@@ -164,15 +155,9 @@ package iot_ingestion_manager.yaml {
 
                 val brokers = configuration.getString("bootstrap.servers").getOrElse(throw new RuntimeException)
 
-                println(brokers)
-
                 val groupId = configuration.getString("group.id").getOrElse(throw new RuntimeException)
 
-                println(groupId)
-
                 val topics = Set(configuration.getString("topic").getOrElse(throw new RuntimeException))
-
-                println(topics)
 
                 val kafkaParams = Map[String, AnyRef](
                   "bootstrap.servers" -> brokers,
@@ -181,19 +166,37 @@ package iot_ingestion_manager.yaml {
                   "enable.auto.commit" -> (false: java.lang.Boolean),
                   "group.id" -> groupId
                 )
-
+                stopFlag = false
                 streamingContext foreach {
                   ssc =>
-                    println("About to create the stream")
-                    getTransformersStream(ssc, topics, kafkaParams, avroByteArrayToEvent >>>> eventToDatapoint).print(10)
-                    println("Stream created")
-                    println("About to start the context")
+                    logger.info("About to create the stream")
+                    KafkaUtils.
+                      createDirectStream(ssc, PreferConsistent, Subscribe[Array[Byte], Array[Byte]](topics, kafkaParams)).
+                      flatMap(cr => {
+                        val dp = (avroByteArrayToEvent >>>> eventToDatapoint) (cr.value)
+                        dp.toOption
+                      }).
+                      print()
+                    //ssc.socketTextStream("master", 9999).print()
+                    logger.info("Stream created")
+                    logger.info("About to start the streaming context")
                     ssc.start()
-                    println("Context started")
+                    logger.info("Streaming context started")
+                    var isStopped = false
+                    while (!isStopped) {
+                      logger.info("Calling awaitTerminationOrTimeout")
+                      isStopped = ssc.awaitTerminationOrTimeout(1000)
+                      if (isStopped)
+                        logger.info("Confirmed! The streaming context is stopped. Exiting application...")
+                      else
+                        logger.info("The streaming context is still active. Timeout...")
+                      if (!isStopped && stopFlag) {
+                        logger.info("Stopping the streaming context right now")
+                        ssc.stop(true, true)
+                        logger.info("The streaming context is stopped!!!!!!!")
+                      }
+                    }
                 }
-
-                while (!sparkSession.getOrElse(throw new RuntimeException).sparkContext.isStopped)
-                  Thread.sleep(100)
               case Success(_) => ()
             }
           })
@@ -209,10 +212,10 @@ package iot_ingestion_manager.yaml {
           sparkSession match {
             case Failure(_) => ()
             case Success(ss) =>
-              streamingContext.foreach(_.stop(false))
-              streamingContext.foreach(_.awaitTermination())
-              ss.stop()
+              logger.info("About to stop the streaming context")
+              stopFlag = true
               jobThread.foreach(_.join())
+              logger.info("Thread stopped")
               sparkSession = Failure[SparkSession](new RuntimeException())
           }
           Stop200("Ok")

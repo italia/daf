@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-import javax.inject.Inject
-
 import com.google.inject.{AbstractModule, Singleton}
-import play.api.inject.ApplicationLifecycle
+import play.api.{Configuration, Environment}
 
-import scala.concurrent.Future
-
+@SuppressWarnings(
+  Array(
+    "org.wartremover.warts.Overloading"
+  )
+)
 @Singleton
-class Global @Inject()(lifecycle: ApplicationLifecycle) {
-  lifecycle.addStopHook { () => Future.successful({}) }
-}
+class Module(environment: Environment,
+             configuration: Configuration) extends AbstractModule {
 
-@SuppressWarnings(Array("org.wartremover.warts.Overloading"))
-@Singleton
-class Module extends AbstractModule {
-  def configure() = {}
+  def configure() = {
+  }
 }

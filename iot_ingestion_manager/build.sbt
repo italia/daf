@@ -53,7 +53,7 @@ lazy val common = (project in file("common")).
   ) ++ sbtavrohugger.SbtAvrohugger.specificAvroSettings)
 
 lazy val root = (project in file(".")).
-  enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser, AutomateHeaderPlugin, DockerPlugin).
+  enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser, /*AutomateHeaderPlugin,*/ DockerPlugin).
   dependsOn(client, common).aggregate(client, common)
 
 scalaVersion in ThisBuild := "2.11.8"
@@ -128,6 +128,7 @@ val hadoopLibraries = Seq(
   hadoopExcludes("org.apache.hadoop" % "hadoop-yarn-applications-distributedshell" % hadoopVersion % "compile"),
   hadoopExcludes("org.apache.hadoop" % "hadoop-yarn-server-web-proxy" % hadoopVersion % "compile"),
   hadoopExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % "compile"),
+  "org.typelevel" %% "cats" % catsVersion % "compile",
   hadoopHBaseExcludes("org.apache.hbase" % "hbase-server" % hbaseVersion % "test" classifier "tests"),
   hadoopHBaseExcludes("org.apache.hbase" % "hbase-common" % hbaseVersion % "test" classifier "tests"),
   hadoopHBaseExcludes("org.apache.hbase" % "hbase-testing-util" % hbaseVersion % "test" classifier "tests"

@@ -28,7 +28,8 @@ import scala.util.Try
 @SuppressWarnings(
   Array(
     "org.wartremover.warts.ImplicitConversion",
-    "org.wartremover.warts.ImplicitParameter"
+    "org.wartremover.warts.ImplicitParameter",
+    "org.wartremover.warts.Null"
   )
 )
 object Transformers {
@@ -48,7 +49,9 @@ object Transformers {
   implicit def funcToKleisli[A, B](func: A => Try[B]): Kleisli[Try, A, B] = Kleisli(func)
 
   object avroByteArrayToEvent extends transform[Array[Byte], Event] {
-    def apply(a: Array[Byte]): Try[Event] = SerializerDeserializer.deserialize(a)
+    def apply(a: Array[Byte]): Try[Event] = Try{
+      new Event()
+    } //SerializerDeserializer.deserialize(a)
   }
 
   object eventToDatapoint extends transform[Event, DataPoint[Double]] {

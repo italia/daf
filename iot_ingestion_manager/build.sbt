@@ -98,6 +98,7 @@ val hbaseExcludes =
 val hadoopExcludes =
   (moduleId: ModuleID) => moduleId.
     exclude("org.slf4j", "slf4j-api").
+    exclude("org.slf4j", "slf4j-log4j12").
     exclude("javax.servlet", "servlet-api")
 
 val hadoopHBaseExcludes =

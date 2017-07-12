@@ -179,8 +179,7 @@ class ServiceSpec extends Specification with BeforeAfterAll {
         implicit val formats: DefaultFormats = DefaultFormats
         val event = parse(jsonEvent, true).extract[Event]
         val eventBytes = SerializerDeserializer.serialize(event)
-
-
+        
         val record = new ProducerRecord[Array[Byte], Array[Byte]]("daf-iot-events", s"$i".getBytes(), eventBytes)
         producer.send(record)
       }

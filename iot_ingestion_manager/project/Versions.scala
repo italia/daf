@@ -25,4 +25,6 @@ object Versions {
   val specs2Version = "3.6.6"
 
   val json4sVersion = "3.5.2"
+
+  val catsVersion = "0.9.0"
 }

@@ -81,5 +81,6 @@ class HadoopModule @Inject()(val environment: Environment, val configuration: Co
   def configure(): Unit = {
     bind(classOf[SchedulingTask]).asEagerSingleton()
     configuration.getString("hadoop_conf_dir").foreach(addPath)
+    configuration.getString("hbase_conf_dir").foreach(addPath)
   }
 }

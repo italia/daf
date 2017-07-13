@@ -21,8 +21,12 @@ import java.net.URLClassLoader
 import java.security.PrivilegedExceptionAction
 import common.Transformers.{avroByteArrayToEvent,_}
 import common.TransformersStream._
+import common.Util._
 import de.zalando.play.controllers.PlayBodyParsing._
 import it.gov.daf.common.authentication.Authentication
+import org.apache.hadoop.conf.{Configuration=>HadoopConfiguration}
+import org.apache.hadoop.hbase.client.ConnectionFactory
+import org.apache.hadoop.hbase.{HBaseConfiguration,HColumnDescriptor,HTableDescriptor,TableName}
 import org.apache.hadoop.security.UserGroupInformation
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import org.apache.spark.opentsdb.OpenTSDBContext
@@ -33,6 +37,7 @@ import org.pac4j.play.store.PlaySessionStore
 import play.api.mvc.{AnyContent,Request}
 import play.api.{Configuration,Environment,Mode}
 import scala.annotation.tailrec
+import scala.language.postfixOps
 import scala.util.{Failure,Success,Try}
 
 /**
@@ -42,7 +47,7 @@ import scala.util.{Failure,Success,Try}
 
 package iot_ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Iot_ingestion_managerYaml
-                                                                    
+        
   @SuppressWarnings(
     Array(
       "org.wartremover.warts.Throw",
@@ -126,6 +131,24 @@ package iot_ingestion_manager.yaml {
 
     UserGroupInformation.loginUserFromSubject(null)
 
+    private val offsetsTable = configuration.getString("offsets.table.name").asTry(new RuntimeException).map {
+      tableName =>
+        Try {
+          logger.info("About to create the offset table")
+          val hbaseConfig = HBaseConfiguration.create
+          val connection = ConnectionFactory.createConnection(hbaseConfig)
+          val tname = TableName.valueOf(tableName)
+          if (!connection.getAdmin.tableExists(tname)) {
+            val tableDescriptor = new HTableDescriptor(tname)
+            val columnDescriptor = new HColumnDescriptor("offsets").setTimeToLive(2592000)
+            tableDescriptor.addFamily(columnDescriptor)
+            connection.getAdmin.createTable(tableDescriptor)
+          }
+          logger.info("Offset table created")
+          connection.getTable(tname)
+        }
+    } flatten
+
     private val proxyUser = UserGroupInformation.getCurrentUser
 
     private var jobThread: Option[Thread] = None
@@ -142,7 +165,7 @@ package iot_ingestion_manager.yaml {
         val start = startAction {  _ =>  
             // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.start
             logger.info("Begin operation 'start'")
-          HadoopDoAsAction(current_request_for_startAction) {
+      HadoopDoAsAction(current_request_for_startAction) {
         synchronized {
           jobThread = Some(thread {
             sparkSession match {
@@ -193,13 +216,14 @@ package iot_ingestion_manager.yaml {
                 val groupId = configuration.getString("group.id").getOrElse(throw new RuntimeException)
                 logger.info(s"GroupdId: $groupId")
 
-                val topics = Set(configuration.getString("topic").getOrElse(throw new RuntimeException))
-                logger.info(s"Topics: ${topics.mkString(",")}")
+                val topic = configuration.getString("topic").getOrElse(throw new RuntimeException)
+                logger.info(s"Topics: $topic")
 
                 val kafkaParams = Map[String, AnyRef](
                   "bootstrap.servers" -> brokers,
                   "key.deserializer" -> classOf[ByteArrayDeserializer],
                   "value.deserializer" -> classOf[ByteArrayDeserializer],
+                  "auto.offset.reset" -> "earliest",
                   "enable.auto.commit" -> (false: java.lang.Boolean),
                   "group.id" -> groupId
                 )
@@ -207,7 +231,7 @@ package iot_ingestion_manager.yaml {
                 streamingContext foreach {
                   ssc =>
                     logger.info("About to create the stream")
-                    val inputStream = getTransformersStream(ssc, topics, kafkaParams, avroByteArrayToEvent >>>> eventToDatapoint)
+                    val inputStream = getTransformersStream(ssc, kafkaParams, offsetsTable.toOption, topic, groupId, avroByteArrayToEvent >>>> eventToDatapoint)
                     //openTSDBContext.foreach(_.streamWrite(inputStream))
                     inputStream.print()
                     logger.info("Stream created")
@@ -241,7 +265,7 @@ package iot_ingestion_manager.yaml {
         val stop = stopAction {  _ =>  
             // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.stop
             logger.info("Begin operation 'stop'")
-          HadoopDoAsAction(current_request_for_startAction) {
+      HadoopDoAsAction(current_request_for_startAction) {
         synchronized {
           sparkSession match {
             case Failure(_) => ()

@@ -22,13 +22,16 @@ import cats.implicits._
 import it.gov.teamdigitale.iotingestion.common.SerializerDeserializer
 import org.apache.spark.opentsdb.DataPoint
 import it.gov.teamdigitale.iotingestion.event.Event
+
 import scala.language.{higherKinds, implicitConversions}
 import scala.util.{Try, Success, Failure}
 
 @SuppressWarnings(
   Array(
     "org.wartremover.warts.ImplicitConversion",
-    "org.wartremover.warts.ImplicitParameter"
+    "org.wartremover.warts.ImplicitParameter",
+    "org.wartremover.warts.Var",
+    "org.wartremover.warts.Null"
   )
 )
 object Transformers {
@@ -61,5 +64,5 @@ object Transformers {
 
     }
   }
-
+  
 }

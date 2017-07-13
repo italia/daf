@@ -1,28 +1,39 @@
 
-import java.net.URLClassLoader
-import java.security.PrivilegedExceptionAction
+import play.api.mvc.{Action,Controller}
+
+import play.api.data.validation.Constraint
+
+import play.api.i18n.MessagesApi
+
+import play.api.inject.{ApplicationLifecycle,ConfigurationProvider}
+
+import de.zalando.play.controllers._
+
+import PlayBodyParsing._
+
+import PlayValidations._
+
+import scala.util._
+
 import javax.inject._
 
-import common.Transformers.{avroByteArrayToEvent, eventToDatapoint, _}
+import java.net.URLClassLoader
+import java.security.PrivilegedExceptionAction
+import common.Transformers.{avroByteArrayToEvent,_}
+import common.TransformersStream._
 import de.zalando.play.controllers.PlayBodyParsing._
 import it.gov.daf.common.authentication.Authentication
 import org.apache.hadoop.security.UserGroupInformation
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import org.apache.spark.opentsdb.OpenTSDBContext
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
-import org.apache.spark.streaming.kafka010.KafkaUtils
-import org.apache.spark.streaming.kafka010.LocationStrategies.PreferConsistent
-import org.apache.spark.streaming.{Milliseconds, StreamingContext}
-import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.streaming.{Milliseconds,StreamingContext}
+import org.apache.spark.{SparkConf,SparkContext}
 import org.pac4j.play.store.PlaySessionStore
-import play.api.i18n.MessagesApi
-import play.api.inject.{ApplicationLifecycle, ConfigurationProvider}
-import play.api.mvc.{AnyContent, Request}
-import play.api.{Configuration, Environment, Mode}
-
+import play.api.mvc.{AnyContent,Request}
+import play.api.{Configuration,Environment,Mode}
 import scala.annotation.tailrec
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure,Success,Try}
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -31,13 +42,14 @@ import scala.util.{Failure, Success, Try}
 
 package iot_ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Iot_ingestion_managerYaml
-    
+                                
   @SuppressWarnings(
     Array(
       "org.wartremover.warts.Throw",
       "org.wartremover.warts.While",
       "org.wartremover.warts.Var",
-      "org.wartremover.warts.Null"
+      "org.wartremover.warts.Null",
+      "org.wartremover.warts.AsInstanceOf"
     )
   )
     // ----- End of unmanaged code area for package Iot_ingestion_managerYaml
@@ -79,23 +91,17 @@ package iot_ingestion_manager.yaml {
 
     private val uberJarLocation: String = getJar(this.getClass)
 
-    private val conf = if (environment.mode != Mode.Test)
-      new SparkConf().
+    private val sparkParametersConfiguration: Configuration = configuration.getConfig("spark").getOrElse(throw new RuntimeException)
+
+    private val conf = if (environment.mode != Mode.Test) {
+      var sparkConf = new SparkConf().
         setMaster("yarn-client").
-        setAppName("iot-ingestion-manager").
-        setJars(List(uberJarLocation)).
-        set("spark.yarn.jars", "local:/opt/cloudera/parcels/SPARK2/lib/spark2/jars/*").
-        set("spark.serializer", "org.apache.spark.serializer.KryoSerializer").
-        set("spark.io.compression.codec", "lzf").
-        set("spark.speculation", "false").
-        set("spark.shuffle.manager", "sort").
-        set("spark.shuffle.service.enabled", "true").
-        set("spark.dynamicAllocation.enabled", "true").
-        set("spark.dynamicAllocation.minExecutors", "4").
-        set("spark.dynamicAllocation.initialExecutors", "4").
-        set("spark.executor.cores", Integer.toString(2)).
-        set("spark.executor.memory", "2048m").
-        set("spark.executor.extraJavaOptions", "-Djava.security.auth.login.config=/tmp/jaas.conf")
+        setAppName("iot-ingestion-manager")
+      sparkParametersConfiguration.entrySet.foreach(entry => {
+        sparkConf = sparkConf.set(s"spark.${entry._1}", entry._2.unwrapped().asInstanceOf[String])
+      })
+      sparkConf
+    }
     else
       new SparkConf().
         setMaster("local").
@@ -135,7 +141,8 @@ package iot_ingestion_manager.yaml {
         // ----- End of unmanaged code area for constructor Iot_ingestion_managerYaml
         val start = startAction {  _ =>  
             // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.start
-            HadoopDoAsAction(current_request_for_startAction) {
+            logger.info("Begin operation 'start'")
+          HadoopDoAsAction(current_request_for_startAction) {
         synchronized {
           jobThread = Some(thread {
             sparkSession match {
@@ -146,18 +153,48 @@ package iot_ingestion_manager.yaml {
                   ss
                 }
 
+                val batchDurationMillis = configuration.getLong("batch.duration").getOrElse(throw new RuntimeException)
+                logger.info(s"Brokers: $batchDurationMillis")
+
                 streamingContext = Try {
-                  val ssc = sparkSession.map(ss => new StreamingContext(ss.sparkContext, Milliseconds(500)))
+                  val ssc = sparkSession.map(ss => new StreamingContext(ss.sparkContext, Milliseconds(batchDurationMillis)))
                   ssc
                 }.flatten
 
-                openTSDBContext = sparkSession.map(new OpenTSDBContext(_))
+                val keytab = configuration.getString("opentsdb.context.keytab")
+                logger.info(s"OpenTSDBContext Keytab: $keytab")
+
+                val principal = configuration.getString("opentsdb.context.principal")
+                logger.info(s"OpenTSDBContext Principal: $principal")
+
+                val keytabLocalTempDir = configuration.getString("opentsdb.context.keytablocaltempdir")
+                logger.info(s"OpenTSDBContext Keytab Local Temp Dir: $keytabLocalTempDir")
+
+                val saltwidth = configuration.getInt("opentsdb.context.saltwidth")
+                logger.info(s"OpenTSDBContext SaltWidth: $saltwidth")
+
+                val saltbucket = configuration.getInt("opentsdb.context.saltbucket")
+                logger.info(s"OpenTSDBContext SaltBucket: $saltbucket")
+
+                saltwidth.foreach(OpenTSDBContext.saltWidth = _)
+                saltbucket.foreach(OpenTSDBContext.saltBuckets = _)
+
+                openTSDBContext = sparkSession.map(ss => {
+                  val otc = new OpenTSDBContext(ss)
+                  keytabLocalTempDir.foreach(otc.keytabLocalTempDir = _)
+                  keytab.foreach(otc.keytab = _)
+                  principal.foreach(otc.principal = _)
+                  otc
+                })
 
                 val brokers = configuration.getString("bootstrap.servers").getOrElse(throw new RuntimeException)
+                logger.info(s"Brokers: $brokers")
 
                 val groupId = configuration.getString("group.id").getOrElse(throw new RuntimeException)
+                logger.info(s"GroupdId: $groupId")
 
                 val topics = Set(configuration.getString("topic").getOrElse(throw new RuntimeException))
+                logger.info(s"Topics: ${topics.mkString(",")}")
 
                 val kafkaParams = Map[String, AnyRef](
                   "bootstrap.servers" -> brokers,
@@ -170,14 +207,9 @@ package iot_ingestion_manager.yaml {
                 streamingContext foreach {
                   ssc =>
                     logger.info("About to create the stream")
-                    KafkaUtils.
-                      createDirectStream(ssc, PreferConsistent, Subscribe[Array[Byte], Array[Byte]](topics, kafkaParams)).
-                      flatMap(cr => {
-                        val dp = (avroByteArrayToEvent >>>> eventToDatapoint) (cr.value)
-                        dp.toOption
-                      }).
-                      print()
-                    //ssc.socketTextStream("master", 9999).print()
+                    val inputStream = getTransformersStream(ssc, topics, kafkaParams, avroByteArrayToEvent >>>> eventToDatapoint)
+                    //openTSDBContext.foreach(_.streamWrite(inputStream))
+                    inputStream.print()
                     logger.info("Stream created")
                     logger.info("About to start the streaming context")
                     ssc.start()
@@ -200,6 +232,7 @@ package iot_ingestion_manager.yaml {
               case Success(_) => ()
             }
           })
+          logger.info("End operation 'start'")
           Start200("Ok")
         }
       }
@@ -207,7 +240,8 @@ package iot_ingestion_manager.yaml {
         }
         val stop = stopAction {  _ =>  
             // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.stop
-            HadoopDoAsAction(current_request_for_startAction) {
+            logger.info("Begin operation 'stop'")
+          HadoopDoAsAction(current_request_for_startAction) {
         synchronized {
           sparkSession match {
             case Failure(_) => ()
@@ -218,6 +252,7 @@ package iot_ingestion_manager.yaml {
               logger.info("Thread stopped")
               sparkSession = Failure[SparkSession](new RuntimeException())
           }
+          logger.info("End operation 'stop'")
           Stop200("Ok")
         }
       }

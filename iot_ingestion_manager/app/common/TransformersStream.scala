@@ -17,17 +17,29 @@
 package common
 
 import cats.data.Kleisli
-import org.apache.spark.streaming.StreamingContext
+import org.apache.kafka.clients.consumer.ConsumerRecord
+import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
-import org.apache.spark.streaming.kafka010.KafkaUtils
 import org.apache.spark.streaming.kafka010.LocationStrategies.PreferConsistent
+import org.apache.spark.streaming.kafka010.{HasOffsetRanges, KafkaUtils}
+import org.apache.spark.streaming.{StreamingContext, Time => SparkTime}
 
 import scala.reflect.ClassTag
 import scala.util.Try
 
 object TransformersStream {
 
+  private def setOffsets(hasRanges: HasOffsetRanges, time: SparkTime): Unit = {
+    hasRanges.offsetRanges.foreach(println(_))
+  }
+
+  private def commitOffsets[A, B](rdd: RDD[ConsumerRecord[A, B]], time: SparkTime): RDD[ConsumerRecord[A, B]] = rdd match {
+    case hasRanges: HasOffsetRanges => setOffsets(hasRanges, time); rdd
+    case other => other
+  }
+
+  private def stageOffsets[A, B](stream: DStream[ConsumerRecord[A, B]])(implicit A: ClassTag[A]) = stream.transform((rdd, time) => commitOffsets(rdd, time))
 
   def getTransformersStream[B: ClassTag](
                                           ssc: StreamingContext,
@@ -35,12 +47,13 @@ object TransformersStream {
                                           kafkaParams: Map[String, AnyRef],
                                           transform: Kleisli[Try, Array[Byte], B]
                                         ): DStream[B] = {
-    val inputStream = KafkaUtils.createDirectStream(ssc, PreferConsistent, Subscribe[Array[Byte], Array[Byte]](topics, kafkaParams))
+    val inputStream = stageOffsets[Array[Byte], Array[Byte]] {
+      KafkaUtils.createDirectStream(ssc, PreferConsistent, Subscribe[Array[Byte], Array[Byte]](topics, kafkaParams))
+    }
     inputStream.flatMap(cr => {
       val dp = transform(cr.value)
       dp.toOption
     })
-
   }
 
 }

@@ -23,7 +23,7 @@ import it.gov.teamdigitale.iotingestion.common.SerializerDeserializer
 import org.apache.spark.opentsdb.DataPoint
 import it.gov.teamdigitale.iotingestion.event.Event
 import scala.language.{higherKinds, implicitConversions}
-import scala.util.Try
+import scala.util.{Try, Success, Failure}
 
 @SuppressWarnings(
   Array(
@@ -52,8 +52,13 @@ object Transformers {
   }
 
   object eventToDatapoint extends transform[Event, DataPoint[Double]] {
-    override def apply(a: Event): Try[DataPoint[Double]] = Try {
-      new DataPoint[Double]("metric", 12345678L, 0.1D, Map.empty[String, String])
+    override def apply(a: Event): Try[DataPoint[Double]] =  {
+      val new_map = a.attributes ++ Map("host" -> a.host, "service" -> a.service)
+       a.attributes.get("metric") match {
+        case Some(m) => Success(new DataPoint[Double](a.event_type_id.toString, a.ts, m.toDouble, new_map))
+        case None => Failure( new RuntimeException("no metric value"))
+      }
+
     }
   }
 

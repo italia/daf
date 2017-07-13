@@ -42,7 +42,7 @@ import scala.util.{Failure,Success,Try}
 
 package iot_ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Iot_ingestion_managerYaml
-                        
+                                
   @SuppressWarnings(
     Array(
       "org.wartremover.warts.Throw",
@@ -207,8 +207,9 @@ package iot_ingestion_manager.yaml {
                 streamingContext foreach {
                   ssc =>
                     logger.info("About to create the stream")
-                    val inputStream = getTransformersStream(ssc, topics, kafkaParams, avroByteArrayToEvent >>>> (new testEventToDatapoint(0)))
-                    openTSDBContext.foreach(_.streamWrite(inputStream))
+                    val inputStream = getTransformersStream(ssc, topics, kafkaParams, avroByteArrayToEvent >>>> eventToDatapoint)
+                    //openTSDBContext.foreach(_.streamWrite(inputStream))
+                    inputStream.print()
                     logger.info("Stream created")
                     logger.info("About to start the streaming context")
                     ssc.start()

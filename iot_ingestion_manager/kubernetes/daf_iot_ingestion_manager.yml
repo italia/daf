@@ -49,6 +49,9 @@ spec:
         - name: hadoopconf
           mountPath: /etc/hadoop/conf
           readOnly: true
+        - name: hbaseconf
+          mountPath: /etc/hbase/conf
+          readOnly: true
       imagePullSecrets:
         - name: regsecret
       volumes:
@@ -64,3 +67,6 @@ spec:
       - name: hadoopconf
         hostPath:
           path: /etc/hadoop/conf
+      - name: hbaseconf
+        hostPath:
+          path: /etc/hbase/conf

@@ -19,16 +19,16 @@ package common
 import cats.FlatMap
 import cats.data.Kleisli
 import cats.implicits._
-import it.gov.teamdigitale.iotingestion.common.SerializerDeserializer
 import org.apache.spark.opentsdb.DataPoint
 import it.gov.teamdigitale.iotingestion.event.Event
 import scala.language.{higherKinds, implicitConversions}
-import scala.util.Try
+import scala.util.{Random, Try}
 
 @SuppressWarnings(
   Array(
     "org.wartremover.warts.ImplicitConversion",
     "org.wartremover.warts.ImplicitParameter",
+    "org.wartremover.warts.Var",
     "org.wartremover.warts.Null"
   )
 )
@@ -49,7 +49,7 @@ object Transformers {
   implicit def funcToKleisli[A, B](func: A => Try[B]): Kleisli[Try, A, B] = Kleisli(func)
 
   object avroByteArrayToEvent extends transform[Array[Byte], Event] {
-    def apply(a: Array[Byte]): Try[Event] = Try{
+    def apply(a: Array[Byte]): Try[Event] = Try {
       new Event()
     } //SerializerDeserializer.deserialize(a)
   }
@@ -57,6 +57,17 @@ object Transformers {
   object eventToDatapoint extends transform[Event, DataPoint[Double]] {
     override def apply(a: Event): Try[DataPoint[Double]] = Try {
       new DataPoint[Double]("metric", 12345678L, 0.1D, Map.empty[String, String])
+    }
+  }
+
+  class testEventToDatapoint(initialTs: Long) extends transform[Event, DataPoint[Double]] {
+    val rnd = Random.nextDouble()
+    var ts = initialTs
+
+    override def apply(a: Event): Try[DataPoint[Double]] = Try {
+      val dp = new DataPoint[Double]("metric", ts, Random.nextDouble(), Map("key" -> "value"))
+      ts += 1
+      dp
     }
   }
 

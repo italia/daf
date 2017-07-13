@@ -1,14 +1,14 @@
-#disable 'tsdb'
-#drop 'tsdb'
-create 'tsdb', 't', {SPLITS => ['\x01', '\x02', '\x03'], METADATA => {'SPLIT_POLICY' => 'org.apache.hadoop.hbase.regionserver.ConstantSizeRegionSplitPolicy'}}
+disable 'tsdb'
+drop 'tsdb'
+reate 'tsdb', 't', {SPLITS => ['\x01', '\x02', '\x03'], METADATA => {'SPLIT_POLICY' => 'org.apache.hadoop.hbase.regionserver.ConstantSizeRegionSplitPolicy'}}
 alter 'tsdb', NAME => 't', DATA_BLOCK_ENCODING => 'FAST_DIFF'
 alter 'tsdb', NAME => 't', COMPRESSION => 'SNAPPY'
-#disable 'tsdb-uid'
-##disable 'tsdb-tree'
-#disable 'tsdb-meta'
-#drop 'tsdb-uid'
-#drop 'tsdb-tree'
-#drop 'tsdb-meta'
+disable 'tsdb-uid'
+disable 'tsdb-tree'
+disable 'tsdb-meta'
+drop 'tsdb-uid'
+drop 'tsdb-tree'
+drop 'tsdb-meta'
 create 'tsdb-uid', {NAME => 'id', COMPRESSION => 'SNAPPY', BLOOMFILTER => 'ROW', DATA_BLOCK_ENCODING => 'FAST_DIFF'}, {NAME => 'name', COMPRESSION => 'SNAPPY', BLOOMFILTER => 'ROW', TTL => 63072000, DATA_BLOCK_ENCODING => 'FAST_DIFF'}
 create 'tsdb-tree', {NAME => 't', VERSIONS => 1, COMPRESSION => 'SNAPPY', BLOOMFILTER => 'ROW', DATA_BLOCK_ENCODING => 'FAST_DIFF'}
 create 'tsdb-meta', {NAME => 'name', COMPRESSION => 'SNAPPY', BLOOMFILTER => 'ROW', DATA_BLOCK_ENCODING => 'FAST_DIFF'}

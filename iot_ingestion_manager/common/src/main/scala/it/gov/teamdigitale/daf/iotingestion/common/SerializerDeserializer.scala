@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package it.gov.teamdigitale.iotingestion.common
+package it.gov.teamdigitale.daf.iotingestion.common
 
 import com.twitter.bijection.Injection
 import com.twitter.bijection.avro.SpecificAvroCodecs
-import it.gov.teamdigitale.iotingestion.event.Event
+import it.gov.teamdigitale.daf.iotingestion.event.Event
 
 import scala.util.Try
 

@@ -50,7 +50,9 @@ lazy val common = (project in file("common")).
       "org.specs2" %% "specs2-matcher" % specs2Version % "test",
       "org.json4s" %% "json4s-native" % json4sVersion % "test"
     )
-  ) ++ sbtavrohugger.SbtAvrohugger.specificAvroSettings)
+  ) ++ sbtavrohugger.SbtAvrohugger.specificAvroSettings ++ Seq(
+    (scalaSource in avroConfig) := new java.io.File(s"${baseDirectory.value}/src/generated/scala")
+  ))
 
 lazy val root = (project in file(".")).
   enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser, /*AutomateHeaderPlugin,*/ DockerPlugin).

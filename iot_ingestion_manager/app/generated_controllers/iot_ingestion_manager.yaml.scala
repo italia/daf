@@ -42,7 +42,7 @@ import scala.util.{Failure,Success,Try}
 
 package iot_ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Iot_ingestion_managerYaml
-                                
+                                                                    
   @SuppressWarnings(
     Array(
       "org.wartremover.warts.Throw",

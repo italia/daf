@@ -21,8 +21,8 @@ import java.util.{Base64, Properties}
 import ServiceSpec._
 import better.files._
 import it.gov.daf.iotingestionmanager.client.Iot_ingestion_managerClient
-import it.gov.teamdigitale.iotingestion.common.SerializerDeserializer
-import it.gov.teamdigitale.iotingestion.event.Event
+import it.gov.teamdigitale.daf.iotingestion.common.SerializerDeserializer
+import it.gov.teamdigitale.daf.iotingestion.event.Event
 import kafka.server.{KafkaConfig, KafkaServer, RunningAsBroker}
 import kafka.utils.{MockTime, TestUtils, ZkUtils}
 import org.I0Itec.zkclient.ZkClient

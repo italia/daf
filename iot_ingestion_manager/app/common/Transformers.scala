@@ -19,12 +19,12 @@ package common
 import cats.FlatMap
 import cats.data.Kleisli
 import cats.implicits._
-import it.gov.teamdigitale.iotingestion.common.SerializerDeserializer
+import it.gov.teamdigitale.daf.iotingestion.common.SerializerDeserializer
+import it.gov.teamdigitale.daf.iotingestion.event.Event
 import org.apache.spark.opentsdb.DataPoint
-import it.gov.teamdigitale.iotingestion.event.Event
 
 import scala.language.{higherKinds, implicitConversions}
-import scala.util.{Try, Success, Failure}
+import scala.util.{Failure, Success, Try}
 
 @SuppressWarnings(
   Array(
@@ -55,14 +55,14 @@ object Transformers {
   }
 
   object eventToDatapoint extends transform[Event, DataPoint[Double]] {
-    override def apply(a: Event): Try[DataPoint[Double]] =  {
+    override def apply(a: Event): Try[DataPoint[Double]] = {
       val new_map = a.attributes ++ Map("host" -> a.host, "service" -> a.service)
-       a.attributes.get("metric") match {
+      a.attributes.get("metric") match {
         case Some(m) => Success(new DataPoint[Double](a.event_type_id.toString, a.ts, m.toDouble, new_map))
-        case None => Failure( new RuntimeException("no metric value"))
+        case None => Failure(new RuntimeException("no metric value"))
       }
 
     }
   }
-  
+
 }

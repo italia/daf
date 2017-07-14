@@ -1,13 +1,21 @@
-FROM anapsix/alpine-java:8_jdk_unlimited
+FROM ubuntu:16.04
 
-ADD nifi nifi
+COPY nifi nifi
 
-ADD hadoop hadoop
+COPY hadoop hadoop
 
-ADD start.sh start.sh
+COPY start.sh start.sh
 
-RUN apk update && apk add bash krb5-libs krb5 && \
-    ln -sf /etc/krb5.conf /opt/jdk/jre/lib/security/krb5.conf && \
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
+    default-jdk \
+    vim \
+    krb5-user \
+    sasl2-bin libsasl2-2 libsasl2-modules libsasl2-dev libldap2-dev \
+    python3 python3-dev python3-pip python3-requests-kerberos build-essential && \
+    pip3 install --upgrade pip && \
+    pip3 install setuptools && \
+    pip3 install thrift_sasl sasl impyla hdfs && \
     rm -rf /hadoop/etc/hadoop && \
     ln -sf /etc/hadoop/conf /hadoop/etc/hadoop && \
     chmod +x /start.sh

@@ -6,8 +6,6 @@ COPY hadoop hadoop
 
 COPY start.sh start.sh
 
-#COPY rootCA.pem /etc/ssl/certs/
-
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
     default-jdk \
@@ -21,8 +19,6 @@ RUN apt-get update && \
     rm -rf /hadoop/etc/hadoop && \
     ln -sf /etc/hadoop/conf /hadoop/etc/hadoop && \
     chmod +x /start.sh
-#&& \
-#    c_rehash
 
 EXPOSE 9090
 

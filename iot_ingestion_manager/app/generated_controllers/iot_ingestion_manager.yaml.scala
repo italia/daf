@@ -1,44 +1,32 @@
 
-import play.api.mvc.{Action,Controller}
-
-import play.api.data.validation.Constraint
-
-import play.api.i18n.MessagesApi
-
-import play.api.inject.{ApplicationLifecycle,ConfigurationProvider}
-
-import de.zalando.play.controllers._
-
-import PlayBodyParsing._
-
-import PlayValidations._
-
-import scala.util._
-
-import javax.inject._
-
 import java.net.URLClassLoader
 import java.security.PrivilegedExceptionAction
-import common.Transformers.{avroByteArrayToEvent,_}
+import javax.inject._
+
+import com.typesafe.config.ConfigException.Missing
+import common.Transformers.{avroByteArrayToEvent, _}
 import common.TransformersStream._
 import common.Util._
 import de.zalando.play.controllers.PlayBodyParsing._
 import it.gov.daf.common.authentication.Authentication
-import org.apache.hadoop.conf.{Configuration=>HadoopConfiguration}
-import org.apache.hadoop.hbase.client.ConnectionFactory
-import org.apache.hadoop.hbase.{HBaseConfiguration,HColumnDescriptor,HTableDescriptor,TableName}
+import org.apache.hadoop.conf.{Configuration => HadoopConfiguration}
+import org.apache.hadoop.hbase.client.{ConnectionFactory, Table}
+import org.apache.hadoop.hbase.{HBaseConfiguration, HColumnDescriptor, HTableDescriptor, TableName}
 import org.apache.hadoop.security.UserGroupInformation
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import org.apache.spark.opentsdb.OpenTSDBContext
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.streaming.{Milliseconds,StreamingContext}
-import org.apache.spark.{SparkConf,SparkContext}
+import org.apache.spark.streaming.{Milliseconds, StreamingContext}
+import org.apache.spark.{SparkConf, SparkContext}
 import org.pac4j.play.store.PlaySessionStore
-import play.api.mvc.{AnyContent,Request}
-import play.api.{Configuration,Environment,Mode}
+import play.api.i18n.MessagesApi
+import play.api.inject.{ApplicationLifecycle, ConfigurationProvider}
+import play.api.mvc.{AnyContent, Request}
+import play.api.{Configuration, Environment, Mode}
+
 import scala.annotation.tailrec
 import scala.language.postfixOps
-import scala.util.{Failure,Success,Try}
+import scala.util.{Failure, Success, Try}
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -47,10 +35,9 @@ import scala.util.{Failure,Success,Try}
 
 package iot_ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Iot_ingestion_managerYaml
-        
+                        
   @SuppressWarnings(
     Array(
-      "org.wartremover.warts.Throw",
       "org.wartremover.warts.While",
       "org.wartremover.warts.Var",
       "org.wartremover.warts.Null",
@@ -88,23 +75,13 @@ package iot_ingestion_manager.yaml {
       }
     }
 
-    //given a class it returns the jar (in the classpath) containing that class
-    private def getJar(klass: Class[_]): String = {
-      val codeSource = klass.getProtectionDomain.getCodeSource
-      codeSource.getLocation.getPath
-    }
-
-    private val uberJarLocation: String = getJar(this.getClass)
-
-    private val sparkParametersConfiguration: Configuration = configuration.getConfig("spark").getOrElse(throw new RuntimeException)
-
     private val conf = if (environment.mode != Mode.Test) {
       var sparkConf = new SparkConf().
         setMaster("yarn-client").
         setAppName("iot-ingestion-manager")
-      sparkParametersConfiguration.entrySet.foreach(entry => {
+      configuration.getConfig("spark").foreach(_.entrySet.foreach(entry => {
         sparkConf = sparkConf.set(s"spark.${entry._1}", entry._2.unwrapped().asInstanceOf[String])
-      })
+      }))
       sparkConf
     }
     else
@@ -120,7 +97,7 @@ package iot_ingestion_manager.yaml {
       thread
     }
 
-    private def HadoopDoAsAction[T](request: Request[AnyContent])(block: => T): T = {
+    private def HadoopDoAsAction[T](proxyUser: UserGroupInformation, request: Request[AnyContent])(block: => T): T = {
       val profiles = Authentication.getProfiles(request)
       val user = profiles.headOption.map(_.getId).getOrElse("anonymous")
       val ugi = UserGroupInformation.createProxyUser(user, proxyUser)
@@ -131,7 +108,7 @@ package iot_ingestion_manager.yaml {
 
     UserGroupInformation.loginUserFromSubject(null)
 
-    private val offsetsTable = configuration.getString("offsets.table.name").asTry(new RuntimeException).map {
+     val offsetsTable: Try[Table] = configuration.getString("offsets.table.name").asTry(new Missing("offsets.table.name")).map {
       tableName =>
         Try {
           logger.info("About to create the offset table")
@@ -149,23 +126,25 @@ package iot_ingestion_manager.yaml {
         }
     } flatten
 
+    offsetsTable.log(logger, "Problem in creating the HBase offsets table")
+
     private val proxyUser = UserGroupInformation.getCurrentUser
 
     private var jobThread: Option[Thread] = None
 
-    private var sparkSession: Try[SparkSession] = Failure[SparkSession](new RuntimeException())
+    private var sparkSession: Try[SparkSession] = InitializeFailure[SparkSession]
 
-    private var streamingContext: Try[StreamingContext] = Failure[StreamingContext](new RuntimeException())
+    private var streamingContext: Try[StreamingContext] = InitializeFailure[StreamingContext]
 
     private var stopFlag = true
 
-    private var openTSDBContext: Try[OpenTSDBContext] = Failure[OpenTSDBContext](new RuntimeException())
+    private var openTSDBContext: Try[OpenTSDBContext] = InitializeFailure[OpenTSDBContext]
 
         // ----- End of unmanaged code area for constructor Iot_ingestion_managerYaml
         val start = startAction {  _ =>  
             // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.start
             logger.info("Begin operation 'start'")
-      HadoopDoAsAction(current_request_for_startAction) {
+      HadoopDoAsAction(proxyUser, current_request_for_startAction) {
         synchronized {
           jobThread = Some(thread {
             sparkSession match {
@@ -176,7 +155,7 @@ package iot_ingestion_manager.yaml {
                   ss
                 }
 
-                val batchDurationMillis = configuration.getLong("batch.duration").getOrElse(throw new RuntimeException)
+                val batchDurationMillis = configuration.getLongOrException("batch.duration")
                 logger.info(s"Brokers: $batchDurationMillis")
 
                 streamingContext = Try {
@@ -210,13 +189,13 @@ package iot_ingestion_manager.yaml {
                   otc
                 })
 
-                val brokers = configuration.getString("bootstrap.servers").getOrElse(throw new RuntimeException)
+                val brokers = configuration.getStringOrException("bootstrap.servers")
                 logger.info(s"Brokers: $brokers")
 
-                val groupId = configuration.getString("group.id").getOrElse(throw new RuntimeException)
+                val groupId = configuration.getStringOrException("group.id")
                 logger.info(s"GroupdId: $groupId")
 
-                val topic = configuration.getString("topic").getOrElse(throw new RuntimeException)
+                val topic = configuration.getStringOrException("topic")
                 logger.info(s"Topics: $topic")
 
                 val kafkaParams = Map[String, AnyRef](
@@ -248,7 +227,7 @@ package iot_ingestion_manager.yaml {
                         logger.info("The streaming context is still active. Timeout...")
                       if (!isStopped && stopFlag) {
                         logger.info("Stopping the streaming context right now")
-                        ssc.stop(true, true)
+                        ssc.stop(stopSparkContext = true, stopGracefully = false)
                         logger.info("The streaming context is stopped!!!!!!!")
                       }
                     }
@@ -265,16 +244,16 @@ package iot_ingestion_manager.yaml {
         val stop = stopAction {  _ =>  
             // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.stop
             logger.info("Begin operation 'stop'")
-      HadoopDoAsAction(current_request_for_startAction) {
+      HadoopDoAsAction(proxyUser, current_request_for_startAction) {
         synchronized {
           sparkSession match {
             case Failure(_) => ()
-            case Success(ss) =>
+            case Success(_) =>
               logger.info("About to stop the streaming context")
               stopFlag = true
               jobThread.foreach(_.join())
               logger.info("Thread stopped")
-              sparkSession = Failure[SparkSession](new RuntimeException())
+              sparkSession = InitializeFailure[SparkSession]
           }
           logger.info("End operation 'stop'")
           Stop200("Ok")

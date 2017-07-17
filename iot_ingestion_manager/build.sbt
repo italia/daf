@@ -50,7 +50,9 @@ lazy val common = (project in file("common")).
       "org.specs2" %% "specs2-matcher" % specs2Version % "test",
       "org.json4s" %% "json4s-native" % json4sVersion % "test"
     )
-  ) ++ sbtavrohugger.SbtAvrohugger.specificAvroSettings)
+  ) ++ sbtavrohugger.SbtAvrohugger.specificAvroSettings ++ Seq(
+    (scalaSource in avroConfig) := new java.io.File(s"${baseDirectory.value}/src/generated/scala")
+  ))
 
 lazy val root = (project in file(".")).
   enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser, /*AutomateHeaderPlugin,*/ DockerPlugin).
@@ -68,11 +70,11 @@ val sparkExcludes =
     exclude("org.apache.hadoop", "hadoop-yarn-server-web-proxy").
     exclude("org.apache.zookeeper", "zookeeper").
     exclude("commons-collections", "commons-collections").
-    exclude("commons-beanutils", "commons-beanutils")
+    exclude("commons-beanutils", "commons-beanutils").
+    exclude("org.slf4j", "slf4j-log4j12")
 
 val hbaseExcludes =
   (moduleID: ModuleID) => moduleID.
-    exclude("org.slf4j", "slf4j-log4j12").
     exclude("org.apache.thrift", "thrift").
     exclude("org.jruby", "jruby-complete").
     exclude("org.slf4j", "slf4j-log4j12").
@@ -87,7 +89,6 @@ val hbaseExcludes =
     exclude("tomcat", "jasper-runtime").
     exclude("tomcat", "jasper-compiler").
     exclude("org.jboss.netty", "netty").
-    exclude("io.netty", "netty").
     exclude("io.netty", "netty").
     exclude("commons-logging", "commons-logging").
     exclude("org.apache.xmlgraphics", "batik-ext").
@@ -108,16 +109,20 @@ val hadoopHBaseExcludes =
     excludeAll(ExclusionRule(organization = "org.mortbay.jetty")).
     excludeAll(ExclusionRule(organization = "javax.servlet"))
 
-val hadoopLibraries = Seq(
-  "org.apache.spark.opentsdb" %% "spark-opentsdb" % sparkOpenTSDBVersion % "compile",
+val kafkaExcludes =
+  (moduleId: ModuleID) => moduleId.
+    exclude("org.slf4j", "slf4j-log4j12")
+
+val applicationLibraries = Seq(
+  "org.apache.spark.opentsdb" %% "spark-opentsdb" % sparkOpenTSDBVersion % "compile" exclude("org.slf4j", "slf4j-log4j12"),
   sparkExcludes("org.apache.spark" %% "spark-core" % sparkVersion % "compile"),
   sparkExcludes("org.apache.spark" %% "spark-sql" % sparkVersion % "compile"),
   sparkExcludes("org.apache.spark" %% "spark-yarn" % sparkVersion % "compile"),
   sparkExcludes("org.apache.spark" %% "spark-mllib" % sparkVersion % "compile"),
   sparkExcludes("org.apache.spark" %% "spark-streaming" % sparkVersion % "compile"),
   sparkExcludes("org.apache.spark" %% "spark-streaming-kafka-0-10" % sparkVersion % "compile"),
-  "org.apache.kafka" %% "kafka" % kafkaVersion % "compile",
-  "org.apache.kafka" % "kafka-clients" % kafkaVersion % "compile",
+  kafkaExcludes("org.apache.kafka" %% "kafka" % kafkaVersion % "compile"),
+  kafkaExcludes("org.apache.kafka" % "kafka-clients" % kafkaVersion % "compile"),
   hbaseExcludes("org.apache.hbase" % "hbase-client" % hbaseVersion % "compile"),
   hbaseExcludes("org.apache.hbase" % "hbase-protocol" % hbaseVersion % "compile"),
   hbaseExcludes("org.apache.hbase" % "hbase-hadoop-compat" % hbaseVersion % "compile"),
@@ -147,8 +152,8 @@ val hadoopLibraries = Seq(
   hadoopHBaseExcludes("org.apache.hadoop" % "hadoop-minicluster" % hadoopVersion % "test"),
   hadoopHBaseExcludes("org.apache.hadoop" % "hadoop-common" % hadoopVersion % "test" classifier "tests" extra "type" -> "test-jar"),
   hadoopHBaseExcludes("org.apache.hadoop" % "hadoop-mapreduce-client-jobclient" % hadoopVersion % "test" classifier "tests"),
-  "org.apache.kafka" %% "kafka" % kafkaVersion % "test" classifier "test",
-  "org.apache.kafka" % "kafka-clients" % kafkaVersion % "test" classifier "test",
+  kafkaExcludes("org.apache.kafka" %% "kafka" % kafkaVersion % "test" classifier "test"),
+  kafkaExcludes("org.apache.kafka" % "kafka-clients" % kafkaVersion % "test" classifier "test"),
   "org.json4s" %% "json4s-native" % json4sVersion % "test",
   "com.github.pathikrit" %% "better-files" % betterFilesVersion % Test
 )
@@ -162,7 +167,7 @@ libraryDependencies ++= Seq(
   "org.webjars" % "swagger-ui" % swaggerUiVersion,
   "it.gov.daf" %% "common" % version.value,
   specs2 % Test
-) ++ hadoopLibraries
+) ++ applicationLibraries
 
 resolvers ++= Seq(
   "zalando-bintray" at "https://dl.bintray.com/zalando/maven",

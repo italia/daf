@@ -19,16 +19,18 @@ package common
 import cats.FlatMap
 import cats.data.Kleisli
 import cats.implicits._
-import it.gov.teamdigitale.iotingestion.common.SerializerDeserializer
+import it.gov.teamdigitale.daf.iotingestion.common.SerializerDeserializer
+import it.gov.teamdigitale.daf.iotingestion.event.Event
 import org.apache.spark.opentsdb.DataPoint
-import it.gov.teamdigitale.iotingestion.event.Event
+
 import scala.language.{higherKinds, implicitConversions}
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 @SuppressWarnings(
   Array(
     "org.wartremover.warts.ImplicitConversion",
     "org.wartremover.warts.ImplicitParameter",
+    "org.wartremover.warts.Var",
     "org.wartremover.warts.Null"
   )
 )
@@ -49,14 +51,17 @@ object Transformers {
   implicit def funcToKleisli[A, B](func: A => Try[B]): Kleisli[Try, A, B] = Kleisli(func)
 
   object avroByteArrayToEvent extends transform[Array[Byte], Event] {
-    def apply(a: Array[Byte]): Try[Event] = Try{
-      new Event()
-    } //SerializerDeserializer.deserialize(a)
+    def apply(a: Array[Byte]): Try[Event] = SerializerDeserializer.deserialize(a)
   }
 
   object eventToDatapoint extends transform[Event, DataPoint[Double]] {
-    override def apply(a: Event): Try[DataPoint[Double]] = Try {
-      new DataPoint[Double]("metric", 12345678L, 0.1D, Map.empty[String, String])
+    override def apply(a: Event): Try[DataPoint[Double]] = {
+      val new_map = a.attributes ++ Map("host" -> a.host, "service" -> a.service)
+      a.attributes.get("metric") match {
+        case Some(m) => Success(new DataPoint[Double](a.event_type_id.toString, a.ts, m.toDouble, new_map))
+        case None => Failure(new RuntimeException("no metric value"))
+      }
+
     }
   }
 

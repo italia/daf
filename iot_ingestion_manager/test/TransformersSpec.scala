@@ -49,8 +49,6 @@ class TransformersSpec extends Specification {
       )
 
       val dataPoints = events.map(e => Transformers.eventToDatapoint(e))
-      dataPoints.foreach(d => println(d))
-
       dataPoints.count(_.isSuccess) mustEqual 100
       val head = dataPoints.head.get
       head.tags.size mustEqual 5

@@ -23,6 +23,7 @@ import better.files._
 import it.gov.daf.iotingestionmanager.client.Iot_ingestion_managerClient
 import it.gov.teamdigitale.daf.iotingestion.common.SerializerDeserializer
 import it.gov.teamdigitale.daf.iotingestion.event.Event
+import kafka.admin.{AdminUtils, RackAwareMode}
 import kafka.server.{KafkaConfig, KafkaServer, RunningAsBroker}
 import kafka.utils.{MockTime, TestUtils, ZkUtils}
 import org.I0Itec.zkclient.ZkClient
@@ -37,6 +38,7 @@ import org.json4s.DefaultFormats
 import org.json4s.native.JsonMethods._
 import org.specs2.mutable.Specification
 import org.specs2.specification.BeforeAfterAll
+import play.Logger
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.ahc.AhcWSClient
@@ -149,6 +151,7 @@ class ServiceSpec extends Specification with BeforeAfterAll {
     configure("hadoop_conf_dir" -> ServiceSpec.confPath.pathAsString).
     configure("pac4j.authenticator" -> "test").
     configure("bootstrap.servers" -> getBootstrapServers).
+    configure("kafka.zookeeper.quorum" -> s"localhost:${baseConf.get("hbase.zookeeper.property.clientPort")}").
     build()
 
   "This test" should {
@@ -164,27 +167,27 @@ class ServiceSpec extends Specification with BeforeAfterAll {
 
       Thread.sleep(4000)
 
-      for (i <- 1 to 200) {
+      for (i <- 1 to 100) {
         val jsonEvent =
           """{"id": "TorinoFDT",
-             |"ts": 1488532860000,
-             |"event_type_id": 1,
-             |"source": "-1965613475",
-             |"location": "45.06766-7.66662",
-             |"service": "http://opendata.5t.torino.it/get_fdt",
-             |"body": {"bytes": "<FDT_data period=\"5\" accuracy=\"100\" lng=\"7.66662\" lat=\"45.06766\" direction=\"positive\" offset=\"55\" Road_name=\"Corso Vinzaglio(TO)\" Road_LCD=\"40201\" lcd1=\"40202\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.5t.torino.it/simone/ns/traffic_data\">\n    <speedflow speed=\"20.84\" flow=\"528.00\"/>\n  </FDT_data>"},
-             |"attributes": {"period": "5", "offset": "55", "Road_name": "Corso Vinzaglio(TO)", "Road_LCD": "40201", "accuracy": "100", "FDT_data": "40202", "flow": "528.00", "speed": "20.84", "direction": "positive"}
-             |}""".stripMargin
+            |"ts": 1488532860000,
+            |"event_type_id": 1,
+            |"source": "-1965613475",
+            |"location": "45.06766-7.66662",
+            |"service": "http://opendata.5t.torino.it/get_fdt",
+            |"body": {"bytes": "<FDT_data period=\"5\" accuracy=\"100\" lng=\"7.66662\" lat=\"45.06766\" direction=\"positive\" offset=\"55\" Road_name=\"Corso Vinzaglio(TO)\" Road_LCD=\"40201\" lcd1=\"40202\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.5t.torino.it/simone/ns/traffic_data\">\n    <speedflow speed=\"20.84\" flow=\"528.00\"/>\n  </FDT_data>"},
+            |"attributes": {"period": "5", "offset": "55", "Road_name": "Corso Vinzaglio(TO)", "Road_LCD": "40201", "accuracy": "100", "FDT_data": "40202", "flow": "528.00", "speed": "20.84", "direction": "positive"}
+            |}""".stripMargin
 
         implicit val formats: DefaultFormats = DefaultFormats
-        val event = parse(jsonEvent, true).extract[Event]
+        val event = parse(jsonEvent, useBigDecimalForDouble = true).extract[Event]
         val eventBytes = SerializerDeserializer.serialize(event)
-        
+
         val record = new ProducerRecord[Array[Byte], Array[Byte]]("daf-iot-events", s"$i".getBytes(), eventBytes)
         producer.send(record)
       }
 
-      Thread.sleep(1000)
+      Thread.sleep(4000)
 
       val result2 = Await.result(client.stop(s"Basic $base64Creds"), Duration.Inf)
     }
@@ -222,6 +225,15 @@ class ServiceSpec extends Specification with BeforeAfterAll {
     val brokerPort = kafkaServers.head.map[Int](server => {
       server.config.listeners.head._2.port
     }).getOrElse(throw new Exception("It shouldn't be here ..."))
+    
+    zkUtils.foreach(zku => {
+      AdminUtils.createTopic(zku, "daf-iot-events", 1, 1, new Properties(), RackAwareMode.Disabled)
+
+      while(zku.getPartitionsForTopics(Seq("daf-iot-events")).isEmpty) {
+        Logger.info("Waiting for the topic to be created ...")
+        Thread.sleep(1000)
+      }
+    })
 
     // setup producer
     val producerProps = new Properties()
@@ -229,6 +241,7 @@ class ServiceSpec extends Specification with BeforeAfterAll {
     producerProps.setProperty("key.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer")
     producerProps.setProperty("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer")
     producer = new KafkaProducer[Array[Byte], Array[Byte]](producerProps)
+    Thread.sleep(5000)
     ()
   }
 

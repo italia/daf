@@ -34,6 +34,7 @@ import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.{Milliseconds,StreamingContext}
 import org.apache.spark.{SparkConf,SparkContext}
 import org.pac4j.play.store.PlaySessionStore
+import play.Logger
 import play.api.mvc.{AnyContent,Request}
 import play.api.{Configuration,Environment,Mode}
 import scala.annotation.tailrec
@@ -47,7 +48,7 @@ import scala.util.{Failure,Success,Try}
 
 package iot_ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Iot_ingestion_managerYaml
-            
+                                                
   @SuppressWarnings(
     Array(
       "org.wartremover.warts.While",
@@ -68,6 +69,8 @@ package iot_ingestion_manager.yaml {
         config: ConfigurationProvider
     ) extends Iot_ingestion_managerYamlBase {
         // ----- Start of unmanaged code area for constructor Iot_ingestion_managerYaml
+
+    implicit private val alogger = Logger.of(this.getClass.getCanonicalName)
 
     Authentication(configuration, playSessionStore)
 
@@ -123,7 +126,7 @@ package iot_ingestion_manager.yaml {
     val offsetsTable: Try[Table] = configuration.getString("offsets.table.name").asTry(new Missing("offsets.table.name")).map {
       tableName =>
         Try {
-          logger.info("About to create the offset table")
+          alogger.info("About to create the offset table")
           val hbaseConfig = HBaseConfiguration.create
           val connection = ConnectionFactory.createConnection(hbaseConfig)
           val tname = TableName.valueOf(tableName)
@@ -133,12 +136,12 @@ package iot_ingestion_manager.yaml {
             tableDescriptor.addFamily(columnDescriptor)
             connection.getAdmin.createTable(tableDescriptor)
           }
-          logger.info("Offset table created")
+          alogger.info("Offset table created")
           connection.getTable(tname)
         }
     } flatten
 
-    offsetsTable.log(logger, "Problem in creating the HBase offsets table")
+    offsetsTable.log("Problem in creating the HBase offsets table")
 
     private val proxyUser = UserGroupInformation.getCurrentUser
 
@@ -155,7 +158,7 @@ package iot_ingestion_manager.yaml {
         // ----- End of unmanaged code area for constructor Iot_ingestion_managerYaml
         val start = startAction {  _ =>  
             // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.start
-            logger.info("Begin operation 'start'")
+            alogger.info("Begin operation 'start'")
       HadoopDoAsAction(proxyUser, current_request_for_startAction) {
         synchronized {
           jobThread = Some(thread {
@@ -168,7 +171,7 @@ package iot_ingestion_manager.yaml {
                 }
 
                 val batchDurationMillis = configuration.getLongOrException("batch.duration")
-                logger.info(s"Batch Duration Millis: $batchDurationMillis")
+                alogger.info(s"Batch Duration Millis: $batchDurationMillis")
 
                 streamingContext = Try {
                   val ssc = sparkSession.map(ss => new StreamingContext(ss.sparkContext, Milliseconds(batchDurationMillis)))
@@ -176,19 +179,19 @@ package iot_ingestion_manager.yaml {
                 }.flatten
 
                 val keytab = configuration.getString("opentsdb.context.keytab")
-                logger.info(s"OpenTSDBContext Keytab: $keytab")
+                alogger.info(s"OpenTSDBContext Keytab: $keytab")
 
                 val principal = configuration.getString("opentsdb.context.principal")
-                logger.info(s"OpenTSDBContext Principal: $principal")
+                alogger.info(s"OpenTSDBContext Principal: $principal")
 
                 val keytabLocalTempDir = configuration.getString("opentsdb.context.keytablocaltempdir")
-                logger.info(s"OpenTSDBContext Keytab Local Temp Dir: $keytabLocalTempDir")
+                alogger.info(s"OpenTSDBContext Keytab Local Temp Dir: $keytabLocalTempDir")
 
                 val saltwidth = configuration.getInt("opentsdb.context.saltwidth")
-                logger.info(s"OpenTSDBContext SaltWidth: $saltwidth")
+                alogger.info(s"OpenTSDBContext SaltWidth: $saltwidth")
 
                 val saltbucket = configuration.getInt("opentsdb.context.saltbucket")
-                logger.info(s"OpenTSDBContext SaltBucket: $saltbucket")
+                alogger.info(s"OpenTSDBContext SaltBucket: $saltbucket")
 
                 saltwidth.foreach(OpenTSDBContext.saltWidth = _)
                 saltbucket.foreach(OpenTSDBContext.saltBuckets = _)
@@ -202,53 +205,53 @@ package iot_ingestion_manager.yaml {
                 })
 
                 val brokers = configuration.getStringOrException("bootstrap.servers")
-                logger.info(s"Brokers: $brokers")
+                alogger.info(s"Brokers: $brokers")
 
                 val groupId = configuration.getStringOrException("group.id")
-                logger.info(s"GroupdId: $groupId")
+                alogger.info(s"GroupdId: $groupId")
 
                 val topic = configuration.getStringOrException("topic")
-                logger.info(s"Topics: $topic")
+                alogger.info(s"Topics: $topic")
 
                 val kafkaZkQuorum = configuration.getStringOrException("kafka.zookeeper.quorum")
-                logger.info(s"Kafka Zk Quorum: $kafkaZkQuorum")
+                alogger.info(s"Kafka Zk Quorum: $kafkaZkQuorum")
 
                 val kafkaZkRootDir = configuration.getString("kafka.zookeeper.root")
-                logger.info(s"Kafka Zk Root Dir: $kafkaZkRootDir")
+                alogger.info(s"Kafka Zk Root Dir: $kafkaZkRootDir")
 
                 stopFlag = false
                 streamingContext foreach {
                   ssc =>
-                    logger.info("About to create the stream")
+                    alogger.info("About to create the stream")
                     val inputStream = getTransformersStream(ssc, kafkaZkQuorum, kafkaZkRootDir, offsetsTable.toOption, brokers, topic, groupId, avroByteArrayToEvent >>>> eventToDatapoint)
                     //openTSDBContext.foreach(_.streamWrite(inputStream))
                     inputStream match {
                       case Success(stream) => stream.print(10)
-                      case Failure(ex) => logger.error(s"Failt in creating the stream: ${ex.getCause}")
+                      case Failure(ex) => alogger.error(s"Failt in creating the stream: ${ex.getCause}")
                     }
-                    logger.info("Stream created")
-                    logger.info("About to start the streaming context")
+                    alogger.info("Stream created")
+                    alogger.info("About to start the streaming context")
                     ssc.start()
-                    logger.info("Streaming context started")
+                    alogger.info("Streaming context started")
                     var isStopped = false
                     while (!isStopped) {
-                      logger.info("Calling awaitTerminationOrTimeout")
+                      alogger.info("Calling awaitTerminationOrTimeout")
                       isStopped = ssc.awaitTerminationOrTimeout(1000)
                       if (isStopped)
-                        logger.info("Confirmed! The streaming context is stopped. Exiting application...")
+                        alogger.info("Confirmed! The streaming context is stopped. Exiting application...")
                       else
-                        logger.info("The streaming context is still active. Timeout...")
+                        alogger.info("The streaming context is still active. Timeout...")
                       if (!isStopped && stopFlag) {
-                        logger.info("Stopping the streaming context right now")
+                        alogger.info("Stopping the streaming context right now")
                         ssc.stop(stopSparkContext = true, stopGracefully = false)
-                        logger.info("The streaming context is stopped!!!!!!!")
+                        alogger.info("The streaming context is stopped!!!!!!!")
                       }
                     }
                 }
               case Success(_) => ()
             }
           })
-          logger.info("End operation 'start'")
+          alogger.info("End operation 'start'")
           Start200("Ok")
         }
       }
@@ -256,19 +259,19 @@ package iot_ingestion_manager.yaml {
         }
         val stop = stopAction {  _ =>  
             // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.stop
-            logger.info("Begin operation 'stop'")
+            alogger.info("Begin operation 'stop'")
       HadoopDoAsAction(proxyUser, current_request_for_startAction) {
         synchronized {
           sparkSession match {
             case Failure(_) => ()
             case Success(_) =>
-              logger.info("About to stop the streaming context")
+              alogger.info("About to stop the streaming context")
               stopFlag = true
               jobThread.foreach(_.join())
-              logger.info("Thread stopped")
+              alogger.info("Thread stopped")
               sparkSession = InitializeFailure[SparkSession]
           }
-          logger.info("End operation 'stop'")
+          alogger.info("End operation 'stop'")
           Stop200("Ok")
         }
       }

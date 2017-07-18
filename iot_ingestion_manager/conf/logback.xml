@@ -12,6 +12,7 @@
 
     <logger name="play" level="ERROR"/>
     <logger name="application" level="INFO"/>
+    <logger name="iot_ingestion_manager.yaml" level="INFO"/>
 
     <root level="ERROR">
         <appender-ref ref="STDOUT"/>

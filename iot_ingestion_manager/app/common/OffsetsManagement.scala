@@ -1,3 +1,19 @@
+/*
+ * Copyright 2017 TEAM PER LA TRASFORMAZIONE DIGITALE
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package common
 
 import kafka.utils.ZkUtils
@@ -19,6 +35,8 @@ import scala.util.Try
 )
 trait OffsetsManagement {
 
+  private val alogger = Logger.of(this.getClass.getCanonicalName)
+
   protected def setOffsets(table: Option[Table], topic: String, groupId: String, hasRanges: HasOffsetRanges, time: SparkTime): Unit = {
     table.foreach {
       table =>
@@ -33,7 +51,7 @@ trait OffsetsManagement {
         }
         if (hasRanges.offsetRanges.length > 0) {
           table.put(put)
-          Logger.info(s"Saved Offsets: ${hasRanges.offsetRanges.map(o => (o.partition, o.untilOffset)).mkString(",")}")
+          alogger.info(s"Saved Offsets: ${hasRanges.offsetRanges.map(o => (o.partition, o.untilOffset)).mkString(",")}")
         }
     }
   }
@@ -93,6 +111,9 @@ trait OffsetsManagement {
       }
     }
     scanner.close()
+
+    fromOffsets.foreach(fo => alogger.info(s"Initial Offsets: $fo"))
+
     fromOffsets.toMap
   }
 

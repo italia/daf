@@ -1,78 +1,62 @@
 # Data at rest
 
-The folder structure in HDFS and, eventually, the structure in a database like HBase if required, is designed to be as flexible as possible based on the use cases of each dataset type (Standard, Ordinary and Raw).
+Once data arrive in the landing area, they are stored in the HDFS adopting the rules described above.
+
+It is worth noting data are always related to a dataset and they are converted in AVRO format by-default. Furthermore, a copy of the unaltered data sent by data-sources is always saved. 
+
+On the basis of the settings provided by the dataset owner during the registration phase, data can be also stored as Parquet file.
+
+## Data organization in HDFS
+
+Data in HDFS are stored adopting the following folder structure.
+The forder structure is designed to be as flexible as possible based on the use cases of each dataset type (Standard, Ordinary and Raw).
 
 
+### Standard Dataset Directory Structure
 
-## Standard Dataset Structure
+All Standard datasets are stored in the following HDFS directory:
 
-The structure in HDFS works as follows: 
+`/ daf / standard / `
 
-`/ stdData / Category / Group Ownership / Dataset / [partition by owner]`
+The content of this directory is organized adopting the following rules: 
 
-where:
-
-- `stdData` is the root directory containing all Standard Dataset
-- `Category` is the parent category to which the dataset belong (e.g. "Mobility")
-- `Group Ownership` is the starting point from which access rights get assigned (e.g. "Open" for open data accessible to anyone)
-- `Dataset` contains the actual data
-- `[partition by owner]` is a partitioning mechanism internal to the data format used.
-
-A similar structure will be implemented in HBase in case the dataset is required to be stored there.
-
-As for the data structure, it works as follows applied to a `.parquet` format:
-
-- List of the required fields of the standard dataset
-- `opt_std`: a JSON structured field containing all the optional fields defined in the Standard Dataset and provided in the dataset being ingested
-- `custom`: a JSON structured field containing all the fields that are not part of the Standard Schema but that are provided in the dataset being ingested
-- `owner`: the name of the entity to which the data belongs (e.g. "Milano")
-- `genre`: the root category to which the dataset belong (e.g. "Mobility")
-- `ts`: the timestamp in seconds of the time of the ingestion
-
-## Ordinary Dataset Structure 
-###Alternative 1
-The structure in HDFS works as follows: 
-
-`/ ordData / Owner / Category / Group Ownership / Dataset`
+` domain / subdomain / datasetName.datasetFormat / sourceOrg / `
 
 where:
 
-- `ordData` is the root directory containing all Ordinary Dataset
-- `Owner` is the name of the entity to which the data belongs (e.g. "Milano")
-- `Category` is the parent category to which the dataset belong (i.e. "Mobility")
-- `Group Ownership` is the starting point from which access rights get assigned (e.g. "Open" for open data accessible to anyone)
-- `Dataset` contains the actual data
+- `domain` is the parent category to which the dataset belong (e.g. "mobility")
+- `subdomain` is the sub-category to which the dataset belong (e.g. "traffic")
+- `datasetName` is the name of the dataset
+- `datasetFormat` specifies the serialization format. At the moment the Allowed format are: `csv`, `json`, `avro`, `parquet`. 
+- `sourceOrg` is the name of the dataset owner. This name is specified as `organizationType_organizationName`.
 
-A similar structure will be implemented in HBase in case the dataset is required to be stored there.
 
-As for the data structure, it works as follows applied to a `.parquet` format:
 
-- `raw_data`: Struct of the fields of the dataset
-- `owner`: the name of the entity to which the data belongs (e.g. "Milano")
-- `genre`: the root category to which the dataset belong (e.g. "Mobility")
-- `ts`: the timestamp in seconds of the time of the ingestion
+### Ordinary Dataset Directory Structure 
 
-### Alternative 2
-The structure in HDFS works as follows: 
+All Ordinary datasets are stored in the following HDFS directory:
 
-`/ ordData / Group Ownership / Dataset / [ partition by owner and category]`
+`/ daf / ordinary / `
+
+The content of this directory is organized adopting the following rules: 
+
+` sourceOrg / domain / subdomain / datasetName.datasetFormat / `
 
 where:
 
-- `ordData` is the root directory containing all ordinary dataset
-- `Group Ownership` is the starting point from which access rights get assigned (e.g. "Open" for open data accessible to anyone)
-- `Dataset` contains the actual data
-- `[partition by owner and category]` is a partitioning mechanism internal to the data format used.
-
-A similar structure will be implemented in HBase in case the dataset is required to be stored there.
-
-As for the data structure, it works as follows applied to a `.parquet` format:
-
-- `custom`: a JSON structured field containing all the fields of the dataset being ingested
-- `owner`: the name of the entity to which the data belongs (e.g. "Milano")
-- `genre`: the root category to which the dataset belong (e.g. "Mobility")
-- `ts`: the timestamp in seconds of the time of the ingestion
+- `sourceOrg` is the name of the dataset owner. This name is specified as `organizationType_organizationName`
+- `domain` is the parent category to which the dataset belong (e.g. "mobility")
+- `subdomain` is the sub-category to which the dataset belong (e.g. "traffic")
+- `datasetName` is the name of the dataset
+- `datasetFormat` specifies the serialization format. At the moment the Allowed format are: `csv`, `json`, `avro`, `parquet` 
 
 
-## Raw Dataset Structure
-It has the same structure as Ordinary Dataset - Alternative 2
+### Raw Dataset Directory Structure
+
+All Raw datasets are stored in the following HDFS directory:
+
+`/ daf / raw / `
+
+The content of this directory is organized adopting the following rules: 
+
+` sourceOrg / domain / subdomain / datasetName.datasetFormat / `

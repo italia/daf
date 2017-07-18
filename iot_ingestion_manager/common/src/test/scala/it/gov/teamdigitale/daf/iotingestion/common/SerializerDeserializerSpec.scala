@@ -1,6 +1,7 @@
 package it.gov.teamdigitale.daf.iotingestion.common
 
-import it.gov.teamdigitale.daf.iotingestion.event.Event
+import it.gov.daf.iotingestion.common.SerializerDeserializer
+import it.gov.daf.iotingestion.event.Event
 import org.json4s.DefaultFormats
 import org.json4s.native.JsonMethods._
 import org.specs2.mutable.Specification

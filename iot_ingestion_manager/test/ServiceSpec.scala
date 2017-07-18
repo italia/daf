@@ -20,9 +20,9 @@ import java.util.{Base64, Properties}
 
 import ServiceSpec._
 import better.files._
+import it.gov.daf.iotingestion.common.SerializerDeserializer
 import it.gov.daf.iotingestionmanager.client.Iot_ingestion_managerClient
-import it.gov.teamdigitale.daf.iotingestion.common.SerializerDeserializer
-import it.gov.teamdigitale.daf.iotingestion.event.Event
+import it.gov.daf.iotingestion.event.Event
 import kafka.admin.{AdminUtils, RackAwareMode}
 import kafka.server.{KafkaConfig, KafkaServer, RunningAsBroker}
 import kafka.utils.{MockTime, TestUtils, ZkUtils}
@@ -35,7 +35,7 @@ import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
 import org.apache.spark.SparkConf
 import org.apache.spark.opentsdb.OpenTSDBConfigurator
 import org.json4s.DefaultFormats
-import org.json4s.native.JsonMethods._
+import org.json4s.native.JsonMethods.parse
 import org.specs2.mutable.Specification
 import org.specs2.specification.BeforeAfterAll
 import play.Logger
@@ -166,24 +166,29 @@ class ServiceSpec extends Specification with BeforeAfterAll {
       val result1 = Await.result(client.start(s"Basic $base64Creds"), Duration.Inf)
 
       Thread.sleep(4000)
+      val events = Range(0, 100).map(r =>
+        new Event(
+          version = 1L,
+          id = Some(r.toString),
+          ts = System.currentTimeMillis(),
+          event_type_id = 0,
+          location = "41.1260529:16.8692905",
+          source = "http://domain/sensor/url",
+          body = Option("""{"rowdata": "this json should contain row data"}""".getBytes()),
+          attributes = Map(
+            "tag1" -> "value1",
+            "tag2" -> "value2",
+            "metric" -> "speed",
+            "value" -> "50",
+            "tags"-> "tag1, tag2"
+          )
+        )
+      )
 
-      for (i <- 1 to 100) {
-        val jsonEvent =
-          """{"id": "TorinoFDT",
-            |"ts": 1488532860000,
-            |"event_type_id": 1,
-            |"source": "-1965613475",
-            |"location": "45.06766-7.66662",
-            |"service": "http://opendata.5t.torino.it/get_fdt",
-            |"body": {"bytes": "<FDT_data period=\"5\" accuracy=\"100\" lng=\"7.66662\" lat=\"45.06766\" direction=\"positive\" offset=\"55\" Road_name=\"Corso Vinzaglio(TO)\" Road_LCD=\"40201\" lcd1=\"40202\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.5t.torino.it/simone/ns/traffic_data\">\n    <speedflow speed=\"20.84\" flow=\"528.00\"/>\n  </FDT_data>"},
-            |"attributes": {"period": "5", "offset": "55", "Road_name": "Corso Vinzaglio(TO)", "Road_LCD": "40201", "accuracy": "100", "FDT_data": "40202", "flow": "528.00", "speed": "20.84", "direction": "positive"}
-            |}""".stripMargin
-
-        implicit val formats: DefaultFormats = DefaultFormats
-        val event = parse(jsonEvent, useBigDecimalForDouble = true).extract[Event]
+      events.map{ event =>
         val eventBytes = SerializerDeserializer.serialize(event)
 
-        val record = new ProducerRecord[Array[Byte], Array[Byte]]("daf-iot-events", s"$i".getBytes(), eventBytes)
+        val record = new ProducerRecord[Array[Byte], Array[Byte]]("daf-iot-events", s"${event.id.getOrElse("error")}".getBytes(), eventBytes)
         producer.send(record)
       }
 
@@ -225,7 +230,7 @@ class ServiceSpec extends Specification with BeforeAfterAll {
     val brokerPort = kafkaServers.head.map[Int](server => {
       server.config.listeners.head._2.port
     }).getOrElse(throw new Exception("It shouldn't be here ..."))
-    
+
     zkUtils.foreach(zku => {
       AdminUtils.createTopic(zku, "daf-iot-events", 1, 1, new Properties(), RackAwareMode.Disabled)
 

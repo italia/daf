@@ -26,7 +26,6 @@ import org.apache.spark.streaming.kafka010.ConsumerStrategies._
 import org.apache.spark.streaming.kafka010.LocationStrategies.PreferConsistent
 import org.apache.spark.streaming.kafka010.{HasOffsetRanges, KafkaUtils}
 import org.apache.spark.streaming.{StreamingContext, Time => SparkTime}
-import play.Logger
 
 import scala.reflect.ClassTag
 import scala.util.Try
@@ -61,8 +60,6 @@ object TransformersStream extends OffsetsManagement {
     )
 
     val fromOffsets = getLastCommittedOffsets(table, topic, groupId, kafkaZkQuorum, kafkaZkRootDir, 4000, 4000)
-
-    fromOffsets.foreach(fo => Logger.info(s"Initial Offsets: $fo"))
 
     val inputStream = stageOffsets[Array[Byte], Array[Byte]](table, topic, groupId) {
       fromOffsets.map(fromOffsets => KafkaUtils.createDirectStream(ssc, PreferConsistent, Assign[Array[Byte], Array[Byte]](fromOffsets.keys, kafkaParams, fromOffsets)))

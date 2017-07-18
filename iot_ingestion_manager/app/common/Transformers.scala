@@ -19,10 +19,10 @@ package common
 import cats.FlatMap
 import cats.data.Kleisli
 import cats.implicits._
-import it.gov.teamdigitale.daf.iotingestion.common.SerializerDeserializer
-import it.gov.teamdigitale.daf.iotingestion.common.EventType
-import it.gov.teamdigitale.daf.iotingestion.event.Event
+import it.gov.daf.iotingestion.event.Event
 import org.apache.spark.opentsdb.DataPoint
+import common.Util._
+import it.gov.daf.iotingestion.common.{EventType, SerializerDeserializer}
 
 import scala.language.{higherKinds, implicitConversions}
 import scala.util.{Failure, Success, Try}
@@ -61,15 +61,25 @@ object Transformers {
       val eventType = EventType(a.event_type_id)
       eventType match {
         case EventType.Metric =>
-          a.attributes.get("metric")
 
+          val metricTry = for {
+            metric <- a.attributes.get("metric").asTry(new RuntimeException("no metric name in attributes field"))
+            valueString <- a.attributes.get("value").asTry(new RuntimeException("no metric value in attributes field"))
+            value <- Try(valueString.toDouble)
+          } yield (metric, value)
 
-//          val tagsMap = a.attributes ++
-//            Map("source" -> a.source,
-//              "event_certainty" -> a.event_certainty)
-//          Success(new DataPoint[Double](a.event_type_id, a.ts, m, a.attributes))
-          Failure(new RuntimeException("no metric value"))
-        case _ => Failure(new RuntimeException("no metric value"))
+          metricTry.map { case (m, v) =>
+            val tags = ("source", a.source) :: a.attributes
+              .getOrElse("tags", ",")
+              .split(",").toList
+              .flatMap { s =>
+                val strim = s.trim
+                a.attributes.get(strim).map((strim, _))
+              }
+            DataPoint[Double](m, a.ts, v, tags.toMap)
+          }
+
+        case _ => Failure(new RuntimeException("The event instance is not a Metric Event"))
       }
 
     }

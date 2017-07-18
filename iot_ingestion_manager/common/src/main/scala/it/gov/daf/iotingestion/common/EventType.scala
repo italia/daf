@@ -1,4 +1,4 @@
-package it.gov.teamdigitale.daf.iotingestion.common
+package it.gov.daf.iotingestion.common
 
 /**
   * Created by fabiana on 18/07/17.

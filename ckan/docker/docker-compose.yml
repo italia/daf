@@ -1,0 +1,26 @@
+ckan:
+  container_name: ckan
+  image: 10.98.74.120:5000/daf-ckan:1.0.0
+  links:
+      - db
+      - solr
+      - redis
+  ports:
+      - "5000:5000"
+  environment:
+      - CKAN_SITE_URL=http://localhost:5000
+      - DB_PORT_5432_TCP_ADDR=db
+      - SOLR_PORT_8983_TCP_ADDR=solr
+      - REDIS_PORT_6379_TCP_ADDR=redis
+
+db:
+  container_name: db
+  image: ckan/postgresql:latest
+  
+solr:
+  container_name: solr
+  image: ckan/solr:latest
+    
+redis:
+  container_name: redis
+  image: redis:latest

@@ -19,7 +19,7 @@ GET   /storage-manager/swagger.json                controllers.WithSecurityInfoA
 
 # Home page
 GET   /                                            controllers.Application.index
-GET   /storage-manager/v1/physical-datasets        controllers.PhysicalDatasetController.getDataset(uri:String, format:String, limit:Option[Int])
+GET   /storage-manager/v1/physical-datasets        controllers.PhysicalDatasetController.getDataset(uri:String, format:String, limit:Option[Int], chunk_size:Option[Int])
 GET   /storage-manager/v1/physical-datasets/schema controllers.PhysicalDatasetController.getDatasetSchema(uri:String, format:String)
 
 ### NoDocs ###

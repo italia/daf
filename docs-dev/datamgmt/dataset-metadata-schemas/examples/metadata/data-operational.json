@@ -1,0 +1,48 @@
+{
+  "group_own": "open",
+  "std_schema":
+  {
+    "std_uri": "daf://dataset/std/open/daf/trasposti/gtfs_agency",
+    "fields_conv": [
+      {
+        "field_std": "agency_id",
+        "formula": "agency_id"
+      },
+      {
+        "field_std": "agency_name",
+        "formula": "agency_name"
+      },
+      {
+        "field_std": "agency_url",
+        "formula": "agency_url"
+      },
+      {
+        "field_std": "agency_timezone",
+        "formula": "agency_timezone"
+      },
+      {
+        "field_std": "agency_lang",
+        "formula": "agency_lang"
+      },
+      {
+        "field_std": "agency_phone",
+        "formula": "agency_phone"
+      }
+    ]
+  },
+  "read_type": "update",
+  "georef":
+    [
+      {
+        "lat": 45.07049,
+        "lon": 7.68682
+      }
+    ],
+  "input_src":
+  {
+    "ing_type": "pull",
+    "src_type": "csv",
+    "url": "/Users/lilloraffa/Development/data/daf_injftp/it_torino/agency.txt"
+  }
+
+}

@@ -21,7 +21,7 @@ import better.files._
 import com.databricks.spark.avro.SchemaConverters
 import controllers.Utility
 import org.apache.avro.SchemaBuilder
-import org.apache.hadoop.fs.FileSystem
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.hadoop.hdfs.{HdfsConfiguration, MiniDFSCluster}
 import org.apache.hadoop.test.PathUtils
 import org.apache.spark.sql.{SaveMode, SparkSession}
@@ -159,6 +159,19 @@ class ServiceSpec extends Specification with BeforeAfterAll {
           withAuth("david", "david", WSAuthScheme.BASIC).
           execute, Duration.Inf)
         response.body must be equalTo schema
+      }
+
+      WsTestClient.withClient { implicit client =>
+        val files = fileSystem.map(fs => fs.listFiles(new Path("/opendata/test.csv"), false))
+        val csvFileName = files.map(files => {
+          files.next()
+          files.next().getPath.getName
+        }).getOrElse("")
+        val uri = s"dataset:hdfs:/opendata/test.csv/$csvFileName"
+        val response: WSResponse = Await.result[WSResponse](client.url(s"http://localhost:$port/storage-manager/v1/physical-datasets?uri=$uri&format=raw&limit=$limit").
+          withAuth("david", "david", WSAuthScheme.BASIC).
+          execute, Duration.Inf)
+        response.body.stripLineEnd must be equalTo txtDoc
       }
 
     }

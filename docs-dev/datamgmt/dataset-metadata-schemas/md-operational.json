@@ -1,0 +1,49 @@
+{
+  "uri": {"format": "string", "required": 1, "computed": 1, "__comment": "Unique resurce identifier of the dataset. It is calculated automatically and assigned once for all "},
+  "is_std": {"format": "boolean", "required": 0, "computed": 1, "__comment": "It tells if the dataset is a Standart Schema dataset (or VID). It takes values 'true' (StdSchema Dataset), 'false' (not a StdSchema Dataset)."},
+  "group_own": {"format": "string", "required":1, "__comment": "Group of ownership to which the dataset belongs. It is set to 'open' by default."},
+  "std_schema": {"format": "json", "required": 0, "__comment": "Info for the input phase into StdSchema.", "val":
+    {
+      "std_uri": {"format": "string", "required":1, "__comment": "URI of the chosen std schema."},
+      "fields_conv": {"format": "json", "required": 1, "__comment": "Array containing the conversion from the incoming schema to the vip/standard one.", "val":
+        [
+          {
+            "field_std": {"format": "string", "required": 1, "__comment": "Field name of the desired dataschema chosen"},
+            "formula": {"format": "string", "required": 1, "__comment": "Formula to use for conversion from input data source"}
+          }
+        ]
+      },
+      "fields_custom": {"format": "json", "required": 0, "__comment": "Array containing the list of custom fields, that are on top of the ones defined in the Std Schema.", "val":
+        [
+          {
+            "name": {"format": "string", "required": 1, "__comment": "Field name of the custom field."}
+          }
+        ]
+      }
+    }
+  },
+  "read_type": {"format": "string", "required": 1, "__comment": "It tells if the dataset is a TS (so it will return all appended data), or if it is an update and only the most recent timestamp needs to be returned. It can take only two values: ts or update, ts is the default."},
+  "georef": {"format": "Array(json)", "required": 0, "__comment": "An array of geographic coordinate that identifies a point to a polygon.", "val":
+    [
+      {
+        "lat": {"format": "double", "required": 1, "__comment": "Latitude value of the geographic coordinates."},
+        "lon": {"format": "double", "required": 1, "__comment": "Longitude value of the geographic coordinates."}
+      }
+    ]
+  },
+  "input_src": {"format": "Array(json)", "required": 0, "val":
+    [
+      {
+        "ingestion_type": {"format": "string", "required": 1, "__comment": "It takes two values: 'pull' or 'push' "},
+        "origin": {"format": "string", "required": 1, "__comment": "It says if the input dataset is already in DAF or if it is an external resource to be insert. Either 'exteral' or 'internal'. If it is an external resource, then it will be saved into daf independently if it is part of a stdSchema Vip."},
+        "src_type": {"format": "string", "required": 1, "__comment": "The format of the input resource."},
+        "url": {"format": "string", "required": 1, "__comment": "Where the data input for the ingestion is located."},
+        "frequency": {"format": "string", "required": 0, "__comment": "Frequency at which the update procedure needs to be updated."},
+        "table": {"format": "string", "required": 0},
+        "pipeline_uri": {"format": "string", "required": 0, "__comment": "The URI of the transformation pipeline that takes as input the input_src and returns as output the dataset. This should be done only if internal URI is used."},
+      },
+    ]
+
+  },
+
+}

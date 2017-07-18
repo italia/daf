@@ -1,0 +1,38 @@
+{
+  "dct:identifier": "ABC1234",
+  "dct:title": {
+    "val": "GTFS Agency"
+  },
+  "dct:description": {
+    "val": "One or more transit agencies that provide the data in this feed"
+  },
+  "dcat:theme": {
+    "@id": "http://publications.europa.eu/resource/authority/data-theme/TRAN",
+    "val": "Trasporti"
+  },
+  "dct:rightsHolder": {
+    "@id": "http://teamdigitale.governo.it/daf",
+    "val": "DAF"
+  },
+  "dct:accrualPeriodicity":{
+    "@id": "http://publications.europa.eu/resource/authority/frequency/BIMONTHLY",
+    "val": "bimonthly"
+  },
+  "dct:subject":
+  [
+    {
+      "@id": "http://eurovoc.europa.eu/4512",
+      "val": "public transport"
+    }
+  ],
+  "dct:language": {
+    "@id": "http://publications.europa.eu/resource/authority/language/ITA",
+    "val": "ITA"
+  },
+
+  "dcat:keyword":
+  [
+    "gtfs", "public transportation", "agency", "trasporto pubblico", "aziende trasporto"
+  ],
+  "dcat:spatial": "http://www.geonames.org/3175395"
+}

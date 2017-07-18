@@ -1,6 +1,6 @@
 package it.gov.daf.catalogmanager.repository.catalog
 
-import catalog_manager.yaml.{MetaCatalog, Successf}
+import catalog_manager.yaml.{MetaCatalog, Success}
 import com.mongodb.DBObject
 import com.mongodb.casbah.MongoClient
 import org.bson.types.ObjectId
@@ -8,7 +8,7 @@ import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import com.mongodb.casbah.Imports._
 import it.gov.daf.catalogmanager.utilities.{CatalogManager, ConfigReader}
 
-import scala.util.{Success, Try}
+import scala.util.{Try}
 
 
 /**
@@ -20,6 +20,7 @@ class CatalogRepositoryMongo extends  CatalogRepository{
   private val mongoPort = ConfigReader.getDbPort
 
   import catalog_manager.yaml.BodyReads._
+
 
   def listCatalogs() :Seq[MetaCatalog] = {
     val mongoClient = MongoClient(mongoHost, mongoPort)
@@ -63,7 +64,7 @@ class CatalogRepositoryMongo extends  CatalogRepository{
     metaCatalog
   }
 
-  def createCatalog(metaCatalog: MetaCatalog) :Successf = {
+  def createCatalog(metaCatalog: MetaCatalog) :Success = {
 
     import catalog_manager.yaml.ResponseWrites.MetaCatalogWrites
 
@@ -78,7 +79,7 @@ class CatalogRepositoryMongo extends  CatalogRepository{
           val res: Try[(Boolean, MetaCatalog)] = Try(getCatalogs(stdUri))
             .map(CatalogManager.writeOrdinaryWithStandard(metaCatalog, _))
           res match {
-            case Success((true, meta)) =>
+            case scala.util.Success((true, meta)) =>
               val json: JsValue = MetaCatalogWrites.writes(meta)
               val obj = com.mongodb.util.JSON.parse(json.toString()).asInstanceOf[DBObject]
               val inserted = coll.insert(obj)
@@ -95,7 +96,7 @@ class CatalogRepositoryMongo extends  CatalogRepository{
           val id = random.nextInt(1000).toString
           val res: Try[(Boolean, MetaCatalog)]= Try(CatalogManager.writeOrdinary(metaCatalog))
           val msg = res match {
-            case Success((true, meta)) =>
+            case scala.util.Success((true, meta)) =>
               val json: JsValue = MetaCatalogWrites.writes(meta)
               val obj = com.mongodb.util.JSON.parse(json.toString()).asInstanceOf[DBObject]
               val inserted = coll.insert(obj)
@@ -111,6 +112,6 @@ class CatalogRepositoryMongo extends  CatalogRepository{
       case _ => println(""); val msg = "Error"; msg
     }
 
-    Successf(Some(msg),Some(msg))
+    Success(Some(msg),Some(msg))
   }
 }

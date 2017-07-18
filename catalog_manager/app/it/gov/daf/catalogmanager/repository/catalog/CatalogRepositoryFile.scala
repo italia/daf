@@ -11,12 +11,11 @@
   import it.gov.daf.catalogmanager.utilities.uri.UriDataset
   import play.Environment
   import play.api.libs.json._
-  import it.gov.daf.catalogmanager.utilities.datastructures._
+  //import it.gov.daf.catalogmanager.utilities.datastructures._
   import play.api.Logger
-
-  import scala.util.Success
   import scala.util.Failure
   import scala.util.Try
+  import catalog_manager.yaml.Success
 
 
   /**
@@ -120,7 +119,7 @@
 
 
 
-    def createCatalog(metaCatalog: MetaCatalog) :Successf = {
+    def createCatalog(metaCatalog: MetaCatalog) :Success = {
       import catalog_manager.yaml.ResponseWrites.MetaCatalogWrites
 
       val fw = new FileWriter("data/data-mgt/data_test.json", true)
@@ -133,7 +132,7 @@
             val res: Try[(Boolean, MetaCatalog)] = Try(getCatalogs(stdUri))
               .map(CatalogManager.writeOrdinaryWithStandard(metaCatalog, _))
             res match {
-              case Success((true, meta)) =>
+              case scala.util.Success((true, meta)) =>
                 val data = Json.toJson(meta)
                 fw.write(Json.stringify(data) + "\n")
                 fw.close()
@@ -146,7 +145,7 @@
           } else {
             val res: Try[(Boolean, MetaCatalog)]= Try(CatalogManager.writeOrdinary(metaCatalog))
             val msg = res match {
-              case Success((true, meta)) =>
+              case scala.util.Success((true, meta)) =>
                 val data = Json.toJson(meta)
                 fw.write(Json.stringify(data) + "\n")
                 fw.close()
@@ -163,6 +162,6 @@
         case _ =>  val msg = "Error"; msg
       }
 
-      Successf(Some(msg),Some(msg))
+      Success(Some(msg),Some(msg))
     }
   }

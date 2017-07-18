@@ -1,67 +1,75 @@
 {
-   "namespace": "it.gov.teamdigitale.daf.iotingestion.event",
-   "name": "Event",
-   "type": "record",
-   "doc": "A generic event. See the reference guide for event format information.",
-   "version": 3,
-   "fields": [
-     {
-       "name": "version",
-       "type": "long",
-       "doc": "Version of this schema",
-       "default": 3
-     },
-     {
-       "name": "id",
-       "type": [ "null", "string" ],
-       "doc": "A globally unique identifier for this event.",
-       "default": null
-     },
-     {
-       "name": "ts",
-       "type": "long",
-       "doc": "Epoch timestamp in millis. Required."
-     },
-     {
-       "name": "event_type_id",
-       "type": "int",
-       "doc": "ID indicating the type of event. Required."
-     },
-     {
-       "name": "source",
-       "type": [ "string", "null" ],
-       "doc": "Deprecated event source. Optional.",
-       "default": ""
-     },
-     {
-       "name": "location",
-       "type": "string",
-       "doc": "Location from which the event was generated. Required.",
-       "default": ""
-     },
-     {
-       "name": "host",
-       "type": "string",
-       "doc": "Hostname, IP, or other device identifier from which the event was generated. Required.",
-       "default": ""
-     },
-     {
-       "name": "service",
-       "type": "string",
-       "doc": "Service or process from which the event was generated. Required.",
-       "default": ""
-     },
-     {
-       "name": "body",
-       "type": [ "null", "bytes" ],
-       "doc": "Raw event content in bytes. Optional.",
-       "default": null
-     },
-     {
-       "name": "attributes",
-       "type": { "type": "map", "values": "string" },
-       "doc": "Event type-specific key/value pairs, usually extracted from the event body. Required.",
-       "order": "ignore"
-     }
-   ]
- }
+	"namespace": "it.gov.teamdigitale.daf.iotingestion.event",
+	"name": "Event",
+	"type": "record",
+	"doc": "A generic event. See the reference guide for event format information.",
+	"version": 3,
+	"fields": [{
+			"name": "version",
+			"type": "long",
+			"doc": "Version of this schema",
+			"default": 2
+		},
+		{
+			"name": "id",
+			"type": ["null", "string"],
+			"doc": "A globally unique identifier for this event. Optional",
+			"default": null
+		},
+		{
+			"name": "ts",
+			"type": "long",
+			"doc": "Epoch timestamp in millis. Required."
+		},
+		{
+			"name": "temporal_granularity",
+			"type": ["null", "string"],
+			"doc": "atom of time from a particular application’s point of view, for example: second, minute, hour, or day. Optional.",
+			"default": null
+		},
+		{
+			"name": "event_certainty",
+			"type": "double",
+			"doc": "estimation of the certainty of this particular event [0,1]. Optional.",
+			"default": 1.0
+		},
+		{
+			"name": "event_type_id",
+			"type": "int",
+			"doc": "ID indicating the type of event: 0 for metric event, 1 for changing state events, 2 for generic events Required."
+		},
+		{
+			"name": "event_annotation",
+			"type": ["null", "string"],
+			"doc": "free-text explanation of what happened in this particular event. Optional.",
+			"default": null
+		},
+		{
+			"name": "source",
+			"type": "string",
+			"doc": "The event source attribute is the name of the entity that originated this event. This can be either an event producer or an event processing agent. Required"
+
+		},
+		{
+			"name": "location",
+			"type": "string",
+			"doc": "Location from which the event was generated. Required.",
+			"default": ""
+		},
+		{
+			"name": "body",
+			"type": ["null", "bytes"],
+			"doc": "Raw event content in bytes. Optional.",
+			"default": null
+		},
+		{
+			"name": "attributes",
+			"type": {
+				"type": "map",
+				"values": "string"
+			},
+			"doc": "Event type-specific key/value pairs, usually extracted from the event body. Required.",
+			"order": "ignore"
+		}
+	]
+}

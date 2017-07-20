@@ -1,0 +1,102 @@
+{% import 'macros/form.html' as form %}
+
+{% macro input_block(for, label="", error="", classes=[], control_classes=[], extra_html="", is_required=false) %}
+  <div class="control-group{{ " error" if error }}{{ " " ~ classes | join(' ') }}">
+    <label class="control-label" for="{{ for }}">{% if is_required %}<span title="{{ _("This field is required") }}" class="control-required">*</span> {% endif %}{{ label or _('Custom') }}</label>
+    <div class="controls{{ " " ~ control_classes | join(' ') }}">
+      {{ caller() }}
+      {% if error and error is iterable %}<span class="error-block">{{ error|join(', ') }}</span>{% endif %}
+      {{ extra_html }}
+    </div>
+  </div>
+{% endmacro %}
+
+
+{# -------------------------------------------------------------------------------
+Old implementation of the couple element (one element with comma separated values)
+
+{% macro couple(name, labels=(), names=(), id="", label="", values=(), placeholders=(), error="", type="", classes=[], attrs={}, is_required=false, key_values=()) %}
+  {%- set classes = (classes|list) -%}
+  {%- set label_id = (id) ~ "-key" -%}
+  {%- set extra_html = caller() if caller -%}
+  {%- do classes.append('control-custom') -%}
+
+  {% call input_block(label_id, label or name, error, classes, control_classes=["editor"], extra_html=extra_html, is_required=is_required) %}
+    <div class="input-prepend" {{ form.attributes(attrs) }}>
+
+      <input id="{{name}}-hidden" type="hidden" name="{{ name }}" value="{{ values[0] + ',' + values[1] if values[0] and values[1] else ''}}" />
+
+      <label for="{{ names[0] }}-label" class="add-on">{{ _(labels[0]) }}</label>
+      <input id="{{ names[0] }}-value" 
+             type="{{ type }}" 
+             name="{{ names[0] }}" 
+             value="{{ values[0] | empty_and_escape }}" 
+             placeholder="{{ placeholders[0] }}" 
+             onchange="if($('#{{ names[0] }}-value').val() || $('#{{ names[1] }}-value').val()){
+                $('#{{name}}-hidden').val($('#{{ names[0] }}-value').val() + ',' + $('#{{ names[1] }}-value').val())
+              } else {
+                $('#{{name}}-hidden').val('')
+              } " />
+
+      <label for="{{ names[1] }}-label" class="add-on">{{ _(labels[1]) }}</label>
+      <input id="{{ names[1] }}-value" 
+             type="{{ type }}" 
+             name="{{ names[1] }}" 
+             value="{{ values[1] | empty_and_escape }}" 
+             placeholder="{{ placeholders[1] }}" 
+             onchange="if($('#{{ names[0] }}-value').val() || $('#{{ names[1] }}-value').val()){
+                $('#{{name}}-hidden').val($('#{{ names[0] }}-value').val() + ',' + $('#{{ names[1] }}-value').val())
+              } else {
+                $('#{{name}}-hidden').val('')
+              } " />
+    </div>
+  {% endcall %}
+{% endmacro %}
+------------------------------------------------------------------------------- #}
+
+
+{% macro couple(name, labels=(), names=(), id="", label="", values=(), placeholders=(), error="", types="", classes=[], attrs={}, is_required=false, key_values=()) %}
+  {%- set classes = (classes|list) -%}
+  {%- set label_id = (id) ~ "-key" -%}
+  {%- set extra_html = caller() if caller -%}
+  {%- do classes.append('control-custom') -%}
+
+  {% call input_block(label_id, label or name, error, classes, control_classes=["editor"], extra_html=extra_html, is_required=is_required) %}
+    <div class="input-prepend" {{ form.attributes(attrs) }}>
+      <label for="{{ names[0] }}-label" class="add-on">{{ _(labels[0]) }}</label>
+      <input id="{{ names[0] }}-value" 
+             type="{{ types[0] }}" 
+             name="{{ names[0] }}" 
+             value="{{ values[0] | empty_and_escape }}" 
+             placeholder="{{ placeholders[0] }}" />
+
+      <label for="{{ names[1] }}-label" class="add-on">{{ _(labels[1]) }}</label>
+      <input id="{{ names[1] }}-value" 
+             type="{{ types[1] }}" 
+             name="{{ names[1] }}" 
+             value="{{ values[1] | empty_and_escape }}" 
+             placeholder="{{ placeholders[1] }}" />
+    </div>
+  {% endcall %}
+{% endmacro %}
+
+{% macro theme(name, id='', label='', value='', placeholder='', type='text', error="", options=(), classes=[], attrs={}, is_required=false) %}
+  {%- set extra_html = caller() if caller -%}
+
+  {% call input_block(id or name, label or name, error, classes, extra_html=extra_html, is_required=is_required) %}
+
+      <select id="{{name}}-hidden" placeholder="{{ placeholder }}" multiple name="{{ name }}" {{ attributes(attrs) }} data-module="autocomplete">
+        {% for option in options %}
+          <option value="{{ option.value }}"{% if value and option.value in value %} selected {% endif %}>{{ option.text or option.value }}</option>
+        {% endfor %}
+      </select>
+
+  {% endcall %}
+
+{% endmacro %}
+
+{%- macro attributes(attrs={}) -%}
+  {%- for key, value in attrs.items() -%}
+  {{ " " }}{{ key }}{% if value != "" %}="{{ value }}"{% endif %}
+  {%- endfor -%}
+{%- endmacro -%}

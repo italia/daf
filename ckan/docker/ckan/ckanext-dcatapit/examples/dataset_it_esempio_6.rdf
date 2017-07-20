@@ -1,0 +1,194 @@
+<?xml version="1.0"?>
+    <!DOCTYPE rdf:RDF [ <!ENTITY schema "http://schema.org" >
+    <!ENTITY dct "http://purl.org/dc/terms/" >
+    <!ENTITY locn "http://www.w3.org/ns/locn#" >
+    <!ENTITY adms "http://www.w3.org/ns/adms#" >
+    <!ENTITY dcat "http://www.w3.org/ns/dcat#" >
+    <!ENTITY foaf "http://xmlns.com/foaf/0.1/" >
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY vcard "http://www.w3.org/2006/vcard/ns#" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY dcatapit "http://dati.gov.it/onto/dcatapit#&quot;" >
+    <!ENTITY xml "http://www.w3.org/XML/1998/namespace" >
+    <!ENTITY skos "http://www.w3.org/2004/02/skos/core#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY gsp "http://www.opengis.net/ont/geosparql#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" > ]>
+
+<rdf:RDF xmlns="http://www.semanticweb.org/owl/owlapi/turtle#"
+         xml:base="http://www.semanticweb.org/owl/owlapi/turtle"
+         xmlns:schema="http://schema.org"
+         xmlns:adms="http://www.w3.org/ns/adms#"
+         xmlns:owl="http://www.w3.org/2002/07/owl#"
+         xmlns:gsp="http://www.opengis.net/ont/geosparql#"
+         xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+         xmlns:skos="http://www.w3.org/2004/02/skos/core#"
+         xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+         xmlns:vcard="http://www.w3.org/2006/vcard/ns#"
+         xmlns:dct="http://purl.org/dc/terms/"
+         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:xml="http://www.w3.org/XML/1998/namespace"
+         xmlns:dcatapit="http://dati.gov.it/onto/dcatapit#&quot;"
+         xmlns:locn="http://www.w3.org/ns/locn#"
+         xmlns:dcat="http://www.w3.org/ns/dcat#"
+         xmlns:foaf="http://xmlns.com/foaf/0.1/">
+
+    <!-- http://creativecommons.org/licenses/by/3.0/it/ -->
+    <dcatapit:LicenseDocument rdf:about="http://creativecommons.org/licenses/by/3.0/it/">
+        <rdf:type rdf:resource="&dct;LicenseDocument"/>
+        <owl:versionInfo>3.0 ITA</owl:versionInfo>
+        <foaf:name>CC BY</foaf:name>
+        <dct:type rdf:resource="http://purl.org/adms/licencetype/Attribution"/>
+    </dcatapit:LicenseDocument>
+
+    <!-- http://dati.gov.it/resource/Amministrazione/agid -->
+    <dcatapit:Agent rdf:about="http://dati.gov.it/resource/Amministrazione/agid">
+        <rdf:type rdf:resource="&foaf;Agent"/>
+        <dct:identifier>agid</dct:identifier>
+        <foaf:name>Agenzia per l'Italia Digitale</foaf:name>
+    </dcatapit:Agent>
+
+    <!-- http://dati.gov.it/resource/Amministrazione/r_liguri -->
+    <dcatapit:Agent rdf:about="http://dati.gov.it/resource/Amministrazione/r_liguri">
+        <rdf:type rdf:resource="&foaf;Agent"/>
+        <dct:identifier>r_liguri</dct:identifier>
+        <foaf:name>Regione Liguria</foaf:name>
+    </dcatapit:Agent>
+
+    <!-- http://dati.gov.it/resource/Catalogo/RNDTCatalogo_agid -->
+    <dcatapit:Catalog rdf:about="http://dati.gov.it/resource/Catalogo/RNDTCatalogo_agid">
+        <rdf:type rdf:resource="&dcat;Catalog"/>
+        <dct:issued rdf:datatype="&xsd;date">2012-11-15</dct:issued>
+        <dct:modified rdf:datatype="&xsd;date">2016-03-20</dct:modified>
+        <dct:description xml:lang="it">RNDT (Repertorio Nazionale dei Dati Territoriali) fornisce l&apos;accesso ai metadati su dati e servizi territoriali delle Pubbliche Amministrazioni italiane.</dct:description>
+        <dct:title xml:lang="it">Catalogo RNDT</dct:title>
+        <dct:publisher rdf:resource="http://dati.gov.it/resource/Amministrazione/agid"/>
+        <dcat:dataset rdf:resource="http://dati.gov.it/resource/Dataset/LineaCosta_r_liguri:D.658"/>
+        <dcat:dataset rdf:resource="http://dati.gov.it/resource/Dataset/StudiMediciGenericiPediatri_r_liguri:D.658"/>
+        <dcat:themeTaxonomy rdf:resource="http://publications.europa.eu/resource/authority/data-theme"/>
+        <dct:language rdf:resource="http://publications.europa.eu/resource/authority/language/ITA"/>
+        <foaf:homepage rdf:resource="http://www.rndt.gov.it/RNDT/home/index.php"/>
+    </dcatapit:Catalog>
+
+    <!-- http://dati.gov.it/resource/CoperturaSpaziale/LocalizzazioneLineaCosta -->
+    <dct:Location rdf:about="http://dati.gov.it/resource/CoperturaSpaziale/LocalizzazioneLineaCosta_r_liguri:D.658">
+        <locn:geometry rdf:datatype="&gsp;gmlLiteral">&lt;gml:Envelope srsName=&quot;http://www.opengis.net/def/EPSG/0/4326&quot;&gt;&lt;gml:lowerCorner&gt;7.48820862370018 43.5963597132668&lt;/gml:lowerCorner&gt;&lt;gml:upperCorner&gt;10.0879518636137 44.849579861466&lt;/gml:upperCorner&gt;&lt;/gml:Envelope&gt;</locn:geometry>
+    </dct:Location>
+
+    <!-- http://dati.gov.it/resource/CoperturaSpaziale/LocalizzazioneStudiMedici_r_liguri:D.658 -->
+    <dct:Location rdf:about="http://dati.gov.it/resource/CoperturaSpaziale/LocalizzazioneStudiMedici_r_liguri:D.658">
+        <locn:geometry rdf:datatype="&gsp;gmlLiteral">&lt;gml:Envelope srsName=&quot;http://www.opengis.net/def/EPSG/0/4326&quot;&gt;&lt;gml:lowerCorner&gt;7.48820862370018 43.5963597132668&lt;/gml:lowerCorner&gt;&lt;gml:upperCorner&gt;10.0879518636137 44.849579861466&lt;/gml:upperCorner&gt;&lt;/gml:Envelope&gt;</locn:geometry>
+    </dct:Location>
+
+    <!-- http://dati.gov.it/resource/Dataset/LineaCosta_r_liguri:D.658 -->
+    <dcatapit:Dataset rdf:about="http://dati.gov.it/resource/Dataset/LineaCosta_r_liguri:D.658">
+        <rdf:type rdf:resource="&dcat;Dataset"/>
+        <dct:modified rdf:datatype="&xsd;date">2003-01-01</dct:modified>
+        <dct:issued rdf:datatype="&xsd;date">2008-06-01</dct:issued>
+        <dct:identifier>r_liguri:D.658</dct:identifier>
+        <dcat:keyword>CARTE TEMATICHE</dcat:keyword>
+        <dcat:keyword>ACQUE MARINE</dcat:keyword>
+        <dct:title xml:lang="it">Evoluzione della linea di costa dal 1944 al 2003</dct:title>
+        <dct:description xml:lang="it">Linea di costa non vettorializzata sui fotogrammi con copertura nuvolosa - Copertura: Fascia costiera - Origine: Restituzione vettoriale della linea di costa sulla base dei fotogrammi dei voli 1944, 1973, 1983, 1993 e 2003</dct:description>
+        <dct:publisher rdf:resource="http://dati.gov.it/resource/Amministrazione/r_liguri"/>
+        <dct:rightsHolder rdf:resource="http://dati.gov.it/resource/Amministrazione/r_liguri"/>
+        <dct:creator rdf:resource="http://dati.gov.it/resource/Amministrazione/r_liguri"/>
+        <dct:spatial rdf:resource="http://dati.gov.it/resource/CoperturaSpaziale/LocalizzazioneLineaCosta_r_liguri:D.658"/>
+        <dcat:distribution rdf:resource="http://dati.gov.it/resource/Distribuzione/LineaCosta_r_liguri:D.658_TIFF"/>
+        <dcat:contactPoint rdf:resource="http://dati.gov.it/resource/PuntoContatto/contactPointRegione_r_liguri"/>
+        <dct:subject rdf:resource="http://eurovoc.europa.eu/100243"/>
+        <dct:subject rdf:resource="http://eurovoc.europa.eu/3146"/>
+        <dct:subject rdf:resource="http://eurovoc.europa.eu/1870"/>
+        <dcat:theme rdf:resource="http://publications.europa.eu/resource/authority/data-theme/ENVI"/>
+        <dct:accrualPeriodicity rdf:resource="http://publications.europa.eu/resource/authority/frequency/ANNUAL"/>
+        <dcat:landindPage rdf:resource="http://www.regione.liguria.it/opendata/dati-cartografici/item/36001-linea-di-costa.html"/>
+    </dcatapit:Dataset>
+
+    <!-- http://dati.gov.it/resource/Dataset/StudiMediciGenericiPediatri_r_liguri:D.659 -->
+    <dcatapit:Dataset rdf:about="http://dati.gov.it/resource/Dataset/StudiMediciGenericiPediatri_r_liguri:D.658">
+        <rdf:type rdf:resource="&dcat;Dataset"/>
+        <dct:modified rdf:datatype="&xsd;date">2004-01-01</dct:modified>
+        <dct:identifier>r_liguri:D.659</dct:identifier>
+        <dct:description xml:lang="it">Elenco ufficiale dei medici generici e pediatri convenzionati con le ASL regionali in data gennaio 2005 - Copertura: Intero Territorio Regionale - Origine: Georeferenziazione puntuale in base all&apos;indirizzo completo di numero civico</dct:description>
+        <dcat:keyword>SALUTE</dcat:keyword>
+        <dcat:keyword>CARTE TEMATICHE</dcat:keyword>
+        <dct:title xml:lang="it">Studi Medici generici e pediatri sc. 1:5000</dct:title>
+        <dct:rightsHolder rdf:resource="http://dati.gov.it/resource/Amministrazione/r_liguri"/>
+        <dct:creator rdf:resource="http://dati.gov.it/resource/Amministrazione/r_liguri"/>
+        <dct:publisher rdf:resource="http://dati.gov.it/resource/Amministrazione/r_liguri"/>
+        <dct:spatial rdf:resource="http://dati.gov.it/resource/CoperturaSpaziale/LocationStudiMedici_r_liguri:D.659"/>
+        <dcat:distribution rdf:resource="http://dati.gov.it/resource/Distribuzione/StudiMedici_r_liguri:D.659_TIFF"/>
+        <dct:temporal rdf:resource="http://dati.gov.it/resource/PeriodoTemporale/periodTimeStudiMedici_r_liguri:D.659"/>
+        <dcat:contactPoint rdf:resource="http://dati.gov.it/resource/PuntoContatto/contactPointRegione_r_liguri"/>
+        <dct:subject rdf:resource="http://eurovoc.europa.eu/2789"/>
+        <dcat:theme rdf:resource="http://publications.europa.eu/resource/authority/data-theme/HEAL"/>
+        <dct:accrualPeriodicity rdf:resource="http://publications.europa.eu/resource/authority/frequency/IRREG"/>
+    </dcatapit:Dataset>
+
+    <!-- http://dati.gov.it/resource/Distribuzione/LineaCosta_r_liguri:D.658_TIFF -->
+    <dcatapit:Distribution rdf:about="http://dati.gov.it/resource/Distribuzione/LineaCosta_r_liguri:D.658_TIFF">
+        <rdf:type rdf:resource="&dcat;Distribution"/>
+        <dct:title xml:lang="it">Distribuzione Linea Costa TIFF</dct:title>
+        <dct:description xml:lang="it">Questa è la distribuzione del dataset Linea Costa disponibile in formato TIFF</dct:description>
+        <dcat:downloadURL rdf:resource="http://cartodownloadpubb.regione.liguria.it/webpubb/RichiestaDownload.aspx?CodiceCatalogo=658"/>
+        <dct:license rdf:resource="http://creativecommons.org/licenses/by/3.0/it/"/>
+        <dcat:accessURL rdf:resource="http://geoservizi.regione.liguria.it/geoserver/M658/wms?version=1.3.0&amp;amp;request=getcapabilities"/>
+        <dct:format rdf:resource="http://publications.europa.eu/resource/authority/file-type/TIFF"/>
+    </dcatapit:Distribution>
+
+    <!-- http://dati.gov.it/resource/Distribuzione/StudiMedici_r_liguri:D.659_TIFF -->
+    <dcatapit:Distribution rdf:about="http://dati.gov.it/resource/Distribuzione/StudiMedici_r_liguri:D.659_TIFF">
+        <rdf:type rdf:resource="&dcat;Distribution"/>
+        <dct:title xml:lang="it">Distribuzione Studi Medici e Pediatri TIFF</dct:title>
+        <dct:description xml:lang="it">Questa è la distribuzione del dataset sugli studi medici e pediatri in formato TIFF</dct:description>
+        <dcat:downloadURL rdf:resource="http://cartodownloadpubb.regione.liguria.it/webpubb/RichiestaDownload.aspx?CodiceCatalogo=453"/>
+        <dct:license rdf:resource="http://creativecommons.org/licenses/by/3.0/it/"/>
+        <dcat:accessURL rdf:resource="http://geoservizi.regione.liguria.it/geoserver/M453/wms?version=1.3.0&amp;amp;request=getcapabilities"/>
+        <dct:format rdf:resource="http://publications.europa.eu/resource/authority/file-type/TIFF"/>
+    </dcatapit:Distribution>
+
+    <!-- http://dati.gov.it/resource/PeriodoTemporale/periodTimeStudiMedici_r_liguri:D.659 -->
+    <dct:PeriodOfTime rdf:about="http://dati.gov.it/resource/PeriodoTemporale/periodTimeStudiMedici_r_liguri:D.659">
+        <dcatapit:startDate rdf:datatype="&xsd;date">2005-01-01</dcatapit:startDate>
+        <dcatapit:endDate rdf:datatype="&xsd;date">2005-12-31</dcatapit:endDate>
+    </dct:PeriodOfTime>
+
+    <!-- http://dati.gov.it/resource/PuntoContatto/contactPointRegione_r_liguri -->
+    <dcatapit:Organization rdf:about="http://dati.gov.it/resource/PuntoContatto/contactPointRegione_r_liguri">
+        <rdf:type rdf:resource="&vcard;Kind"/>
+        <rdf:type rdf:resource="&vcard;Organization"/>
+        <vcard:hasEmail rdf:resource="mailto:infoter@regione.liguria.it"/>
+        <vcard:fn>Regione Liguria - Sportello Cartografico</vcard:fn>
+    </dcatapit:Organization>
+
+    <!-- http://eurovoc.europa.eu/2789 -->
+    <skos:Concept rdf:about="http://eurovoc.europa.eu/2789">
+        <skos:prefLabel xml:lang="it">professione sanitaria</skos:prefLabel>
+    </skos:Concept>
+
+    <!-- http://eurovoc.europa.eu/100243 -->
+    <skos:Concept rdf:about="http://eurovoc.europa.eu/100243">
+        <skos:prefLabel xml:lang="it">ambiente naturale</skos:prefLabel>
+    </skos:Concept>
+
+    <!-- http://eurovoc.europa.eu/3146 -->
+    <skos:Concept rdf:about="http://eurovoc.europa.eu/3146">
+        <skos:prefLabel xml:lang="it">ambiente geofisico</skos:prefLabel>
+    </skos:Concept>
+
+    <!-- http://eurovoc.europa.eu/1870 -->
+    <skos:Concept rdf:about="http://eurovoc.europa.eu/1870">
+        <skos:prefLabel xml:lang="it">mare</skos:prefLabel>
+    </skos:Concept>
+
+    <!-- http://publications.europa.eu/resource/authority/data-theme -->
+    <skos:ConceptScheme rdf:about="http://publications.europa.eu/resource/authority/data-theme">
+        <dct:title xml:lang="it">Il Vocabolario Data Theme</dct:title>
+    </skos:ConceptScheme>
+
+    <!-- http://publications.europa.eu/resource/authority/data-theme/ENVI -->
+    <skos:Concept rdf:about="http://publications.europa.eu/resource/authority/data-theme/ENVI">
+        <skos:prefLabel xml:lang="it">Ambiente</skos:prefLabel>
+    </skos:Concept>
+
+</rdf:RDF>

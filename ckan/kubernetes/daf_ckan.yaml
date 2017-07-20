@@ -45,7 +45,7 @@ spec:
               mountPath: /var/lib/postgresql/data
               subPath: ckan/postgres/data
         - name: ckan-solr
-          image: ckan/solr:latest
+          image: 10.98.74.120:5000/daf-ckan-solr:1.0.0
           volumeMounts:
             - name: glusterfsvol
               mountPath: /opt/solr/server/solr/ckan/data

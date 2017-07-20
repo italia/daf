@@ -68,7 +68,7 @@ Il DAF mette a disposizione di ciascuna PA:
 
 Oltre a quanto messo a disposizione dalla piattaforma, attraverso il team di data scientist, il DAF offre un **supporto alle PA** per la costruzione di modelli di interconnessione delle diverse sorgenti dati, l’analisi dei dati, lo sviluppo di modelli di machine learning, il coordinamento dello sviluppo di data application e l’organizzazione di “competizioni” scientifiche su tematiche di interesse per la PA .
 
-##Roadmap di evoluzione
+## Roadmap di evoluzione
 
 Lo sviluppo del DAF prevede due fasi principali:
 
@@ -84,7 +84,7 @@ Di seguito una roadmap di alto livello, redatta in base alle informazioni e disp
 
 [inserire GANTT]
 
-##Casi d'uso della fase sperimentale
+## Casi d'uso della fase sperimentale
 
 A seguire un elenco di casi d'uso che  durante la prima : 
 
@@ -97,7 +97,7 @@ A seguire un elenco di casi d'uso che  durante la prima :
 - [Data applications](casi-uso/data-applications.md)
 - [Attività per la valorizzazione del patrimonio informativo pubblico](casi-uso/valorizzazione-patrimonio-informativo-pubblico.md)
 
-##Modello di governance
+## Modello di governance
 
 Durante la fase sperimentale la governance del DAF è in carico al Team Digitale che ha il compito di gestire attivamente la fase di sviluppo concettuale e implementativo dell’infrastruttura, insieme a tutte le fasi del ciclo di vita del dato, dall’ingestione all’analisi e sviluppo di applicazioni. Il Team Digitale si farà anche carico di ingaggiare i rapporti con le PA coinvolte nella fase di sperimentazione e lavorerà insieme a loro per lo sviluppo di casi d’uso indicati nella roadmap.
 
@@ -105,7 +105,7 @@ Parallelamente il Team Digitale, in collaborazione con AgID e Garante della priv
 
 Parallelamente, il Team Digitale, in stretta collaborazione con le istituzioni competenti, lavorerà per l’individuazione di una PA che prenderà in carico il progetto. Il Team Digitale e la PA selezionata lavoreranno in sinergia durante la fase di messa in produzione del DAF, durante la quale si effettueranno i passaggi di consegna e training.
 
-##Architettura di alto livello
+## Architettura di alto livello
 
 L’architettura logica del DAF è basata sui seguenti layers:
 

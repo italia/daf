@@ -1,10 +1,10 @@
 # Servizi di notifica di eventi di interesse pubblico
 
 
-##Descrizione 
+## Descrizione 
 Il DAF offre un’infrastruttura Big data in grado di svolgere il ruolo di aggregatore ed erogatore di notifiche digitali di eventi di interesse pubblico. In funzione della quantità e della frequenza delle notifiche da emettere, il DAF può implementare Streaming API, fornire servizi RSS, inviare notifiche mediante piattaforme di social network, ecc.
 
-##Motivazione
+## Motivazione
 
 Grazie al DAF è possibile aggregare e uniformare flussi di eventi che ad oggi sono spesso erogati da molteplici sorgenti in modo disomogeneo.   
 La capacità del DAF di intercettare ed eventualmente memorizzare, tali eventi abilita lo sviluppo:

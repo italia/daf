@@ -1,10 +1,10 @@
 # Strumenti di Analisi & Dashboard Self Service
 
 
-##Descrizione 
+## Descrizione 
 **Inserire descrizione**
 
-##Motivazione
+## Motivazione
 
 Rendere facilmente disponibili e interoperabili una serie di dataset Open Data ritenuti strategici sotto il profilo dei fenomeni in essi descritti. Per questi dataset, si vogliono minimizzare i costi transattivi di utilizzo, prevedendo standard e regole di esposizione più stringenti rispetto a quelle normalmente previste per gli Open Data.
 

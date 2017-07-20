@@ -1,11 +1,11 @@
 # Valorizzazione del patrimonio informativo pubblico
 
 
-##Descrizione 
+## Descrizione 
 La valorizzazione del patrimonio informativo pubblico passa anche per iniziative volte a sensibilizzare le PA sulle potenzialità offerte da una migliore gestione delle proprie basi di dati: ciò vale sia in termini di conoscenza utile all'ottimizzazione dei servizi esistenti, sia alla creazione di servizi innovativi.
 Inoltre poiché l'individuazione di algoritmi e tecniche di analisi innovative richiede spesso competenze scientifiche e tecniche specifiche, si reputa utile avviare un processo virtuoso di coinvolgimento della comunità scientifica su tematiche di interesse pubblico.
 
-##Motivazione
+## Motivazione
 
 Il team di data scientist del DAF promuove iniziative volte alla valorizzazione del patrimonio informativo pubblico.
 

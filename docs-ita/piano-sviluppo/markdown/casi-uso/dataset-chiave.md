@@ -1,10 +1,10 @@
 # Implementazione e fruizione Dataset Chiave
 
 
-##Descrizione 
+## Descrizione 
 Il DAF ausilia l’implementazione di [Dataset Chiave](http://elenco-basi-di-dati-chiave.readthedocs.io/it/latest/index.html), fornendo un framework per ingestion e normalizzazione di dati potenzialmente provenienti da molteplici fonti, esponendo una modalità di interrogazione unificata e con regole comuni.
 
-##Motivazione
+## Motivazione
 Rendere facilmente disponibili e interoperabili una serie di dataset Open Data ritenuti strategici sotto il profilo dei fenomeni in essi descritti. Per questi dataset, si vogliono minimizzare i costi transattivi di utilizzo, prevedendo standard e regole di esposizione più stringenti rispetto a quelle normalmente previste per gli Open Data.
 
 ## Casi applicativi
@@ -24,8 +24,6 @@ Elenco caso applicativi:
 | Roadmap |  Entro dicembre 2017 |
 | Stato |  In attesa dei dataset |
 | Note | In lavorazione la documentazione relativa alla struttura dei dati per ogni dataset chiave, le pipeline di trasformazione dal dato grezzo in quello Open Data, le procedure di ingestion automatiche dei dati necessari per produrre i dataset chiave menzionati.|
-
-
 
 | Caso applicativo | Implementazione Dataset Chiave Ambito Economia e Finanze |
 |:---|:---|

@@ -1,10 +1,10 @@
 # Data Applications
 
 
-##Descrizione 
+## Descrizione 
 Una data application è un prodotto software che svolge delle attività ed espone funzionalità sulla base di un contenuto informativo estratto dai dati. Il DAF offre capacità per utilizzare i dati in esso contenuti per sviluppare ed esporre le funzionalità.
 
-##Motivazione
+## Motivazione
 
 Le funzionalità esposte dalle data application costituiscono una modalità di valorizzazione del patrimonio informativo pubblico, perché offrono a cittadini e PA servizi basati sull’utilizzo delle informazioni estratte dalle banche dati pubbliche.
 

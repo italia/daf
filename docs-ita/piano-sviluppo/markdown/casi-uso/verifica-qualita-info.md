@@ -1,10 +1,10 @@
 # Verifica della qualità delle informazioni delle base di dati
 
 
-##Descrizione 
+## Descrizione 
 Il DAF mette a disposizione la sua capacità di calcolo e sfruttare la presenza (al suo interno) di basi di dati autoritative, nonché l’integrazione con il Registro dei vocabolari controllati, al fine di fornire un servizio per la verifica batch della qualità delle informazioni contenute all’interno delle basi di dati della PA. 
 
-##Motivazione
+## Motivazione
 
 Le PA che caricano nel DAF le propri basi di dati possono rendere più semplice e sistematica la verifica della qualità dei dati.
 

@@ -1,10 +1,10 @@
 # Strumenti di monitoraggio automatico
 
 
-##Descrizione 
+## Descrizione 
 Il DAF può utilizzare la sua capacità computazionale e di storage per effettuare attività di monitoraggio automatico su tematiche di interesse pubblico o di singole PA.
 
-##Motivazione
+## Motivazione
 
 Per sua natura il DAF può offrire strumenti utili al monitoraggio automatico di fenomeni che possono essere misurati intercettando eventi e/o recuperando informazioni sul Web e/o su sistemi informatici accessibili alla PA.
 

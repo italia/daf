@@ -19,13 +19,13 @@ package common
 import cats.FlatMap
 import cats.data.Kleisli
 import cats.implicits._
-import it.gov.daf.iotingestion.event.Event
-import org.apache.spark.opentsdb.DataPoint
 import common.Util._
 import it.gov.daf.iotingestion.common.{EventType, SerializerDeserializer}
+import it.gov.daf.iotingestion.event.Event
+import org.apache.spark.opentsdb.DataPoint
 
 import scala.language.{higherKinds, implicitConversions}
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Try}
 
 @SuppressWarnings(
   Array(

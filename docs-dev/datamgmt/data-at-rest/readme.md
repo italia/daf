@@ -11,6 +11,18 @@ On the basis of the settings provided by the dataset owner during the registrati
 Data in HDFS are stored adopting the following folder structure.
 The forder structure is designed to be as flexible as possible based on the use cases of each dataset type (Standard, Ordinary and Raw).
 
+Since the file format is derivable by the directory name, all files are stored by using the following naming convention:
+
+` YYYYMMDD_HHMMSS `
+
+where:
+
+- `YYYY` stands for four-digit year date
+- `MM` stands for two-digit month date
+- `DD` stands for two-digit day date
+- `HH` stands for two-digit hour date
+- `MM` stands for two-digit minute date
+- `SS` stands for two-digit second date
 
 ### Standard Dataset Directory Structure
 
@@ -57,6 +69,6 @@ All Raw datasets are stored in the following HDFS directory:
 
 `/ daf / raw / `
 
-The content of this directory is organized adopting the following rules: 
+The content of this directory is organized adopting the same naming convention used for Ordinary datasets, that is: 
 
 ` sourceOrg / domain / subdomain / datasetName.datasetFormat / `

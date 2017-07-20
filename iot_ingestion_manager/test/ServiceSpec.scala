@@ -21,11 +21,13 @@ import java.util.{Base64, Properties}
 import ServiceSpec._
 import better.files._
 import it.gov.daf.iotingestion.common.SerializerDeserializer
-import it.gov.daf.iotingestionmanager.client.Iot_ingestion_managerClient
 import it.gov.daf.iotingestion.event.Event
+import it.gov.daf.iotingestionmanager.client.Iot_ingestion_managerClient
 import kafka.admin.{AdminUtils, RackAwareMode}
 import kafka.server.{KafkaConfig, KafkaServer, RunningAsBroker}
 import kafka.utils.{MockTime, TestUtils, ZkUtils}
+import net.opentsdb.core._
+import net.opentsdb.utils.Config
 import org.I0Itec.zkclient.ZkClient
 import org.I0Itec.zkclient.serialize.ZkSerializer
 import org.apache.hadoop.conf.Configuration
@@ -34,8 +36,6 @@ import org.apache.hadoop.test.PathUtils
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
 import org.apache.spark.SparkConf
 import org.apache.spark.opentsdb.OpenTSDBConfigurator
-import org.json4s.DefaultFormats
-import org.json4s.native.JsonMethods.parse
 import org.specs2.mutable.Specification
 import org.specs2.specification.BeforeAfterAll
 import play.Logger
@@ -43,6 +43,7 @@ import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.ahc.AhcWSClient
 import play.api.test.WithServer
+import shaded.org.hbase.async.HBaseClient
 
 import scala.collection.convert.decorateAsScala._
 import scala.concurrent.Await
@@ -63,7 +64,7 @@ import scala.util.{Failure, Random, Try}
 )
 class ServiceSpec extends Specification with BeforeAfterAll {
 
-  private val TIMEOUT = 1000
+  private val TIMEOUT = 10000
 
   private val NUMBROKERS = 1
 
@@ -76,6 +77,10 @@ class ServiceSpec extends Specification with BeforeAfterAll {
   private var logDir: Try[JFile] = Failure[JFile](new Exception(""))
 
   private var producer: KafkaProducer[Array[Byte], Array[Byte]] = _
+
+  var tsdb: TSDB = _
+
+  var hbaseAsyncClient: HBaseClient = _
 
   private def getAvailablePort: Int = {
     try {
@@ -154,8 +159,8 @@ class ServiceSpec extends Specification with BeforeAfterAll {
     configure("kafka.zookeeper.quorum" -> s"localhost:${baseConf.get("hbase.zookeeper.property.clientPort")}").
     build()
 
-  "This test" should {
-    "pass" in new WithServer(app = application, port = getAvailablePort) {
+  "The iot-ingestion-manager" should {
+    "receive and store the metric timeseries in OpentTSDB correctly" in new WithServer(app = application, port = getAvailablePort) {
       val ws: AhcWSClient = AhcWSClient()
 
       val plainCreds = "david:david"
@@ -165,36 +170,57 @@ class ServiceSpec extends Specification with BeforeAfterAll {
       val client = new Iot_ingestion_managerClient(ws)(s"http://localhost:$port")
       val result1 = Await.result(client.start(s"Basic $base64Creds"), Duration.Inf)
 
-      Thread.sleep(4000)
-      val events = Range(0, 100).map(r =>
+      Thread.sleep(10000)
+
+      var start = System.currentTimeMillis()
+      val NUMEVENTS = 200
+      val events = Range(0, NUMEVENTS).map(r =>
         new Event(
           version = 1L,
           id = Some(r.toString),
-          ts = System.currentTimeMillis(),
+          ts = start + r,
           event_type_id = 0,
           location = "41.1260529:16.8692905",
-          source = "http://domain/sensor/url",
+          source = "sensor_id",
           body = Option("""{"rowdata": "this json should contain row data"}""".getBytes()),
           attributes = Map(
             "tag1" -> "value1",
             "tag2" -> "value2",
             "metric" -> "speed",
             "value" -> "50",
-            "tags"-> "tag1, tag2"
+            "tags" -> "tag1, tag2"
           )
         )
       )
 
-      events.map{ event =>
+      events.map { event =>
         val eventBytes = SerializerDeserializer.serialize(event)
 
         val record = new ProducerRecord[Array[Byte], Array[Byte]]("daf-iot-events", s"${event.id.getOrElse("error")}".getBytes(), eventBytes)
         producer.send(record)
+        producer.flush()
       }
 
-      Thread.sleep(4000)
+      Thread.sleep(5000)
 
       val result2 = Await.result(client.stop(s"Basic $base64Creds"), Duration.Inf)
+
+      val query = new TSQuery()
+      query.setStart("10h-ago")
+
+      val subQuery = new TSSubQuery()
+      subQuery.setMetric("speed")
+      subQuery.setAggregator("sum")
+
+      val subQueries = new java.util.ArrayList[TSSubQuery]()
+      subQueries.add(subQuery)
+      query.setQueries(subQueries)
+      query.setMsResolution(true)
+      query.validateAndSetQuery()
+      val tsdbQueries: Array[Query] = query.buildQueries(tsdb)
+      val res = tsdbQueries.head.runAsync()
+      val dp: Array[DataPoints] = res.join(1000L)
+      dp.map(dp => dp.iterator().asScala.size) must beEqualTo(Array(NUMEVENTS))
     }
   }
 
@@ -204,6 +230,8 @@ class ServiceSpec extends Specification with BeforeAfterAll {
 
   override def beforeAll(): Unit = {
     hbaseUtil.startMiniCluster(4)
+    Logger.info("Started the HBase minicluster")
+
     val conf = new SparkConf().
       setAppName("daf-iot-manager-local-test").
       setMaster("local[4]").
@@ -213,6 +241,8 @@ class ServiceSpec extends Specification with BeforeAfterAll {
     hbaseUtil.createTable(TableName.valueOf("tsdb"), Array("t"))
     hbaseUtil.createTable(TableName.valueOf("tsdb-tree"), Array("t"))
     hbaseUtil.createTable(TableName.valueOf("tsdb-meta"), Array("name"))
+    Logger.info("Created the HBase OpenTSDB tables")
+
     val confFile: File = confPath / "hbase-site.xml"
     for {os <- confFile.newOutputStream.autoClosed} baseConf.writeXml(os)
 
@@ -221,11 +251,21 @@ class ServiceSpec extends Specification with BeforeAfterAll {
     zkUtils = for {
       zkUtils <- makeZkUtils(zkPort)
     } yield zkUtils
+    zkUtils.foreach(_ => Logger.info("Created the zkUtils"))
+    if(zkUtils.isFailure)
+      Logger.info(s"Problem: Cannot create the zkUtils: ${zkUtils.failed.map(_.getMessage)}")
 
-    for (i <- 0 until NUMBROKERS)
-      kafkaServers(i) = for {
-        kafkaServer <- makeKafkaServer(s"localhost:$zkPort", i)
-      } yield kafkaServer
+    for (i <- 0 until NUMBROKERS) {
+      kafkaServers(i) = {
+        val server = for {
+          kafkaServer <- makeKafkaServer(s"localhost:$zkPort", i)
+        } yield kafkaServer
+        server.foreach(_ => Logger.info("Created the Kafka brokers"))
+        if(server.isFailure)
+          Logger.info(s"Problem: Cannot create the kafka broker: ${server.failed.map(_.getMessage)}")
+        server
+      }
+    }
 
     val brokerPort = kafkaServers.head.map[Int](server => {
       server.config.listeners.head._2.port
@@ -234,10 +274,11 @@ class ServiceSpec extends Specification with BeforeAfterAll {
     zkUtils.foreach(zku => {
       AdminUtils.createTopic(zku, "daf-iot-events", 1, 1, new Properties(), RackAwareMode.Disabled)
 
-      while(zku.getPartitionsForTopics(Seq("daf-iot-events")).isEmpty) {
+      while (zku.getPartitionsForTopics(Seq("daf-iot-events")).isEmpty) {
         Logger.info("Waiting for the topic to be created ...")
         Thread.sleep(1000)
       }
+      Logger.info("Created the topic")
     })
 
     // setup producer
@@ -246,13 +287,27 @@ class ServiceSpec extends Specification with BeforeAfterAll {
     producerProps.setProperty("key.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer")
     producerProps.setProperty("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer")
     producer = new KafkaProducer[Array[Byte], Array[Byte]](producerProps)
-    Thread.sleep(5000)
+    Logger.info("Created the Kafka producer")
+
+    hbaseAsyncClient = new HBaseClient(s"localhost:$zkPort", "/hbase")
+    val config = new Config(false)
+    config.overrideConfig("tsd.storage.hbase.data_table", "tsdb")
+    config.overrideConfig("tsd.storage.hbase.uid_table", "tsdb-uid")
+    config.overrideConfig("tsd.core.auto_create_metrics", "true")
+    config.overrideConfig("batchSize", "10")
+    config.disableCompactions()
+    tsdb = new TSDB(hbaseAsyncClient, config)
+    Logger.info("Created the hbase client and the opentsdb object")
+
+    Thread.sleep(10000)
     ()
   }
 
   override def afterAll(): Unit = {
     producer.close()
     shutdownKafkaServers()
+    tsdb.shutdown()
+    hbaseAsyncClient.shutdown()
     hbaseUtil.shutdownMiniCluster()
   }
 }

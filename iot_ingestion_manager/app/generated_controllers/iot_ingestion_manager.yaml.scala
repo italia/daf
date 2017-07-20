@@ -1,45 +1,32 @@
 
-import play.api.mvc.{Action,Controller}
-
-import play.api.data.validation.Constraint
-
-import play.api.i18n.MessagesApi
-
-import play.api.inject.{ApplicationLifecycle,ConfigurationProvider}
-
-import de.zalando.play.controllers._
-
-import PlayBodyParsing._
-
-import PlayValidations._
-
-import scala.util._
-
-import javax.inject._
-
 import java.net.URLClassLoader
 import java.security.PrivilegedExceptionAction
+import javax.inject._
+
 import com.typesafe.config.ConfigException.Missing
-import common.Transformers.{avroByteArrayToEvent,_}
+import common.Transformers.{avroByteArrayToEvent, _}
 import common.TransformersStream._
 import common.Util._
 import de.zalando.play.controllers.PlayBodyParsing._
 import it.gov.daf.common.authentication.Authentication
-import org.apache.hadoop.conf.{Configuration=>HadoopConfiguration}
-import org.apache.hadoop.hbase.client.{ConnectionFactory,Table}
-import org.apache.hadoop.hbase.{HBaseConfiguration,HColumnDescriptor,HTableDescriptor,TableName}
+import org.apache.hadoop.conf.{Configuration => HadoopConfiguration}
+import org.apache.hadoop.hbase.client.{ConnectionFactory, Table}
+import org.apache.hadoop.hbase.{HBaseConfiguration, HColumnDescriptor, HTableDescriptor, TableName}
 import org.apache.hadoop.security.UserGroupInformation
 import org.apache.spark.opentsdb.OpenTSDBContext
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.streaming.{Milliseconds,StreamingContext}
-import org.apache.spark.{SparkConf,SparkContext}
+import org.apache.spark.streaming.{Milliseconds, StreamingContext}
+import org.apache.spark.{SparkConf, SparkContext}
 import org.pac4j.play.store.PlaySessionStore
 import play.Logger
-import play.api.mvc.{AnyContent,Request}
-import play.api.{Configuration,Environment,Mode}
+import play.api.i18n.MessagesApi
+import play.api.inject.{ApplicationLifecycle, ConfigurationProvider}
+import play.api.mvc.{AnyContent, Request}
+import play.api.{Configuration, Environment, Mode}
+
 import scala.annotation.tailrec
 import scala.language.postfixOps
-import scala.util.{Failure,Success,Try}
+import scala.util.{Failure, Success, Try}
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -48,7 +35,7 @@ import scala.util.{Failure,Success,Try}
 
 package iot_ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Iot_ingestion_managerYaml
-                                                
+                                                                            
   @SuppressWarnings(
     Array(
       "org.wartremover.warts.While",
@@ -101,7 +88,7 @@ package iot_ingestion_manager.yaml {
     }
     else
       new SparkConf().
-        setMaster("local").
+        setMaster("local[8]").
         setAppName("iot-ingestion-manager")
 
     private def thread(block: => Unit): Thread = {
@@ -224,10 +211,11 @@ package iot_ingestion_manager.yaml {
                   ssc =>
                     alogger.info("About to create the stream")
                     val inputStream = getTransformersStream(ssc, kafkaZkQuorum, kafkaZkRootDir, offsetsTable.toOption, brokers, topic, groupId, avroByteArrayToEvent >>>> eventToDatapoint)
-                    //openTSDBContext.foreach(_.streamWrite(inputStream))
                     inputStream match {
-                      case Success(stream) => stream.print(10)
-                      case Failure(ex) => alogger.error(s"Failt in creating the stream: ${ex.getCause}")
+                      case Success(stream) =>
+                        openTSDBContext.foreach(_.streamWrite(stream))
+                        alogger.info("Stream created")
+                      case Failure(ex) => alogger.error(s"Failed in creating the stream: ${ex.getCause}")
                     }
                     alogger.info("Stream created")
                     alogger.info("About to start the streaming context")

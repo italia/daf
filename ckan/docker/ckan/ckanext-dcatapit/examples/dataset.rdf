@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF
+  xmlns:foaf="http://xmlns.com/foaf/0.1/"
+  xmlns:skos="http://www.w3.org/2004/02/skos/core#"
+  xmlns:locn="http://www.w3.org/ns/locn#"
+  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  xmlns:dcat="http://www.w3.org/ns/dcat#"
+  xmlns:dct="http://purl.org/dc/terms/"
+  xmlns:adms="http://www.w3.org/ns/adms#"
+  xmlns:dcatapit="http://dati.gov.it/onto/dcatapit#"
+  xmlns:vcard="http://www.w3.org/2006/vcard/ns#"
+  xmlns:schema="http://schema.org/"
+>
+  <dcat:Dataset rdf:about="http://dcatapit.geo-solutions.it/dataset/d95f1717-0ab4-4075-bd7d-809cb516245d">
+    <dcat:landingPage rdf:resource="http://dcatapit.geo-solutions.it/dataset/dcatapit-test-dataset"/>
+    <dct:language rdf:resource="http://publications.europa.eu/resource/authority/language/DEU"/>
+    <dcat:keyword>economia</dcat:keyword>
+    <dcat:theme>
+      <skos:Concept rdf:about="http://publications.europa.eu/resource/authority/data-theme/ENVI">
+        <skos:prefLabel xml:lang="de">Umwelt</skos:prefLabel>
+        <skos:prefLabel xml:lang="it">Ambiente</skos:prefLabel>
+        <skos:prefLabel xml:lang="en">Environment</skos:prefLabel>
+      </skos:Concept>
+    </dcat:theme>
+    <dct:modified rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2016-11-29T00:00:00</dct:modified>
+    <dcat:distribution>
+      <dcat:Distribution rdf:about="http://dcatapit.geo-solutions.it/dataset/d95f1717-0ab4-4075-bd7d-809cb516245d/resource/a6a9ec1c-91fa-4719-aa81-7a849ad30ba3">
+        <dct:description>dcatapit risorsa di test</dct:description>
+        <dct:description xml:lang="en">dcatapit test resource</dct:description>
+        <dcat:byteSize rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal">12323.0</dcat:byteSize>
+        <dct:title xml:lang="de">DCAT_AP-IT Test-Ressource</dct:title>
+        <dct:title>DCAT_AP-IT risorsa di test</dct:title>
+        <dct:title xml:lang="en">DCAT_AP-IT test resource</dct:title>
+        <dct:description xml:lang="de">dcatapit Test Ressource</dct:description>
+        <dct:license rdf:resource="http://www.opendefinition.org/licenses/cc-zero"/>
+        <dct:format rdf:resource="http://publications.europa.eu/resource/authority/file-type/RDF"/>
+        <rdf:type rdf:resource="http://dati.gov.it/onto/dcatapit#Distribution"/>
+        <dcat:accessURL rdf:resource="http://dcatapit.geo-solutions.it/dataset/d95f1717-0ab4-4075-bd7d-809cb516245d/resource/a6a9ec1c-91fa-4719-aa81-7a849ad30ba3/download/catalog-6.rdf"/>
+        <dct:title xml:lang="it">DCAT_AP-IT risorsa di test</dct:title>
+        <dct:description xml:lang="it">dcatapit risorsa di test</dct:description>
+      </dcat:Distribution>
+    </dcat:distribution>
+    <dct:description xml:lang="en">dcatapit dataset test</dct:description>
+    <dct:identifier>ISBN</dct:identifier>
+    <dcat:distribution>
+      <dcat:Distribution rdf:about="http://dcatapit.geo-solutions.it/dataset/d95f1717-0ab4-4075-bd7d-809cb516245d/resource/179e70bb-3cc7-4947-91c3-832166505d67">
+        <rdf:type rdf:resource="http://dati.gov.it/onto/dcatapit#Distribution"/>
+        <dct:title xml:lang="it">Live catalog (RDF/XML)</dct:title>
+        <dcat:accessURL rdf:resource="http://dcatapit.geo-solutions.it/catalog.rdf"/>
+        <dct:license rdf:resource="http://www.opendefinition.org/licenses/cc-zero"/>
+        <dct:format rdf:resource="http://publications.europa.eu/resource/authority/file-type/RDF"/>
+        <dct:title>Live catalog (RDF/XML)</dct:title>
+        <dct:description xml:lang="it">Link live al catalogo RDF</dct:description>
+        <dct:description>Link live al catalogo RDF</dct:description>
+      </dcat:Distribution>
+    </dcat:distribution>
+    <dct:publisher>
+      <foaf:Agent rdf:nodeID="N362776781a3347869641a441062dce51">
+        <dct:identifier>234234234</dct:identifier>
+        <rdf:type rdf:resource="http://dati.gov.it/onto/dcatapit#Agent"/>
+        <foaf:name>bolzano</foaf:name>
+      </foaf:Agent>
+    </dct:publisher>
+    <dct:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2016-11-29T00:00:00</dct:issued>
+    <dct:title xml:lang="en">DCAT_AP-IT test dataset</dct:title>
+    <dct:description xml:lang="it">dcatapit dataset di test</dct:description>
+    <dct:conformsTo>
+      <dct:Standard rdf:nodeID="N10dfb7f499df478a809dd76e09f19b7a">
+        <dct:identifier>CONF2</dct:identifier>
+        <rdf:type rdf:resource="http://dati.gov.it/onto/dcatapit#Standard"/>
+      </dct:Standard>
+    </dct:conformsTo>
+    <dct:isVersionOf>http://dcat.geo-solutions.it/dataset/energia-da-fonti-rinnovabili2</dct:isVersionOf>
+    <dct:language rdf:resource="http://publications.europa.eu/resource/authority/language/ENG"/>
+    <dct:creator>
+      <dcatapit:Agent rdf:nodeID="N2edcbdc440e24951bc02175c72550f71">
+        <foaf:name>test</foaf:name>
+        <rdf:type rdf:resource="http://xmlns.com/foaf/0.1/Agent"/>
+        <dct:identifier>412946129</dct:identifier>
+      </dcatapit:Agent>
+    </dct:creator>
+    <dct:accrualPeriodicity rdf:resource="http://publications.europa.eu/resource/authority/frequency/UPDATE_CONT"/>
+    <dct:description xml:lang="de">dcatapit test-dataset</dct:description>
+    <dcat:keyword>ambiente</dcat:keyword>
+    <dct:title xml:lang="de">Dcatapit Test-Dataset</dct:title>
+    <dcat:distribution>
+      <dcat:Distribution rdf:about="http://dcatapit.geo-solutions.it/dataset/d95f1717-0ab4-4075-bd7d-809cb516245d/resource/5752582a-0967-426d-bebf-f03d1b7bdd12">
+        <rdf:type rdf:resource="http://dati.gov.it/onto/dcatapit#Distribution"/>
+        <dct:title>Live catalog (JSON)</dct:title>
+        <dcat:accessURL rdf:resource="http://dcatapit.geo-solutions.it/catalog.jsonld"/>
+        <dct:license rdf:resource="http://www.opendefinition.org/licenses/cc-zero"/>
+        <dct:title xml:lang="it">Live catalog (JSON)</dct:title>
+        <dct:format rdf:resource="http://publications.europa.eu/resource/authority/file-type/JSON_LD"/>
+        <dct:description xml:lang="it"></dct:description>
+      </dcat:Distribution>
+    </dcat:distribution>
+    <dct:description>dcatapit dataset di test</dct:description>
+    <dct:title xml:lang="it">Dataset di test DCAT_AP-IT</dct:title>
+    <dct:conformsTo>
+      <dct:Standard rdf:nodeID="N0a32bb0d8071418cb19fdad22b88025f">
+        <dct:identifier>CONF3</dct:identifier>
+        <rdf:type rdf:resource="http://dati.gov.it/onto/dcatapit#Standard"/>
+      </dct:Standard>
+    </dct:conformsTo>
+    <dcat:contactPoint>
+      <foaf:Organization rdf:about="http://dcatapit.geo-solutions.it/organization/1baea930-2015-4fef-9543-d558df44e621">
+        <vcard:hasTelephone></vcard:hasTelephone>
+        <vcard:fn>dcatapit-organization</vcard:fn>
+        <vcard:hasEmail rdf:resource="geosolutions@geo-solutions.it"/>
+        <rdf:type rdf:resource="http://dati.gov.it/onto/dcatapit#Organization"/>
+        <rdf:type rdf:resource="http://www.w3.org/2006/vcard/ns#Organization"/>
+        <vcard:hasURL>http://dcatapit.geo-solutions.it/</vcard:hasURL>
+        <rdf:type rdf:resource="http://www.w3.org/2006/vcard/ns#Kind"/>
+        <foaf:name>bolzano</foaf:name>
+      </foaf:Organization>
+    </dcat:contactPoint>
+    <dct:rightsHolder>
+      <foaf:Agent rdf:nodeID="N8955fe0b1f154d4aa8162d7855311150">
+        <foaf:name xml:lang="de">bolzano</foaf:name>
+        <foaf:name xml:lang="en">bolzano</foaf:name>
+        <foaf:name>bolzano</foaf:name>
+        <dct:identifier>234234234</dct:identifier>
+        <foaf:name xml:lang="it">bolzano</foaf:name>
+        <rdf:type rdf:resource="http://dati.gov.it/onto/dcatapit#Agent"/>
+      </foaf:Agent>
+    </dct:rightsHolder>
+    <adms:identifier>ISBN</adms:identifier>
+    <dct:spatial>
+      <dct:Location rdf:nodeID="N3484e7c2130e4d49a7b1a20dc47ffc59">
+        <dcatapit:geographicalIdentifier>http://www.geonames.org/3181913</dcatapit:geographicalIdentifier>
+      </dct:Location>
+    </dct:spatial>
+    <dct:conformsTo>
+      <dct:Standard rdf:nodeID="Nd27ee596421749bfa2bd9b1cfb1b124c">
+        <dct:identifier>CONF1</dct:identifier>
+        <rdf:type rdf:resource="http://dati.gov.it/onto/dcatapit#Standard"/>
+      </dct:Standard>
+    </dct:conformsTo>
+    <dcat:keyword>Bolzano</dcat:keyword>
+    <dct:title>Dataset di test DCAT_AP-IT</dct:title>
+    <dcat:keyword>Finanziamenti</dcat:keyword>
+    <dct:spatial>
+      <dct:Location rdf:nodeID="Ne1ea880ad8c64a959dcaed8c3dafd93e">
+        <locn:geographicalName rdf:resource="http://publications.europa.eu/resource/authority/place/ITA_BZO"/>
+        <dcatapit:geographicalIdentifier>http://publications.europa.eu/resource/authority/place/ITA_BZO</dcatapit:geographicalIdentifier>
+      </dct:Location>
+    </dct:spatial>
+    <rdf:type rdf:resource="http://dati.gov.it/onto/dcatapit#Dataset"/>
+    <dct:temporal>
+      <dct:PeriodOfTime rdf:nodeID="Nf512b1f0a8da4a72ab4bd95407e1cb7e">
+        <schema:startDate rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2016-11-01T00:00:00</schema:startDate>
+        <schema:endDate rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2016-11-30T00:00:00</schema:endDate>
+      </dct:PeriodOfTime>
+    </dct:temporal>
+    <dcat:theme>
+      <skos:Concept rdf:about="http://publications.europa.eu/resource/authority/data-theme/ECON">
+        <skos:prefLabel xml:lang="en">Economy and finance</skos:prefLabel>
+        <skos:prefLabel xml:lang="it">Economia e finanze</skos:prefLabel>
+        <skos:prefLabel xml:lang="de">Wirtschaft und Finanzen</skos:prefLabel>
+      </skos:Concept>
+    </dcat:theme>
+    <adms:identifier>TEST</adms:identifier>
+    <dct:language rdf:resource="http://publications.europa.eu/resource/authority/language/ITA"/>
+  </dcat:Dataset>
+  <dct:LicenseDocument rdf:about="http://www.opendefinition.org/licenses/cc-zero">
+    <dct:type rdf:resource="http://purl.org/adms/licencetype/Attribution"/>
+    <foaf:name>cc-zero</foaf:name>
+    <rdf:type rdf:resource="http://dati.gov.it/onto/dcatapit#LicenseDocument"/>
+  </dct:LicenseDocument>
+  <skos:Concept rdf:about="http://publications.europa.eu/resource/authority/place/ITA_BZO">
+    <skos:prefLabel xml:lang="de">Bozen</skos:prefLabel>
+    <skos:prefLabel xml:lang="it">Bolzano</skos:prefLabel>
+    <skos:prefLabel xml:lang="en">Bolzano</skos:prefLabel>
+  </skos:Concept>
+</rdf:RDF>

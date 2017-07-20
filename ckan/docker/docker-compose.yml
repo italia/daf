@@ -19,8 +19,20 @@ db:
   
 solr:
   container_name: solr
-  image: ckan/solr:latest
+  image: 10.98.74.120:5000/daf-ckan-solr:1.0.0
     
 redis:
   container_name: redis
   image: redis:latest
+
+mongodb:
+  container_name: mongo
+  image: bitnami/mongodb:latest
+  ports:
+      - "27017:27017"
+  environment:
+      - MONGODB_ROOT_PASSWORD=mongo
+      - MONGODB_USERNAME=ckan
+      - MONGODB_PASSWORD=ckan
+      - MONGODB_DATABASE=ckan
+

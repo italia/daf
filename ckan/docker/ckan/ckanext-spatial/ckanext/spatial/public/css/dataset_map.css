@@ -1,0 +1,23 @@
+/* Side bar */
+.module-narrow #dataset-map-container{
+  height: 200px;
+}
+
+/* Primary content */
+
+.dataset-map-section-20x {
+  padding: 0 25px;
+  margin: 20px 0;
+}
+
+.dataset-map #dataset-map-container{
+  height: 250px;
+}
+
+#dataset-map-attribution{
+  font-size: x-small;
+}
+
+.module-narrow #dataset-map-attribution{
+  margin-left: 3px;
+}

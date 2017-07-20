@@ -1,0 +1,15 @@
+sudo: required
+language: python
+python:
+    - "2.7"
+env:
+    - CKANVERSION=2.5 PGVERSION=9.1 POSTGISVERSION=2
+install:
+    - bash bin/travis-build.bash
+services:
+    - redis-server
+script: sh bin/travis-run.sh
+before_install:
+    - pip install codecov
+after_success:
+    - codecov

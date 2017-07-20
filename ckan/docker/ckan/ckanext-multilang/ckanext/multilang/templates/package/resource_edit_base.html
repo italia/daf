@@ -1,0 +1,7 @@
+{% ckan_extends %}
+
+{% block breadcrumb_content %}
+  {{ super() }}
+  {% set pkg = h.get_localized_pkg(pkg)%}
+{% endblock %}
+

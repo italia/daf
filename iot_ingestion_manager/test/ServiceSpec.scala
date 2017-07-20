@@ -19,7 +19,7 @@ import java.net.ServerSocket
 import java.util.{Base64, Properties}
 
 import ServiceSpec._
-import better.files._
+import better.files.{File, _}
 import it.gov.daf.iotingestion.common.SerializerDeserializer
 import it.gov.daf.iotingestion.event.Event
 import it.gov.daf.iotingestionmanager.client.Iot_ingestion_managerClient
@@ -252,7 +252,7 @@ class ServiceSpec extends Specification with BeforeAfterAll {
       zkUtils <- makeZkUtils(zkPort)
     } yield zkUtils
     zkUtils.foreach(_ => Logger.info("Created the zkUtils"))
-    if(zkUtils.isFailure)
+    if (zkUtils.isFailure)
       Logger.info(s"Problem: Cannot create the zkUtils: ${zkUtils.failed.map(_.getMessage)}")
 
     for (i <- 0 until NUMBROKERS) {
@@ -261,7 +261,7 @@ class ServiceSpec extends Specification with BeforeAfterAll {
           kafkaServer <- makeKafkaServer(s"localhost:$zkPort", i)
         } yield kafkaServer
         server.foreach(_ => Logger.info("Created the Kafka brokers"))
-        if(server.isFailure)
+        if (server.isFailure)
           Logger.info(s"Problem: Cannot create the kafka broker: ${server.failed.map(_.getMessage)}")
         server
       }

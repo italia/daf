@@ -1,0 +1,2 @@
+include README.rst
+recursive-include ckanext/multilang *.html *.json *.js *.less *.css

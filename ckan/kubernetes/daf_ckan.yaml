@@ -58,6 +58,10 @@ spec:
             - containerPort: 6379
         - name: ckan
           image: 10.98.74.120:5000/daf-ckan:1.0.0
+          lifecycle:
+              postStart:
+                exec:
+                  command: ["/bin/sh", "-c", "echo 127.0.0.1 redis >> /etc/hosts"]
           imagePullPolicy: Always
           ports:
             - containerPort: 5000
@@ -78,6 +82,10 @@ spec:
               value: "localhost"
             - name: SOLR_PORT_8983_TCP_PORT
               value: "8983"
+            - name: REDIS_PORT_6379_TCP_PORT
+              value: "localhost"
+            - name: REDIS_PORT_6379_TCP_PORT
+              value: "6379"
         - name: mongodb
           image: bitnami/mongodb:latest
           volumeMounts:

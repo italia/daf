@@ -109,9 +109,4 @@ paster --plugin=ckanext-harvest harvester initdb -c "${CKAN_CONFIG}/ckan.ini"
 # Inizialize DCAT-AP_IT
 paster --plugin=ckanext-dcatapit vocabulary initdb -c "${CKAN_CONFIG}/ckan.ini"
 
-# Add user "ckanadmin" with password "ckanpassword". Add user "ckanadmin" to sysadmin group. Change password at first login.
-#paster --plugin=ckan user remove ckanadmin --config /etc/ckan/default/ckan.ini
-paster --plugin=ckan user add ckanadmin email=admin@mail.com password=ckanpassword --config /etc/ckan/default/ckan.ini
-paster --plugin=ckan sysadmin add ckanadmin --config /etc/ckan/default/ckan.ini
-
 exec "$@"

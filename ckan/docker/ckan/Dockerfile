@@ -96,8 +96,8 @@ RUN chmod +x /ckan-entrypoint.sh
 ENTRYPOINT ["/ckan-entrypoint.sh"]
 
 #TEST BASH
-ADD ./ckan-vocabulary.sh /
-RUN chmod +x /ckan-vocabulary.sh
+ADD ./ckan-init.sh /
+RUN chmod +x /ckan-init.sh
 
 # Volumes 
 VOLUME ["/etc/ckan/default"]

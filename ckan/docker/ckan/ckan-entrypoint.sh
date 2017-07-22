@@ -109,4 +109,8 @@ paster --plugin=ckanext-harvest harvester initdb -c "${CKAN_CONFIG}/ckan.ini"
 # Inizialize DCAT-AP_IT
 paster --plugin=ckanext-dcatapit vocabulary initdb -c "${CKAN_CONFIG}/ckan.ini"
 
+# Harvesting consumer
+nohup paster --plugin=ckanext-harvest harvester gather_consumer -c "${CKAN_CONFIG}/ckan.ini" &
+nohup paster --plugin=ckanext-harvest harvester fetch_consumer -c "${CKAN_CONFIG}/ckan.ini" &
+
 exec "$@"

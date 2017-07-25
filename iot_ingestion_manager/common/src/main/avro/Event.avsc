@@ -39,6 +39,12 @@
 			"doc": "ID indicating the type of event: 0 for metric event, 1 for changing state events, 2 for generic events Required."
 		},
 		{
+			"name": "event_subtype_id",
+			"type":  ["null", "string"],
+			"doc": "It's an additional field that can be used to additionally qualify the event Optional.",
+		    "default": null
+		},
+		{
 			"name": "event_annotation",
 			"type": ["null", "string"],
 			"doc": "free-text explanation of what happened in this particular event. Optional.",

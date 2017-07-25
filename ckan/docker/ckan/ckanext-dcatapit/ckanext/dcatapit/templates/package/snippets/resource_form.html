@@ -1,0 +1,17 @@
+{% ckan_extends %}
+
+{% set resource_fields = h.get_dcatapit_resource_schema() %}
+
+{% block metadata_fields %}
+
+	{{ super() }}
+
+	{# DCAT-AP_IT format field#}
+	{% snippet 'snippets/dcatapit_form_fields.html', data=data, errors=errors, schema_fields=resource_fields %}
+
+	{# CKAN existing custom fields for edit #}
+	{{ form.input('last_modified', id='field-last-modified', label=_('Last Modified'), placeholder=_('eg. 2012-06-05'), value=data.last_modified, error=errors.last_modified, classes=[]) }}
+
+	{{ form.input('size', id='field-size', label=_('File Size'), placeholder=_('eg. 1024'), value=data.size, error=errors.size, classes=[]) }}
+
+{% endblock %}

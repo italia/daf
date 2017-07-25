@@ -160,7 +160,7 @@ class ServiceSpec extends Specification with BeforeAfterAll {
     build()
 
   "The iot-ingestion-manager" should {
-    "receive and store the metric timeseries in OpentTSDB correctly" in new WithServer(app = application, port = getAvailablePort) {
+    "receive and store the metric timeseries in OpenTSDB correctly" in new WithServer(app = application, port = getAvailablePort) {
       val ws: AhcWSClient = AhcWSClient()
 
       val plainCreds = "david:david"

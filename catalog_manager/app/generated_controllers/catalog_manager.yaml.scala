@@ -31,7 +31,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                                                    
+                                                                                                
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -102,6 +102,22 @@ package catalog_manager.yaml {
             }
             // Datasetcatalogs200(catalogs)
             // ----- End of unmanaged code area for action  Catalog_managerYaml.datasetcatalogs
+        }
+        val standardsuri = standardsuriAction {  _ =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.standardsuri
+            NotImplementedYet
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.standardsuri
+        }
+        val createdatasetcatalog = createdatasetcatalogAction { (catalog: MetaCatalog) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalog
+            val created: Success = ServiceRegistry.catalogService.createCatalog(catalog)
+            if (!created.message.get.toLowerCase.equals("error")) {
+                val logicalUri = created.message.get
+                ingestionListener.addDirListener(catalog, logicalUri)
+            }
+            Createdatasetcatalog200(created)
+           //NotImplementedYet
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalog
         }
         val test = testAction {  _ =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.test
@@ -186,17 +202,6 @@ package catalog_manager.yaml {
                 case Left(error) => GetckanorganizationList401(error)
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.getckanorganizationList
-        }
-        val createdatasetcatalog = createdatasetcatalogAction { (catalog: MetaCatalog) =>  
-            // ----- Start of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalog
-            val created: Success = ServiceRegistry.catalogService.createCatalog(catalog)
-            if (!created.message.get.toLowerCase.equals("error")) {
-                val logicalUri = created.message.get
-                ingestionListener.addDirListener(catalog, logicalUri)
-            }
-            Createdatasetcatalog200(created)
-           //NotImplementedYet
-            // ----- End of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalog
         }
     
      // Dead code for absent methodCatalog_managerYaml.ckandatasetbyid

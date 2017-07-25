@@ -1,14 +1,15 @@
 package it.gov.daf.catalogmanager.repository.catalog
 
-import catalog_manager.yaml.{MetaCatalog, Success}
+import catalog_manager.yaml.{Dataset, MetaCatalog, ResponseWrites, Success}
 import com.mongodb.DBObject
 import com.mongodb.casbah.MongoClient
 import org.bson.types.ObjectId
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import com.mongodb.casbah.Imports._
 import it.gov.daf.catalogmanager.utilities.{CatalogManager, ConfigReader}
+import it.gov.daf.catalogmanager.service.ckan.CkanRegistry
 
-import scala.util.{Try}
+import scala.util.Try
 
 
 /**
@@ -20,7 +21,6 @@ class CatalogRepositoryMongo extends  CatalogRepository{
   private val mongoPort = ConfigReader.getDbPort
 
   import catalog_manager.yaml.BodyReads._
-
 
   def listCatalogs() :Seq[MetaCatalog] = {
     val mongoClient = MongoClient(mongoHost, mongoPort)
@@ -72,9 +72,14 @@ class CatalogRepositoryMongo extends  CatalogRepository{
     val db = mongoClient("catalog_manager")
     val coll = db("catalog_test")
 
+    // After Test refactor
+    val dcatapit: Dataset = metaCatalog.dcatapit.get
+    val datasetJs : JsValue = ResponseWrites.DatasetWrites.writes(dcatapit)
+    CkanRegistry.ckanRepository.createDataset(datasetJs)
+
     val msg: String = metaCatalog match {
       case MetaCatalog(Some(dataSchema), Some(operational), _) =>
-        if(operational.std_schema.isDefined ) {
+        if(operational.std_schema.get.std_uri.isDefined ) {
           val stdUri = operational.std_schema.get.std_uri.get
           val res: Try[(Boolean, MetaCatalog)] = Try(getCatalogs(stdUri))
             .map(CatalogManager.writeOrdinaryWithStandard(metaCatalog, _))
@@ -114,4 +119,7 @@ class CatalogRepositoryMongo extends  CatalogRepository{
 
     Success(Some(msg),Some(msg))
   }
+
+  def standardUris(): List[String] = List("raf", "org", "cert")
+
 }

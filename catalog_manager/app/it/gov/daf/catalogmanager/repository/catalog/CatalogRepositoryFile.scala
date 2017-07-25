@@ -74,9 +74,9 @@
     }
 
 
-    val dcatJson: JsResult[DcatApIt] = dcatSchema.validate[DcatApIt]
+    val dcatJson: JsResult[Dataset] = dcatSchema.validate[Dataset]
     val dcat = dcatJson match {
-      case s: JsSuccess[DcatApIt] => Option(s.get)
+      case s: JsSuccess[Dataset] => Option(s.get)
       case e: JsError => None
     }
 
@@ -127,7 +127,7 @@
 
       val msg: String = metaCatalog match {
         case MetaCatalog(Some(dataSchema), Some(operational), _) =>
-          if(operational.std_schema.isDefined ) {
+          if(operational.std_schema.get.std_uri.isDefined ) {
             val stdUri = operational.std_schema.get.std_uri.get
             val res: Try[(Boolean, MetaCatalog)] = Try(getCatalogs(stdUri))
               .map(CatalogManager.writeOrdinaryWithStandard(metaCatalog, _))
@@ -164,4 +164,6 @@
 
       Success(Some(msg),Some(msg))
     }
+
+     def standardUris(): List[String] = List("raf", "org", "cert")
   }

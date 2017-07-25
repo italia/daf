@@ -35,6 +35,8 @@ schemes:
   - http
 produces:
   - application/json
+consumes:
+  - application/json
 securityDefinitions:
   basicAuth:
     type: basic
@@ -74,6 +76,30 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  "/dataset-catalogs/standard-uris":
+    get:
+      summary: DatasetCatalog standard uri
+      description: |
+        List of Standard Uri
+      tags:
+        - DatasetCatalog
+      operationId: standardsuri
+      responses:
+        200:
+          description: An array of Standard uri
+          schema:
+            type: array
+            items:
+              type : string
+        401:
+          description: |
+            No Standards found list empty
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   "/catalog-ds/get/{catalog_id}":
     get:
       summary: DatasetCatalog
@@ -102,7 +128,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  "/catalog-ds/add/":
+  "/catalog-ds/add":
     post:
       summary: DatasetCatalog
       description: |
@@ -293,6 +319,7 @@ paths:
           schema:
             $ref: '#/definitions/Error'
   "/ckan/datasetsWithResources":
+
     get:
       tags:
         - Ckan
@@ -375,7 +402,7 @@ definitions:
         #$ref: '#/definitions/ConversionSchema'
       dcatapit:
         type: object
-        $ref: '#/definitions/DcatApIt'
+        $ref: '#/definitions/Dataset'
   DatasetCatalog:
      type: object
      properties:

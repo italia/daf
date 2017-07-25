@@ -61,7 +61,7 @@ spec:
           lifecycle:
               postStart:
                 exec:
-                  command: ["/bin/sh", "-c", "echo 127.0.0.1 redis >> /etc/hosts"]
+                  command: ["/bin/sh", "-c", "echo 127.0.0.1 redis solr db >> /etc/hosts"]
           imagePullPolicy: Always
           ports:
             - containerPort: 5000

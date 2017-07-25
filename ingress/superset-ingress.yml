@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: superset-ingress
+spec:
+  tls:
+  - hosts:
+    - daf-superset.netsec.it
+  rules:
+  - host: daf-superset.netsec.it
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: superset
+          servicePort: 8088

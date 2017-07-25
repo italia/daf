@@ -4,6 +4,8 @@ metadata:
   name: superset
   labels:
     app: superset
+  annotations:
+    service.beta.kubernetes.io/external-traffic: OnlyLocal
 spec:
   type: NodePort
   ports:

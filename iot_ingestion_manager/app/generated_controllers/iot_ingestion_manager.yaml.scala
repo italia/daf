@@ -48,7 +48,7 @@ import scala.util.{Failure,Success,Try}
 
 package iot_ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Iot_ingestion_managerYaml
-                                                
+        
   @SuppressWarnings(
     Array(
       "org.wartremover.warts.While",
@@ -101,7 +101,7 @@ package iot_ingestion_manager.yaml {
     }
     else
       new SparkConf().
-        setMaster("local").
+        setMaster("local[8]").
         setAppName("iot-ingestion-manager")
 
     private def thread(block: => Unit): Thread = {
@@ -224,10 +224,11 @@ package iot_ingestion_manager.yaml {
                   ssc =>
                     alogger.info("About to create the stream")
                     val inputStream = getTransformersStream(ssc, kafkaZkQuorum, kafkaZkRootDir, offsetsTable.toOption, brokers, topic, groupId, avroByteArrayToEvent >>>> eventToDatapoint)
-                    //openTSDBContext.foreach(_.streamWrite(inputStream))
                     inputStream match {
-                      case Success(stream) => stream.print(10)
-                      case Failure(ex) => alogger.error(s"Failt in creating the stream: ${ex.getCause}")
+                      case Success(stream) =>
+                        openTSDBContext.foreach(_.streamWrite(stream))
+                        alogger.info("Stream created")
+                      case Failure(ex) => alogger.error(s"Failed in creating the stream: ${ex.getCause}")
                     }
                     alogger.info("Stream created")
                     alogger.info("About to start the streaming context")

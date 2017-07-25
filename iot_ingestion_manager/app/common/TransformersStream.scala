@@ -59,7 +59,7 @@ object TransformersStream extends OffsetsManagement {
       "group.id" -> groupId
     )
 
-    val fromOffsets = getLastCommittedOffsets(table, topic, groupId, kafkaZkQuorum, kafkaZkRootDir, 4000, 4000)
+    val fromOffsets = getLastCommittedOffsets(table, topic, groupId, kafkaZkQuorum, kafkaZkRootDir, 60000, 60000) //TODO Magic numbers
 
     val inputStream = stageOffsets[Array[Byte], Array[Byte]](table, topic, groupId) {
       fromOffsets.map(fromOffsets => KafkaUtils.createDirectStream(ssc, PreferConsistent, Assign[Array[Byte], Array[Byte]](fromOffsets.keys, kafkaParams, fromOffsets)))

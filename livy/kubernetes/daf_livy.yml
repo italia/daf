@@ -52,6 +52,9 @@ spec:
         - name: hadoopconf
           mountPath: /etc/hadoop/conf
           readOnly: true
+        - name: hiveconf
+          mountPath: /etc/hive/conf
+          readOnly: true
       imagePullSecrets:
       - name: regsecret
       volumes:
@@ -67,3 +70,6 @@ spec:
       - name: hadoopconf
         hostPath:
           path: /etc/hadoop/conf
+      - name: hiveconf
+        hostPath:
+          path: /etc/hive/conf

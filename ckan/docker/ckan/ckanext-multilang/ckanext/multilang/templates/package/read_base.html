@@ -1,8 +1,0 @@
-{% ckan_extends %}
-
-{% block package_organization %}
-  {% if pkg.organization %}
-    {% set org = pkg.organization %}
-    {% snippet "snippets/organization.html", organization=org, has_context_title=true %}
-  {% endif %}
-{% endblock %}

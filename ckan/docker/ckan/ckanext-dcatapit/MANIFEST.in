@@ -1,3 +1,0 @@
-include README.md
-recursive-include ckanext/dcatapit *.html *.json *.js *.less *.css
-recursive-include ckanext/dcatapit/i18n *

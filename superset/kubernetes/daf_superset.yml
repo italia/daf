@@ -43,8 +43,12 @@ spec:
           runAsUser: 0
         volumeMounts:
         - name: glusterfsvol
-          mountPath: /home/superset/.superset
+          mountPath: /etc/superset
           subPath: superset/conf
+          readOnly: false
+        - name: glusterfsvol
+          mountPath: /root/.superset
+          subPath: superset/workdir
           readOnly: false
         - name: hosts
           mountPath: /etc/extra_hosts

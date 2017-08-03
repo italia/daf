@@ -23,7 +23,7 @@ GET   /storage-manager/v1/physical-datasets        controllers.PhysicalDatasetCo
 GET   /storage-manager/v1/physical-datasets/schema controllers.PhysicalDatasetController.getDatasetSchema(uri:String, format:String)
 
 ### NoDocs ###
-GET   /docs/swagger-ui/*file                       controllers.Assets.at(path:String="/public/lib/swagger-ui", file:String)
+GET   /storage-manager/docs/swagger-ui/*file       controllers.Assets.at(path:String="/public/lib/swagger-ui", file:String)
 
 ### NoDocs ###
-GET   /*file                                       controllers.Assets.versioned(path="/public", file: Asset)
+GET   /storage-manager/*file                       controllers.Assets.versioned(path="/public", file: Asset)

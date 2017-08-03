@@ -17,7 +17,7 @@ GET         /api/*file                     controllers.Assets.versioned(path="/p
 ->          /iot-ingestion-manager/v1      iot_ingestion_manager.yaml.Routes
 
 ### NoDocs ###
-GET         /docs/swagger-ui/*file         controllers.Assets.at(path:String="/public/lib/swagger-ui", file:String)
+GET         /iot-ingestion-manager/docs/swagger-ui/*file  controllers.Assets.at(path:String="/public/lib/swagger-ui", file:String)
 
 ### NoDocs ###
-GET         /*file                         controllers.Assets.versioned(path="/public", file: Asset)
+GET         /iot-ingestion-manager/*file                  controllers.Assets.versioned(path="/public", file: Asset)

@@ -33,6 +33,7 @@ basePath: /security-manager/v1
 # array of all schemes that your API supports
 schemes:
   - http
+  - https
 produces:
   - application/json
 securityDefinitions:

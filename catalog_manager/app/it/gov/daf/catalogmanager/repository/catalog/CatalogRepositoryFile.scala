@@ -11,12 +11,11 @@
   import it.gov.daf.catalogmanager.utilities.uri.UriDataset
   import play.Environment
   import play.api.libs.json._
-  import it.gov.daf.catalogmanager.utilities.datastructures._
+  //import it.gov.daf.catalogmanager.utilities.datastructures._
   import play.api.Logger
-
-  import scala.util.Success
   import scala.util.Failure
   import scala.util.Try
+  import catalog_manager.yaml.Success
 
 
   /**
@@ -75,9 +74,9 @@
     }
 
 
-    val dcatJson: JsResult[DcatApIt] = dcatSchema.validate[DcatApIt]
+    val dcatJson: JsResult[Dataset] = dcatSchema.validate[Dataset]
     val dcat = dcatJson match {
-      case s: JsSuccess[DcatApIt] => Option(s.get)
+      case s: JsSuccess[Dataset] => Option(s.get)
       case e: JsError => None
     }
 
@@ -120,7 +119,7 @@
 
 
 
-    def createCatalog(metaCatalog: MetaCatalog) :Successf = {
+    def createCatalog(metaCatalog: MetaCatalog) :Success = {
       import catalog_manager.yaml.ResponseWrites.MetaCatalogWrites
 
       val fw = new FileWriter("data/data-mgt/data_test.json", true)
@@ -128,12 +127,12 @@
 
       val msg: String = metaCatalog match {
         case MetaCatalog(Some(dataSchema), Some(operational), _) =>
-          if(operational.std_schema.isDefined ) {
+          if(operational.std_schema.get.std_uri.isDefined ) {
             val stdUri = operational.std_schema.get.std_uri.get
             val res: Try[(Boolean, MetaCatalog)] = Try(getCatalogs(stdUri))
               .map(CatalogManager.writeOrdinaryWithStandard(metaCatalog, _))
             res match {
-              case Success((true, meta)) =>
+              case scala.util.Success((true, meta)) =>
                 val data = Json.toJson(meta)
                 fw.write(Json.stringify(data) + "\n")
                 fw.close()
@@ -146,7 +145,7 @@
           } else {
             val res: Try[(Boolean, MetaCatalog)]= Try(CatalogManager.writeOrdinary(metaCatalog))
             val msg = res match {
-              case Success((true, meta)) =>
+              case scala.util.Success((true, meta)) =>
                 val data = Json.toJson(meta)
                 fw.write(Json.stringify(data) + "\n")
                 fw.close()
@@ -163,6 +162,8 @@
         case _ =>  val msg = "Error"; msg
       }
 
-      Successf(Some(msg),Some(msg))
+      Success(Some(msg),Some(msg))
     }
+
+     def standardUris(): List[String] = List("raf", "org", "cert")
   }

@@ -15,7 +15,8 @@ trait CatalogRepository {
 
     def listCatalogs() :Seq[MetaCatalog]
     def getCatalogs(catalogId :String) :MetaCatalog
-    def createCatalog(metaCatalog: MetaCatalog) :Successf
+    def createCatalog(metaCatalog: MetaCatalog) :Success
+    def standardUris() : List[String]
 
     // DO NOT DELETE
 

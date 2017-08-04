@@ -68,8 +68,8 @@ object UriDataset  {
           domain = "daf",
           typeDs = typeDs,
           groupOwn = operational.group_own.getOrElse("ERROR"),
-          owner = dcatapit.dct_rightsHolder.getOrElse(throw new Exception("no theme")).value.get,
-          theme = dcatapit.dct_theme.getOrElse(throw new Exception("no theme")).value.get,
+          owner = dcatapit.owner_org.getOrElse(throw new Exception("no theme")), //.value.get,
+          theme  = dcatapit.theme.getOrElse(throw new Exception("no theme")), //.value.get,
           nameDs = optionalSchema.dataschema.get.avro.get.name
         )
     }

@@ -48,6 +48,8 @@ libraryDependencies ++= Seq(
   //"it.teamdigitale" %% "ingestion-module" % "0.1.0" exclude("org.apache.avro", "avro")
 )
 
+// add nexus repo from security manager
+//
 
 resolvers ++= Seq(
   "zalando-bintray" at "https://dl.bintray.com/zalando/maven",
@@ -85,6 +87,16 @@ dockerCommands := dockerCommands.value.flatMap {
 dockerCommands += ExecCmd("ENTRYPOINT", s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
 dockerExposedPorts := Seq(9000)
 dockerRepository := Option("10.98.74.120:5000")
+
+publishTo in ThisBuild := {
+  val nexus = "http://nexus.default.svc.cluster.local:8081/repository/"
+  if (isSnapshot.value)
+    Some("snapshots" at nexus + "maven-snapshots/")
+  else
+    Some("releases"  at nexus + "maven-releases/")
+}
+
+credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
 
 // Wart Remover Plugin Configuration
 //wartremoverErrors ++= Warts.allBut(Wart.Nothing, Wart.PublicInference, Wart.Any, Wart.Equals)

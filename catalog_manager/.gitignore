@@ -14,3 +14,4 @@ client/gradlew.bat
 client/pom.xml
 client/settings.gradle
 client/src/
+conf/production.conf

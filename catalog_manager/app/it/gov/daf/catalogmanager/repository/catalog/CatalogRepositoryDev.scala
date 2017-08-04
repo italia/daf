@@ -64,9 +64,9 @@ class CatalogRepositoryDev extends CatalogRepository{
   //  case e: JsError => None
  // }
 
-  val dcatJson: JsResult[DcatApIt] = dcatSchema.validate[DcatApIt]
+  val dcatJson: JsResult[Dataset] = dcatSchema.validate[Dataset]
   val dcat = dcatJson match {
-    case s: JsSuccess[DcatApIt] => Option(s.get)
+    case s: JsSuccess[Dataset] => Option(s.get)
     case e: JsError => None
   }
 
@@ -80,7 +80,10 @@ class CatalogRepositoryDev extends CatalogRepository{
      MetaCatalog(datasetCatalog,operational,dcat)
   }
 
-  def createCatalog(metaCatalog: MetaCatalog) :Successf = {
-    Successf(None,None)
+  def createCatalog(metaCatalog: MetaCatalog) :Success = {
+    Success(None,None)
   }
+
+  def standardUris(): List[String] = List("raf", "org", "cert")
+
 }

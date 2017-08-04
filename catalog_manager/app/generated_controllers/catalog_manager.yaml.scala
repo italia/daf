@@ -31,7 +31,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                                                                                
+                                                                                                            
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -105,7 +105,12 @@ package catalog_manager.yaml {
         }
         val standardsuri = standardsuriAction {  _ =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.standardsuri
-            NotImplementedYet
+            val catalogs = ServiceRegistry.catalogService.listCatalogs()
+          val uris: Seq[String] = catalogs.filter(x=> x.operational.get.is_std.get)
+              .map(_.operational.get.std_schema.get.std_uri).map(_.get)
+          val stdUris: Seq[StdUris] = uris.map(x => StdUris(Some(x), Some(x)))
+          Standardsuri200(stdUris)
+          // NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.standardsuri
         }
         val createdatasetcatalog = createdatasetcatalogAction { (catalog: MetaCatalog) =>  

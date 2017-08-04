@@ -90,7 +90,7 @@ paths:
           schema:
             type: array
             items:
-              type : string
+              "$ref": "#/definitions/StdUris"
         401:
           description: |
             No Standards found list empty
@@ -319,7 +319,6 @@ paths:
           schema:
             $ref: '#/definitions/Error'
   "/ckan/datasetsWithResources":
-
     get:
       tags:
         - Ckan
@@ -961,6 +960,13 @@ definitions:
     type: object
     properties:
       key:
+        type: string
+      value:
+        type: string
+  StdUris:
+    type: object
+    properties:
+      label:
         type: string
       value:
         type: string

@@ -11,10 +11,8 @@ object ServiceRegistry extends CatalogServiceComponent
   with CatalogRepositoryComponent with CkanRepositoryComponent {
   val conf = Configuration.load(Environment.simple())
   val app: String = conf.getString("app.type").getOrElse("dev")
-
   val catalogRepository =  CatalogRepository(app)
   val ckanRepository = CkanRepository(app)
-
   val catalogService = new CatalogService
 
 }

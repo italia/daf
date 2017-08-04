@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: kong-ingress
+spec:
+  tls:
+  - hosts:
+    - daf.teamdigitale.governo.it
+  rules:
+  - host: daf.teamdigitale.governo.it
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: kong-proxy
+          servicePort: 8000

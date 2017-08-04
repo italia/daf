@@ -105,3 +105,4 @@ spec:
         args:
         - /nginx-ingress-controller
         - --default-backend-service=$(POD_NAMESPACE)/default-http-backend
+        - --default-ssl-certificate=default/tls-daf-secret

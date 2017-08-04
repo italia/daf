@@ -1,9 +1,0 @@
-{% ckan_extends %}
-
-{% set pkg_fields = h.get_dcatapit_package_schema() %}
-
-{% block package_basic_fields_custom %}
-
-	{% snippet 'snippets/dcatapit_form_fields.html', data=data, errors=errors, schema_fields=pkg_fields %}
-
-{% endblock %}

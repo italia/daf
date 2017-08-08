@@ -16,3 +16,4 @@ client/settings.gradle
 client/src/
 conf/production.conf
 conf/cluster_application.conf
+conf/integration.conf

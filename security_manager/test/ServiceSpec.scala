@@ -18,14 +18,8 @@ import java.io.{IOException, File => JFile}
 import java.net.ServerSocket
 import java.util.Base64
 
-import better.files._
 import it.gov.daf.securitymanager.client.Security_managerClient
-import org.apache.hadoop.fs.FileSystem
-import org.apache.hadoop.hdfs.{HdfsConfiguration, MiniDFSCluster}
-import org.apache.hadoop.test.PathUtils
-import org.apache.spark.sql.SparkSession
 import org.specs2.mutable.Specification
-import org.specs2.specification.BeforeAfterAll
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.ahc.AhcWSClient
@@ -35,12 +29,9 @@ import play.api.test.{WithServer, WsTestClient}
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
-import scala.util.{Failure, Try}
 
 @SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements", "org.wartremover.warts.Throw"))
-class ServiceSpec extends Specification with BeforeAfterAll {
-
-  import ServiceSpec._
+class ServiceSpec extends Specification {
 
   def getAvailablePort: Int = {
     try {
@@ -57,7 +48,6 @@ class ServiceSpec extends Specification with BeforeAfterAll {
   }
 
   def application: Application = GuiceApplicationBuilder().
-    configure("hadoop_conf_dir" -> s"${ServiceSpec.confPath.pathAsString}").
     configure("pac4j.authenticator" -> "test").
     build()
 
@@ -88,46 +78,5 @@ class ServiceSpec extends Specification with BeforeAfterAll {
       Await.result(client.token(s"Bearer $token2").map(token => s""""$token""""), Duration.Inf) must be equalTo token
     }
   }
-
-  override def beforeAll(): Unit = {
-    val conf = new HdfsConfiguration()
-    conf.setBoolean("dfs.permissions", true)
-    System.clearProperty(MiniDFSCluster.PROP_TEST_BUILD_DATA)
-    conf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, testDataPath.pathAsString)
-    conf.set(s"hadoop.proxyuser.${System.getProperties.get("user.name")}.groups", "*")
-    conf.set(s"hadoop.proxyuser.${System.getProperties.get("user.name")}.hosts", "*")
-    val builder = new MiniDFSCluster.Builder(conf)
-    miniCluster = Try(builder.build())
-    fileSystem = miniCluster.map(_.getFileSystem)
-    fileSystem.foreach(fs => {
-      val confFile: File = confPath / "hdfs-site.xml"
-      for {os <- confFile.newOutputStream.autoClosed} fs.getConf.writeXml(os)
-    })
-  }
-
-  override def afterAll(): Unit = {
-    miniCluster.foreach(_.shutdown(true))
-    val _ = testDataPath.parent.parent.delete(true)
-    sparkSession.stop()
-  }
-}
-
-@SuppressWarnings(Array("org.wartremover.warts.Var", "org.wartremover.warts.Null"))
-object ServiceSpec {
-
-  private val (testDataPath, confPath) = {
-    val testDataPath = s"${PathUtils.getTestDir(classOf[ServiceSpec]).getCanonicalPath}/MiniCluster"
-    val confPath = s"$testDataPath/conf"
-    (
-      testDataPath.toFile.createIfNotExists(asDirectory = true, createParents = false),
-      confPath.toFile.createIfNotExists(asDirectory = true, createParents = false)
-    )
-  }
-
-  var miniCluster: Try[MiniDFSCluster] = Failure[MiniDFSCluster](new Exception)
-
-  var fileSystem: Try[FileSystem] = Failure[FileSystem](new Exception)
-
-  lazy val sparkSession: SparkSession = SparkSession.builder().master("local").getOrCreate()
 
 }

@@ -40,15 +40,15 @@ spec:
         volumeMounts:
         - name: glusterfsvol
           mountPath: /opt/docker/conf/production.conf
-          subPath: storage-manager/conf/production.conf
+          subPath: iot-ingestion-manager/conf/production.conf
           readOnly: true
         - name: glusterfsvol
           mountPath: /opt/docker/conf/logback.xml
-          subPath: storage-manager/conf/logback.xml
+          subPath: iot-ingestion-manager/conf/logback.xml
           readOnly: true
         - name: glusterfsvol
           mountPath: /opt/docker/conf/daf.keytab
-          subPath: storage-manager/conf/daf.keytab
+          subPath: iot-ingestion-manager/conf/daf.keytab
           readOnly: true
         - name: hosts
           mountPath: /etc/extra_hosts

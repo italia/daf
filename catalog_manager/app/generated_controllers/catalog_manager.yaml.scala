@@ -20,7 +20,7 @@ import javax.inject._
 import it.gov.daf.catalogmanager.listeners.IngestionListenerImpl
 import it.gov.daf.catalogmanager.service.ServiceRegistry
 import scala.concurrent.Future
-import it.gov.daf.catalogmanager.service.ckan.CkanRegistry
+import it.gov.daf.catalogmanager.service.CkanRegistry
 import play.api.libs.json._
 import scala.concurrent.ExecutionContext.Implicits.global
 

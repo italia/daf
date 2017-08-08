@@ -7,7 +7,7 @@ import org.bson.types.ObjectId
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import com.mongodb.casbah.Imports._
 import it.gov.daf.catalogmanager.utilities.{CatalogManager, ConfigReader}
-import it.gov.daf.catalogmanager.service.ckan.CkanRegistry
+import it.gov.daf.catalogmanager.service.CkanRegistry
 
 import scala.util.Try
 
@@ -19,12 +19,24 @@ class CatalogRepositoryMongo extends  CatalogRepository{
 
   private val mongoHost: String = ConfigReader.getDbHost
   private val mongoPort = ConfigReader.getDbPort
+  private val database = ConfigReader.getDbHost
+
+  private val userName = ConfigReader.userName
+  private val source = ConfigReader.database
+  private val password = ConfigReader.password
+
+  val server = new ServerAddress("localhost", 27017)
+  val credentials = MongoCredential.createCredential(userName, source, password.toCharArray)
+
+
 
   import catalog_manager.yaml.BodyReads._
 
   def listCatalogs() :Seq[MetaCatalog] = {
-    val mongoClient = MongoClient(mongoHost, mongoPort)
-    val db = mongoClient("catalog_manager")
+
+    val mongoClient = MongoClient(server, List(credentials))
+    //val mongoClient = MongoClient(mongoHost, mongoPort)
+    val db = mongoClient(source)
     val coll = db("catalog_test")
     val results = coll.find().toList
     mongoClient.close
@@ -43,7 +55,8 @@ class CatalogRepositoryMongo extends  CatalogRepository{
   def getCatalogs(logicalUri :String) :MetaCatalog = {
     //val objectId : ObjectId = new ObjectId(catalogId)
     val query = MongoDBObject("operational.logical_uri" -> logicalUri)
-    val mongoClient = MongoClient(mongoHost, mongoPort)
+   // val mongoClient = MongoClient(mongoHost, mongoPort)
+    val mongoClient = MongoClient(server, List(credentials))
     val db = mongoClient("catalog_manager")
     val coll = db("catalog_test")
     val result = coll.findOne(query)
@@ -68,11 +81,12 @@ class CatalogRepositoryMongo extends  CatalogRepository{
 
     import catalog_manager.yaml.ResponseWrites.MetaCatalogWrites
 
-    val mongoClient = MongoClient(mongoHost, mongoPort)
+    //val mongoClient = MongoClient(mongoHost, mongoPort)
+    val mongoClient = MongoClient(server, List(credentials))
     val db = mongoClient("catalog_manager")
     val coll = db("catalog_test")
 
-    // After Test refactor
+    // After Test refactor TODO
     val dcatapit: Dataset = metaCatalog.dcatapit.get
     val datasetJs : JsValue = ResponseWrites.DatasetWrites.writes(dcatapit)
     CkanRegistry.ckanRepository.createDataset(datasetJs)

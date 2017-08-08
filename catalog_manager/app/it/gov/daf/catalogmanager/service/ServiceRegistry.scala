@@ -14,6 +14,5 @@ object ServiceRegistry extends CatalogServiceComponent
   val catalogRepository =  CatalogRepository(app)
   val ckanRepository = CkanRepository(app)
   val catalogService = new CatalogService
-
 }
 

@@ -46,31 +46,13 @@ lazy val root = (project in file(".")).
 
 scalaVersion in ThisBuild := "2.11.8"
 
-val hadoopExcludes =
-  (moduleId: ModuleID) => moduleId.
-    exclude("org.slf4j", "slf4j-log4j12").
-    exclude("org.slf4j", "slf4j-api")
-
-val hadoopLibraries = Seq(
-  hadoopExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % Compile),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % Test classifier "tests"),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-hdfs" % hadoopVersion % Test classifier "tests"),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-hdfs" % hadoopVersion % Test classifier "tests" extra "type" -> "test-jar"),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-hdfs" % hadoopVersion % Test extra "type" -> "test-jar"),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % Test classifier "tests"),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-minicluster" % hadoopVersion % Test),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-common" % hadoopVersion % Test classifier "tests" extra "type" -> "test-jar"),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-mapreduce-client-jobclient" % hadoopVersion % Test classifier "tests"),
-  "com.github.pathikrit" %% "better-files" % betterFilesVersion % Test
-)
-
 libraryDependencies ++= Seq(
   cache,
   ws,
   "org.webjars" % "swagger-ui" % swaggerUiVersion,
   "it.gov.daf" %% "common" % version.value,
   specs2 % Test
-) ++ hadoopLibraries
+)
 
 resolvers ++= Seq(
   "zalando-bintray" at "https://dl.bintray.com/zalando/maven",

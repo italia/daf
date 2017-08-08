@@ -9,7 +9,7 @@ organization in ThisBuild := "it.gov.daf"
 
 name := "daf-catalog-manager"
 
-version in ThisBuild := "1.0.0"
+version in ThisBuild := "1.0.0-SNAPSHOT"
 
 val playVersion = "2.5.14"
 
@@ -44,7 +44,8 @@ libraryDependencies ++= Seq(
   "me.jeffmay" %% "play-json-tests" % "1.5.0" % Test,
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.0" % Test,
   "org.mongodb" %% "casbah" % "3.1.1", //,
-  "net.caoticode.dirwatcher" %% "dir-watcher" % "0.1.0"
+  "net.caoticode.dirwatcher" %% "dir-watcher" % "0.1.0",
+  "it.gov.daf" %% "common" % "1.0-SNAPSHOT"
   //"it.teamdigitale" %% "ingestion-module" % "0.1.0" exclude("org.apache.avro", "avro")
 )
 
@@ -56,7 +57,8 @@ resolvers ++= Seq(
   "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
   "jeffmay" at "https://dl.bintray.com/jeffmay/maven",
   Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns),
-  Resolver.mavenLocal
+  Resolver.mavenLocal,
+  "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/"
 )
 
 // Play provides two styles of routers, one expects its actions to be injected, the
@@ -87,6 +89,7 @@ dockerCommands := dockerCommands.value.flatMap {
 dockerCommands += ExecCmd("ENTRYPOINT", s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
 dockerExposedPorts := Seq(9000)
 dockerRepository := Option("10.98.74.120:5000")
+
 
 publishTo in ThisBuild := {
   val nexus = "http://nexus.default.svc.cluster.local:8081/repository/"

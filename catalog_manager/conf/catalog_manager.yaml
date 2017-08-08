@@ -27,12 +27,13 @@ info:
   license:
     name: Creative Commons 4.0 International
     url: http://creativecommons.org/licenses/by/4.0/
-host : localhost:9000
+#host : localhost:9001
 # will be prefixed to all paths
 basePath: /catalog-manager/v1
 # array of all schemes that your API supports
 schemes:
   - http
+  - https
 produces:
   - application/json
 consumes:
@@ -41,6 +42,10 @@ securityDefinitions:
   basicAuth:
     type: basic
     description: HTTP Basic Authentication. Works over `HTTP` and `HTTPS`
+#  Bearer:
+#    type: apiKey
+#    name: Authorization
+#    in: header
 paths:
   "/test":
     get:
@@ -54,6 +59,8 @@ paths:
             $ref: '#/definitions/Token'
   "/dataset-catalogs":
     get:
+      security:
+      - basicAuth: []
       summary: DatasetCatalog
       description: |
         List of MetaCatalog stored
@@ -78,6 +85,8 @@ paths:
             $ref: '#/definitions/Error'
   "/dataset-catalogs/standard-uris":
     get:
+      security:
+      - basicAuth: []
       summary: DatasetCatalog standard uri
       description: |
         List of Standard Uri
@@ -102,6 +111,8 @@ paths:
             $ref: '#/definitions/Error'
   "/catalog-ds/get/{catalog_id}":
     get:
+      security:
+      - basicAuth: []
       summary: DatasetCatalog
       description: |
         DatasetCatalog data
@@ -130,6 +141,8 @@ paths:
             $ref: '#/definitions/Error'
   "/catalog-ds/add":
     post:
+      security:
+      - basicAuth: []
       summary: DatasetCatalog
       description: |
         The DatasetCatalog for ....
@@ -159,6 +172,8 @@ paths:
             $ref: '#/definitions/Error'
   "/ckan/create/dataset":
     post:
+      security:
+      - basicAuth: []
       tags:
         - Ckan
       description: Create ckan dataset for ....
@@ -189,6 +204,8 @@ paths:
             $ref: '#/definitions/Error'
   "/ckan/datasets/{dataset_id}":
     get:
+      security:
+      - basicAuth: []
       tags:
         - Ckan
       description: Get ckan dataset for ....
@@ -217,6 +234,8 @@ paths:
             $ref: '#/definitions/Error'
   "/ckan/create/organization":
     post:
+      security:
+      - basicAuth: []
       tags:
         - Ckan
       description: Create ckan organization
@@ -246,6 +265,8 @@ paths:
             $ref: '#/definitions/Error'
   "/ckan/organization/{org_id}":
     get:
+      security:
+      - basicAuth: []
       tags:
         - Ckan
       description: Get ckan organization
@@ -274,6 +295,8 @@ paths:
             $ref: '#/definitions/Error'
   "/ckan/organizations":
     get:
+      security:
+      - basicAuth: []
       tags:
         - Ckan
       description: Get ckan organization list
@@ -297,6 +320,8 @@ paths:
             $ref: '#/definitions/Error'
   "/ckan/datasets":
     get:
+      security:
+      - basicAuth: []
       tags:
         - Ckan
       description: Get ckan dataset list
@@ -320,6 +345,8 @@ paths:
             $ref: '#/definitions/Error'
   "/ckan/datasetsWithResources":
     get:
+      security:
+      - basicAuth: []
       tags:
         - Ckan
       description: Get ckan dataset list with all infos associated.
@@ -352,6 +379,8 @@ paths:
             $ref: '#/definitions/Error'
   "/ckan/searchDataset":
     get:
+      security:
+      - basicAuth: []
       tags:
         - Ckan
       description: Search ckan datasets with all infos associated.

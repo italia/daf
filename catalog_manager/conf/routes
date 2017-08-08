@@ -6,7 +6,7 @@ GET         /spec/catalog_manager.yaml   controllers.Swagger.swaggerSpec(name="c
 
 #GET         /list_specs     controllers.Swagger.listSpecs
 
-GET         /               controllers.Assets.versioned(path="/public/swagger-ui", file: Asset = "index.html")
+GET         /catalog-manager               controllers.Assets.versioned(path="/public/swagger-ui", file: Asset = "index.html")
 
 GET         /index.html     controllers.Assets.versioned(path="/public/swagger-ui", file: Asset = "index.html")
 

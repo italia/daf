@@ -6,3 +6,5 @@ logs
 logs
 */build
 */production.conf
+iot_ingestion_manager/common/src/generated
+security_manager/client/project

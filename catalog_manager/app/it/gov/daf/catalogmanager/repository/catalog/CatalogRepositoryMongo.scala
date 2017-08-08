@@ -25,7 +25,7 @@ class CatalogRepositoryMongo extends  CatalogRepository{
   private val source = ConfigReader.database
   private val password = ConfigReader.password
 
-  val server = new ServerAddress("localhost", 27017)
+  val server = new ServerAddress(mongoHost, 27017)
   val credentials = MongoCredential.createCredential(userName, source, password.toCharArray)
 
 

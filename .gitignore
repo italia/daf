@@ -5,6 +5,6 @@ logs
 .history
 logs
 */build
-catalog_manager/app/generated_controllers/catalog_manager.yaml.scala
-catalog_manager
-iot_ingestion_manager/common/src/generated/
+*/production.conf
+iot_ingestion_manager/common/src/generated
+security_manager/client/project

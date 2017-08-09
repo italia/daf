@@ -3,7 +3,7 @@ package it.gov.daf.catalogmanager.service
 /**
   * Created by ale on 18/07/17.
   */
-import catalog_manager.yaml.{Dataset, MetadataCat, Organization, ResourceSize}
+import catalog_manager.yaml.{Credentials, Dataset, MetadataCat, Organization, ResourceSize, User}
 import play.api.{Configuration, Environment}
 import play.api.libs.json.{JsResult, JsValue}
 import it.gov.daf.catalogmanager.repository.ckan.{CkanRepository, CkanRepositoryComponent}
@@ -19,6 +19,24 @@ trait CkanServiceComponent {
   val ckanService: CkanService
 
   class CkanService {
+
+    def getMongoUser(name:String): JsResult[User]  = {
+      ckanRepository.getMongoUser(name)
+    }
+
+    def verifyCredentials(credentials: Credentials):Boolean = {
+      ckanRepository.verifyCredentials(credentials: Credentials)
+    }
+    def updateOrganization(orgId: String, jsonOrg: JsValue): Future[String] = {
+      ckanRepository.updateOrganization(orgId,jsonOrg)
+    }
+    def createUser(jsonUser: JsValue): Future[String] = {
+      ckanRepository.createUser(jsonUser)
+    }
+    def getUserOrganizations(userName :String) : Future[JsResult[Seq[Organization]]] = {
+      ckanRepository.getUserOrganizations(userName)
+    }
+
     def createDataset(jsonDataset: JsValue): Future[String] = {
       ckanRepository.createDataset(jsonDataset)
     }

@@ -2,9 +2,12 @@ package it.gov.daf.catalogmanager.repository.ckan
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import catalog_manager.yaml.{Dataset, MetadataCat, Organization, ResourceSize}
+import catalog_manager.yaml.{Credentials, Dataset, MetadataCat, Organization, ResourceSize, User}
+import com.mongodb.{DBObject, MongoCredential, ServerAddress}
+import com.mongodb.casbah.MongoClient
+import com.mongodb.casbah.commons.MongoDBObject
 import play.api.libs.ws.ahc.AhcWSClient
-import it.gov.daf.catalogmanager.utilities.{ConfigReader, WebServiceUtil}
+import it.gov.daf.catalogmanager.utilities.{ConfigReader, SecurePasswordHashing, WebServiceUtil}
 import play.api.libs.json._
 
 import scala.concurrent.Future
@@ -23,6 +26,115 @@ class CkanRepositoryProd extends CkanRepository{
 
   private val LOCALURL = "http://localhost:9000"
   private val CKAN_ERROR = "CKAN service is not working correctly"
+
+  private val server = new ServerAddress(ConfigReader.getDbHost, ConfigReader.getDbPort)
+  private val userName = ConfigReader.userName
+  private val dbName = ConfigReader.database
+  private val password = ConfigReader.password
+  private val credentials = MongoCredential.createCredential(userName, dbName, password.toCharArray)
+
+  private def writeMongo(json: JsValue, collectionName: String): Boolean = {
+
+    println("write mongo: "+json.toString())
+    //val mongoClient = MongoClient(mongoHost, mongoPort)
+    val mongoClient = MongoClient(server, List(credentials))
+    val db = mongoClient(dbName)
+    val coll = db(collectionName)
+    val obj = com.mongodb.util.JSON.parse(json.toString()).asInstanceOf[DBObject]
+    val inserted = coll.insert(obj)
+    mongoClient.close()
+    inserted.getN > 0
+
+  }
+
+  private def readMongo(collectionName: String, filterAttName: String, filterValue: String): JsValue = {
+
+    val mongoClient = MongoClient(server, List(credentials))
+    val db = mongoClient(dbName)
+    //val collection = db.getCollection(collectionName)
+    val coll = db(collectionName)
+    //val result2 = collection.findOne(equal(filterAttName, filterValue))
+
+    val query = MongoDBObject(filterAttName -> filterValue)
+    val result = coll.findOne(query)
+    mongoClient.close
+
+    val out: JsValue = result match {
+      case Some(x) => {
+        val jsonString = com.mongodb.util.JSON.serialize(x)
+        Json.parse(jsonString)
+      }
+      case None => JsString("Not found")
+    }
+
+    out
+
+  }
+
+  def getMongoUser(name:String): JsResult[User] = {
+
+    val jsUser = readMongo("users","name", name )
+    val userValidate = jsUser.validate[User]
+    userValidate
+
+  }
+
+  def verifyCredentials(credentials: Credentials):Boolean = {
+
+    val result = readMongo("users", "name", credentials.username.get.toString)
+    val hpasswd = (result \ "password").get.as[String]
+
+    //println("pwd: "+credentials.password.get.toString)
+    //println("hpasswd: "+hpasswd)
+
+    return SecurePasswordHashing.validatePassword(credentials.password.get.toString, hpasswd )
+  }
+
+  def updateOrganization(orgId: String, jsonOrg: JsValue): Future[String] = {
+
+    val wsClient = AhcWSClient()
+    val url =  LOCALURL + "/ckan/updateOrganization/" + orgId
+    wsClient.url(url).put(jsonOrg).map({ response =>
+      (response.json \ "success").getOrElse(JsString(CKAN_ERROR)).toString()
+    }).andThen { case _ => wsClient.close() }
+      .andThen { case _ => system.terminate() }
+
+  }
+
+  def createUser(jsonUser: JsValue): Future[String] = {
+
+    val password = (jsonUser \ "password").get.as[String]
+    println("PWD -->"+password+"<")
+    val hashedPassword = SecurePasswordHashing.hashPassword( password )
+    val updatedJsonUser = jsonUser.as[JsObject] + ("password" -> JsString(hashedPassword) )
+
+    val wsClient = AhcWSClient()
+    val url =  LOCALURL + "/ckan/createUser"
+    wsClient.url(url).post(jsonUser).map({ response =>
+      (response.json \ "success").toOption match {
+        case Some(x) => if(x.toString()=="true")writeMongo(updatedJsonUser,"users"); x.toString()
+        case _ => JsString(CKAN_ERROR).toString()
+      }
+    }).andThen { case _ => wsClient.close() }
+      .andThen { case _ => system.terminate() }
+
+  }
+
+  def getUserOrganizations(userName :String) : Future[JsResult[Seq[Organization]]] = {
+
+    val wsClient = AhcWSClient()
+    val url =  LOCALURL + "/ckan/userOrganizations/" + userName
+    wsClient.url(url).get().map ({ response =>
+      val orgsListJson: JsValue = (response.json \ "result")
+        .getOrElse(JsString(CKAN_ERROR))
+
+      val orgsListValidate = orgsListJson.validate[Seq[Organization]]
+      println(orgsListValidate)
+      orgsListValidate
+
+    }).andThen { case _ => wsClient.close() }
+      .andThen { case _ => system.terminate() }
+  }
 
   def createDataset(jsonDataset: JsValue): Future[String] = {
 

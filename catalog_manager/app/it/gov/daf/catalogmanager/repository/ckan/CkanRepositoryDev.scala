@@ -2,7 +2,7 @@ package it.gov.daf.catalogmanager.repository.ckan
 
 import java.io.{FileInputStream, PrintWriter}
 
-import catalog_manager.yaml.{Dataset, MetadataCat, Organization, ResourceSize}
+import catalog_manager.yaml.{Credentials, Dataset, MetadataCat, Organization, ResourceSize, User}
 import play.Environment
 import play.api.libs.json._
 
@@ -36,8 +36,28 @@ class CkanRepositoryDev extends CkanRepository{
     datasetWriter.flush()
   }
 
+  def getMongoUser(name:String): JsResult[User]={
+    JsSuccess(null)
+  }
+
+  def verifyCredentials(credentials: Credentials):Boolean = {
+    true
+  }
+
+  def updateOrganization(orgId: String, jsonOrg: JsValue): Future[String] = {
+    Future("todo")
+  }
+
   def createOrganization( jsonDataset: JsValue ) : Future[String] = {
     Future("todo")
+  }
+
+  def createUser(jsonUser: JsValue): Future[String]= {
+    Future("todo")
+  }
+
+  def getUserOrganizations(userName :String) : Future[JsResult[Seq[Organization]]] = {
+    Future(null)
   }
 
 

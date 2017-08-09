@@ -31,7 +31,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                                                                                                                                
+                                                                                                                                                                                            
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -129,6 +129,14 @@ package catalog_manager.yaml {
             NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.test
         }
+        val verifycredentials = verifycredentialsAction { (credentials: Credentials) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.verifycredentials
+            CkanRegistry.ckanService.verifyCredentials(credentials) match {
+                case true => Verifycredentials200(Success(Some("Success"), Some("User verified")))
+                case _ =>  Verifycredentials401(Error(None,Some("Wrong Username or Password"),None))
+            }
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.verifycredentials
+        }
         val createckandataset = createckandatasetAction { (dataset: Dataset) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.createckandataset
             val jsonv : JsValue = ResponseWrites.DatasetWrites.writes(dataset)
@@ -155,6 +163,22 @@ package catalog_manager.yaml {
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.getckandatasetListWithRes
         }
+        val getckanuserorganizationList = getckanuserorganizationListAction { (username: String) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.getckanuserorganizationList
+            val orgsFuture: Future[JsResult[Seq[Organization]]] = CkanRegistry.ckanService.getUserOrganizations(username)
+            val eitherOrgs: Future[Either[String, Seq[Organization]]] = orgsFuture.map(result => {
+                result match {
+                    case s: JsSuccess[Seq[Organization]] => Right(s.get)
+                    case e: JsError => Left("error, no organization")
+                }
+            })
+            // Getckandatasetbyid200(dataset)
+            eitherOrgs.flatMap {
+                case Right(orgs) => GetckanuserorganizationList200(orgs)
+                case Left(error) => GetckanuserorganizationList401(Error(None,Option(error),None))
+            }
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.getckanuserorganizationList
+        }
         val createckanorganization = createckanorganizationAction { (organization: Organization) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.createckanorganization
             val jsonv : JsValue = ResponseWrites.OrganizationWrites.writes(organization)
@@ -164,6 +188,41 @@ package catalog_manager.yaml {
                 case _ =>  Createckanorganization401(GENERIC_ERROR)
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.createckanorganization
+        }
+        val updateckanorganization = updateckanorganizationAction { input: (String, Organization) =>
+            val (org_id, organization) = input
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.updateckanorganization
+            val jsonv : JsValue = ResponseWrites.OrganizationWrites.writes(organization)
+
+            CkanRegistry.ckanService.updateOrganization(org_id,jsonv)flatMap {
+                case "true" => Updateckanorganization200(Success(Some("Success"), Some("organization updated")))
+                case _ =>  Updateckanorganization401(GENERIC_ERROR)
+            }
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.updateckanorganization
+        }
+        val getckanuser = getckanuserAction { (username: String) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.getckanuser
+            val userResult: JsResult[User] = CkanRegistry.ckanService.getMongoUser(username)
+            val eitherUser: Either[String, User] = userResult match {
+                case s: JsSuccess[User] => Right(s.get)
+                case e: JsError => Left("error no user with that name")
+            }
+
+
+            eitherUser match {
+                case Right(user) => Getckanuser200(user)
+                case Left(error) => Getckanuser401(Error(None,Option(error),None))
+            }
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.getckanuser
+        }
+        val createckanuser = createckanuserAction { (user: User) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.createckanuser
+            val jsonv : JsValue = ResponseWrites.UserWrites.writes(user)
+            CkanRegistry.ckanService.createUser(jsonv)flatMap {
+                case "true" => Createckanuser200(Success(Some("Success"), Some("user created")))
+                case _ =>  Createckanuser401(GENERIC_ERROR)
+            }
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.createckanuser
         }
         val getckandatasetbyid = getckandatasetbyidAction { (dataset_id: String) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.getckandatasetbyid

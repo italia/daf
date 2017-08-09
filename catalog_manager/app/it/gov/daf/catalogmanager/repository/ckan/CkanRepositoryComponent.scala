@@ -1,5 +1,6 @@
 package it.gov.daf.catalogmanager.repository.ckan
 
+import catalog_manager.yaml.{Credentials, User}
 import play.api.libs.json.JsValue
 
 import scala.concurrent.Future
@@ -18,6 +19,11 @@ import scala.concurrent.Future
   */
 trait CkanRepository {
 
+  def getMongoUser(name:String): JsResult[User]
+  def verifyCredentials(credentials: Credentials):Boolean
+  def updateOrganization(orgId: String, jsonOrg: JsValue): Future[String]
+  def createUser(jsonUser: JsValue): Future[String]
+  def getUserOrganizations(userName :String) : Future[JsResult[Seq[Organization]]]
   def createDataset(jsonDataset: JsValue): Future[String]
   def createOrganization(jsonDataset: JsValue): Future[String]
   def dataset(datasetId: String): JsValue

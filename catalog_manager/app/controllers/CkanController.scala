@@ -17,6 +17,8 @@ import it.gov.daf.catalogmanager.service.CkanRegistry
 import it.gov.daf.catalogmanager.utilities.WebServiceUtil
 
 
+
+
 @Singleton
 class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) extends Controller {
 
@@ -335,6 +337,67 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
   }
 
+  def createUser = Action.async { implicit request =>
+
+    /*
+    settare la proprietà ckan.auth.create_user_via_api = true
+
+    curl -H "Content-Type: application/json" -X POST -d @user.json http://localhost:9000/ckan/createUser dove user.json contiene
+    {
+      "name": "test_user",
+      "email": "test@test.org",
+      "password": "password",
+      "fullname": "utente di test",
+      "about": "prova inserimento utente di test"
+    }
+    * */
+
+    val json:JsValue = request.body.asJson.get
+    val response = ws.url(CKAN_URL + "/api/3/action/user_create").post(json)
+
+    response map { x =>
+      println(x.json.toString)
+      Ok(x.json)
+    }
+
+  }
+
+  def getUser(userId :String) = Action.async { implicit request =>
+
+    val url = CKAN_URL + "/api/3/action/user_show?id=" + userId
+    println("URL " + url)
+    val resp = ws.url(url).withHeaders("Authorization" -> AUTH_TOKEN).get
+
+    resp map { response =>
+      // val bodyResponse :String = response.body
+      Ok(response.json)
+    }
+
+  }
+
+  def getUserOrganizations(userId :String, permission:Option[String]) = Action.async { implicit request =>
+
+    val url = CKAN_URL + "/api/3/action/user_show?id=" + userId
+    println("URL " + url)
+    val resp = ws.url(url).withHeaders("Authorization" -> AUTH_TOKEN).get
+
+
+    resp flatMap { response =>
+
+      val userApiKey = ((response.json \ "result") \ "apikey").getOrElse( JsString("xxxx")).as[String]
+
+      val url = CKAN_URL + "/api/3/action/organization_list_for_user"
+      println("URL 2 " + url)
+      val resp = ws.url(url).withHeaders("Authorization" -> userApiKey).get
+
+      resp map { response =>
+        Ok(response.json)
+      }
+
+    }
+
+  }
+
   def getOrganization(orgId :String) = Action.async { implicit request =>
 
     val url = CKAN_URL + "/api/3/action/organization_show?id=" + orgId
@@ -354,10 +417,13 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
     // curl -H "Content-Type: application/json" -X PUT -d @org.json http://localhost:9000/ckan/updateOrganization/id=232cad97-ecf2-447d-9656-63899023887t
 
     val json:JsValue = request.body.asJson.get
+    val url = CKAN_URL + "/api/3/action/organization_update?id=" + orgId;
+    val response = ws.url(url).withHeaders("Authorization" -> AUTH_TOKEN).post(json)
 
-    val response = ws.url(CKAN_URL + "/api/3/action/organization_update?id=" + orgId).withHeaders("Authorization" -> AUTH_TOKEN).post(json)
-
+    //println(url)
+    //println(json)
     response map { x =>
+      println(x.body)
       Ok(x.json)
     }
 

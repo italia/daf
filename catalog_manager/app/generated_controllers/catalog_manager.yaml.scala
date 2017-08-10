@@ -1,28 +1,16 @@
 
-import play.api.mvc.{Action,Controller}
-
-import play.api.data.validation.Constraint
-
-import play.api.i18n.MessagesApi
-
-import play.api.inject.{ApplicationLifecycle,ConfigurationProvider}
-
-import de.zalando.play.controllers._
-
-import PlayBodyParsing._
-
-import PlayValidations._
-
-import scala.util._
-
 import javax.inject._
 
+import de.zalando.play.controllers.PlayBodyParsing._
 import it.gov.daf.catalogmanager.listeners.IngestionListenerImpl
-import it.gov.daf.catalogmanager.service.ServiceRegistry
-import scala.concurrent.Future
-import it.gov.daf.catalogmanager.service.CkanRegistry
+import it.gov.daf.catalogmanager.service.{CkanRegistry, ServiceRegistry}
+import play.api.i18n.MessagesApi
+import play.api.inject.{ApplicationLifecycle, ConfigurationProvider}
 import play.api.libs.json._
+
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.util._
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -31,7 +19,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                                                                                                                                
+
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml

@@ -1,0 +1,139 @@
+# Copyright 2017 TEAM PER LA TRASFORMAZIONE DIGITALE
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Questo e' la descrizione delle API che vengono esposte da dati.gov.it.
+# Le API sono pubbliche
+
+swagger: '2.0'
+info:
+  title: Entity Manager API
+  description: Entity Manager API
+  version: "BETA"
+  termsOfService: http://termofservice
+  contact:
+    name: team digitale
+    url: https://teamdigitale.governo.it
+  license:
+    name: Creative Commons 4.0 International
+    url: http://creativecommons.org/licenses/by/4.0/
+host: localhost:9001
+basePath: /entity-manager/v1
+schemes:
+  - http
+  - https
+produces:
+  - application/json
+consumes:
+  - application/json
+securityDefinitions:
+  basicAuth:
+    type: basic
+    description: HTTP Basic Authentication. Works over `HTTP` and `HTTPS`
+paths:
+  "/entities":
+    get:
+      summary: All Entitities
+      operationId: getEntities
+      description: Get all entities. The list supports paging.
+      parameters:
+       - name: pageSize
+         in: query
+         description: Number of entities returned
+         type: integer
+       - name: pageNumber
+         in: query
+         description: Page number
+         type: integer
+      responses:
+        200:
+          description: The list of all entities
+          schema:
+            $ref: '#/definitions/Entities'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      summary: Creates an Entity
+      operationId: createEntity
+      description: Add an entity to the graph
+      parameters:
+        - name: entity
+          in: body
+          required: true
+          description: The entity to create.
+          schema:
+            $ref: "#/definitions/Entity"
+      responses:
+        200:
+          description: Entity succesfully created.
+          schema:
+            $ref: "#/definitions/EntityId"
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/entities/{entityname}":
+      get:
+        summary: Gets an entity
+        operationId: getEntity
+        description: Returns a single entity given its name
+        parameters:
+          - name: entityname
+            in: path
+            required: true
+            description: The entity's name
+            type: string
+        responses:
+          200:
+            description: An Entity
+            schema:
+              $ref: "#/definitions/Entity"
+          404:
+            description: The entity does not exists.
+          default:
+            description: Unexpected error
+            schema:
+              $ref: '#/definitions/Error'
+definitions:
+  Entity:
+    required:
+      - entityname
+    properties:
+      entityname:
+        type: string
+  Entities:
+    required:
+      - listOfEntities
+    properties:
+      listOfEntities:
+        type: array
+        items:
+          $ref: '#/definitions/Entity'
+  EntityId:
+    required:
+      - entityid
+    properties:
+      entityid:
+        type: integer
+        format: int64
+  Error:
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+      fields:
+        type: string

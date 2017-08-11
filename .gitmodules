@@ -8,3 +8,6 @@
 	path = livy/incubator-livy
 	url = https://github.com/teamdigitale/incubator-livy.git
 	branch = master
+[submodule "ckan/docker"]
+	path = ckan/docker
+	url = https://github.com/italia/dati-ckan-docker.git

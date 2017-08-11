@@ -45,7 +45,8 @@ libraryDependencies ++= Seq(
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.0" % Test,
   "org.mongodb" %% "casbah" % "3.1.1", //,
   "net.caoticode.dirwatcher" %% "dir-watcher" % "0.1.0",
-  "it.gov.daf" %% "common" % "1.0-SNAPSHOT"
+  "it.gov.daf" %% "common" % "1.0-SNAPSHOT",
+  "me.lessis" %% "base64" % "0.2.0"
   //"it.teamdigitale" %% "ingestion-module" % "0.1.0" exclude("org.apache.avro", "avro")
 )
 
@@ -68,6 +69,8 @@ routesGenerator := InjectedRoutesGenerator
 apiFirstParsers := Seq(ApiFirstSwaggerParser.swaggerSpec2Ast.value).flatten
 
 playScalaAutogenerateTests := false
+
+playScalaCustomTemplateLocation := Some(baseDirectory.value / "templates")
 
 headers := Map(
   "sbt" -> Apache2_0("2017", "TEAM PER LA TRASFORMAZIONE DIGITALE"),
@@ -100,6 +103,10 @@ publishTo in ThisBuild := {
 }
 
 credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
+
+
+javaOptions in Test += "-Dconfig.resource=" + System.getProperty("config.resource", "integration.conf")
+playScalaAutogenerateTests := false
 
 // Wart Remover Plugin Configuration
 //wartremoverErrors ++= Warts.allBut(Wart.Nothing, Wart.PublicInference, Wart.Any, Wart.Equals)

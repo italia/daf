@@ -17,6 +17,8 @@ import it.gov.daf.catalogmanager.service.CkanRegistry
 import it.gov.daf.catalogmanager.utilities.WebServiceUtil
 
 
+
+
 @Singleton
 class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) extends Controller {
 
@@ -29,6 +31,8 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
   private val ENV:String = config.get.getString("app.type").get
 
   private val AUTH_TOKEN:String = config.get.getString("app.ckan.auth.token").get
+
+  private val USER_ID_HEADER:String = config.get.getString("app.userid.header").get
 
 
   private def getOrgs(orgId :String): Future[List[String]] = {
@@ -58,7 +62,42 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
     datasetFuture
   }
 
+  def getOrganizationDataset(organizationId :String) = Action.async { implicit request =>
+    def isNull(v: JsValue) = v match {
+      case JsNull => true
+      case _ => false
+    }
+    for {
+      datasets <- getOrgs(organizationId)
+      dataset: Seq[JsValue] <- getOrgDatasets(datasets)
+    } yield {
+      Ok(Json.obj("result" -> Json.toJson(dataset.filterNot(isNull(_))), "success" -> JsBoolean(true)))
+    }
+  }
 
+
+  private def serviceWrappedCall( userId: String, fx:String  => Future[WSResponse] ) = {
+
+    val url = CKAN_URL + "/api/3/action/user_show?id=" + userId
+    println("user_show URL " + url)
+    val resp = ws.url(url).withHeaders("Authorization" -> AUTH_TOKEN).get
+
+
+    resp flatMap { response =>
+
+      val userApiKey = ((response.json \ "result") \ "apikey").getOrElse( JsString("xxxx")).as[String]
+
+      println("USER:"+userId)
+      println("API KEY:"+userApiKey)
+
+      fx( userApiKey ) map { response =>
+        println("RESPONSE FROM CKAN:"+response.json)
+        Ok(response.json)
+      }
+
+    }
+
+  }
 
   def createDataset = Action.async { implicit request =>
 
@@ -160,19 +199,22 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
     val json:JsValue = request.body.asJson.get
 
     if(ENV == "dev"){
-      CkanRegistry.ckanService.createDataset(json)
+      CkanRegistry.ckanService.createDataset(json,Option(""))
 
       val isOk = Future.successful(JsString("operazione effettuata correttamente"))
       isOk map { x =>
         Ok(x)
       }
     }else{
-      val response = ws.url(CKAN_URL + "/api/3/action/package_create").withHeaders("Authorization" -> AUTH_TOKEN).post(json)
 
-      response map { x =>
-        println(x.json.toString)
-        Ok(x.json)
+      val serviceUserId = request.headers.get(USER_ID_HEADER).getOrElse("")
+
+      def callCreateDataset(userApiKey: String ):Future[WSResponse] = {
+        ws.url(CKAN_URL + "/api/3/action/package_create").withHeaders("Authorization" -> userApiKey).post(json)
       }
+
+      serviceWrappedCall( serviceUserId, callCreateDataset )
+
     }
   }
 
@@ -269,40 +311,52 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
    }
     */
 
-
+    val serviceUserId = request.headers.get(USER_ID_HEADER).getOrElse("")
     val json:JsValue = request.body.asJson.get
 
-    val response = ws.url(CKAN_URL + "/api/3/action/package_update?id=" + datasetId).withHeaders("Authorization" -> AUTH_TOKEN).post(json)
-
-    response map { x =>
-      Ok(x.json)
+    def callUpdateDataset(userApiKey: String ):Future[WSResponse] ={
+      ws.url(CKAN_URL + "/api/3/action/package_update?id=" + datasetId).withHeaders("Authorization" -> userApiKey).post(json)
     }
 
+    serviceWrappedCall(serviceUserId,callUpdateDataset)
+
   }
+
+
 
   def deleteDataset(datasetId :String) = Action.async { implicit request =>
 
-    //curl -H "Content-Type: application/json" -X DELETE http://localhost:9000/ckan/deleteDataset/49f3d5f9-5ad6-4451-9bca-b3287185d19d
-    val url = CKAN_URL + "/api/3/action/package_delete"
-    val body = s"""{\"id\":\"$datasetId\"}"""
-    val test = ws.url(url).withHeaders("Authorization" -> AUTH_TOKEN).post(body)
-    println("--"+url)
-    test map { response =>
-      Ok(response.json)
+    val serviceUserId = request.headers.get(USER_ID_HEADER).getOrElse("")
+
+    def callDeleteDataset( userApiKey: String ):Future[WSResponse] ={
+
+      val url = CKAN_URL + "/api/3/action/package_delete"
+      val body = s"""{\"id\":\"$datasetId\"}"""
+      ws.url(url).withHeaders("Authorization" -> userApiKey).post(body)
+
     }
+
+    serviceWrappedCall(serviceUserId, callDeleteDataset)
+
   }
+
+
 
   def purgeDataset(datasetId :String) = Action.async { implicit request =>
 
     //curl -H "Content-Type: application/json" -X DELETE http://localhost:9000/ckan/purgeDataset/mydataset
 
-    val url = CKAN_URL + "/api/3/action/dataset_purge"
-    val body = s"""{\"id\":\"$datasetId\"}"""
-    val test = ws.url(url).withHeaders("Authorization" -> AUTH_TOKEN).post(body)
-    test map { response =>
-      Ok(response.json)
+    val serviceUserId = request.headers.get(USER_ID_HEADER).getOrElse("")
+
+    def callPurgeDataset( userApiKey: String ):Future[WSResponse] ={
+      val url = CKAN_URL + "/api/3/action/dataset_purge"
+      val body = s"""{\"id\":\"$datasetId\"}"""
+      ws.url(url).withHeaders("Authorization" -> userApiKey).post(body)
     }
+
+    serviceWrappedCall(serviceUserId,callPurgeDataset)
   }
+
 
   def createOrganization = Action.async { implicit request =>
 
@@ -324,27 +378,88 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
     * */
 
     //val AUTH_TOKEN:String = config.get.getString("app.ckan.auth.token").get
+
+    val serviceUserId = request.headers.get(USER_ID_HEADER).getOrElse("")
     val json:JsValue = request.body.asJson.get
 
-    val response = ws.url(CKAN_URL + "/api/3/action/organization_create").withHeaders("Authorization" -> AUTH_TOKEN).post(json)
-
-    response map { x =>
-      println(x.json.toString)
-      Ok(x.json)
+    def callCreateOrganization( userApiKey: String ):Future[WSResponse] = {
+      ws.url(CKAN_URL + "/api/3/action/organization_create").withHeaders("Authorization" -> userApiKey).post(json)
     }
+
+    serviceWrappedCall(serviceUserId,callCreateOrganization)
 
   }
 
-  def getOrganization(orgId :String) = Action.async { implicit request =>
 
-    val url = CKAN_URL + "/api/3/action/organization_show?id=" + orgId
-    println("URL " + url)
-    val test = ws.url(url).get
-    test map { response =>
-      // val bodyResponse :String = response.body
-      Ok(response.json)
+  def createUser = Action.async { implicit request =>
+
+    /*
+    settare la proprietà ckan.auth.create_user_via_api = true
+
+    curl -H "Content-Type: application/json" -X POST -d @user.json http://localhost:9000/ckan/createUser dove user.json contiene
+    {
+      "name": "test_user",
+      "email": "test@test.org",
+      "password": "password",
+      "fullname": "utente di test",
+      "about": "prova inserimento utente di test"
+    }
+    * */
+
+    val serviceUserId = request.headers.get(USER_ID_HEADER).getOrElse("")
+    val json:JsValue = request.body.asJson.get
+
+    def callCreateUser( userApiKey: String ):Future[WSResponse] ={
+      ws.url(CKAN_URL + "/api/3/action/user_create").withHeaders("Authorization" -> userApiKey).post(json)
     }
 
+    serviceWrappedCall(serviceUserId,callCreateUser)
+
+  }
+
+
+  def getUser(userId :String) = Action.async { implicit request =>
+
+    val serviceUserId = request.headers.get(USER_ID_HEADER).getOrElse("")
+
+    def callGetUser( userApiKey: String ):Future[WSResponse] ={
+      val url = CKAN_URL + "/api/3/action/user_show?id=" + userId
+      ws.url(url).withHeaders("Authorization" -> userApiKey).get
+    }
+
+    serviceWrappedCall( serviceUserId, callGetUser )
+
+  }
+
+
+  def getUserOrganizations( userId :String, permission:Option[String] ) = Action.async { implicit request =>
+
+    //CKAN versione 2.6.2 non prende l'id utente passato. Per la ricerca prende l'utente corrispondente all'API key
+    //TODO aggiornare quindi l'interfaccia del servizio o la versione CKAN
+
+    val serviceUserId = request.headers.get(USER_ID_HEADER).getOrElse("")
+
+    def callGetUserOrganizations(userApiKey: String ):Future[WSResponse] ={
+      val url = CKAN_URL + "/api/3/action/organization_list_for_user?id="+userId
+      println("organization_list_for_user URL " + url)
+      ws.url(url).withHeaders("Authorization" -> userApiKey).get
+    }
+
+    serviceWrappedCall( serviceUserId, callGetUserOrganizations )
+
+  }
+
+
+  def getOrganization(orgId :String) = Action.async { implicit request =>
+
+    val serviceUserId = request.headers.get(USER_ID_HEADER).getOrElse("")
+
+    def callGetOrganization( userApiKey: String ):Future[WSResponse] ={
+      val url = CKAN_URL + "/api/3/action/organization_show?id=" + orgId
+      ws.url(url).withHeaders("Authorization" -> userApiKey).get
+    }
+
+    serviceWrappedCall( serviceUserId, callGetOrganization )
 
   }
 
@@ -353,13 +468,15 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
     // curl -H "Content-Type: application/json" -X PUT -d @org.json http://localhost:9000/ckan/updateOrganization/id=232cad97-ecf2-447d-9656-63899023887t
 
+    val serviceUserId = request.headers.get(USER_ID_HEADER).getOrElse("")
     val json:JsValue = request.body.asJson.get
 
-    val response = ws.url(CKAN_URL + "/api/3/action/organization_update?id=" + orgId).withHeaders("Authorization" -> AUTH_TOKEN).post(json)
-
-    response map { x =>
-      Ok(x.json)
+    def callUpdateOrganization( userApiKey: String ):Future[WSResponse] = {
+      val url = CKAN_URL + "/api/3/action/organization_update?id=" + orgId
+      ws.url(url).withHeaders("Authorization" -> userApiKey).post(json)
     }
+
+    serviceWrappedCall( serviceUserId, callUpdateOrganization )
 
   }
 
@@ -369,13 +486,15 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
     //curl -H "Content-Type: application/json" -X DELETE http://localhost:9000/ckan/deleteOrganization/apt-altopiano-di-pine-e-valle-di-cembra2
 
-    val url = CKAN_URL + "/api/3/action/organization_delete"
-    val body = s"""{\"id\":\"$orgId\"}"""
+    val serviceUserId = request.headers.get(USER_ID_HEADER).getOrElse("")
 
-    val test = ws.url(url).withHeaders("Authorization" -> AUTH_TOKEN).post(body)
-    test map { response =>
-      Ok(response.json)
+    def callDeleteOrganization( userApiKey: String ):Future[WSResponse] = {
+      val url = CKAN_URL + "/api/3/action/organization_delete"
+      val body = s"""{\"id\":\"$orgId\"}"""
+      ws.url(url).withHeaders("Authorization" -> userApiKey).post(body)
     }
+
+    serviceWrappedCall( serviceUserId, callDeleteOrganization )
   }
 
 
@@ -383,21 +502,27 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
     //curl -H "Content-Type: application/json" -X DELETE http://localhost:9000/ckan/purgeOrganization/apt-altopiano-di-pine-e-valle-di-cembra2
 
-    val url = CKAN_URL + "/api/3/action/organization_purge"
-    val body = s"""{\"id\":\"$orgId\"}"""
+    val serviceUserId = request.headers.get(USER_ID_HEADER).getOrElse("")
 
-    val test = ws.url(url).withHeaders("Authorization" -> AUTH_TOKEN).post(body)
-    test map { response =>
-      Ok(response.json)
+    def callPurgeOrganization( userApiKey: String ):Future[WSResponse] = {
+      val url = CKAN_URL + "/api/3/action/organization_purge"
+      val body = s"""{\"id\":\"$orgId\"}"""
+      ws.url(url).withHeaders("Authorization" -> userApiKey).post(body)
     }
+
+    serviceWrappedCall( serviceUserId, callPurgeOrganization )
   }
 
 
   def getDatasetList = Action.async { implicit request =>
-    val test = ws.url(CKAN_URL + "/api/3/action/package_list").get
-    test map { response =>
-      Ok(response.json)
+
+    val serviceUserId = request.headers.get(USER_ID_HEADER).getOrElse("")
+
+    def callGetDatasetList( userApiKey: String ):Future[WSResponse] = {
+      ws.url(CKAN_URL + "/api/3/action/package_list").withHeaders("Authorization" -> userApiKey).get
     }
+
+    serviceWrappedCall( serviceUserId, callGetDatasetList )
   }
 
 
@@ -405,24 +530,30 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
     // curl -X GET "http://localhost:9000/ckan/datasetsWithResources?limit=1&offset=1"
 
+    val serviceUserId = request.headers.get(USER_ID_HEADER).getOrElse("")
+
     val params= Map( ("limit",limit), ("offset",offset) )
     val queryString = WebServiceUtil.buildEncodedQueryString(params)
 
-    val url = CKAN_URL + s"/api/3/action/current_package_list_with_resources$queryString"
-    println("url-->"+url)
-    val test = ws.url(url).get
-    test map { response =>
-      Ok(response.json)
+    def callDatasetListWithResources( userApiKey: String ):Future[WSResponse] = {
+      val url = CKAN_URL + s"/api/3/action/current_package_list_with_resources$queryString"
+      ws.url(url).withHeaders("Authorization" -> userApiKey).get
     }
+
+    serviceWrappedCall( serviceUserId, callDatasetListWithResources )
   }
 
 
   def getOrganizationList = Action.async { implicit request =>
-    val test = ws.url(CKAN_URL + "/api/3/action/organization_list").get
-    test map { response =>
-      println(response.body)
-      Ok(response.json)
+
+    val serviceUserId = request.headers.get(USER_ID_HEADER).getOrElse("")
+
+    def callGetOrganizationList( userApiKey: String ):Future[WSResponse] = {
+      ws.url(CKAN_URL + "/api/3/action/organization_list").withHeaders("Authorization" -> userApiKey).get
     }
+
+    serviceWrappedCall( serviceUserId, callGetOrganizationList )
+
   }
 
 
@@ -430,32 +561,38 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
     //curl -X GET "http://localhost:9000/ckan/datasetsWithResources?limit=1&offset=1
 
+    val serviceUserId = request.headers.get(USER_ID_HEADER).getOrElse("")
+
     val params= Map( ("q",q), ("sort",sort), ("rows",rows) )
     val queryString = WebServiceUtil.buildEncodedQueryString(params)
 
-    val url = CKAN_URL + s"/api/3/action/package_search$queryString"
-    println(url)
-    val test = ws.url(url).get
-    test map { response =>
-      Ok(response.json)
+    def callSearchDataset( userApiKey: String ):Future[WSResponse] = {
+      val url = CKAN_URL + s"/api/3/action/package_search$queryString"
+      ws.url(url).withHeaders("Authorization" -> userApiKey).get
     }
+
+    serviceWrappedCall( serviceUserId, callSearchDataset )
 
   }
 
 
   def getOganizationRevisionList(organizationId :String) = Action.async { implicit request =>
-    val url = CKAN_URL + "/api/3/action/organization_revision_list?id=" + organizationId
-    val test = ws.url(url).get
-    test map { response =>
-      // val bodyResponse :String = response.body
-      Ok(response.json)
+
+    val serviceUserId = request.headers.get(USER_ID_HEADER).getOrElse("")
+
+    def callGetOganizationRevisionList( userApiKey: String ):Future[WSResponse] = {
+      val url = CKAN_URL + "/api/3/action/organization_revision_list?id=" + organizationId
+      ws.url(url).withHeaders("Authorization" -> userApiKey).get
     }
+
+    serviceWrappedCall( serviceUserId, callGetOganizationRevisionList )
   }
+
 
   def getDataset(datasetId :String) = Action.async { implicit request =>
 
     if(ENV == "dev"){
-      val dataset = CkanRegistry.ckanService.dataset(datasetId)
+      val dataset = CkanRegistry.ckanService.dataset(datasetId,Option(""))
 
       val isOk = Future.successful(dataset)
       isOk map { x =>
@@ -463,28 +600,17 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
       }
 
     }else{
-      val url = CKAN_URL + "/api/3/action/package_show?id=" + datasetId
-      println("URL " + url)
-      val test = ws.url(url).get
-      test map { response =>
-        // val bodyResponse :String = response.body
-        Ok(response.json)
+
+      val serviceUserId = request.headers.get(USER_ID_HEADER).getOrElse("")
+
+      def callGetDataset( userApiKey: String ):Future[WSResponse] = {
+        val url = CKAN_URL + "/api/3/action/package_show?id=" + datasetId
+        ws.url(url).withHeaders("Authorization" -> userApiKey).get
       }
+
+      serviceWrappedCall( serviceUserId, callGetDataset )
     }
 
-  }
-
-  def getOrganizationDataset(organizationId :String) = Action.async { implicit request =>
-    def isNull(v: JsValue) = v match {
-      case JsNull => true
-      case _ => false
-    }
-    for {
-      datasets <- getOrgs(organizationId)
-      dataset: Seq[JsValue] <- getOrgDatasets(datasets)
-    } yield {
-      Ok(Json.obj("result" -> Json.toJson(dataset.filterNot(isNull(_))), "success" -> JsBoolean(true)))
-    }
   }
 
 }

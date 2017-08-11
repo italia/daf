@@ -12,6 +12,7 @@ import play.api.{Configuration, Environment}
   * Created by ale on 16/04/17.
   */
 private class AppConfig @Inject()(playConfig: Configuration) {
+  val userIdHeader: Option[String] = playConfig.getString("app.userid.header")
   val ckanHost: Option[String] = playConfig.getString("app.ckan.url")
   val dbHost: Option[String] = playConfig.getString("mongo.host")
   val dbPort: Option[Int] = playConfig.getInt("mongo.port")
@@ -24,6 +25,7 @@ private class AppConfig @Inject()(playConfig: Configuration) {
 
 object ConfigReader {
   private val config = new AppConfig(Configuration.load(Environment.simple()))
+  def userIdHeader: String = config.userIdHeader.getOrElse("userid")
   def getCkanHost: String = config.ckanHost.getOrElse("localhost")
   def getDbHost: String = config.dbHost.getOrElse("localhost")
   def getDbPort: Int = config.dbPort.getOrElse(27017)

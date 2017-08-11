@@ -119,7 +119,7 @@
 
 
 
-    def createCatalog(metaCatalog: MetaCatalog) :Success = {
+    def createCatalog(metaCatalog: MetaCatalog, callingUserid :MetadataCat) :Success = {
       import catalog_manager.yaml.ResponseWrites.MetaCatalogWrites
 
       val fw = new FileWriter("data/data-mgt/data_test.json", true)

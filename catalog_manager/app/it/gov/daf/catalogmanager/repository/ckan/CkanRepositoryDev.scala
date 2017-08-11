@@ -29,14 +29,14 @@ class CkanRepositoryDev extends CkanRepository{
 
   private val datasetWriter = new PrintWriter(Environment.simple().getFile("data/Dataset.json"))
 
-  def createDataset( jsonDataset: JsValue ): Future[String] = try {
+  def createDataset( jsonDataset: JsValue, callingUserid :MetadataCat ): Future[String] = try {
     datasetWriter.println(jsonDataset.toString)
     Future("ok")
   } finally {
     datasetWriter.flush()
   }
 
-  def getMongoUser(name:String): JsResult[User]={
+  def getMongoUser(name:String,callingUserid :MetadataCat): JsResult[User]={
     JsSuccess(null)
   }
 
@@ -44,48 +44,48 @@ class CkanRepositoryDev extends CkanRepository{
     true
   }
 
-  def updateOrganization(orgId: String, jsonOrg: JsValue): Future[String] = {
+  def updateOrganization(orgId: String, jsonOrg: JsValue, callingUserid :MetadataCat): Future[String] = {
     Future("todo")
   }
 
-  def createOrganization( jsonDataset: JsValue ) : Future[String] = {
+  def createOrganization( jsonDataset: JsValue, callingUserid :MetadataCat ) : Future[String] = {
     Future("todo")
   }
 
-  def createUser(jsonUser: JsValue): Future[String]= {
+  def createUser(jsonUser: JsValue, callingUserid :MetadataCat): Future[String]= {
     Future("todo")
   }
 
-  def getUserOrganizations(userName :String) : Future[JsResult[Seq[Organization]]] = {
+  def getUserOrganizations(userName :String, callingUserid :MetadataCat) : Future[JsResult[Seq[Organization]]] = {
     Future(null)
   }
 
 
-  def dataset(datasetId: String): JsValue = {
+  def dataset(datasetId: String, callingUserid :MetadataCat): JsValue = {
     readDataset()
   }
 
-  def getOrganization(orgId :String) : Future[JsResult[Organization]] = {
+  def getOrganization(orgId :String, callingUserid :MetadataCat) : Future[JsResult[Organization]] = {
     Future(null)
   }
 
-  def getOrganizations() : Future[JsValue] = {
+  def getOrganizations(callingUserid :MetadataCat) : Future[JsValue] = {
     Future(null)
   }
 
-  def getDatasets() : Future[JsValue] = {
+  def getDatasets(callingUserid :MetadataCat) : Future[JsValue] = {
     Future(null)
   }
 
-  def searchDatasets( input: (MetadataCat, MetadataCat, ResourceSize) ) : Future[JsResult[Seq[Dataset]]]={
+  def searchDatasets( input: (MetadataCat, MetadataCat, ResourceSize), callingUserid :MetadataCat ) : Future[JsResult[Seq[Dataset]]]={
     Future(null)
   }
 
-  def getDatasetsWithRes( input: (ResourceSize, ResourceSize) ) : Future[JsResult[Seq[Dataset]]] = {
+  def getDatasetsWithRes( input: (ResourceSize, ResourceSize), callingUserid :MetadataCat ) : Future[JsResult[Seq[Dataset]]] = {
     Future(null)
   }
 
-  def testDataset(datasetId :String) : Future[JsResult[Dataset]] = {
+  def testDataset(datasetId :String, callingUserid :MetadataCat) : Future[JsResult[Dataset]] = {
     Future(JsSuccess(Dataset(None,None,None,None,None,
       None,None,None,None,None,None,None,
       None,None,None,None,None,

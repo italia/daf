@@ -70,6 +70,8 @@ apiFirstParsers := Seq(ApiFirstSwaggerParser.swaggerSpec2Ast.value).flatten
 
 playScalaAutogenerateTests := false
 
+playScalaCustomTemplateLocation := Some(baseDirectory.value / "templates")
+
 headers := Map(
   "sbt" -> Apache2_0("2017", "TEAM PER LA TRASFORMAZIONE DIGITALE"),
   "scala" -> Apache2_0("2017", "TEAM PER LA TRASFORMAZIONE DIGITALE"),

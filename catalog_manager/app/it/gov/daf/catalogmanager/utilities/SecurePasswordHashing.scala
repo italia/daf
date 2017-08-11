@@ -53,7 +53,7 @@ object SecurePasswordHashing {
 
   private def pbkdf2(password: String, salt: Array[Byte], nrOfIterations: Int): Array[Byte] = {
     val keySpec = new PBEKeySpec(password.toCharArray(), salt, nrOfIterations, SizeOfPasswordHashInBytes * 8)
-    val keyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1")
+    val keyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")//PBKDF2WithHmacSHA1
 
     keyFactory.generateSecret(keySpec).getEncoded()
   }

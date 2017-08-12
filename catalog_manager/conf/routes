@@ -24,9 +24,12 @@ GET /ckan/organizations                         controllers.ckan.CkanController.
 GET /ckan/organizations/:organizationId         controllers.ckan.CkanController.getOganizationRevisionList(organizationId :String)
 GET /ckan/dataset/:datasetId                    controllers.ckan.CkanController.getDataset(datasetId :String)
 GET /ckan/organization/datasets/:organizationId controllers.ckan.CkanController.getOrganizationDataset(organizationId :String)
+GET /ckan/user/:userId                          controllers.ckan.CkanController.getUser(userId :String)
+GET /ckan/userOrganizations/:userId             controllers.ckan.CkanController.getUserOrganizations(userId :String, permission:Option[String])
 
 POST   /ckan/createDataset                      controllers.ckan.CkanController.createDataset
 POST   /ckan/createOrganization                 controllers.ckan.CkanController.createOrganization
+POST   /ckan/createUser                         controllers.ckan.CkanController.createUser
 GET    /ckan/datasets                           controllers.ckan.CkanController.getDatasetList
 GET    /ckan/datasetsWithResources              controllers.ckan.CkanController.getDatasetListWithResources(limit:Option[Int], offset:Option[Int])
 GET    /ckan/searchDataset                      controllers.ckan.CkanController.searchDataset(q:Option[String], sort:Option[String], rows:Option[Int])

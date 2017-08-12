@@ -1,7 +1,7 @@
 package it.gov.daf.catalogmanager.service
 
 
-import catalog_manager.yaml.{Dataset, MetaCatalog, Success}
+import catalog_manager.yaml.{Dataset, MetaCatalog, MetadataCat, Success}
 import it.gov.daf.catalogmanager.repository.catalog.CatalogRepositoryComponent
 import play.api.libs.json.JsValue
 
@@ -22,8 +22,8 @@ trait CatalogServiceComponent {
     def getCatalogs(catalogId :String) :MetaCatalog = {
       catalogRepository.getCatalogs(catalogId)
     }
-    def createCatalog(metaCatalog: MetaCatalog) :Success = {
-      catalogRepository.createCatalog(metaCatalog)
+    def createCatalog(metaCatalog: MetaCatalog, callingUserid :MetadataCat) :Success = {
+      catalogRepository.createCatalog(metaCatalog, callingUserid)
     }
   }
 }

@@ -264,6 +264,42 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  "/ckan/update/organization/{org_id}":
+    put:
+      security:
+      - basicAuth: []
+      tags:
+        - Ckan
+      description: Update ckan organization
+      operationId: updateckanorganization
+      produces:
+      - application/json
+      parameters:
+      - name: org_id
+        in: path
+        description: OrganizationId or Name
+        required: true
+        type: string
+      - name: organization
+        in: body
+        description: Organization
+        required: true
+        schema:
+          $ref: '#/definitions/Organization'
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            $ref: '#/definitions/Success'
+        401:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   "/ckan/organization/{org_id}":
     get:
       security:
@@ -311,6 +347,38 @@ paths:
             type: array
             items:
               type: string
+        401:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+  "/ckan/userOrganizations/{username}":
+    get:
+      security:
+      - basicAuth: []
+      tags:
+        - Ckan
+      description: Get ckan organizations created by the user
+      operationId: getckanuserorganizationList
+      produces:
+      - application/json
+      parameters:
+      - name: username
+        in: path
+        description: Username
+        required: true
+        type: string
+      responses:
+        200:
+          description: An array of Organizations
+          schema:
+            type: array
+            items:
+              "$ref": "#/definitions/Organization"
         401:
           description: Error Message
           schema:
@@ -416,6 +484,99 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  "/ckan/create/user":
+    post:
+      security:
+      - basicAuth: []
+      tags:
+        - Ckan
+      description: Create a user
+      operationId: createckanuser
+      produces:
+      - application/json
+      parameters:
+      - name: user
+        in: body
+        description: User
+        required: true
+        schema:
+          $ref: '#/definitions/User'
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            $ref: '#/definitions/Success'
+        401:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/ckan/verifyCredentials":
+      post:
+        security:
+        - basicAuth: []
+        tags:
+          - Ckan
+        description: Verify username & pwd
+        operationId: verifycredentials
+        produces:
+        - application/json
+        parameters:
+        - name: credentials
+          in: body
+          description: Credentials
+          required: true
+          schema:
+            $ref: '#/definitions/Credentials'
+        responses:
+          200:
+            description: Success
+            schema:
+              type: object
+              $ref: '#/definitions/Success'
+          401:
+            description: Error Message
+            schema:
+              $ref: '#/definitions/Error'
+          default:
+            description: Unexpected error
+            schema:
+              $ref: '#/definitions/Error'
+  "/ckan/user/{username}":
+    get:
+      security:
+      - basicAuth: []
+      tags:
+        - Ckan
+      description: Get ckan user info (from mongodb)
+      operationId: getckanuser
+      produces:
+      - application/json
+      parameters:
+      - name: username
+        in: path
+        description: Username
+        required: true
+        type: string
+      responses:
+        200:
+          description: User
+          schema:
+            type: object
+            $ref: '#/definitions/User'
+        401:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
 definitions:
   MetaCatalog:
     type: object
@@ -913,6 +1074,10 @@ definitions:
         type: string
       type:
         type: string
+      users:
+        type: array
+        items:
+          $ref: '#/definitions/UserOrg'
   Relationship:
     type: object
     properties:
@@ -1004,4 +1169,31 @@ definitions:
     type: object
     properties:
       token:
+        type: string
+  User:
+    type: object
+    properties:
+      name:
+        type: string
+      email:
+        type: string
+      password:
+        type: string
+      fullname:
+        type: string
+      about:
+        type: string
+  UserOrg:
+    type: object
+    properties:
+      name:
+        type: string
+      capacity:
+        type: string
+  Credentials:
+    type: object
+    properties:
+      username:
+        type: string
+      password:
         type: string

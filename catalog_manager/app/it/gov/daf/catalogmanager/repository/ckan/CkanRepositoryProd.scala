@@ -2,9 +2,12 @@ package it.gov.daf.catalogmanager.repository.ckan
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import catalog_manager.yaml.{Dataset, MetadataCat, Organization, ResourceSize}
+import catalog_manager.yaml.{Credentials, Dataset, MetadataCat, Organization, ResourceSize, User}
+import com.mongodb.{DBObject, MongoCredential, ServerAddress}
+import com.mongodb.casbah.MongoClient
+import com.mongodb.casbah.commons.MongoDBObject
 import play.api.libs.ws.ahc.AhcWSClient
-import it.gov.daf.catalogmanager.utilities.{ConfigReader, WebServiceUtil}
+import it.gov.daf.catalogmanager.utilities.{ConfigReader, SecurePasswordHashing, WebServiceUtil}
 import play.api.libs.json._
 
 import scala.concurrent.Future
@@ -24,35 +27,147 @@ class CkanRepositoryProd extends CkanRepository{
   private val LOCALURL = "http://localhost:9000"
   private val CKAN_ERROR = "CKAN service is not working correctly"
 
-  def createDataset(jsonDataset: JsValue): Future[String] = {
+  private val server = new ServerAddress(ConfigReader.getDbHost, ConfigReader.getDbPort)
+  private val userName = ConfigReader.userName
+  private val dbName = ConfigReader.database
+  private val password = ConfigReader.password
+  private val credentials = MongoCredential.createCredential(userName, dbName, password.toCharArray)
+
+  private val USER_ID_HEADER:String = ConfigReader.userIdHeader
+
+  private def writeMongo(json: JsValue, collectionName: String): Boolean = {
+
+    println("write mongo: "+json.toString())
+    //val mongoClient = MongoClient(mongoHost, mongoPort)
+    val mongoClient = MongoClient(server, List(credentials))
+    val db = mongoClient(dbName)
+    val coll = db(collectionName)
+    val obj = com.mongodb.util.JSON.parse(json.toString()).asInstanceOf[DBObject]
+    val inserted = coll.insert(obj)
+    mongoClient.close()
+    inserted.getN > 0
+
+  }
+
+  private def readMongo(collectionName: String, filterAttName: String, filterValue: String): JsValue = {
+
+    val mongoClient = MongoClient(server, List(credentials))
+    val db = mongoClient(dbName)
+    //val collection = db.getCollection(collectionName)
+    val coll = db(collectionName)
+    //val result2 = collection.findOne(equal(filterAttName, filterValue))
+
+    val query = MongoDBObject(filterAttName -> filterValue)
+    val result = coll.findOne(query)
+    mongoClient.close
+
+    val out: JsValue = result match {
+      case Some(x) => {
+        val jsonString = com.mongodb.util.JSON.serialize(x)
+        Json.parse(jsonString)
+      }
+      case None => JsString("Not found")
+    }
+
+    out
+
+  }
+
+  def getMongoUser(name:String, callingUserid :MetadataCat): JsResult[User] = {
+
+    var jsUser = readMongo("users","name", name )
+    jsUser = jsUser.as[JsObject] ++ Json.obj("password" -> "")
+    val userValidate = jsUser.validate[User]
+    userValidate
+
+  }
+
+  def verifyCredentials(credentials: Credentials):Boolean = {
+
+    val result = readMongo("users", "name", credentials.username.get.toString)
+    val hpasswd = (result \ "password").get.as[String]
+
+    //println("pwd: "+credentials.password.get.toString)
+    //println("hpasswd: "+hpasswd)
+
+    return SecurePasswordHashing.validatePassword(credentials.password.get.toString, hpasswd )
+  }
+
+  def updateOrganization(orgId: String, jsonOrg: JsValue, callingUserid :MetadataCat): Future[String] = {
+
+    val wsClient = AhcWSClient()
+    val url =  LOCALURL + "/ckan/updateOrganization/" + orgId
+    wsClient.url(url).withHeaders(USER_ID_HEADER -> callingUserid.get).put(jsonOrg).map({ response =>
+      (response.json \ "success").getOrElse(JsString(CKAN_ERROR)).toString()
+    }).andThen { case _ => wsClient.close() }
+      .andThen { case _ => system.terminate() }
+
+  }
+
+  def createUser(jsonUser: JsValue, callingUserid :MetadataCat): Future[String] = {
+
+    val password = (jsonUser \ "password").get.as[String]
+    println("PWD -->"+password+"<")
+    val hashedPassword = SecurePasswordHashing.hashPassword( password )
+    val updatedJsonUser = jsonUser.as[JsObject] + ("password" -> JsString(hashedPassword) )
+
+    val wsClient = AhcWSClient()
+    val url =  LOCALURL + "/ckan/createUser"
+    wsClient.url(url).withHeaders(USER_ID_HEADER -> callingUserid.get).post(jsonUser).map({ response =>
+      (response.json \ "success").toOption match {
+        case Some(x) => if(x.toString()=="true")writeMongo(updatedJsonUser,"users"); x.toString()
+        case _ => JsString(CKAN_ERROR).toString()
+      }
+    }).andThen { case _ => wsClient.close() }
+      .andThen { case _ => system.terminate() }
+
+  }
+
+  def getUserOrganizations(userName :String, callingUserid :MetadataCat) : Future[JsResult[Seq[Organization]]] = {
+
+    val wsClient = AhcWSClient()
+    val url =  LOCALURL + "/ckan/userOrganizations/" + userName
+    wsClient.url(url).withHeaders(USER_ID_HEADER -> callingUserid.get).get().map ({ response =>
+      val orgsListJson: JsValue = (response.json \ "result")
+        .getOrElse(JsString(CKAN_ERROR))
+
+      val orgsListValidate = orgsListJson.validate[Seq[Organization]]
+      println(orgsListValidate)
+      orgsListValidate
+
+    }).andThen { case _ => wsClient.close() }
+      .andThen { case _ => system.terminate() }
+  }
+
+  def createDataset(jsonDataset: JsValue, callingUserid :MetadataCat): Future[String] = {
 
     val wsClient = AhcWSClient()
     val url =  LOCALURL + "/ckan/createDataset"
-    wsClient.url(url).post(jsonDataset).map({ response =>
+    wsClient.url(url).withHeaders(USER_ID_HEADER -> callingUserid.get).post(jsonDataset).map({ response =>
       (response.json \ "success").getOrElse(JsString(CKAN_ERROR)).toString()
     }).andThen { case _ => wsClient.close() }
       .andThen { case _ => system.terminate() }
 
   }
 
-  def createOrganization(jsonDataset: JsValue): Future[String] = {
+  def createOrganization(jsonDataset: JsValue, callingUserid :MetadataCat): Future[String] = {
 
     val wsClient = AhcWSClient()
     val url =  LOCALURL + "/ckan/createOrganization"
-    wsClient.url(url).post(jsonDataset).map({ response =>
+    wsClient.url(url).withHeaders(USER_ID_HEADER -> callingUserid.get).post(jsonDataset).map({ response =>
       (response.json \ "success").getOrElse(JsString(CKAN_ERROR)).toString()
     }).andThen { case _ => wsClient.close() }
       .andThen { case _ => system.terminate() }
   }
 
-  def dataset(datasetId: String): JsValue = JsString("TODO")
+  def dataset(datasetId: String, callingUserid :MetadataCat): JsValue = JsString("TODO")
 
 
-  def getOrganization(orgId :String) : Future[JsResult[Organization]] = {
+  def getOrganization(orgId :String, callingUserid :MetadataCat) : Future[JsResult[Organization]] = {
 
     val wsClient = AhcWSClient()
     val url =  LOCALURL + "/ckan/organization/" + orgId
-    wsClient.url(url).get().map ({ response =>
+    wsClient.url(url).withHeaders(USER_ID_HEADER -> callingUserid.get).get().map ({ response =>
       val orgJson: JsValue = (response.json \ "result")
         .getOrElse(Json.obj("error" -> "No organization"))
       val orgValidate = orgJson.validate[Organization]
@@ -62,11 +177,11 @@ class CkanRepositoryProd extends CkanRepository{
 
   }
 
-  def getOrganizations() : Future[JsValue] = {
+  def getOrganizations(callingUserid :MetadataCat) : Future[JsValue] = {
 
     val wsClient = AhcWSClient()
     val url =  LOCALURL + "/ckan/organizations"
-    wsClient.url(url).get().map ({ response =>
+    wsClient.url(url).withHeaders(USER_ID_HEADER -> callingUserid.get).get().map ({ response =>
       val orgsListJson: JsValue = (response.json \ "result")
         .getOrElse(JsString(CKAN_ERROR))
       orgsListJson
@@ -75,11 +190,11 @@ class CkanRepositoryProd extends CkanRepository{
   }
 
 
-  def getDatasets() : Future[JsValue] = {
+  def getDatasets(callingUserid :MetadataCat) : Future[JsValue] = {
 
     val wsClient = AhcWSClient()
     val url =  LOCALURL + "/ckan/datasets"
-    wsClient.url(url).get().map ({ response =>
+    wsClient.url(url).withHeaders(USER_ID_HEADER -> callingUserid.get).get().map ({ response =>
       val dsListJson: JsValue = (response.json \ "result")
         .getOrElse(JsString(CKAN_ERROR))
       dsListJson
@@ -87,7 +202,7 @@ class CkanRepositoryProd extends CkanRepository{
       .andThen { case _ => system.terminate() }
   }
 
-  def searchDatasets( input: (MetadataCat, MetadataCat, ResourceSize) ) : Future[JsResult[Seq[Dataset]]]={
+  def searchDatasets( input: (MetadataCat, MetadataCat, ResourceSize), callingUserid :MetadataCat ) : Future[JsResult[Seq[Dataset]]]={
 
     val wsClient = AhcWSClient()
 
@@ -97,7 +212,7 @@ class CkanRepositoryProd extends CkanRepository{
 
     val url =  LOCALURL + "/ckan/searchDataset"+queryString
 
-    wsClient.url(url).get().map ({ response =>
+    wsClient.url(url).withHeaders(USER_ID_HEADER -> callingUserid.get).get().map ({ response =>
       val datasetJson: JsValue =( (response.json \ "result") \ "results")
         .getOrElse(Json.obj("error" -> "No datasets"))
 
@@ -109,7 +224,7 @@ class CkanRepositoryProd extends CkanRepository{
 
   }
 
-  def getDatasetsWithRes( input: (ResourceSize, ResourceSize) ) : Future[JsResult[Seq[Dataset]]] = {
+  def getDatasetsWithRes( input: (ResourceSize, ResourceSize), callingUserid :MetadataCat ) : Future[JsResult[Seq[Dataset]]] = {
 
     val wsClient = AhcWSClient()
 
@@ -119,7 +234,7 @@ class CkanRepositoryProd extends CkanRepository{
 
     val url =  LOCALURL + "/ckan/datasetsWithResources"+queryString
 
-    wsClient.url(url).get().map ({ response =>
+    wsClient.url(url).withHeaders(USER_ID_HEADER -> callingUserid.get).get().map ({ response =>
       val datasetJson: JsValue =(response.json \ "result")
         .getOrElse(Json.obj("error" -> "No datasets"))
 
@@ -132,12 +247,12 @@ class CkanRepositoryProd extends CkanRepository{
   }
 
 
-  def testDataset(datasetId :String) : Future[JsResult[Dataset]] = {
+  def testDataset(datasetId :String, callingUserid :MetadataCat) : Future[JsResult[Dataset]] = {
 
     val wsClient = AhcWSClient()
     val url =  LOCALURL + "/ckan/dataset/" + datasetId
 
-    wsClient.url(url).get().map ({ response =>
+    wsClient.url(url).withHeaders(USER_ID_HEADER -> callingUserid.get).get().map ({ response =>
       val datasetJson: JsValue = (response.json \ "result")
         .getOrElse(Json.obj("error" -> "No dataset"))
       val datasetValidate = datasetJson.validate[Dataset]

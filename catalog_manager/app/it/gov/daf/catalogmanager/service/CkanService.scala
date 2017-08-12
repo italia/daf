@@ -3,7 +3,7 @@ package it.gov.daf.catalogmanager.service
 /**
   * Created by ale on 18/07/17.
   */
-import catalog_manager.yaml.{Dataset, MetadataCat, Organization, ResourceSize}
+import catalog_manager.yaml.{Credentials, Dataset, MetadataCat, Organization, ResourceSize, User}
 import play.api.{Configuration, Environment}
 import play.api.libs.json.{JsResult, JsValue}
 import it.gov.daf.catalogmanager.repository.ckan.{CkanRepository, CkanRepositoryComponent}
@@ -19,38 +19,56 @@ trait CkanServiceComponent {
   val ckanService: CkanService
 
   class CkanService {
-    def createDataset(jsonDataset: JsValue): Future[String] = {
-      ckanRepository.createDataset(jsonDataset)
-    }
-    def createOrganization(jsonDataset: JsValue): Future[String] = {
-      ckanRepository.createOrganization(jsonDataset)
-    }
-    def dataset(datasetId: String): JsValue = {
-      ckanRepository.dataset(datasetId)
+
+    def getMongoUser(name:String, callingUserid :MetadataCat ): JsResult[User]  = {
+      ckanRepository.getMongoUser(name, callingUserid)
     }
 
-    def getOrganization(orgId :String) : Future[JsResult[Organization]] = {
-      ckanRepository.getOrganization(orgId)
+    def verifyCredentials(credentials: Credentials):Boolean = {
+      ckanRepository.verifyCredentials(credentials: Credentials)
+    }
+    def updateOrganization(orgId: String, jsonOrg: JsValue, callingUserid :MetadataCat ): Future[String] = {
+      ckanRepository.updateOrganization(orgId,jsonOrg, callingUserid)
+    }
+    def createUser(jsonUser: JsValue, callingUserid :MetadataCat): Future[String] = {
+      ckanRepository.createUser(jsonUser, callingUserid)
+    }
+    def getUserOrganizations(userName :String, callingUserid :MetadataCat) : Future[JsResult[Seq[Organization]]] = {
+      ckanRepository.getUserOrganizations(userName, callingUserid)
     }
 
-    def getOrganizations() : Future[JsValue] = {
-      ckanRepository.getOrganizations
+    def createDataset(jsonDataset: JsValue, callingUserid :MetadataCat): Future[String] = {
+      ckanRepository.createDataset(jsonDataset,callingUserid)
+    }
+    def createOrganization(jsonDataset: JsValue, callingUserid :MetadataCat): Future[String] = {
+      ckanRepository.createOrganization(jsonDataset,callingUserid)
+    }
+    def dataset(datasetId: String, callingUserid :MetadataCat): JsValue = {
+      ckanRepository.dataset(datasetId,callingUserid)
     }
 
-    def getDatasets() : Future[JsValue] = {
-      ckanRepository.getDatasets
+    def getOrganization(orgId :String, callingUserid :MetadataCat) : Future[JsResult[Organization]] = {
+      ckanRepository.getOrganization(orgId,callingUserid)
     }
 
-    def searchDatasets( input: (MetadataCat, MetadataCat, ResourceSize) ) : Future[JsResult[Seq[Dataset]]] = {
-      ckanRepository.searchDatasets(input)
+    def getOrganizations(callingUserid :MetadataCat) : Future[JsValue] = {
+      ckanRepository.getOrganizations(callingUserid)
     }
 
-    def getDatasetsWithRes( input: (ResourceSize, ResourceSize) ) : Future[JsResult[Seq[Dataset]]] = {
-      ckanRepository.getDatasetsWithRes(input)
+    def getDatasets(callingUserid :MetadataCat) : Future[JsValue] = {
+      ckanRepository.getDatasets(callingUserid)
     }
 
-    def testDataset(datasetId :String) : Future[JsResult[Dataset]] = {
-      ckanRepository.testDataset(datasetId)
+    def searchDatasets( input: (MetadataCat, MetadataCat, ResourceSize), callingUserid :MetadataCat) : Future[JsResult[Seq[Dataset]]] = {
+      ckanRepository.searchDatasets(input, callingUserid)
+    }
+
+    def getDatasetsWithRes( input: (ResourceSize, ResourceSize),callingUserid :MetadataCat ) : Future[JsResult[Seq[Dataset]]] = {
+      ckanRepository.getDatasetsWithRes(input, callingUserid)
+    }
+
+    def testDataset(datasetId :String, callingUserid :MetadataCat) : Future[JsResult[Dataset]] = {
+      ckanRepository.testDataset(datasetId, callingUserid)
     }
 
   }

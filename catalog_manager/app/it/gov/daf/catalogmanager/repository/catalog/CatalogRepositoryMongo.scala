@@ -1,6 +1,6 @@
 package it.gov.daf.catalogmanager.repository.catalog
 
-import catalog_manager.yaml.{Dataset, MetaCatalog, ResponseWrites, Success}
+import catalog_manager.yaml.{Dataset, MetaCatalog, MetadataCat, ResponseWrites, Success}
 import com.mongodb.DBObject
 import com.mongodb.casbah.MongoClient
 import org.bson.types.ObjectId
@@ -77,7 +77,7 @@ class CatalogRepositoryMongo extends  CatalogRepository{
     metaCatalog
   }
 
-  def createCatalog(metaCatalog: MetaCatalog) :Success = {
+  def createCatalog(metaCatalog: MetaCatalog, callingUserid :MetadataCat) :Success = {
 
     import catalog_manager.yaml.ResponseWrites.MetaCatalogWrites
 
@@ -89,7 +89,7 @@ class CatalogRepositoryMongo extends  CatalogRepository{
     // After Test refactor TODO
     val dcatapit: Dataset = metaCatalog.dcatapit.get
     val datasetJs : JsValue = ResponseWrites.DatasetWrites.writes(dcatapit)
-    CkanRegistry.ckanRepository.createDataset(datasetJs)
+    CkanRegistry.ckanRepository.createDataset(datasetJs,callingUserid)
 
     val msg: String = metaCatalog match {
       case MetaCatalog(Some(dataSchema), Some(operational), _) =>

@@ -60,6 +60,8 @@ object WebServiceUtil {
 
     val auth = request.headers.get("authorization")
 
+    //val userAndPass = if (auth.get.contains(" ")) new String(Base64.decodeBase64(auth.get.split(" ").drop(1).head.getBytes)).split(":")
+    //                  else new String(Base64.decodeBase64(auth.get.getBytes)).split(":")
     val userAndPass = new String(Base64.decodeBase64(auth.get.split(" ").drop(1).head.getBytes)).split(":")
 
     Credentials( Option(userAndPass(0)), Option(userAndPass(1)) )

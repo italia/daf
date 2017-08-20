@@ -41,11 +41,11 @@ spec:
         volumeMounts:
         - name: glusterfsvol
           mountPath: /opt/docker/conf/production.conf
-          subPath: storage-manager/conf/production.conf
+          subPath: catalog-manager/conf/production.conf
           readOnly: true
         - name: glusterfsvol
           mountPath: /opt/docker/conf/logback.xml
-          subPath: storage-manager/conf/logback.xml
+          subPath: catalog-manager/conf/logback.xml
           readOnly: true
         - name: hosts
           mountPath: /etc/extra_hosts

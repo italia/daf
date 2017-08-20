@@ -28,8 +28,6 @@ class CatalogRepositoryMongo extends  CatalogRepository{
   val server = new ServerAddress(mongoHost, 27017)
   val credentials = MongoCredential.createCredential(userName, source, password.toCharArray)
 
-
-
   import catalog_manager.yaml.BodyReads._
 
   def listCatalogs() :Seq[MetaCatalog] = {
@@ -57,7 +55,7 @@ class CatalogRepositoryMongo extends  CatalogRepository{
     val query = MongoDBObject("operational.logical_uri" -> logicalUri)
    // val mongoClient = MongoClient(mongoHost, mongoPort)
     val mongoClient = MongoClient(server, List(credentials))
-    val db = mongoClient("catalog_manager")
+    val db = mongoClient(source)
     val coll = db("catalog_test")
     val result = coll.findOne(query)
     mongoClient.close
@@ -83,12 +81,13 @@ class CatalogRepositoryMongo extends  CatalogRepository{
 
     //val mongoClient = MongoClient(mongoHost, mongoPort)
     val mongoClient = MongoClient(server, List(credentials))
-    val db = mongoClient("catalog_manager")
+    val db = mongoClient(source)
     val coll = db("catalog_test")
 
     // After Test refactor TODO
     val dcatapit: Dataset = metaCatalog.dcatapit.get
     val datasetJs : JsValue = ResponseWrites.DatasetWrites.writes(dcatapit)
+
     CkanRegistry.ckanRepository.createDataset(datasetJs,callingUserid)
 
     val msg: String = metaCatalog match {

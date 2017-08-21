@@ -168,7 +168,7 @@ class ServiceSpec extends Specification with BeforeAfterAll {
       val base64CredsBytes = Base64.getEncoder.encode(plainCredsBytes)
       val base64Creds = new String(base64CredsBytes)
       val client = new Iot_ingestion_managerClient(ws)(s"http://localhost:$port")
-      val result1 = Await.result(client.start(s"Basic $base64Creds"), Duration.Inf)
+      val result1 = Await.result(client.startOpenTSDB(s"Basic $base64Creds"), Duration.Inf)
 
       Thread.sleep(10000)
 
@@ -203,7 +203,7 @@ class ServiceSpec extends Specification with BeforeAfterAll {
 
       Thread.sleep(5000)
 
-      val result2 = Await.result(client.stop(s"Basic $base64Creds"), Duration.Inf)
+      val result2 = Await.result(client.stopOpenTSDB(s"Basic $base64Creds"), Duration.Inf)
 
       val query = new TSQuery()
       query.setStart("10h-ago")

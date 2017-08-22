@@ -158,7 +158,6 @@ class CkanRepositoryProd extends CkanRepository{
       (response.json \ "success").getOrElse(JsString(CKAN_ERROR)).toString()
     }).andThen { case _ => wsClient.close() }
       .andThen { case _ => system.terminate() }
-
   }
 
   def dataset(datasetId: String, callingUserid :MetadataCat): JsValue = JsString("TODO")

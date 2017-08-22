@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package it.gov.daf.common.filters.authentication
+package it.gov.daf.common.filters
 
 import javax.inject.Inject
 
-//import org.pac4j.play.filters.SecurityFilter
-import play.api.http.HttpFilters
+import it.gov.daf.common.filters.authentication.SecurityFilter
+import play.api.http.DefaultHttpFilters
+import play.filters.cors.CORSFilter
 
-class Filters @Inject()(securityFilter: SecurityFilter) extends HttpFilters {
+class FiltersSecurity @Inject()(securityFilter: SecurityFilter) extends DefaultHttpFilters(securityFilter)
 
-  def filters = Seq(securityFilter)
-
-}
+class FiltersSecurityCORS @Inject()(securityFilter: SecurityFilter, corsFilter: CORSFilter) extends DefaultHttpFilters(securityFilter, corsFilter)

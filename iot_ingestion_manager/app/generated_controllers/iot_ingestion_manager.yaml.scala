@@ -26,7 +26,7 @@ import play.api.{Configuration, Environment, Mode}
 
 import scala.annotation.tailrec
 import scala.language.postfixOps
-import scala.util.{Try, _}
+import scala.util.{Failure, Success, Try}
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -35,7 +35,7 @@ import scala.util.{Try, _}
 
 package iot_ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Iot_ingestion_managerYaml
-            
+                                                                    
   @SuppressWarnings(
     Array(
       "org.wartremover.warts.While",
@@ -143,10 +143,10 @@ package iot_ingestion_manager.yaml {
     private var openTSDBContext: Try[OpenTSDBContext] = InitializeFailure[OpenTSDBContext]
 
         // ----- End of unmanaged code area for constructor Iot_ingestion_managerYaml
-        val startOpenTSDB = startOpenTSDBAction {  _ =>  
-            // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.startOpenTSDB
-            alogger.info("Begin operation 'start-opentsdb'")
-      HadoopDoAsAction(proxyUser, current_request_for_startOpenTSDBAction) {
+        val start = startAction {  _ =>  
+            // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.start
+            alogger.info("Begin operation 'start'")
+      HadoopDoAsAction(proxyUser, current_request_for_startAction) {
         synchronized {
           jobThread = Some(thread {
             sparkSession match {
@@ -206,6 +206,9 @@ package iot_ingestion_manager.yaml {
                 val kafkaZkRootDir = configuration.getString("kafka.zookeeper.root")
                 alogger.info(s"Kafka Zk Root Dir: $kafkaZkRootDir")
 
+                val kuduMasterAddresses = configuration.getStringOrException("kudu.master.addresses")
+                alogger.info(s"Kudu Master Addresses: $kuduMasterAddresses")
+
                 stopFlag = false
                 streamingContext foreach {
                   ssc =>
@@ -239,16 +242,16 @@ package iot_ingestion_manager.yaml {
               case Success(_) => ()
             }
           })
-          alogger.info("End operation 'start-opentsdb'")
-          StartOpenTSDB200("Ok")
+          alogger.info("End operation 'start'")
+          Start200("Ok")
         }
       }
-            // ----- End of unmanaged code area for action  Iot_ingestion_managerYaml.startOpenTSDB
+            // ----- End of unmanaged code area for action  Iot_ingestion_managerYaml.start
         }
-        val stopOpenTSDB = stopOpenTSDBAction {  _ =>  
-            // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.stopOpenTSDB
-            alogger.info("Begin operation 'stop-opentsdb'")
-      HadoopDoAsAction(proxyUser, current_request_for_startOpenTSDBAction) {
+        val stop = stopAction {  _ =>  
+            // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.stop
+            alogger.info("Begin operation 'stop'")
+      HadoopDoAsAction(proxyUser, current_request_for_startAction) {
         synchronized {
           sparkSession match {
             case Failure(_) => ()
@@ -259,119 +262,11 @@ package iot_ingestion_manager.yaml {
               alogger.info("Thread stopped")
               sparkSession = InitializeFailure[SparkSession]
           }
-          alogger.info("End operation 'stop-opentsdb'")
-          StopOpenTSDB200("Ok")
+          alogger.info("End operation 'stop'")
+          Stop200("Ok")
         }
       }
-            // ----- End of unmanaged code area for action  Iot_ingestion_managerYaml.stopOpenTSDB
-        }
-        val startHDFS = startHDFSAction {  _ =>  
-            // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.startHDFS
-          alogger.info("Begin operation 'start-hdfs'")
-          HadoopDoAsAction(proxyUser, current_request_for_startHDFSAction) {
-            synchronized {
-              jobThread = Some(thread {
-                sparkSession match {
-                  case Failure(_) =>
-                    sparkSession = Try {
-                      val ss = SparkSession.builder().config(conf).getOrCreate()
-                      addClassPathJars(ss.sparkContext, getClass.getClassLoader)
-                      ss
-                    }
-
-                    val batchDurationMillis = configuration.getLongOrException("batch.duration")
-                    alogger.info(s"Batch Duration Millis: $batchDurationMillis")
-
-                    streamingContext = Try {
-                      val ssc = sparkSession.map(ss => new StreamingContext(ss.sparkContext, Milliseconds(batchDurationMillis)))
-                      ssc
-                    }.flatten
-
-                    val keytab = configuration.getString("opentsdb.context.keytab")
-                    alogger.info(s"OpenTSDBContext Keytab: $keytab")
-
-                    val principal = configuration.getString("opentsdb.context.principal")
-                    alogger.info(s"OpenTSDBContext Principal: $principal")
-
-                    val keytabLocalTempDir = configuration.getString("opentsdb.context.keytablocaltempdir")
-                    alogger.info(s"OpenTSDBContext Keytab Local Temp Dir: $keytabLocalTempDir")
-
-                    val saltwidth = configuration.getInt("opentsdb.context.saltwidth")
-                    alogger.info(s"OpenTSDBContext SaltWidth: $saltwidth")
-
-                    val saltbucket = configuration.getInt("opentsdb.context.saltbucket")
-                    alogger.info(s"OpenTSDBContext SaltBucket: $saltbucket")
-
-                    saltwidth.foreach(OpenTSDBContext.saltWidth = _)
-                    saltbucket.foreach(OpenTSDBContext.saltBuckets = _)
-
-                    openTSDBContext = sparkSession.map(ss => {
-                      val otc = new OpenTSDBContext(ss)
-                      keytabLocalTempDir.foreach(otc.keytabLocalTempDir = _)
-                      keytab.foreach(otc.keytab = _)
-                      principal.foreach(otc.principal = _)
-                      otc
-                    })
-
-                    val brokers = configuration.getStringOrException("bootstrap.servers")
-                    alogger.info(s"Brokers: $brokers")
-
-                    val groupId = configuration.getStringOrException("group.id")
-                    alogger.info(s"GroupdId: $groupId")
-
-                    val topic = configuration.getStringOrException("topic")
-                    alogger.info(s"Topics: $topic")
-
-                    val kafkaZkQuorum = configuration.getStringOrException("kafka.zookeeper.quorum")
-                    alogger.info(s"Kafka Zk Quorum: $kafkaZkQuorum")
-
-                    val kafkaZkRootDir = configuration.getString("kafka.zookeeper.root")
-                    alogger.info(s"Kafka Zk Root Dir: $kafkaZkRootDir")
-
-                    stopFlag = false
-                    streamingContext foreach {
-                      ssc =>
-                        alogger.info("About to create the stream")
-                        val inputStream = getTransformersStream(ssc, kafkaZkQuorum, kafkaZkRootDir, offsetsTable.toOption, brokers, topic, groupId, avroByteArrayToEvent >>>> eventToDatapoint)
-                        inputStream match {
-                          case Success(stream) =>
-                            openTSDBContext.foreach(_.streamWrite(stream))
-                            alogger.info("Stream created")
-                          case Failure(ex) => alogger.error(s"Failed in creating the stream: ${ex.getCause}")
-                        }
-                        alogger.info("Stream created")
-                        alogger.info("About to start the streaming context")
-                        ssc.start()
-                        alogger.info("Streaming context started")
-                        var isStopped = false
-                        while (!isStopped) {
-                          alogger.info("Calling awaitTerminationOrTimeout")
-                          isStopped = ssc.awaitTerminationOrTimeout(1000)
-                          if (isStopped)
-                            alogger.info("Confirmed! The streaming context is stopped. Exiting application...")
-                          else
-                            alogger.info("The streaming context is still active. Timeout...")
-                          if (!isStopped && stopFlag) {
-                            alogger.info("Stopping the streaming context right now")
-                            ssc.stop(stopSparkContext = true, stopGracefully = false)
-                            alogger.info("The streaming context is stopped!!!!!!!")
-                          }
-                        }
-                    }
-                  case Success(_) => ()
-                }
-              })
-              alogger.info("End operation 'start-opentsdb'")
-              StartHDFS200("Ok")
-            }
-          }
-
-          // ----- End of unmanaged code area for action  Iot_ingestion_managerYaml.startHDFS
-        }
-        val stopHDFS = stopHDFSAction {  _ =>  
-            // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.stopHDFS
-            NotImplementedYet
-            // ----- End of unmanaged code area for action  Iot_ingestion_managerYaml.stopHDFS
+            // ----- End of unmanaged code area for action  Iot_ingestion_managerYaml.stop
         }
     
     }

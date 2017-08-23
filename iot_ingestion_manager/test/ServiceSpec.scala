@@ -34,6 +34,7 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.{HBaseTestingUtility, TableName}
 import org.apache.hadoop.test.PathUtils
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
+import org.apache.kudu.client.MiniKuduCluster
 import org.apache.spark.SparkConf
 import org.apache.spark.opentsdb.OpenTSDBConfigurator
 import org.specs2.mutable.Specification
@@ -81,6 +82,8 @@ class ServiceSpec extends Specification with BeforeAfterAll {
   var tsdb: TSDB = _
 
   var hbaseAsyncClient: HBaseClient = _
+
+  var kuduCluster: Try[MiniKuduCluster] = Failure[MiniKuduCluster](new Exception(""))
 
   private def getAvailablePort: Int = {
     try {
@@ -157,6 +160,7 @@ class ServiceSpec extends Specification with BeforeAfterAll {
     configure("pac4j.authenticator" -> "test").
     configure("bootstrap.servers" -> getBootstrapServers).
     configure("kafka.zookeeper.quorum" -> s"localhost:${baseConf.get("hbase.zookeeper.property.clientPort")}").
+    configure("kudu.master.addresses" -> kuduCluster.map(_.getMasterAddresses).getOrElse("")).
     build()
 
   "The iot-ingestion-manager" should {
@@ -168,7 +172,7 @@ class ServiceSpec extends Specification with BeforeAfterAll {
       val base64CredsBytes = Base64.getEncoder.encode(plainCredsBytes)
       val base64Creds = new String(base64CredsBytes)
       val client = new Iot_ingestion_managerClient(ws)(s"http://localhost:$port")
-      val result1 = Await.result(client.startOpenTSDB(s"Basic $base64Creds"), Duration.Inf)
+      val result1 = Await.result(client.start(s"Basic $base64Creds"), Duration.Inf)
 
       Thread.sleep(10000)
 
@@ -203,7 +207,7 @@ class ServiceSpec extends Specification with BeforeAfterAll {
 
       Thread.sleep(5000)
 
-      val result2 = Await.result(client.stopOpenTSDB(s"Basic $base64Creds"), Duration.Inf)
+      val result2 = Await.result(client.stop(s"Basic $base64Creds"), Duration.Inf)
 
       val query = new TSQuery()
       query.setStart("10h-ago")
@@ -299,6 +303,16 @@ class ServiceSpec extends Specification with BeforeAfterAll {
     tsdb = new TSDB(hbaseAsyncClient, config)
     Logger.info("Created the hbase client and the opentsdb object")
 
+    System.setProperty(
+      "binDir",
+      s"${System.getProperty("user.dir")}/test/kudu_executables/${sun.awt.OSInfo.getOSType().toString.toLowerCase}"
+    )
+
+    kuduCluster = Try {
+      new MiniKuduCluster.MiniKuduClusterBuilder().build
+    }
+    Logger.info(s"Created the Kudu mini cluster")
+
     Thread.sleep(10000)
     ()
   }
@@ -309,6 +323,7 @@ class ServiceSpec extends Specification with BeforeAfterAll {
     tsdb.shutdown()
     hbaseAsyncClient.shutdown()
     hbaseUtil.shutdownMiniCluster()
+    kuduCluster.foreach(_.shutdown())
   }
 }
 

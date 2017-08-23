@@ -23,6 +23,7 @@ import common.Util._
 import it.gov.daf.iotingestion.common.{EventType, SerializerDeserializer}
 import it.gov.daf.iotingestion.event.Event
 import org.apache.spark.opentsdb.DataPoint
+import play.Logger
 
 import scala.language.{higherKinds, implicitConversions}
 import scala.util.{Failure, Try}
@@ -32,10 +33,15 @@ import scala.util.{Failure, Try}
     "org.wartremover.warts.ImplicitConversion",
     "org.wartremover.warts.ImplicitParameter",
     "org.wartremover.warts.Var",
-    "org.wartremover.warts.Null"
+    "org.wartremover.warts.Null",
+    "org.wartremover.warts.Overloading",
+    "org.wartremover.warts.DefaultArguments"
   )
 )
 object Transformers {
+
+  @transient
+  implicit private val alogger = Logger.of(this.getClass.getCanonicalName)
 
   trait transform[A, B] extends (A => Try[B]) with Serializable {
     override def apply(a: A): Try[B]

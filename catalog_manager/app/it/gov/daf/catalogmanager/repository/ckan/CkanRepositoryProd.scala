@@ -24,7 +24,7 @@ class CkanRepositoryProd extends CkanRepository{
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()
 
-  private val LOCALURL = "http://localhost:9001"
+  private val LOCALURL = ConfigReader.localUrl
   private val CKAN_ERROR = "CKAN service is not working correctly"
 
   private val server = new ServerAddress(ConfigReader.getDbHost, ConfigReader.getDbPort)

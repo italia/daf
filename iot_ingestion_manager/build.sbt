@@ -58,7 +58,7 @@ lazy val root = (project in file(".")).
   enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser, /*AutomateHeaderPlugin,*/ DockerPlugin).
   dependsOn(client, common).aggregate(client, common)
 
-scalaVersion in ThisBuild := "2.11.8"
+scalaVersion in ThisBuild := "2.11.11"
 
 val sparkExcludes =
   (moduleId: ModuleID) => moduleId.
@@ -115,6 +115,8 @@ val kafkaExcludes =
 
 val applicationLibraries = Seq(
   "org.apache.spark.opentsdb" %% "spark-opentsdb" % sparkOpenTSDBVersion % "compile" exclude("org.slf4j", "slf4j-log4j12"),
+  "org.apache.kudu" % "kudu-client" % kuduVersion % "compile",
+  "org.apache.kudu" %% "kudu-spark2" % kuduVersion % "compile",
   sparkExcludes("org.apache.spark" %% "spark-core" % sparkVersion % "compile"),
   sparkExcludes("org.apache.spark" %% "spark-sql" % sparkVersion % "compile"),
   sparkExcludes("org.apache.spark" %% "spark-yarn" % sparkVersion % "compile"),
@@ -155,7 +157,8 @@ val applicationLibraries = Seq(
   kafkaExcludes("org.apache.kafka" %% "kafka" % kafkaVersion % "test" classifier "test"),
   kafkaExcludes("org.apache.kafka" % "kafka-clients" % kafkaVersion % "test" classifier "test"),
   "org.json4s" %% "json4s-native" % json4sVersion % "test",
-  "com.github.pathikrit" %% "better-files" % betterFilesVersion % Test
+  "com.github.pathikrit" %% "better-files" % betterFilesVersion % Test,
+  "org.apache.kudu" % "kudu-client" % kuduVersion % "test" classifier "tests"
 )
 
 dependencyOverrides += "com.google.guava" % "guava" % "12.0.1" % "compile"

@@ -12,9 +12,8 @@
 		},
 		{
 			"name": "id",
-			"type": ["null", "string"],
-			"doc": "A globally unique identifier for this event. Optional",
-			"default": null
+			"type": "string",
+			"doc": "A globally unique identifier for this event."
 		},
 		{
 			"name": "ts",

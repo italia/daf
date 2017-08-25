@@ -17,13 +17,13 @@ import scala.util._
 
 import javax.inject._
 
+import de.zalando.play.controllers.PlayBodyParsing._
 import it.gov.daf.catalogmanager.listeners.IngestionListenerImpl
-import it.gov.daf.catalogmanager.service.ServiceRegistry
-import scala.concurrent.Future
-import it.gov.daf.catalogmanager.service.CkanRegistry
+import it.gov.daf.catalogmanager.service.{CkanRegistry,ServiceRegistry}
 import play.api.libs.json._
 import scala.concurrent.ExecutionContext.Implicits.global
 import it.gov.daf.catalogmanager.utilities.WebServiceUtil
+import scala.concurrent.Future
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -32,7 +32,8 @@ import it.gov.daf.catalogmanager.utilities.WebServiceUtil
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                                                                                                                                                                                                                                        
+                                                                    
+
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -115,7 +116,7 @@ package catalog_manager.yaml {
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.standardsuri
             val catalogs = ServiceRegistry.catalogService.listCatalogs()
           val uris: Seq[String] = catalogs.filter(x=> x.operational.get.is_std.get)
-              .map(_.operational.get.std_schema.get.std_uri).map(_.get)
+              .map(_.operational.get.logical_uri).map(_.get)
           val stdUris: Seq[StdUris] = uris.map(x => StdUris(Some(x), Some(x)))
           Standardsuri200(stdUris)
           // NotImplementedYet

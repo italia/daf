@@ -41,14 +41,14 @@ securityDefinitions:
     type: basic
     description: HTTP Basic Authentication. Works over `HTTP` and `HTTPS`
 paths:
-  "/start-opentsdb":
+  "/start":
     get:
-      summary: Start the Spark OpenTSDB Streaming job
+      summary: Start the Spark Streaming job
       description: |
-        It starts the Spark OpenTSDB Streaming job
+        It starts the Spark Streaming job
       tags:
-        - Start the Spark OpenTSDB Streaming job
-      operationId: startOpenTSDB
+        - Start the Spark Streaming job
+      operationId: start
       security:
         - basicAuth: []
       responses:
@@ -60,53 +60,14 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  "/stop-opentsdb":
+  "/stop":
     get:
-      summary: Stop the Spark OpenTSDB Streaming job
+      summary: Stop the Spark Streaming job
       description: |
-        It stops the Spark OpenTSDB Streaming job
+        It stops the Spark Streaming job
       tags:
-        - Stops the Spark OpenTSDB Streaming job
-      operationId: stopOpenTSDB
-      security:
-        - basicAuth: []
-      responses:
-        200:
-          description: The job has been stopped successfully
-          schema:
-            type: string
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
-
-  "/start-hdfs":
-    get:
-      summary: Start the Spark HDFS Streaming job
-      description: |
-        It starts the Spark HDFS Streaming job
-      tags:
-        - Start the Spark HDFS Streaming job
-      operationId: startHDFS
-      security:
-        - basicAuth: []
-      responses:
-        200:
-          description: The job has been started successfully
-          schema:
-            type: string
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
-  "/stop-hdfs":
-    get:
-      summary: Stop the Spark HDFS Streaming job
-      description: |
-        It stops the Spark HDFS Streaming job
-      tags:
-        - Stops the Spark HDFS Streaming job
-      operationId: stopHDFS
+        - Stops the Spark Streaming job
+      operationId: stop
       security:
         - basicAuth: []
       responses:

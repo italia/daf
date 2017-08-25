@@ -102,7 +102,7 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
   def createDataset = Action.async { implicit request =>
 
     /*
-    curl -H "Content-Type: application/json" -X POST -d @data.json http://localhost:9000/ckan/createDataset  dove data.json
+    curl -H "Content-Type: application/json" -X POST -d @data.json http://localhost:9001/ckan/createDataset  dove data.json
     contiene:
 
     {
@@ -221,7 +221,7 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
   def updateDataset(datasetId :String)= Action.async { implicit request =>
     /*
-    curl -H "Content-Type: application/json" -X PUT -d @datavv.json http://localhost:9000/ckan/updateDataset/id=81b643bd-007e-44cb-b724-0a02018db6d9
+    curl -H "Content-Type: application/json" -X PUT -d @datavv.json http://localhost:9001/ckan/updateDataset/id=81b643bd-007e-44cb-b724-0a02018db6d9
     dove datavv.json contiene:
   {
       "license_title":"Creative Commons Attribution",
@@ -344,7 +344,7 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
   def purgeDataset(datasetId :String) = Action.async { implicit request =>
 
-    //curl -H "Content-Type: application/json" -X DELETE http://localhost:9000/ckan/purgeDataset/mydataset
+    //curl -H "Content-Type: application/json" -X DELETE http://localhost:9001/ckan/purgeDataset/mydataset
 
     val serviceUserId = request.headers.get(USER_ID_HEADER).getOrElse("")
 
@@ -361,7 +361,7 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
   def createOrganization = Action.async { implicit request =>
 
     /*
-    curl -H "Content-Type: application/json" -X POST -d @org.json http://localhost:9000/ckan/createOrganization dove org.json contiene
+    curl -H "Content-Type: application/json" -X POST -d @org.json http://localhost:9001/ckan/createOrganization dove org.json contiene
     {
       "description": "Azienda per il Turismo Altopiano di Pin\u00e9 e Valle di Cembra. Maggiori informazioni sul loro [sito web](http://www.visitpinecembra.it)",
       "created": "2014-04-04T12:27:29.698895",
@@ -396,7 +396,7 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
     /*
     settare la proprietà ckan.auth.create_user_via_api = true
 
-    curl -H "Content-Type: application/json" -X POST -d @user.json http://localhost:9000/ckan/createUser dove user.json contiene
+    curl -H "Content-Type: application/json" -X POST -d @user.json http://localhost:9001/ckan/createUser dove user.json contiene
     {
       "name": "test_user",
       "email": "test@test.org",
@@ -466,7 +466,7 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
   def updateOrganization(orgId :String)= Action.async { implicit request =>
 
-    // curl -H "Content-Type: application/json" -X PUT -d @org.json http://localhost:9000/ckan/updateOrganization/id=232cad97-ecf2-447d-9656-63899023887t
+    // curl -H "Content-Type: application/json" -X PUT -d @org.json http://localhost:9001/ckan/updateOrganization/id=232cad97-ecf2-447d-9656-63899023887t
 
     val serviceUserId = request.headers.get(USER_ID_HEADER).getOrElse("")
     val json:JsValue = request.body.asJson.get
@@ -484,7 +484,7 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
   def deleteOrganization(orgId :String) = Action.async { implicit request =>
 
 
-    //curl -H "Content-Type: application/json" -X DELETE http://localhost:9000/ckan/deleteOrganization/apt-altopiano-di-pine-e-valle-di-cembra2
+    //curl -H "Content-Type: application/json" -X DELETE http://localhost:9001/ckan/deleteOrganization/apt-altopiano-di-pine-e-valle-di-cembra2
 
     val serviceUserId = request.headers.get(USER_ID_HEADER).getOrElse("")
 
@@ -500,7 +500,7 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
   def purgeOrganization(orgId :String) = Action.async { implicit request =>
 
-    //curl -H "Content-Type: application/json" -X DELETE http://localhost:9000/ckan/purgeOrganization/apt-altopiano-di-pine-e-valle-di-cembra2
+    //curl -H "Content-Type: application/json" -X DELETE http://localhost:9001/ckan/purgeOrganization/apt-altopiano-di-pine-e-valle-di-cembra2
 
     val serviceUserId = request.headers.get(USER_ID_HEADER).getOrElse("")
 
@@ -528,7 +528,7 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
   def getDatasetListWithResources(limit:Option[Int], offset:Option[Int]) = Action.async { implicit request =>
 
-    // curl -X GET "http://localhost:9000/ckan/datasetsWithResources?limit=1&offset=1"
+    // curl -X GET "http://localhost:9001/ckan/datasetsWithResources?limit=1&offset=1"
 
     val serviceUserId = request.headers.get(USER_ID_HEADER).getOrElse("")
 
@@ -559,7 +559,7 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
   def searchDataset(q:Option[String], sort:Option[String], rows:Option[Int]) = Action.async { implicit request =>
 
-    //curl -X GET "http://localhost:9000/ckan/datasetsWithResources?limit=1&offset=1
+    //curl -X GET "http://localhost:9001/ckan/datasetsWithResources?limit=1&offset=1
 
     val serviceUserId = request.headers.get(USER_ID_HEADER).getOrElse("")
 

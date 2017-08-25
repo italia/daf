@@ -35,7 +35,7 @@ class CatalogControllersSpec extends Specification  {
       new WithServer(app = application, port = 9000) {
         WsTestClient.withClient { implicit client =>
           val response: WSResponse = Await.result[WSResponse](client.
-            url(s"http://localhost:9000/catalog-manager/v1/dataset-catalogs").
+            url(s"http://localhost:9001/catalog-manager/v1/dataset-catalogs").
             execute, Duration.Inf)
           println(response.status)
           response.status must be equalTo Status.OK
@@ -47,7 +47,7 @@ class CatalogControllersSpec extends Specification  {
       new WithServer(app = application, port = 9000) {
         WsTestClient.withClient { implicit client =>
           val response: WSResponse = Await.result[WSResponse](client.
-            url(s"http://localhost:9000/catalog-manager/v1/dataset-catalogs").
+            url(s"http://localhost:9001/catalog-manager/v1/dataset-catalogs").
             execute, Duration.Inf)
           println(response.status)
           println("ALE")
@@ -62,7 +62,7 @@ class CatalogControllersSpec extends Specification  {
       "Call catalog-manager/v1/dataset-catalogs/{logical_uri} return ok status" in
         new WithServer(app = application, port = 9000) {
           val logicalUri = "daf://dataset/std/standard/standard/uri_cultura/standard"
-          val url = s"http://localhost:9000/catalog-manager/v1/dataset-catalogs/$logicalUri"
+          val url = s"http://localhost:9001/catalog-manager/v1/dataset-catalogs/$logicalUri"
           println(url)
           WsTestClient.withClient { implicit client =>
             val response: WSResponse = Await.result[WSResponse](client.
@@ -78,7 +78,7 @@ class CatalogControllersSpec extends Specification  {
       "Call catalog-manager/v1/dataset-catalogs/{anything} return 401" in
         new WithServer(app = application, port = 9000) {
           val logicalUri = "anything"
-          val url = s"http://localhost:9000/catalog-manager/v1/dataset-catalogs/$logicalUri"
+          val url = s"http://localhost:9001/catalog-manager/v1/dataset-catalogs/$logicalUri"
           println(url)
           WsTestClient.withClient { implicit client =>
             val response: WSResponse = Await.result[WSResponse](client.

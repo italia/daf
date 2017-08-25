@@ -5,6 +5,8 @@ import java.net.URLEncoder
 
 import catalog_manager.yaml.Credentials
 import org.apache.commons.net.util.Base64
+import play.api.libs.json
+import play.api.libs.json.{JsArray, JsError, JsString, JsValue}
 import play.api.mvc.Request
 
 //import akka.actor.ActorSystem
@@ -67,5 +69,32 @@ object WebServiceUtil {
     Credentials( Option(userAndPass(0)), Option(userAndPass(1)) )
 
   }
+
+  def cleanDquote(in:String): String = {
+    in.dropRight(1).drop(1)
+  }
+
+  def getMessageFromJsError(error:JsError): String ={
+
+    println( ">>>"+JsError.toJson(error).toString() )
+    //if( error.errors.length > 1 )
+      //cleanDquote( (((JsError.toJson(error) \ "obj[0].theme").getOrElse(JsArray(Seq(JsString("  "))))(0) \ "msg").getOrElse(JsArray(Seq(JsString("  "))))(0) ).get.toString() )
+    //else
+
+    cleanDquote( (((JsError.toJson(error) \ "obj").getOrElse(JsArray(Seq(JsString("  "))))(0) \ "msg").getOrElse(JsArray(Seq(JsString("  "))))(0) ).get.toString() )
+  }
+
+  def getMessageFromCkanError(error:JsValue): String ={
+
+    val ckanError = cleanDquote( ((error \ "error") \ "message").getOrElse(JsString(" can't retrive error ")).toString() ) + " (" +
+                    cleanDquote( ((error \ "error") \ "__type").getOrElse(JsString(" can't retrive error type ")).toString() )+ ")"
+    println("---->"+ckanError)
+
+    ckanError
+
+  }
+
+
+
 
 }

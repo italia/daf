@@ -24,7 +24,7 @@ class CkanRepositoryProd extends CkanRepository{
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()
 
-  private val LOCALURL = ConfigReader.localUrl
+  private val LOCALURL = "http://localhost:9000"
   private val CKAN_ERROR = "CKAN service is not working correctly"
 
   private val server = new ServerAddress(ConfigReader.getDbHost, ConfigReader.getDbPort)
@@ -128,12 +128,23 @@ class CkanRepositoryProd extends CkanRepository{
     val wsClient = AhcWSClient()
     val url =  LOCALURL + "/ckan/userOrganizations/" + userName
     wsClient.url(url).withHeaders(USER_ID_HEADER -> callingUserid.get).get().map ({ response =>
+
+
+
+      val orgsListJson: JsLookupResult = response.json \ "result"
+
+      if(orgsListJson.toOption.isEmpty)
+        JsError( WebServiceUtil.getMessageFromCkanError(response.json) )
+      else
+        orgsListJson.get.validate[Seq[Organization]]
+
+      /*
       val orgsListJson: JsValue = (response.json \ "result")
         .getOrElse(JsString(CKAN_ERROR))
 
       val orgsListValidate = orgsListJson.validate[Seq[Organization]]
-      println(orgsListValidate)
-      orgsListValidate
+
+      orgsListValidate*/
 
     }).andThen { case _ => wsClient.close() }
       .andThen { case _ => system.terminate() }
@@ -168,10 +179,14 @@ class CkanRepositoryProd extends CkanRepository{
     val wsClient = AhcWSClient()
     val url =  LOCALURL + "/ckan/organization/" + orgId
     wsClient.url(url).withHeaders(USER_ID_HEADER -> callingUserid.get).get().map ({ response =>
-      val orgJson: JsValue = (response.json \ "result")
-        .getOrElse(Json.obj("error" -> "No organization"))
-      val orgValidate = orgJson.validate[Organization]
-      orgValidate
+
+      val orgJson: JsLookupResult = response.json \ "result"
+
+      if(orgJson.toOption.isEmpty)
+        JsError( WebServiceUtil.getMessageFromCkanError(response.json) )
+      else
+        orgJson.get.validate[Organization]
+
     }).andThen { case _ => wsClient.close() }
       .andThen { case _ => system.terminate() }
 
@@ -213,12 +228,21 @@ class CkanRepositoryProd extends CkanRepository{
     val url =  LOCALURL + "/ckan/searchDataset"+queryString
 
     wsClient.url(url).withHeaders(USER_ID_HEADER -> callingUserid.get).get().map ({ response =>
+
+      val datasetJson: JsLookupResult = ( (response.json \ "result") \ "results")
+
+      if(datasetJson.toOption.isEmpty)
+        JsError( WebServiceUtil.getMessageFromCkanError(response.json) )
+      else
+        datasetJson.get.validate[Seq[Dataset]]
+
+      /*
       val datasetJson: JsValue =( (response.json \ "result") \ "results")
         .getOrElse(Json.obj("error" -> "No datasets"))
 
       val datasetsValidate = datasetJson.validate[Seq[Dataset]]
       println(datasetsValidate)
-      datasetsValidate
+      datasetsValidate*/
     }).andThen { case _ => wsClient.close() }
       .andThen { case _ => system.terminate() }
 
@@ -235,12 +259,22 @@ class CkanRepositoryProd extends CkanRepository{
     val url =  LOCALURL + "/ckan/datasetsWithResources"+queryString
 
     wsClient.url(url).withHeaders(USER_ID_HEADER -> callingUserid.get).get().map ({ response =>
+
+
+      val datasetJson: JsLookupResult = response.json \ "result"
+
+      if(datasetJson.toOption.isEmpty)
+        JsError( WebServiceUtil.getMessageFromCkanError(response.json) )
+      else
+        datasetJson.get.validate[Seq[Dataset]]
+
+      /*
       val datasetJson: JsValue =(response.json \ "result")
         .getOrElse(Json.obj("error" -> "No datasets"))
 
       val datasetsValidate = datasetJson.validate[Seq[Dataset]]
-      println(datasetsValidate)
-      datasetsValidate
+      //println(datasetsValidate)
+      datasetsValidate*/
     }).andThen { case _ => wsClient.close() }
       .andThen { case _ => system.terminate() }
 

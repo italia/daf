@@ -40,7 +40,7 @@ class IngestionListenerImpl @Inject() (appLifecycle: ApplicationLifecycle) exten
     implicit val myExecutionContext: ExecutionContext = system.dispatchers.lookup("contexts.ingestion-lookups")
     implicit val materializer: ActorMaterializer = ActorMaterializer()
     val clientManager: AhcWSClient = AhcWSClient()
-    val catalogManager = new Catalog_managerClient(clientManager)("http://localhost:9000")
+    val catalogManager = new Catalog_managerClient(clientManager)("http://localhost:9001")
     val metacalogs: Future[List[MetaCatalog]] = catalogManager.datasetcatalogs("test:test")
     metacalogs.map(catalogs => {
         val holders: Set[String] = catalogs.map(catalog  => {

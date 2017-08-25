@@ -21,6 +21,7 @@ import org.apache.hadoop.hbase.client.Table
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.{DataFrame, Encoder, SparkSession}
 import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.kafka010.ConsumerStrategies._
 import org.apache.spark.streaming.kafka010.LocationStrategies.PreferConsistent
@@ -30,6 +31,11 @@ import org.apache.spark.streaming.{StreamingContext, Time => SparkTime}
 import scala.reflect.ClassTag
 import scala.util.Try
 
+@SuppressWarnings(
+  Array(
+    "org.wartremover.warts.ImplicitParameter"
+  )
+)
 object TransformersStream extends OffsetsManagement {
 
   private def commitOffsets[A, B](table: Option[Table], topic: String, groupId: String, rdd: RDD[ConsumerRecord[A, B]], time: SparkTime): RDD[ConsumerRecord[A, B]] = rdd match {
@@ -68,6 +74,22 @@ object TransformersStream extends OffsetsManagement {
       val dp = transform(cr.value)
       dp.toOption
     }))
+  }
+
+  implicit class EnrichedDStream[A](dstream: DStream[A]) extends AnyRef {
+    def applyTransform[B: ClassTag](transform: Kleisli[Try, A, B]) = dstream.flatMap(e => {
+      val dp = transform(e)
+      dp.toOption
+    })
+  }
+
+  def convertDataFrameToRDD[T <: Product](data: DataFrame)(implicit encoder: Encoder[T]) = {
+    data.as[T].rdd
+  }
+
+  def convertRDDtoDataFrame[T <: Product](data: RDD[T])(implicit sparkSession: SparkSession, encoder: Encoder[T]): DataFrame = {
+    import sparkSession.implicits._
+    data.toDS.toDF
   }
 
 }

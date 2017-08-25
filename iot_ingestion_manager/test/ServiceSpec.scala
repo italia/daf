@@ -34,7 +34,7 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.{HBaseTestingUtility, TableName}
 import org.apache.hadoop.test.PathUtils
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
-import org.apache.kudu.client.MiniKuduCluster
+import org.apache.kudu.client.{KuduClient, KuduScanner, MiniKuduCluster, RowResult}
 import org.apache.spark.SparkConf
 import org.apache.spark.opentsdb.OpenTSDBConfigurator
 import org.specs2.mutable.Specification
@@ -161,6 +161,7 @@ class ServiceSpec extends Specification with BeforeAfterAll {
     configure("bootstrap.servers" -> getBootstrapServers).
     configure("kafka.zookeeper.quorum" -> s"localhost:${baseConf.get("hbase.zookeeper.property.clientPort")}").
     configure("kudu.master.addresses" -> kuduCluster.map(_.getMasterAddresses).getOrElse("")).
+    configure("kudu.events.tableName" -> "Events").
     build()
 
   "The iot-ingestion-manager" should {
@@ -177,13 +178,51 @@ class ServiceSpec extends Specification with BeforeAfterAll {
       Thread.sleep(10000)
 
       var start = System.currentTimeMillis()
-      val NUMEVENTS = 200
+      val NUMEVENTS = 100
       val events = Range(0, NUMEVENTS).map(r =>
         new Event(
           version = 1L,
-          id = Some(r.toString),
+          id = r.toString,
           ts = start + r,
           event_type_id = 0,
+          location = "41.1260529:16.8692905",
+          source = "sensor_id",
+          body = Option("""{"rowdata": "this json should contain row data"}""".getBytes()),
+          attributes = Map(
+            "tag1" -> "value1",
+            "tag2" -> "value2",
+            "metric" -> "speed",
+            "value" -> "50",
+            "tags" -> "tag1, tag2"
+          )
+        )
+      ) ++ Range(0, NUMEVENTS / 2).map(r => {
+        //I'm adding additional events with repeating ids to check the idempotency
+        // EVENTS WITH THE SAME ID MUST HAVE THE SAME TIMESTAMP
+        val rnd = Random.nextInt(NUMEVENTS)
+        new Event(
+          version = 1L,
+          id = rnd.toString,
+          ts = start + rnd,
+          event_type_id = 0,
+          location = "41.1260529:16.8692905",
+          source = "sensor_id",
+          body = Option("""{"rowdata": "this json should contain row data"}""".getBytes()),
+          attributes = Map(
+            "tag1" -> "value1",
+            "tag2" -> "value2",
+            "metric" -> "speed",
+            "value" -> "50",
+            "tags" -> "tag1, tag2"
+          )
+        )
+      }
+      ) ++ Range(NUMEVENTS, NUMEVENTS * 2).map(r => //I'm adding additional events not being metrics
+        new Event(
+          version = 1L,
+          id = r.toString,
+          ts = start + r,
+          event_type_id = 2,
           location = "41.1260529:16.8692905",
           source = "sensor_id",
           body = Option("""{"rowdata": "this json should contain row data"}""".getBytes()),
@@ -200,12 +239,12 @@ class ServiceSpec extends Specification with BeforeAfterAll {
       events.map { event =>
         val eventBytes = SerializerDeserializer.serialize(event)
 
-        val record = new ProducerRecord[Array[Byte], Array[Byte]]("daf-iot-events", s"${event.id.getOrElse("error")}".getBytes(), eventBytes)
+        val record = new ProducerRecord[Array[Byte], Array[Byte]]("daf-iot-events", event.id.getBytes(), eventBytes)
         producer.send(record)
         producer.flush()
       }
 
-      Thread.sleep(5000)
+      Thread.sleep(10000)
 
       val result2 = Await.result(client.stop(s"Basic $base64Creds"), Duration.Inf)
 
@@ -225,6 +264,31 @@ class ServiceSpec extends Specification with BeforeAfterAll {
       val res = tsdbQueries.head.runAsync()
       val dp: Array[DataPoints] = res.join(1000L)
       dp.map(dp => dp.iterator().asScala.size) must beEqualTo(Array(NUMEVENTS))
+
+      //Check the existence of the Kudu Events
+      kuduCluster foreach {
+        kc =>
+          val masterAddresses = kc.getMasterAddresses
+          val kuduClient = new KuduClient.KuduClientBuilder(masterAddresses).build
+          val kuduTable = kuduClient.openTable("Events")
+
+          kuduClient.tableExists("Events") mustEqual true
+
+          val scanner: KuduScanner = kuduClient.newScannerBuilder(kuduTable).build
+          var count = 0
+          while (scanner.hasMoreRows) {
+            val results = scanner.nextRows
+            while (results.hasNext) {
+              val result: RowResult = results.next
+              count += 1
+            }
+          }
+          count must beEqualTo(NUMEVENTS * 2) //metrics + non metrics
+          scanner.close()
+          kuduClient.close()
+      }
+
+      Thread.sleep(5000)
     }
   }
 

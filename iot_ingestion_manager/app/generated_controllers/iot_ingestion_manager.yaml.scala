@@ -1,32 +1,52 @@
 
-import java.net.URLClassLoader
-import java.security.PrivilegedExceptionAction
+import play.api.mvc.{Action,Controller}
+
+import play.api.data.validation.Constraint
+
+import play.api.i18n.MessagesApi
+
+import play.api.inject.{ApplicationLifecycle,ConfigurationProvider}
+
+import de.zalando.play.controllers._
+
+import PlayBodyParsing._
+
+import PlayValidations._
+
+import scala.util._
+
 import javax.inject._
 
+import java.net.URLClassLoader
+import java.security.PrivilegedExceptionAction
 import com.typesafe.config.ConfigException.Missing
-import common.Transformers.{avroByteArrayToEvent, _}
+import common.Transformers.{avroByteArrayToEvent,_}
 import common.TransformersStream._
 import common.Util._
 import de.zalando.play.controllers.PlayBodyParsing._
 import it.gov.daf.common.authentication.Authentication
-import org.apache.hadoop.conf.{Configuration => HadoopConfiguration}
-import org.apache.hadoop.hbase.client.{ConnectionFactory, Table}
-import org.apache.hadoop.hbase.{HBaseConfiguration, HColumnDescriptor, HTableDescriptor, TableName}
+import it.gov.daf.iotingestion.common.StorableEvent
+import org.apache.hadoop.conf.{Configuration=>HadoopConfiguration}
+import org.apache.hadoop.hbase.client.{ConnectionFactory,Table}
+import org.apache.hadoop.hbase.{HBaseConfiguration,HColumnDescriptor,HTableDescriptor,TableName}
 import org.apache.hadoop.security.UserGroupInformation
+import org.apache.kudu.client.{CreateTableOptions,KuduException}
+import org.apache.kudu.spark.kudu.KuduContext
 import org.apache.spark.opentsdb.OpenTSDBContext
-import org.apache.spark.sql.SparkSession
-import org.apache.spark.streaming.{Milliseconds, StreamingContext}
-import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
+import org.apache.spark.sql.{Encoder,Encoders,SparkSession}
+import org.apache.spark.streaming.{Milliseconds,StreamingContext}
+import org.apache.spark.{SparkConf,SparkContext}
 import org.pac4j.play.store.PlaySessionStore
 import play.Logger
-import play.api.i18n.MessagesApi
-import play.api.inject.{ApplicationLifecycle, ConfigurationProvider}
-import play.api.mvc.{AnyContent, Request}
-import play.api.{Configuration, Environment, Mode}
-
+import play.Logger.ALogger
+import play.api.mvc.{AnyContent,Request}
+import play.api.{Configuration,Environment,Mode}
 import scala.annotation.tailrec
+import scala.collection.convert.decorateAsJava._
 import scala.language.postfixOps
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure,Success,Try}
+import org.apache.kudu.spark.implicits._
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -35,7 +55,7 @@ import scala.util.{Failure, Success, Try}
 
 package iot_ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Iot_ingestion_managerYaml
-                                                                    
+    
   @SuppressWarnings(
     Array(
       "org.wartremover.warts.While",
@@ -57,7 +77,7 @@ package iot_ingestion_manager.yaml {
     ) extends Iot_ingestion_managerYamlBase {
         // ----- Start of unmanaged code area for constructor Iot_ingestion_managerYaml
 
-    implicit private val alogger = Logger.of(this.getClass.getCanonicalName)
+    implicit private val alogger: ALogger = Logger.of(this.getClass.getCanonicalName)
 
     Authentication(configuration, playSessionStore)
 
@@ -142,6 +162,24 @@ package iot_ingestion_manager.yaml {
 
     private var openTSDBContext: Try[OpenTSDBContext] = InitializeFailure[OpenTSDBContext]
 
+    private def createKuduTable(kuduContext: KuduContext, kuduEventsTableName: String, kuduEventsTableNumberOfBuckets: Int): Unit = {
+      if (!kuduContext.tableExists(kuduEventsTableName)) {
+        try {
+          val schema = Encoders.product[StorableEvent].schema
+          val _ = kuduContext.createTable(
+            kuduEventsTableName,
+            schema,
+            Seq("id", "ts"),
+            new CreateTableOptions().
+              setRangePartitionColumns(List("ts").asJava).
+              addHashPartitions(List("id").asJava, kuduEventsTableNumberOfBuckets)
+          )
+        } catch {
+          case ex: KuduException if ex.getStatus.isAlreadyPresent =>
+        }
+      }
+    }
+
         // ----- End of unmanaged code area for constructor Iot_ingestion_managerYaml
         val start = startAction {  _ =>  
             // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.start
@@ -207,20 +245,49 @@ package iot_ingestion_manager.yaml {
                 alogger.info(s"Kafka Zk Root Dir: $kafkaZkRootDir")
 
                 val kuduMasterAddresses = configuration.getStringOrException("kudu.master.addresses")
+
                 alogger.info(s"Kudu Master Addresses: $kuduMasterAddresses")
+
+                val kuduEventsTableName = configuration.getStringOrException("kudu.events.table.name")
+
+                val kuduEventsTableNumberOfBuckets = configuration.getIntOrException("kudu.events.table.numberOfBuckets")
+
+                alogger.info(s"Kudu Events Table Name: $kuduEventsTableName")
 
                 stopFlag = false
                 streamingContext foreach {
                   ssc =>
                     alogger.info("About to create the stream")
-                    val inputStream = getTransformersStream(ssc, kafkaZkQuorum, kafkaZkRootDir, offsetsTable.toOption, brokers, topic, groupId, avroByteArrayToEvent >>>> eventToDatapoint)
+
+                    val kuduContext = new KuduContext(kuduMasterAddresses, ssc.sparkContext)
+
+                    sparkSession foreach {
+                      ss =>
+                        createKuduTable(kuduContext, kuduEventsTableName, kuduEventsTableNumberOfBuckets)
+                    }
+
+                    val inputStream = getTransformersStream(ssc, kafkaZkQuorum, kafkaZkRootDir, offsetsTable.toOption, brokers, topic, groupId, avroByteArrayToEvent)
                     inputStream match {
                       case Success(stream) =>
-                        openTSDBContext.foreach(_.streamWrite(stream))
-                        alogger.info("Stream created")
+                        sparkSession foreach {
+                          implicit ss =>
+
+                            implicit val storableEventEncoder: Encoder[StorableEvent] = ExpressionEncoder()
+
+                            val dataPoints = stream.
+                              applyTransform(eventToStorableEvent).
+                              transform {
+                                source =>
+                                  convertDataFrameToRDD[StorableEvent](kuduContext.insertAndReturn(convertRDDtoDataFrame[StorableEvent](source), kuduEventsTableName))
+                              }.
+                              applyTransform(storableEventToDatapoint)
+
+                            openTSDBContext.foreach(_.streamWrite(dataPoints))
+
+                            alogger.info("Stream created")
+                        }
                       case Failure(ex) => alogger.error(s"Failed in creating the stream: ${ex.getCause}")
                     }
-                    alogger.info("Stream created")
                     alogger.info("About to start the streaming context")
                     ssc.start()
                     alogger.info("Streaming context started")

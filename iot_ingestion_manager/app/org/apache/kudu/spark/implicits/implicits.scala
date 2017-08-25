@@ -14,6 +14,7 @@ package object implicits {
 
   @SuppressWarnings(
     Array(
+      "org.wartremover.warts.DefaultArguments",
       "org.wartremover.warts.Throw"
     )
   )
@@ -22,12 +23,7 @@ package object implicits {
       with Serializable
       with Logging {
 
-    def insertAndReturn(data: DataFrame, tableName: String): DataFrame = {
-      val df = writeRows(data, tableName, Insert)
-      val count = df.count()
-      logInfo(s"Inserted $count rows into Kudu")
-      df
-    }
+    def insertAndReturn(data: DataFrame, tableName: String): DataFrame = writeRows(data, tableName, Insert)
 
     def writeRows(data: DataFrame,
                   tableName: String,

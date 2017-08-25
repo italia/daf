@@ -35,7 +35,7 @@ class CkanServiceSpecs extends Specification{
       new WithServer(app = application, port = 9000) {
         WsTestClient.withClient { implicit client =>
           val response: WSResponse = Await.result[WSResponse](client.
-            url("http://localhost:9000/ckan/datasets").
+            url("http://localhost:9001/ckan/datasets").
             get, Duration.Inf)
           //println(response.status)
           response.status must be equalTo Status.OK
@@ -47,7 +47,7 @@ class CkanServiceSpecs extends Specification{
         val json =
           WsTestClient.withClient { implicit client =>
             val response: WSResponse = Await.result[WSResponse](client.
-              url("http://localhost:9000/ckan/createOrganization").post(readJsonFile("test/org.json")), Duration.Inf)
+              url("http://localhost:9001/ckan/createOrganization").post(readJsonFile("test/org.json")), Duration.Inf)
             //println(response.body)
             response.body must contain(""""success":true""")
           }
@@ -58,7 +58,7 @@ class CkanServiceSpecs extends Specification{
         val json =
         WsTestClient.withClient { implicit client =>
           val response: WSResponse = Await.result[WSResponse](client.
-            url("http://localhost:9000/ckan/createDataset").post(readJsonFile("test/data.json")), Duration.Inf)
+            url("http://localhost:9001/ckan/createDataset").post(readJsonFile("test/data.json")), Duration.Inf)
           //println(response.body)
           response.body must contain(""""success":true""")
         }
@@ -69,7 +69,7 @@ class CkanServiceSpecs extends Specification{
         val json =
           WsTestClient.withClient { implicit client =>
             val response: WSResponse = Await.result[WSResponse](client.
-              url("http://localhost:9000/ckan/dataset/test-dcatapit-api-prova").get, Duration.Inf)
+              url("http://localhost:9001/ckan/dataset/test-dcatapit-api-prova").get, Duration.Inf)
             //println(response.body)
             response.body must contain(""""success":true""")
           }
@@ -79,7 +79,7 @@ class CkanServiceSpecs extends Specification{
       new WithServer(app = application, port = 9000) {
         WsTestClient.withClient { implicit client =>
           val response: WSResponse = Await.result[WSResponse](client.
-            url("http://localhost:9000/ckan/deleteDataset/test-dcatapit-api-prova").delete, Duration.Inf)
+            url("http://localhost:9001/ckan/deleteDataset/test-dcatapit-api-prova").delete, Duration.Inf)
           //println(response.body)
           response.body must contain(""""success":true""")
         }
@@ -89,7 +89,7 @@ class CkanServiceSpecs extends Specification{
       new WithServer(app = application, port = 9000) {
         WsTestClient.withClient { implicit client =>
           val response: WSResponse = Await.result[WSResponse](client.
-            url("http://localhost:9000/ckan/purgeDataset/test-dcatapit-api-prova").delete, Duration.Inf)
+            url("http://localhost:9001/ckan/purgeDataset/test-dcatapit-api-prova").delete, Duration.Inf)
           //println(response.body)
           response.body must contain(""""success":true""")
         }
@@ -99,7 +99,7 @@ class CkanServiceSpecs extends Specification{
       new WithServer(app = application, port = 9000) {
         WsTestClient.withClient { implicit client =>
           val response: WSResponse = Await.result[WSResponse](client.
-            url("http://localhost:9000/ckan/deleteOrganization/test-org").delete, Duration.Inf)
+            url("http://localhost:9001/ckan/deleteOrganization/test-org").delete, Duration.Inf)
           //println(response.body)
           response.body must contain(""""success":true""")
         }
@@ -109,7 +109,7 @@ class CkanServiceSpecs extends Specification{
       new WithServer(app = application, port = 9000) {
         WsTestClient.withClient { implicit client =>
           val response: WSResponse = Await.result[WSResponse](client.
-            url("http://localhost:9000/ckan/purgeOrganization/test-org").delete, Duration.Inf)
+            url("http://localhost:9001/ckan/purgeOrganization/test-org").delete, Duration.Inf)
           //println(response.body)
           response.body must contain(""""success":true""")
         }

@@ -93,12 +93,33 @@ class CkanRepositoryProd extends CkanRepository{
     return SecurePasswordHashing.validatePassword(credentials.password.get.toString, hpasswd )
   }
 
+  private def evaluateSuccessResult(json:JsValue)={
+    val resultJson = (json \ "success").toOption
+
+    if( !resultJson.isEmpty && resultJson.get.toString() == "true" )
+      "true"
+    else
+      WebServiceUtil.getMessageFromCkanError(json)
+  }
+
+  private def evaluateSuccessResult(json:JsValue, onSuccessDo: => Boolean) = {
+    val resultJson = (json \ "success").toOption
+
+    if( !resultJson.isEmpty && resultJson.get.toString() == "true" ) {
+      onSuccessDo
+      "true"
+    }else
+      WebServiceUtil.getMessageFromCkanError(json)
+  }
+
   def updateOrganization(orgId: String, jsonOrg: JsValue, callingUserid :MetadataCat): Future[String] = {
 
     val wsClient = AhcWSClient()
     val url =  LOCALURL + "/ckan/updateOrganization/" + orgId
     wsClient.url(url).withHeaders(USER_ID_HEADER -> callingUserid.get).put(jsonOrg).map({ response =>
-      (response.json \ "success").getOrElse(JsString(CKAN_ERROR)).toString()
+
+      evaluateSuccessResult(response.json)
+
     }).andThen { case _ => wsClient.close() }
       .andThen { case _ => system.terminate() }
 
@@ -114,10 +135,15 @@ class CkanRepositoryProd extends CkanRepository{
     val wsClient = AhcWSClient()
     val url =  LOCALURL + "/ckan/createUser"
     wsClient.url(url).withHeaders(USER_ID_HEADER -> callingUserid.get).post(jsonUser).map({ response =>
+
+      evaluateSuccessResult( response.json, writeMongo(updatedJsonUser,"users") )
+
+      /*
       (response.json \ "success").toOption match {
         case Some(x) => if(x.toString()=="true")writeMongo(updatedJsonUser,"users"); x.toString()
         case _ => JsString(CKAN_ERROR).toString()
-      }
+      }*/
+
     }).andThen { case _ => wsClient.close() }
       .andThen { case _ => system.terminate() }
 
@@ -128,8 +154,6 @@ class CkanRepositoryProd extends CkanRepository{
     val wsClient = AhcWSClient()
     val url =  LOCALURL + "/ckan/userOrganizations/" + userName
     wsClient.url(url).withHeaders(USER_ID_HEADER -> callingUserid.get).get().map ({ response =>
-
-
 
       val orgsListJson: JsLookupResult = response.json \ "result"
 
@@ -155,7 +179,9 @@ class CkanRepositoryProd extends CkanRepository{
     val wsClient = AhcWSClient()
     val url =  LOCALURL + "/ckan/createDataset"
     wsClient.url(url).withHeaders(USER_ID_HEADER -> callingUserid.get).post(jsonDataset).map({ response =>
-      (response.json \ "success").getOrElse(JsString(CKAN_ERROR)).toString()
+
+      evaluateSuccessResult(response.json)
+
     }).andThen { case _ => wsClient.close() }
       .andThen { case _ => system.terminate() }
 
@@ -166,7 +192,10 @@ class CkanRepositoryProd extends CkanRepository{
     val wsClient = AhcWSClient()
     val url =  LOCALURL + "/ckan/createOrganization"
     wsClient.url(url).withHeaders(USER_ID_HEADER -> callingUserid.get).post(jsonDataset).map({ response =>
-      (response.json \ "success").getOrElse(JsString(CKAN_ERROR)).toString()
+
+      evaluateSuccessResult(response.json)
+
+      //(response.json \ "success").getOrElse(JsString(CKAN_ERROR)).toString()
     }).andThen { case _ => wsClient.close() }
       .andThen { case _ => system.terminate() }
   }
@@ -287,10 +316,15 @@ class CkanRepositoryProd extends CkanRepository{
     val url =  LOCALURL + "/ckan/dataset/" + datasetId
 
     wsClient.url(url).withHeaders(USER_ID_HEADER -> callingUserid.get).get().map ({ response =>
-      val datasetJson: JsValue = (response.json \ "result")
-        .getOrElse(Json.obj("error" -> "No dataset"))
-      val datasetValidate = datasetJson.validate[Dataset]
-      datasetValidate
+
+      val datasetJson: JsLookupResult = response.json \ "result"
+
+      if(datasetJson.toOption.isEmpty)
+        JsError( WebServiceUtil.getMessageFromCkanError(response.json) )
+      else
+        datasetJson.get.validate[Dataset]
+
+
     }).andThen { case _ => wsClient.close() }
       .andThen { case _ => system.terminate() }
 

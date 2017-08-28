@@ -32,12 +32,12 @@ import scala.concurrent.Future
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                                                    
+                                
 
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
-         ingestionListener : IngestionListenerImpl,
+                                          ingestionListener : IngestionListenerImpl,
 
         // ----- End of unmanaged code area for injections Catalog_managerYaml
         val messagesApi: MessagesApi,
@@ -53,13 +53,13 @@ package catalog_manager.yaml {
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
 
             //if( ! CkanRegistry.ckanService.verifyCredentials(credentials) )
-                //Searchdataset401(Error(None,Option("Invalid credentials!"),None))
+            //Searchdataset401(Error(None,Option("Invalid credentials!"),None))
 
             val datasetsFuture: Future[JsResult[Seq[Dataset]]] = CkanRegistry.ckanService.searchDatasets(input, credentials.username)
             val eitherDatasets: Future[Either[String, Seq[Dataset]]] = datasetsFuture.map(result => {
                 result match {
                     case s: JsSuccess[Seq[Dataset]] => Right(s.get)
-                    case e: JsError => Left("error, no datasets")
+                    case e: JsError => Left( WebServiceUtil.getMessageFromJsError(e) )
                 }
             })
             // Getckandatasetbyid200(dataset)
@@ -76,7 +76,7 @@ package catalog_manager.yaml {
             val eitherOrg: Future[Either[String, Organization]] = orgFuture.map(result => {
                 result match {
                     case s: JsSuccess[Organization] => Right(s.get)
-                    case e: JsError => Left("error no organization with that id")
+                    case e: JsError => Left( WebServiceUtil.getMessageFromJsError(e) )
                 }
             })
 
@@ -115,11 +115,11 @@ package catalog_manager.yaml {
         val standardsuri = standardsuriAction {  _ =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.standardsuri
             val catalogs = ServiceRegistry.catalogService.listCatalogs()
-          val uris: Seq[String] = catalogs.filter(x=> x.operational.get.is_std.get)
+            val uris: Seq[String] = catalogs.filter(x=> x.operational.get.is_std.get)
               .map(_.operational.get.logical_uri).map(_.get)
-          val stdUris: Seq[StdUris] = uris.map(x => StdUris(Some(x), Some(x)))
-          Standardsuri200(stdUris)
-          // NotImplementedYet
+            val stdUris: Seq[StdUris] = uris.map(x => StdUris(Some(x), Some(x)))
+            Standardsuri200(stdUris)
+            // NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.standardsuri
         }
         val createdatasetcatalog = createdatasetcatalogAction { (catalog: MetaCatalog) =>  
@@ -131,7 +131,7 @@ package catalog_manager.yaml {
                 ingestionListener.addDirListener(catalog, logicalUri)
             }
             Createdatasetcatalog200(created)
-           //NotImplementedYet
+            //NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalog
         }
         val test = testAction {  _ =>  
@@ -153,7 +153,7 @@ package catalog_manager.yaml {
             val jsonv : JsValue = ResponseWrites.DatasetWrites.writes(dataset)
             CkanRegistry.ckanService.createDataset(jsonv, credentials.username)flatMap {
                 case "true" => Createckandataset200(Success(Some("Success"), Some("dataset created")))
-                case _ =>  Createckandataset401(Error(None,Some("An Error occurred"),None))
+                case e =>  Createckandataset401(Error(None,Some(e),None))
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.createckandataset
         }
@@ -165,7 +165,7 @@ package catalog_manager.yaml {
             val eitherDatasets: Future[Either[String, Seq[Dataset]]] = datasetsFuture.map(result => {
                 result match {
                     case s: JsSuccess[Seq[Dataset]] => Right(s.get)
-                    case e: JsError => Left("error, no datasets")
+                    case e: JsError => Left( WebServiceUtil.getMessageFromJsError(e))
                 }
             })
             // Getckandatasetbyid200(dataset)
@@ -182,7 +182,7 @@ package catalog_manager.yaml {
             val eitherOrgs: Future[Either[String, Seq[Organization]]] = orgsFuture.map(result => {
                 result match {
                     case s: JsSuccess[Seq[Organization]] => Right(s.get)
-                    case e: JsError => Left("error, no organization")
+                    case e: JsError => Left( WebServiceUtil.getMessageFromJsError(e) )
                 }
             })
             // Getckandatasetbyid200(dataset)
@@ -199,7 +199,7 @@ package catalog_manager.yaml {
 
             CkanRegistry.ckanService.createOrganization(jsonv, credentials.username)flatMap {
                 case "true" => Createckanorganization200(Success(Some("Success"), Some("organization created")))
-                case _ =>  Createckanorganization401(GENERIC_ERROR)
+                case e =>  Createckanorganization401(Error(None,Some(e),None))
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.createckanorganization
         }
@@ -211,7 +211,7 @@ package catalog_manager.yaml {
 
             CkanRegistry.ckanService.updateOrganization(org_id,jsonv, credentials.username)flatMap {
                 case "true" => Updateckanorganization200(Success(Some("Success"), Some("organization updated")))
-                case _ =>  Updateckanorganization401(GENERIC_ERROR)
+                case e =>  Updateckanorganization401(Error(None,Some(e),None))
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.updateckanorganization
         }
@@ -221,7 +221,7 @@ package catalog_manager.yaml {
             val userResult: JsResult[User] = CkanRegistry.ckanService.getMongoUser(username, credentials.username)
             val eitherUser: Either[String, User] = userResult match {
                 case s: JsSuccess[User] => Right(s.get)
-                case e: JsError => Left("error no user with that name")
+                case e: JsError => Left("error, no user with that name")
             }
 
 
@@ -237,7 +237,7 @@ package catalog_manager.yaml {
             val jsonv : JsValue = ResponseWrites.UserWrites.writes(user)
             CkanRegistry.ckanService.createUser(jsonv, credentials.username)flatMap {
                 case "true" => Createckanuser200(Success(Some("Success"), Some("user created")))
-                case _ =>  Createckanuser401(GENERIC_ERROR)
+                case e =>  Createckanuser401(Error(None,Some(e),None))
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.createckanuser
         }
@@ -248,7 +248,7 @@ package catalog_manager.yaml {
             val eitherDataset: Future[Either[String, Dataset]] = datasetFuture.map(result => {
                 result match {
                     case s: JsSuccess[Dataset] => Right(s.get)
-                    case e: JsError => Left("error no dataset with that id")
+                    case e: JsError => Left( WebServiceUtil.getMessageFromJsError(e) )
                 }
             })
 
@@ -289,11 +289,11 @@ package catalog_manager.yaml {
     
      // Dead code for absent methodCatalog_managerYaml.ckandatasetbyid
      /*
-            // ----- Start of unmanaged code area for action  Catalog_managerYaml.ckandatasetbyid
-            val dataset: Future[Dataset] = ServiceRegistry.catalogService.getDataset(dataset_id)
-            Ckandatasetbyid200(dataset)
-            //NotImplementedYet
-            // ----- End of unmanaged code area for action  Catalog_managerYaml.ckandatasetbyid
+                  // ----- Start of unmanaged code area for action  Catalog_managerYaml.ckandatasetbyid
+                  val dataset: Future[Dataset] = ServiceRegistry.catalogService.getDataset(dataset_id)
+                  Ckandatasetbyid200(dataset)
+                  //NotImplementedYet
+                  // ----- End of unmanaged code area for action  Catalog_managerYaml.ckandatasetbyid
      */
 
     

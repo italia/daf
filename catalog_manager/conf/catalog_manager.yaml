@@ -905,6 +905,17 @@ definitions:
         type: string
   Dataset:
     #type: Object
+    required:
+      - frequency
+      - holder_identifier
+      - holder_name
+      - identifier
+      - modified
+      - name
+      - notes
+      - publisher_identifier
+      - publisher_name
+      - theme
     properties:
       alternate_identifier:
         type: string
@@ -930,7 +941,6 @@ definitions:
         #type: string
       frequency:
         type: string
-        required: true
       #geographical_geonames_url:
         #type: string
       #geographical_name:
@@ -941,13 +951,10 @@ definitions:
           $ref: '#/definitions/Group'
       holder_identifier:
         type: string
-        required: true
       holder_name:
         type: string
-        required: true
       identifier:
         type: string
-        required: true
 
       #is_version_of:
         #type: string
@@ -971,13 +978,10 @@ definitions:
         #type: string
       modified:
         type: string
-        required: true
       name:
         type: string
-        required: true
       notes:
         type: string
-        required: true
       #num_resources:
         #type: integer
       #num_tags:
@@ -990,10 +994,8 @@ definitions:
         #type: boolean
       publisher_identifier:
         type: string
-        required: true
       publisher_name:
         type: string
-        required: true
       relationships_as_object:
         type: array
         items:
@@ -1022,7 +1024,6 @@ definitions:
         #type: string
       theme:
         type: string
-        required: true
       #title:
         #type: string
       #type:
@@ -1048,6 +1049,8 @@ definitions:
         type: string
   Organization:
     type: object
+    required:
+      - name
     properties:
       approval_status:
         type: string
@@ -1065,7 +1068,6 @@ definitions:
         type: boolean
       name:
         type: string
-        required: true
       revision_id:
         type: string
       state:

@@ -106,10 +106,11 @@ trait OffsetsManagement {
       // handle scenario where new partitions have been added to existing kafka topic
       result foreach {
         result =>
+          val partitions = result.getString(0).split(",")
           val offsets = result.getString(1).split(",")
           for (partition <- 0 until kuduNumberOfPartitionsForTopic) {
             val fromOffset = offsets(partition)
-            fromOffsets += (new TopicPartition(topic, partition) -> fromOffset.toLong)
+            fromOffsets += (new TopicPartition(topic, partitions(partition).toInt) -> fromOffset.toLong)
           }
           for (partition <- kuduNumberOfPartitionsForTopic until zKNumberOfPartitionsForTopic) {
             fromOffsets += (new TopicPartition(topic, partition) -> 0)
@@ -119,10 +120,11 @@ trait OffsetsManagement {
       //initialize fromOffsets from last run
       result foreach {
         result =>
+          val partitions = result.getString(0).split(",")
           val offsets = result.getString(1).split(",")
           for (partition <- 0 until kuduNumberOfPartitionsForTopic) {
             val fromOffset = offsets(partition)
-            fromOffsets += (new TopicPartition(topic, partition) -> fromOffset.toLong)
+            fromOffsets += (new TopicPartition(topic, partitions(partition).toInt) -> fromOffset.toLong)
           }
       }
     }

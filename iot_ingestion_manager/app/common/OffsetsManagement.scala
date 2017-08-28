@@ -56,13 +56,13 @@ trait OffsetsManagement {
   }
 
   /**
-    * Returns last committed offsets for all the partitions of a given topic from HBase in following cases.
+    * Returns last committed offsets for all the partitions of a given topic from Kudu in following cases.
     *- CASE 1: SparkStreaming job is started for the first time. This function gets the number of topic partitions from
     * Zookeeper and for each partition returns the last committed offset as 0
     *- CASE 2: SparkStreaming is restarted and there are no changes to the number of partitions in a topic. Last
-    * committed offsets for each topic-partition is returned as is from HBase.
+    * committed offsets for each topic-partition is returned as is from Kudu.
     *- CASE 3: SparkStreaming is restarted and the number of partitions in a topic increased. For old partitions, last
-    * committed offsets for each topic-partition is returned as is from HBase as is. For newly added partitions,
+    * committed offsets for each topic-partition is returned as is from Kudu as is. For newly added partitions,
     * function returns last committed offsets as 0
     */
   def getLastCommittedOffsets(kuduClient: KuduClient, tableName: String, topic: String, groupId: String, zkQuorum: String,
@@ -106,10 +106,11 @@ trait OffsetsManagement {
       // handle scenario where new partitions have been added to existing kafka topic
       result foreach {
         result =>
+          val partitions = result.getString(0).split(",")
           val offsets = result.getString(1).split(",")
           for (partition <- 0 until kuduNumberOfPartitionsForTopic) {
             val fromOffset = offsets(partition)
-            fromOffsets += (new TopicPartition(topic, partition) -> fromOffset.toLong)
+            fromOffsets += (new TopicPartition(topic, partitions(partition).toInt) -> fromOffset.toLong)
           }
           for (partition <- kuduNumberOfPartitionsForTopic until zKNumberOfPartitionsForTopic) {
             fromOffsets += (new TopicPartition(topic, partition) -> 0)
@@ -119,10 +120,11 @@ trait OffsetsManagement {
       //initialize fromOffsets from last run
       result foreach {
         result =>
+          val partitions = result.getString(0).split(",")
           val offsets = result.getString(1).split(",")
           for (partition <- 0 until kuduNumberOfPartitionsForTopic) {
             val fromOffset = offsets(partition)
-            fromOffsets += (new TopicPartition(topic, partition) -> fromOffset.toLong)
+            fromOffsets += (new TopicPartition(topic, partitions(partition).toInt) -> fromOffset.toLong)
           }
       }
     }

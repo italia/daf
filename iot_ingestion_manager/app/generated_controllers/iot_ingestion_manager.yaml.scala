@@ -19,7 +19,6 @@ import javax.inject._
 
 import java.net.URLClassLoader
 import java.security.PrivilegedExceptionAction
-import com.typesafe.config.ConfigException.Missing
 import common.Transformers.{avroByteArrayToEvent,_}
 import common.TransformersStream._
 import common.Util._
@@ -27,8 +26,6 @@ import de.zalando.play.controllers.PlayBodyParsing._
 import it.gov.daf.common.authentication.Authentication
 import it.gov.daf.iotingestion.common.StorableEvent
 import org.apache.hadoop.conf.{Configuration=>HadoopConfiguration}
-import org.apache.hadoop.hbase.client.{ConnectionFactory,Table}
-import org.apache.hadoop.hbase.{HBaseConfiguration,HColumnDescriptor,HTableDescriptor,TableName}
 import org.apache.hadoop.security.UserGroupInformation
 import org.apache.kudu.client.{CreateTableOptions,KuduException}
 import org.apache.kudu.spark.kudu.KuduContext
@@ -46,7 +43,13 @@ import scala.annotation.tailrec
 import scala.collection.convert.decorateAsJava._
 import scala.language.postfixOps
 import scala.util.{Failure,Success,Try}
+import org.apache.kudu.{Schema,Type}
+import org.apache.kudu.client.CreateTableOptions
 import org.apache.kudu.spark.implicits._
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -55,7 +58,7 @@ import org.apache.kudu.spark.implicits._
 
 package iot_ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Iot_ingestion_managerYaml
-    
+            
   @SuppressWarnings(
     Array(
       "org.wartremover.warts.While",
@@ -130,26 +133,6 @@ package iot_ingestion_manager.yaml {
 
     UserGroupInformation.loginUserFromSubject(null)
 
-    val offsetsTable: Try[Table] = configuration.getString("offsets.table.name").asTry(new Missing("offsets.table.name")).map {
-      tableName =>
-        Try {
-          alogger.info("About to create the offset table")
-          val hbaseConfig = HBaseConfiguration.create
-          val connection = ConnectionFactory.createConnection(hbaseConfig)
-          val tname = TableName.valueOf(tableName)
-          if (!connection.getAdmin.tableExists(tname)) {
-            val tableDescriptor = new HTableDescriptor(tname)
-            val columnDescriptor = new HColumnDescriptor("offsets").setTimeToLive(2592000)
-            tableDescriptor.addFamily(columnDescriptor)
-            connection.getAdmin.createTable(tableDescriptor)
-          }
-          alogger.info("Offset table created")
-          connection.getTable(tname)
-        }
-    } flatten
-
-    offsetsTable.log("Problem in creating the HBase offsets table")
-
     private val proxyUser = UserGroupInformation.getCurrentUser
 
     private var jobThread: Option[Thread] = None
@@ -162,7 +145,27 @@ package iot_ingestion_manager.yaml {
 
     private var openTSDBContext: Try[OpenTSDBContext] = InitializeFailure[OpenTSDBContext]
 
-    private def createKuduTable(kuduContext: KuduContext, kuduEventsTableName: String, kuduEventsTableNumberOfBuckets: Int): Unit = {
+    private def createKuduOffsetTable(kuduContext: KuduContext, kuduOffsetsTableName: String, kuduOffsetsTableNumberOfBuckets: Int): Unit = {
+      val kuduClient = kuduContext.syncClient
+      if (!kuduClient.tableExists(kuduOffsetsTableName)) {
+        import org.apache.kudu.ColumnSchema
+        import org.apache.kudu.client.CreateTableOptions
+
+        val columns = List(
+          new ColumnSchema.ColumnSchemaBuilder("topic", Type.STRING).key(true).build,
+          new ColumnSchema.ColumnSchemaBuilder("groupId", Type.STRING).key(true).build,
+          new ColumnSchema.ColumnSchemaBuilder("partitions", Type.STRING).build,
+          new ColumnSchema.ColumnSchemaBuilder("offsets", Type.STRING).build
+        )
+        val schema = new Schema(columns.asJava)
+        val table = kuduClient.createTable(
+          kuduOffsetsTableName,
+          schema,
+          new CreateTableOptions().addHashPartitions(List("topic", "groupId").asJava, kuduOffsetsTableNumberOfBuckets))
+      }
+    }
+
+    private def createKuduEventsTable(kuduContext: KuduContext, kuduEventsTableName: String, kuduEventsTableNumberOfBuckets: Int): Unit = {
       if (!kuduContext.tableExists(kuduEventsTableName)) {
         try {
           val schema = Encoders.product[StorableEvent].schema
@@ -248,11 +251,21 @@ package iot_ingestion_manager.yaml {
 
                 alogger.info(s"Kudu Master Addresses: $kuduMasterAddresses")
 
+                val kuduOffsetsTableName = configuration.getStringOrException("kudu.offsets.table.name")
+
+                alogger.info(s"Kudu Offsets Table Name: $kuduOffsetsTableName")
+
                 val kuduEventsTableName = configuration.getStringOrException("kudu.events.table.name")
+
+                alogger.info(s"Kudu Events Table Name: $kuduEventsTableName")
+
+                val kuduOffsetsTableNumberOfBuckets = configuration.getIntOrException("kudu.offsets.table.numberOfBuckets")
+
+                alogger.info(s"Kudu Offsets Number Of Buckets: $kuduOffsetsTableNumberOfBuckets")
 
                 val kuduEventsTableNumberOfBuckets = configuration.getIntOrException("kudu.events.table.numberOfBuckets")
 
-                alogger.info(s"Kudu Events Table Name: $kuduEventsTableName")
+                alogger.info(s"Kudu Events Number Of Buckets: $kuduEventsTableNumberOfBuckets")
 
                 stopFlag = false
                 streamingContext foreach {
@@ -263,10 +276,11 @@ package iot_ingestion_manager.yaml {
 
                     sparkSession foreach {
                       ss =>
-                        createKuduTable(kuduContext, kuduEventsTableName, kuduEventsTableNumberOfBuckets)
+                        createKuduEventsTable(kuduContext, kuduEventsTableName, kuduEventsTableNumberOfBuckets)
+                        createKuduOffsetTable(kuduContext, kuduOffsetsTableName, kuduOffsetsTableNumberOfBuckets)
                     }
 
-                    val inputStream = getTransformersStream(ssc, kafkaZkQuorum, kafkaZkRootDir, offsetsTable.toOption, brokers, topic, groupId, avroByteArrayToEvent)
+                    val inputStream = getTransformersStream(ssc, kuduContext, kafkaZkQuorum, kafkaZkRootDir, kuduOffsetsTableName, brokers, topic, groupId, avroByteArrayToEvent)
                     inputStream match {
                       case Success(stream) =>
                         sparkSession foreach {

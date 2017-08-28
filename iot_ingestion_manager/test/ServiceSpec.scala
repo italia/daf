@@ -161,7 +161,8 @@ class ServiceSpec extends Specification with BeforeAfterAll {
     configure("bootstrap.servers" -> getBootstrapServers).
     configure("kafka.zookeeper.quorum" -> s"localhost:${baseConf.get("hbase.zookeeper.property.clientPort")}").
     configure("kudu.master.addresses" -> kuduCluster.map(_.getMasterAddresses).getOrElse("")).
-    configure("kudu.events.tableName" -> "Events").
+    configure("kudu.events.table.name" -> "Events").
+    configure("kudu.offsets.table.name" -> "Offsets").
     build()
 
   "The iot-ingestion-manager" should {
@@ -284,6 +285,29 @@ class ServiceSpec extends Specification with BeforeAfterAll {
             }
           }
           count must beEqualTo(NUMEVENTS * 2) //metrics + non metrics
+          scanner.close()
+          kuduClient.close()
+      }
+
+      //Check the existence of the Kafka Offsets
+      kuduCluster foreach {
+        kc =>
+          val masterAddresses = kc.getMasterAddresses
+          val kuduClient = new KuduClient.KuduClientBuilder(masterAddresses).build
+          val kuduTable = kuduClient.openTable("Offsets")
+
+          kuduClient.tableExists("Events") mustEqual true
+
+          val scanner: KuduScanner = kuduClient.newScannerBuilder(kuduTable).build
+          var count = 0
+          while (scanner.hasMoreRows) {
+            val results = scanner.nextRows
+            while (results.hasNext) {
+              val result: RowResult = results.next
+              count += 1
+            }
+          }
+          count must beEqualTo(1)
           scanner.close()
           kuduClient.close()
       }

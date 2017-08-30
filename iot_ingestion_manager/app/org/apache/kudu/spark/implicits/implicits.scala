@@ -47,8 +47,9 @@ package object implicits {
           sparkIdx -> table.getSchema.getColumnIndex(field.name)
       })
       val session: KuduSession = kuduContext.syncClient.newSession
-      session.setFlushMode(FlushMode.AUTO_FLUSH_SYNC)
-      session.setIgnoreAllDuplicateRows(operationType.ignoreDuplicateRowErrors)
+      session.setFlushMode(FlushMode.AUTO_FLUSH_SYNC) //This is important to be able to check the key uniqueness record by record
+      session.setIgnoreAllDuplicateRows(operationType.ignoreDuplicateRowErrors) //This must be false
+      assert(operationType.ignoreDuplicateRowErrors == false)
       val insertedRows = try {
         for {
           row <- rows

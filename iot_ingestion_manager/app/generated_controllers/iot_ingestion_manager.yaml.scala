@@ -28,7 +28,9 @@ import it.gov.daf.iotingestion.common.StorableEvent
 import org.apache.hadoop.conf.{Configuration=>HadoopConfiguration}
 import org.apache.hadoop.security.UserGroupInformation
 import org.apache.kudu.client.{CreateTableOptions,KuduException}
+import org.apache.kudu.spark.implicits._
 import org.apache.kudu.spark.kudu.KuduContext
+import org.apache.kudu.{Schema,Type}
 import org.apache.spark.opentsdb.OpenTSDBContext
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
 import org.apache.spark.sql.{Encoder,Encoders,SparkSession}
@@ -43,11 +45,6 @@ import scala.annotation.tailrec
 import scala.collection.convert.decorateAsJava._
 import scala.language.postfixOps
 import scala.util.{Failure,Success,Try}
-import org.apache.kudu.{Schema,Type}
-import org.apache.kudu.client.CreateTableOptions
-import org.apache.kudu.spark.implicits._
-import org.apache.kudu.ColumnSchema
-import org.apache.kudu.client.CreateTableOptions
 import org.apache.kudu.ColumnSchema
 import org.apache.kudu.client.CreateTableOptions
 
@@ -58,7 +55,7 @@ import org.apache.kudu.client.CreateTableOptions
 
 package iot_ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Iot_ingestion_managerYaml
-            
+                    
   @SuppressWarnings(
     Array(
       "org.wartremover.warts.While",

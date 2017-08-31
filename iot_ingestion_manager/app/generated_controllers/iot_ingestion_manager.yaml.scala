@@ -28,8 +28,8 @@ import it.gov.daf.iotingestion.common.StorableEvent
 import org.apache.hadoop.conf.{Configuration=>HadoopConfiguration}
 import org.apache.hadoop.security.UserGroupInformation
 import org.apache.kudu.client.{CreateTableOptions,KuduException}
-import org.apache.kudu.spark.implicits._
 import org.apache.kudu.spark.kudu.KuduContext
+import org.apache.kudu.spark.implicits._
 import org.apache.kudu.{Schema,Type}
 import org.apache.spark.opentsdb.OpenTSDBContext
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
@@ -51,8 +51,6 @@ import org.apache.kudu.ColumnSchema
 import org.apache.kudu.client.CreateTableOptions
 import org.apache.kudu.ColumnSchema
 import org.apache.kudu.client.CreateTableOptions
-import org.apache.kudu.ColumnSchema
-import org.apache.kudu.client.CreateTableOptions
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -61,7 +59,7 @@ import org.apache.kudu.client.CreateTableOptions
 
 package iot_ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Iot_ingestion_managerYaml
-                                
+            
   @SuppressWarnings(
     Array(
       "org.wartremover.warts.While",
@@ -292,11 +290,11 @@ package iot_ingestion_manager.yaml {
                             implicit val storableEventEncoder: Encoder[StorableEvent] = ExpressionEncoder()
 
                             val dataPoints = stream.
-                              applyTransform(eventToStorableEvent).  //Transform the avro event to StorableEvent (the event format for Kudu)
-                              transform {  //then each stream rdd is stored into kudu, the returned rdd contains only non repeated events (idempotency)
-                                source =>
-                                  convertDataFrameToRDD[StorableEvent](kuduContext.insertAndReturn(convertRDDtoDataFrame[StorableEvent](source), kuduEventsTableName))
-                              }.
+                              applyTransform(eventToStorableEvent). //Transform the avro event to StorableEvent (the event format for Kudu)
+                              transform { //then each stream rdd is stored into kudu, the returned rdd contains only non repeated events (idempotency)
+                              source =>
+                                convertDataFrameToRDD[StorableEvent](kuduContext.insertAndReturn(convertRDDtoDataFrame[StorableEvent](source), kuduEventsTableName))
+                            }.
                               applyTransform(storableEventToDatapoint) //Transform the StorableEvent to DataPoint (for OpenTSDB)
 
                             openTSDBContext.foreach(_.streamWrite(dataPoints))
@@ -351,6 +349,21 @@ package iot_ingestion_manager.yaml {
         }
       }
             // ----- End of unmanaged code area for action  Iot_ingestion_managerYaml.stop
+        }
+        val status = statusAction {  _ =>  
+            // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.status
+            synchronized {
+            sparkSession match {
+              case Failure(_) =>
+                Status200("STOPPED")
+              case Success(_) =>
+                if (stopFlag == false)
+                  Status200("STARTED")
+                else
+                  Status200("STOPPING")
+            }
+          }
+            // ----- End of unmanaged code area for action  Iot_ingestion_managerYaml.status
         }
     
     }

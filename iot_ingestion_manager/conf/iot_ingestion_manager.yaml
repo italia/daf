@@ -79,6 +79,26 @@ paths:
           schema:
             $ref: '#/definitions/Error'
 
+  "/status":
+    get:
+      summary: Get the status of the Spark Streaming job
+      description: |
+        It gets the status of the Spark Streaming job
+      tags:
+        - Gets the status of the Spark Streaming job
+      operationId: status
+      security:
+        - basicAuth: []
+      responses:
+        200:
+          description: The job status (STARTED, STOPPED)
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
 definitions:
   Error:
     properties:

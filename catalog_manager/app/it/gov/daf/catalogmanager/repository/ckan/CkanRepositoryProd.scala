@@ -76,13 +76,17 @@ class CkanRepositoryProd extends CkanRepository{
   def getMongoUser(name:String, callingUserid :MetadataCat): JsResult[User] = {
 
     var jsUser = readMongo("users","name", name )
-    jsUser = jsUser.as[JsObject] ++ Json.obj("password" -> "")
+
+    if( !( jsUser \ "password").toOption.isEmpty )
+      jsUser = jsUser.as[JsObject] ++ Json.obj("password" -> "")
+
     val userValidate = jsUser.validate[User]
     userValidate
 
   }
 
   def verifyCredentials(credentials: Credentials):Boolean = {
+
 
     val result = readMongo("users", "name", credentials.username.get.toString)
     val hpasswd = (result \ "password").get.as[String]

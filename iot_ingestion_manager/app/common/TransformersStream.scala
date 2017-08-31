@@ -44,8 +44,36 @@ object TransformersStream extends OffsetsManagement {
     case other => other
   }
 
+  /**
+    * It uses the transform method for managing the kafka offsets, for each stream rdd the offsets are first saved then it's passed to the next stage.
+    *
+    * @param kuduClient
+    * @param tableName
+    * @param topic
+    * @param groupId
+    * @param stream
+    * @param A
+    * @tparam A
+    * @tparam B
+    * @return
+    */
   private def stageOffsets[A, B](kuduClient: KuduClient, tableName: String, topic: String, groupId: String)(stream: Try[DStream[ConsumerRecord[A, B]]])(implicit A: ClassTag[A]) = stream.map(_.transform((rdd, time) => commitOffsets(kuduClient, tableName, topic, groupId, rdd, time)))
 
+  /**
+    * It creates a kafka direct stream where the kafka offsets are managed.
+    *
+    * @param ssc
+    * @param kuduContext
+    * @param kafkaZkQuorum
+    * @param kafkaZkRootDir
+    * @param tableName
+    * @param brokers
+    * @param topic
+    * @param groupId
+    * @param transform
+    * @tparam B
+    * @return
+    */
   def getTransformersStream[B: ClassTag](
                                           ssc: StreamingContext,
                                           kuduContext: KuduContext,

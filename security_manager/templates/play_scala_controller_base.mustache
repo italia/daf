@@ -46,7 +46,7 @@ trait {{controller.base}} extends Controller with PlayBodyParsing with I18nSuppo
     private type {{m.action_request_type}}       = ({{for v in m.validations}}{{for f in v.fields}}{{f.type_name}}{{if f.isNotLast}}, {{/if}}{{/for}}{{/for}}{{if m.has_no_validations}}Unit{{/if}})
     private type {{m.action_type}}[T]            = {{m.action_request_type}} => Future[{{m.result_class_prefix}}Type[T] forSome { type T }]
 
-    var currentRequest: Request[AnyContent] = _
+    var current_request_for_{{m.action}}: Request[AnyContent] = _
 
     {{for body in m.body_param}}
         {{if json_readables.data}}
@@ -71,7 +71,7 @@ trait {{controller.base}} extends Controller with PlayBodyParsing with I18nSuppo
 
 def {{m.action}}[T] = (f: {{m.action_type}}[T]) =>{{if m.non_body_params}} ({{/if}}{{for p in m.non_body_params}}{{p.field_name}}: {{p.type_name}}{{if p.isNotLast}}, {{/if}}{{/for}}{{if m.non_body_params}}) =>{{/if}} {{m.action_constructor}}.async{{if m.body_param}}({{m.parser_name}}){{/if}} { implicit request: Request[{{if m.body_param}}{{for p in m.body_param}}{{p.type_name}}{{/for}}{{else}}AnyContent{{/if}}] =>
 
-        currentRequest = request
+        current_request_for_{{m.action}} = request
 
         def {{m.process_valid_request}}({{for v in m.validations}}{{for f in v.fields}}{{f.field_name}}: {{f.type_name}}{{if f.isNotLast}}, {{/if}}{{/for}}{{/for}}): Either[Result, Future[{{m.result_class_prefix}}Type[_]]] = {
           lazy val apiFirstTempResultHolder = {{if m.has_no_validations}}Right(f(())){{else}}{{for v in m.validations}}Right(f(({{for f in v.fields}}{{f.field_name}}{{if f.isNotLast}}, {{/if}}{{/for}}))){{/for}}{{/if}}

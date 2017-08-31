@@ -54,6 +54,19 @@ lazy val common = (project in file("common")).
     (scalaSource in avroConfig) := new java.io.File(s"${baseDirectory.value}/src/generated/scala")
   ))
 
+lazy val event_generator = (project in file("event-generator")).
+  settings(Seq(
+    name := "daf-iot-ingestion-manager-event-generator",
+    libraryDependencies ++= Seq(
+      "org.apache.avro" % "avro" % avroVersion % "compile",
+      "com.twitter" %% "bijection-avro" % twitterBijectionVersion % "compile",
+      "org.apache.kafka" % "kafka-clients" % kafkaVersion % "compile",
+      "org.rogach" %% "scallop" % scallopVersion % "compile"
+    )
+  )).
+  enablePlugins(AssemblyPlugin).
+  dependsOn(common)
+
 lazy val root = (project in file(".")).
   enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser, /*AutomateHeaderPlugin,*/ DockerPlugin).
   dependsOn(client, common).aggregate(client, common)

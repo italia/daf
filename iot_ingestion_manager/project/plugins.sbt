@@ -21,3 +21,5 @@ addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.8.2")
 addSbtPlugin("de.heikoseeberger" % "sbt-header" % "2.0.0")
 
 addSbtPlugin("com.julianpeeters" % "sbt-avrohugger" % "0.16.0")
+
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.5")

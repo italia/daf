@@ -23,37 +23,49 @@ package object implicits {
       with Serializable
       with Logging {
 
-    def insertAndReturn(data: DataFrame, tableName: String): DataFrame = writeRows(data, tableName, Insert)
-
-    def writeRows(data: DataFrame,
-                  tableName: String,
-                  operation: OperationType): DataFrame = {
+    /**
+      * It's a special method that allows to store a dataframe into kudu controlling the key uniqueness.
+      * It returns a new dataframe where all the rows containing repetead keys are filtered out.
+      * It can be used to check the idempotency of a stream.
+      *
+      * @param data      the dataframe to be inserted
+      * @param tableName the kudu table's name
+      * @return a dataframe of rows successfully inserted
+      */
+    def insertAndReturn(data: DataFrame, tableName: String): DataFrame = {
       val schema = data.schema
       implicit val enc: ExpressionEncoder[Row] = org.apache.spark.sql.catalyst.encoders.RowEncoder(schema)
       data.mapPartitions(iterator => {
-        writePartitionRows(iterator, schema, tableName, operation)
+        writePartitionRows(iterator, schema, tableName)
       })
     }
 
-    def writePartitionRows(
-                            rows: Iterator[Row],
-                            schema: StructType,
-                            tableName: String,
-                            operationType: OperationType
-                          ): Iterator[Row] = {
+    /**
+      * It stores rows into Kudu checking the uniqueness of the keys, it returns the rows that have been inserted successfully.
+      *
+      * @param rows      the rows to be inserted
+      * @param schema    the row's schema
+      * @param tableName the name of the kudu table
+      * @return an iterator on all the rows that have been inserted successfully into kudu
+      */
+    private def writePartitionRows(
+                                    rows: Iterator[Row],
+                                    schema: StructType,
+                                    tableName: String
+                                  ): Iterator[Row] = {
       val table: KuduTable = kuduContext.syncClient.openTable(tableName)
       val indices: Array[(Int, Int)] = schema.fields.zipWithIndex.map({
         case (field, sparkIdx) =>
           sparkIdx -> table.getSchema.getColumnIndex(field.name)
       })
       val session: KuduSession = kuduContext.syncClient.newSession
-      session.setFlushMode(FlushMode.AUTO_FLUSH_SYNC)
-      session.setIgnoreAllDuplicateRows(operationType.ignoreDuplicateRowErrors)
+      session.setFlushMode(FlushMode.AUTO_FLUSH_SYNC) //This is important to be able to check the key uniqueness record by record
+      session.setIgnoreAllDuplicateRows(false)
       val insertedRows = try {
         for {
           row <- rows
           insertedRow <- {
-            val operation = operationType.operation(table)
+            val operation = table.newInsert()
             for ((sparkIdx, kuduIdx) <- indices) {
               if (row.isNullAt(sparkIdx)) {
                 operation.getRow.setNull(kuduIdx)

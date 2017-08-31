@@ -29,4 +29,6 @@ object Versions {
   val json4sVersion = "3.5.2"
 
   val catsVersion = "0.9.0"
+
+  val scallopVersion = "3.1.0"
 }

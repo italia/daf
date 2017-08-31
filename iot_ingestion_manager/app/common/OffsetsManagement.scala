@@ -17,56 +17,55 @@
 package common
 
 import kafka.utils.ZkUtils
-import org.apache.hadoop.hbase.client.{Put, Scan, Table}
-import org.apache.hadoop.hbase.util.Bytes
 import org.apache.kafka.common.TopicPartition
+import org.apache.kudu.client.KuduPredicate._
+import org.apache.kudu.client.{KuduClient, RowResult}
 import org.apache.spark.streaming.kafka010.HasOffsetRanges
 import org.apache.spark.streaming.{Time => SparkTime}
 import play.Logger
 
+import scala.collection.convert.decorateAsJava._
+import scala.collection.convert.decorateAsScala._
 import scala.util.Try
 
 @SuppressWarnings(
   Array(
     "org.wartremover.warts.Var",
-    "org.wartremover.warts.MutableDataStructures",
-    "org.wartremover.warts.OptionPartial"
+    "org.wartremover.warts.MutableDataStructures"
   )
 )
 trait OffsetsManagement {
 
   private val alogger = Logger.of(this.getClass.getCanonicalName)
 
-  protected def setOffsets(table: Option[Table], topic: String, groupId: String, hasRanges: HasOffsetRanges, time: SparkTime): Unit = {
-    table.foreach {
-      table =>
-        val rowKey = s"$topic:$groupId:${time.milliseconds}"
-        val put = new Put(rowKey.getBytes)
-        for (offset <- hasRanges.offsetRanges) {
-          put.addColumn(
-            Bytes.toBytes("offsets"),
-            Bytes.toBytes(s"${offset.partition}"),
-            Bytes.toBytes(s"${offset.untilOffset}")
-          )
-        }
-        if (hasRanges.offsetRanges.length > 0) {
-          table.put(put)
-          alogger.info(s"Saved Offsets: ${hasRanges.offsetRanges.map(o => (o.partition, o.untilOffset)).mkString(",")}")
-        }
+  protected def setOffsets(kuduClient: KuduClient, tableName: String, topic: String, groupId: String, hasRanges: HasOffsetRanges, time: SparkTime): Unit = {
+    val table = kuduClient.openTable(tableName)
+    if (hasRanges.offsetRanges.length > 0) {
+      val session = kuduClient.newSession()
+      val upsert = table.newUpsert()
+      val row = upsert.getRow
+      row.addString(0, topic)
+      row.addString(1, groupId)
+      val offsetsRanges: Array[(Int, Long)] = hasRanges.offsetRanges.map(range => (range.partition, range.untilOffset))
+      row.addString(2, offsetsRanges.map(_._1).mkString(","))
+      row.addString(3, offsetsRanges.map(_._2).mkString(","))
+      val res1 = session.apply(upsert)
+      val res2 = session.close()
+      alogger.info(s"Saved Offsets: ${hasRanges.offsetRanges.map(o => (o.partition, o.untilOffset)).mkString(",")}")
     }
   }
 
   /**
-    * Returns last committed offsets for all the partitions of a given topic from HBase in following cases.
+    * Returns last committed offsets for all the partitions of a given topic from Kudu in following cases.
     *- CASE 1: SparkStreaming job is started for the first time. This function gets the number of topic partitions from
     * Zookeeper and for each partition returns the last committed offset as 0
     *- CASE 2: SparkStreaming is restarted and there are no changes to the number of partitions in a topic. Last
-    * committed offsets for each topic-partition is returned as is from HBase.
+    * committed offsets for each topic-partition is returned as is from Kudu.
     *- CASE 3: SparkStreaming is restarted and the number of partitions in a topic increased. For old partitions, last
-    * committed offsets for each topic-partition is returned as is from HBase as is. For newly added partitions,
+    * committed offsets for each topic-partition is returned as is from Kudu as is. For newly added partitions,
     * function returns last committed offsets as 0
     */
-  def getLastCommittedOffsets(table: Option[Table], topic: String, groupId: String, zkQuorum: String,
+  def getLastCommittedOffsets(kuduClient: KuduClient, tableName: String, topic: String, groupId: String, zkQuorum: String,
                               zkRootDir: Option[String], sessionTimeout: Int, connectionTimeOut: Int): Try[Map[TopicPartition, Long]] = Try {
 
     val zkUrl = zkRootDir.fold(zkQuorum)(root => s"$zkQuorum/$root")
@@ -74,43 +73,62 @@ trait OffsetsManagement {
     val zkUtils = new ZkUtils(zkClientAndConnection._1, zkClientAndConnection._2, false)
     val zKNumberOfPartitionsForTopic = zkUtils.getPartitionsForTopics(Seq(topic))(topic).size
 
-    //Connect to HBase to retrieve last committed offsets
-    val startRow = s"$topic:$groupId:${String.valueOf(System.currentTimeMillis())}"
-    val stopRow = s"$topic:$groupId:0"
-    val scan = new Scan()
-    val scanner = table.get.getScanner(scan.setStartRow(startRow.getBytes).setStopRow(stopRow.getBytes).setReversed(true))
-    val result = scanner.next()
+    //Connect to Kudu to retrieve last committed offsets
+    val kuduTable = kuduClient.openTable(tableName)
+    val projectColumns = List("partitions", "offsets")
+    val scanner = kuduClient.newScannerBuilder(kuduTable).
+      setProjectedColumnNames(projectColumns.asJava).
+      addPredicate(newComparisonPredicate(kuduTable.getSchema.getColumn("topic"), ComparisonOp.EQUAL, topic)).
+      addPredicate(newComparisonPredicate(kuduTable.getSchema.getColumn("groupId"), ComparisonOp.EQUAL, groupId)).
+      build
+    val rows = Option(scanner.nextRows())
 
-    var hbaseNumberOfPartitionsForTopic = 0 //Set the number of partitions discovered for a topic in HBase to 0
-    if (result != null) {
-      //If the result from hbase scanner is not null, set number of partitions from hbase to the number of cells
-      hbaseNumberOfPartitionsForTopic = result.listCells().size()
-    }
+    //Connect to Kudu to retrieve last committed offsets
+    var kuduNumberOfPartitionsForTopic = 0
+    var result: Option[RowResult] = None
+    rows.fold()(rows => {
+      result = rows.iterator().asScala.toList.headOption
+      result.foreach(rowResult => {
+        val partitions = rowResult.getString(0)
+        val offsets = rowResult.getString(1)
+        kuduNumberOfPartitionsForTopic = partitions.split(",").length
+      })
+    })
 
     val fromOffsets = collection.mutable.Map[TopicPartition, Long]()
 
-    if (hbaseNumberOfPartitionsForTopic == 0) {
+    if (kuduNumberOfPartitionsForTopic == 0) {
       // initialize fromOffsets to beginning
       for (partition <- 0 until zKNumberOfPartitionsForTopic) {
         fromOffsets += (new TopicPartition(topic, partition) -> 0)
       }
-    } else if (zKNumberOfPartitionsForTopic > hbaseNumberOfPartitionsForTopic) {
+    } else if (zKNumberOfPartitionsForTopic > kuduNumberOfPartitionsForTopic) {
       // handle scenario where new partitions have been added to existing kafka topic
-      for (partition <- 0 until hbaseNumberOfPartitionsForTopic) {
-        val fromOffset = Bytes.toString(result.getValue(Bytes.toBytes("offsets"), Bytes.toBytes(s"$partition")))
-        fromOffsets += (new TopicPartition(topic, partition) -> fromOffset.toLong)
-      }
-      for (partition <- hbaseNumberOfPartitionsForTopic until zKNumberOfPartitionsForTopic) {
-        fromOffsets += (new TopicPartition(topic, partition) -> 0)
+      result foreach {
+        result =>
+          val partitions = result.getString(0).split(",")
+          val offsets = result.getString(1).split(",")
+          for (partition <- 0 until kuduNumberOfPartitionsForTopic) {
+            val fromOffset = offsets(partition)
+            fromOffsets += (new TopicPartition(topic, partitions(partition).toInt) -> fromOffset.toLong)
+          }
+          for (partition <- kuduNumberOfPartitionsForTopic until zKNumberOfPartitionsForTopic) {
+            fromOffsets += (new TopicPartition(topic, partition) -> 0)
+          }
       }
     } else {
       //initialize fromOffsets from last run
-      for (partition <- 0 until hbaseNumberOfPartitionsForTopic) {
-        val fromOffset = Bytes.toString(result.getValue(Bytes.toBytes("offsets"), Bytes.toBytes(s"$partition")))
-        fromOffsets += (new TopicPartition(topic, partition) -> fromOffset.toLong)
+      result foreach {
+        result =>
+          val partitions = result.getString(0).split(",")
+          val offsets = result.getString(1).split(",")
+          for (partition <- 0 until kuduNumberOfPartitionsForTopic) {
+            val fromOffset = offsets(partition)
+            fromOffsets += (new TopicPartition(topic, partitions(partition).toInt) -> fromOffset.toLong)
+          }
       }
     }
-    scanner.close()
+    val _ = scanner.close()
 
     fromOffsets.foreach(fo => alogger.info(s"Initial Offsets: $fo"))
 

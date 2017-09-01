@@ -43,10 +43,6 @@ securityDefinitions:
   basicAuth:
     type: basic
     description: HTTP Basic Authentication. Works over `HTTP` and `HTTPS`
-#  Bearer:
-#    type: apiKey
-#    name: Authorization
-#    in: header
 paths:
   "/test":
     get:

@@ -14,6 +14,12 @@ curl -i -X POST \
 
 curl -i -X POST \
   --url http://kong-admin.default.svc.cluster.local:8001/apis/ \
+  --data 'name=daf-iot-ingestion-manager' \
+  --data 'uris=/iot-ingestion-manager' \
+  --data 'upstream_url=http://iot-ingestion-manager.default.svc.cluster.local:9900/iot-ingestion-manager'
+
+curl -i -X POST \
+  --url http://kong-admin.default.svc.cluster.local:8001/apis/ \
   --data 'name=daf-opentsdb' \
   --data 'uris=/opentsdb/v1' \
   --data 'upstream_url=http://opentsdb.default.svc.cluster.local:4242'

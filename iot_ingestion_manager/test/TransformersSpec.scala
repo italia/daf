@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-import common.Transformers
+import common.Transformers._
 import it.gov.daf.iotingestion.event.Event
 import org.specs2.mutable.Specification
-
-import scala.util.Success
 
 @SuppressWarnings(
   Array(
@@ -33,7 +31,7 @@ class TransformersSpec extends Specification {
     "Fail when the metric field is not present" in {
       val event = new Event(
         version = 1L,
-        id = Some("example without metric"),
+        id = "example without metric",
         ts = System.currentTimeMillis(),
         event_type_id = 0,
         location = "41.1260529:16.8692905",
@@ -46,14 +44,14 @@ class TransformersSpec extends Specification {
           "tags"-> "tag1, tag2"
         )
       )
-      val res = Transformers.eventToDatapoint(event)
+      val res = (eventToStorableEvent >>>> storableEventToDatapoint)(event)
       res must beFailedTry
 
     }
       "Fail when the value field is not present" in {
         val event = new Event(
           version = 1L,
-          id = Some("example without metric"),
+          id = "example without metric",
           ts = System.currentTimeMillis(),
           event_type_id = 0,
           location = "41.1260529:16.8692905",
@@ -66,7 +64,7 @@ class TransformersSpec extends Specification {
             "tags"-> "tag1, tag2"
           )
         )
-        val res = Transformers.eventToDatapoint(event)
+        val res = (eventToStorableEvent >>>> storableEventToDatapoint)(event)
         //println(res)
         res must beFailedTry
 
@@ -75,7 +73,7 @@ class TransformersSpec extends Specification {
       "Ignore tags that are not present in the attributes field" in {
         val event = new Event(
           version = 1L,
-          id = Some("example without metric"),
+          id = "example without metric",
           ts = System.currentTimeMillis(),
           event_type_id = 0,
           location = "41.1260529:16.8692905",
@@ -89,7 +87,7 @@ class TransformersSpec extends Specification {
             "tags"-> "tag1, tag2, tag3"
           )
         )
-        val res = Transformers.eventToDatapoint(event)
+        val res = (eventToStorableEvent >>>> storableEventToDatapoint)(event)
         //println(res)
         res must beSuccessfulTry
 
@@ -104,7 +102,7 @@ class TransformersSpec extends Specification {
       val events = Range(0, 100).map(r =>
         new Event(
           version = 1L,
-          id = Some(r.toString),
+          id = r.toString,
           ts = System.currentTimeMillis(),
           event_type_id = 0,
           location = "41.1260529:16.8692905",
@@ -121,7 +119,7 @@ class TransformersSpec extends Specification {
       )
       println(events.head)
 
-      val dataPoints = events.map(e => Transformers.eventToDatapoint(e))
+      val dataPoints = events.map(e => (eventToStorableEvent >>>> storableEventToDatapoint)(e))
       //dataPoints.foreach(d => println(d))
 
       dataPoints.count(_.isSuccess) mustEqual 100

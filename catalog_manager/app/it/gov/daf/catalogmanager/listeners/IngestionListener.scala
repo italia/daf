@@ -49,7 +49,7 @@ class IngestionListenerImpl @Inject() (appLifecycle: ApplicationLifecycle) exten
 
       val fileDirs = catalogs.map(x => {
         val org = x.dcatapit.get.owner_org.get
-        val name = x.dcatapit.get.identifier.get //.value.get
+        val name = x.dcatapit.get.identifier//.get //.value.get
         val logicalUri = x.operational.get.logical_uri.get
         IngestionUtils.datasetsNameUri += (name -> logicalUri)
         val orgDir: File = Environment.simple().getFile("data/org/" + org + "/" + name)
@@ -75,7 +75,7 @@ class IngestionListenerImpl @Inject() (appLifecycle: ApplicationLifecycle) exten
   override def addDirListener(metaCatalog: catalog_manager.yaml.MetaCatalog, logicalUri :String): Unit = {
     implicit val system: ActorSystem = ActorSystem()
     val org = metaCatalog.dcatapit.get.owner_org.get  //.value.get
-    val name = metaCatalog.dcatapit.get.identifier.get //.value.get
+    val name = metaCatalog.dcatapit.get.identifier//.get //.value.get
     IngestionUtils.datasetsNameUri += (name -> logicalUri)
     val orgDir: File = Environment.simple().getFile("data/org/" + org + "/" + name)
     if(!orgDir.exists()) {

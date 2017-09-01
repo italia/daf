@@ -86,10 +86,12 @@ class CkanRepositoryDev extends CkanRepository{
   }
 
   def testDataset(datasetId :String, callingUserid :MetadataCat) : Future[JsResult[Dataset]] = {
+    Future(null)
+    /*
     Future(JsSuccess(Dataset(None,None,None,None,None,
       None,None,None,None,None,None,None,
       None,None,None,None,None,
-      None,None,None,None,None)))
+      None,None,None,None,None)))*/
   }
 
 }

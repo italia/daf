@@ -1,8 +1,10 @@
 object Versions {
 
-  val hadoopVersion = "2.6.0-cdh5.9.0"
+  val hadoopVersion = "2.6.0-cdh5.12.0"
 
-  val hbaseVersion = "1.2.0-cdh5.9.0"
+  val hbaseVersion = "1.2.0-cdh5.12.0"
+
+  val kuduVersion = "1.4.0-cdh5.12.0"
 
   val kafkaVersion = "0.10.0-kafka-2.1.0"
 
@@ -12,7 +14,7 @@ object Versions {
 
   val openTSDBVersion = "2.3.0"
 
-  val playVersion = "2.5.14"
+  val playVersion = "2.5.16"
 
   val swaggerUiVersion = "3.0.10"
 
@@ -27,4 +29,6 @@ object Versions {
   val json4sVersion = "3.5.2"
 
   val catsVersion = "0.9.0"
+
+  val scallopVersion = "3.1.0"
 }

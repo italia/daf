@@ -19,27 +19,38 @@ import javax.inject._
 
 import java.net.URLClassLoader
 import java.security.PrivilegedExceptionAction
-import com.typesafe.config.ConfigException.Missing
 import common.Transformers.{avroByteArrayToEvent,_}
 import common.TransformersStream._
 import common.Util._
 import de.zalando.play.controllers.PlayBodyParsing._
 import it.gov.daf.common.authentication.Authentication
+import it.gov.daf.iotingestion.common.StorableEvent
 import org.apache.hadoop.conf.{Configuration=>HadoopConfiguration}
-import org.apache.hadoop.hbase.client.{ConnectionFactory,Table}
-import org.apache.hadoop.hbase.{HBaseConfiguration,HColumnDescriptor,HTableDescriptor,TableName}
 import org.apache.hadoop.security.UserGroupInformation
+import org.apache.kudu.client.{CreateTableOptions,KuduException}
+import org.apache.kudu.spark.kudu.KuduContext
+import org.apache.kudu.spark.implicits._
+import org.apache.kudu.{Schema,Type}
 import org.apache.spark.opentsdb.OpenTSDBContext
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
+import org.apache.spark.sql.{Encoder,Encoders,SparkSession}
 import org.apache.spark.streaming.{Milliseconds,StreamingContext}
 import org.apache.spark.{SparkConf,SparkContext}
 import org.pac4j.play.store.PlaySessionStore
 import play.Logger
+import play.Logger.ALogger
 import play.api.mvc.{AnyContent,Request}
 import play.api.{Configuration,Environment,Mode}
 import scala.annotation.tailrec
+import scala.collection.convert.decorateAsJava._
 import scala.language.postfixOps
 import scala.util.{Failure,Success,Try}
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -48,7 +59,7 @@ import scala.util.{Failure,Success,Try}
 
 package iot_ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Iot_ingestion_managerYaml
-        
+            
   @SuppressWarnings(
     Array(
       "org.wartremover.warts.While",
@@ -70,7 +81,7 @@ package iot_ingestion_manager.yaml {
     ) extends Iot_ingestion_managerYamlBase {
         // ----- Start of unmanaged code area for constructor Iot_ingestion_managerYaml
 
-    implicit private val alogger = Logger.of(this.getClass.getCanonicalName)
+    implicit private val alogger: ALogger = Logger.of(this.getClass.getCanonicalName)
 
     Authentication(configuration, playSessionStore)
 
@@ -123,26 +134,6 @@ package iot_ingestion_manager.yaml {
 
     UserGroupInformation.loginUserFromSubject(null)
 
-    val offsetsTable: Try[Table] = configuration.getString("offsets.table.name").asTry(new Missing("offsets.table.name")).map {
-      tableName =>
-        Try {
-          alogger.info("About to create the offset table")
-          val hbaseConfig = HBaseConfiguration.create
-          val connection = ConnectionFactory.createConnection(hbaseConfig)
-          val tname = TableName.valueOf(tableName)
-          if (!connection.getAdmin.tableExists(tname)) {
-            val tableDescriptor = new HTableDescriptor(tname)
-            val columnDescriptor = new HColumnDescriptor("offsets").setTimeToLive(2592000)
-            tableDescriptor.addFamily(columnDescriptor)
-            connection.getAdmin.createTable(tableDescriptor)
-          }
-          alogger.info("Offset table created")
-          connection.getTable(tname)
-        }
-    } flatten
-
-    offsetsTable.log("Problem in creating the HBase offsets table")
-
     private val proxyUser = UserGroupInformation.getCurrentUser
 
     private var jobThread: Option[Thread] = None
@@ -154,6 +145,44 @@ package iot_ingestion_manager.yaml {
     private var stopFlag = true
 
     private var openTSDBContext: Try[OpenTSDBContext] = InitializeFailure[OpenTSDBContext]
+
+    private def createKuduOffsetTable(kuduContext: KuduContext, kuduOffsetsTableName: String, kuduOffsetsTableNumberOfBuckets: Int): Unit = {
+      val kuduClient = kuduContext.syncClient
+      if (!kuduClient.tableExists(kuduOffsetsTableName)) {
+        import org.apache.kudu.ColumnSchema
+        import org.apache.kudu.client.CreateTableOptions
+
+        val columns = List(
+          new ColumnSchema.ColumnSchemaBuilder("topic", Type.STRING).key(true).build,
+          new ColumnSchema.ColumnSchemaBuilder("groupId", Type.STRING).key(true).build,
+          new ColumnSchema.ColumnSchemaBuilder("partitions", Type.STRING).build,
+          new ColumnSchema.ColumnSchemaBuilder("offsets", Type.STRING).build
+        )
+        val schema = new Schema(columns.asJava)
+        val table = kuduClient.createTable(
+          kuduOffsetsTableName,
+          schema,
+          new CreateTableOptions().addHashPartitions(List("topic", "groupId").asJava, kuduOffsetsTableNumberOfBuckets))
+      }
+    }
+
+    private def createKuduEventsTable(kuduContext: KuduContext, kuduEventsTableName: String, kuduEventsTableNumberOfBuckets: Int): Unit = {
+      if (!kuduContext.tableExists(kuduEventsTableName)) {
+        try {
+          val schema = Encoders.product[StorableEvent].schema
+          val _ = kuduContext.createTable(
+            kuduEventsTableName,
+            schema,
+            Seq("id", "ts"),
+            new CreateTableOptions().
+              setRangePartitionColumns(List("ts").asJava).
+              addHashPartitions(List("id").asJava, kuduEventsTableNumberOfBuckets)
+          )
+        } catch {
+          case ex: KuduException if ex.getStatus.isAlreadyPresent =>
+        }
+      }
+    }
 
         // ----- End of unmanaged code area for constructor Iot_ingestion_managerYaml
         val start = startAction {  _ =>  
@@ -219,18 +248,61 @@ package iot_ingestion_manager.yaml {
                 val kafkaZkRootDir = configuration.getString("kafka.zookeeper.root")
                 alogger.info(s"Kafka Zk Root Dir: $kafkaZkRootDir")
 
+                val kuduMasterAddresses = configuration.getStringOrException("kudu.master.addresses")
+
+                alogger.info(s"Kudu Master Addresses: $kuduMasterAddresses")
+
+                val kuduOffsetsTableName = configuration.getStringOrException("kudu.offsets.table.name")
+
+                alogger.info(s"Kudu Offsets Table Name: $kuduOffsetsTableName")
+
+                val kuduEventsTableName = configuration.getStringOrException("kudu.events.table.name")
+
+                alogger.info(s"Kudu Events Table Name: $kuduEventsTableName")
+
+                val kuduOffsetsTableNumberOfBuckets = configuration.getIntOrException("kudu.offsets.table.numberOfBuckets")
+
+                alogger.info(s"Kudu Offsets Number Of Buckets: $kuduOffsetsTableNumberOfBuckets")
+
+                val kuduEventsTableNumberOfBuckets = configuration.getIntOrException("kudu.events.table.numberOfBuckets")
+
+                alogger.info(s"Kudu Events Number Of Buckets: $kuduEventsTableNumberOfBuckets")
+
                 stopFlag = false
                 streamingContext foreach {
                   ssc =>
                     alogger.info("About to create the stream")
-                    val inputStream = getTransformersStream(ssc, kafkaZkQuorum, kafkaZkRootDir, offsetsTable.toOption, brokers, topic, groupId, avroByteArrayToEvent >>>> eventToDatapoint)
+
+                    val kuduContext = new KuduContext(kuduMasterAddresses, ssc.sparkContext)
+
+                    sparkSession foreach {
+                      ss =>
+                        createKuduEventsTable(kuduContext, kuduEventsTableName, kuduEventsTableNumberOfBuckets)
+                        createKuduOffsetTable(kuduContext, kuduOffsetsTableName, kuduOffsetsTableNumberOfBuckets)
+                    }
+
+                    val inputStream = getTransformersStream(ssc, kuduContext, kafkaZkQuorum, kafkaZkRootDir, kuduOffsetsTableName, brokers, topic, groupId, avroByteArrayToEvent)
                     inputStream match {
                       case Success(stream) =>
-                        openTSDBContext.foreach(_.streamWrite(stream))
-                        alogger.info("Stream created")
+                        sparkSession foreach {
+                          implicit ss =>
+
+                            implicit val storableEventEncoder: Encoder[StorableEvent] = ExpressionEncoder()
+
+                            val dataPoints = stream.
+                              applyTransform(eventToStorableEvent). //Transform the avro event to StorableEvent (the event format for Kudu)
+                              transform { //then each stream rdd is stored into kudu, the returned rdd contains only non repeated events (idempotency)
+                              source =>
+                                convertDataFrameToRDD[StorableEvent](kuduContext.insertAndReturn(convertRDDtoDataFrame[StorableEvent](source), kuduEventsTableName))
+                            }.
+                              applyTransform(storableEventToDatapoint) //Transform the StorableEvent to DataPoint (for OpenTSDB)
+
+                            openTSDBContext.foreach(_.streamWrite(dataPoints))
+
+                            alogger.info("Stream created")
+                        }
                       case Failure(ex) => alogger.error(s"Failed in creating the stream: ${ex.getCause}")
                     }
-                    alogger.info("Stream created")
                     alogger.info("About to start the streaming context")
                     ssc.start()
                     alogger.info("Streaming context started")
@@ -277,6 +349,21 @@ package iot_ingestion_manager.yaml {
         }
       }
             // ----- End of unmanaged code area for action  Iot_ingestion_managerYaml.stop
+        }
+        val status = statusAction {  _ =>  
+            // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.status
+            synchronized {
+            sparkSession match {
+              case Failure(_) =>
+                Status200("STOPPED")
+              case Success(_) =>
+                if (stopFlag == false)
+                  Status200("STARTED")
+                else
+                  Status200("STOPPING")
+            }
+          }
+            // ----- End of unmanaged code area for action  Iot_ingestion_managerYaml.status
         }
     
     }

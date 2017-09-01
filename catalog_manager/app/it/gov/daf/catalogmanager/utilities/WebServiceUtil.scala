@@ -5,7 +5,11 @@ import java.net.URLEncoder
 
 import catalog_manager.yaml.Credentials
 import org.apache.commons.net.util.Base64
+import play.api.libs.json
+import play.api.libs.json.{JsArray, JsError, JsString, JsValue,JsObject}
 import play.api.mvc.Request
+
+import scala.util.parsing.json.JSONObject
 
 //import akka.actor.ActorSystem
 //import akka.stream.ActorMaterializer
@@ -65,6 +69,47 @@ object WebServiceUtil {
     val userAndPass = new String(Base64.decodeBase64(auth.get.split(" ").drop(1).head.getBytes)).split(":")
 
     Credentials( Option(userAndPass(0)), Option(userAndPass(1)) )
+
+  }
+
+  def cleanDquote(in:String): String = {
+    in.replace("\"","").replace("[","")replace("]","")
+  }
+
+  def getMessageFromJsError(error:JsError): String ={
+
+    val jsonError = JsError.toJson(error)
+
+    if( (jsonError \ "obj").toOption.isEmpty )
+      jsonError.value.foldLeft("ERRORS--> "){ (s: String, pair: (String, JsValue)) =>
+        s + "field: "+pair._1 +" message:"+ (pair._2 \\ "msg")(0).toString + "  "
+      }
+    else
+      cleanDquote( (( (jsonError \ "obj")(0) \ "msg").getOrElse(JsArray(Seq(JsString(" ?? "))))(0) ).get.toString() )
+
+    //if( error.errors.length > 1 )
+      //cleanDquote( (((JsError.toJson(error) \ "obj[0].theme").getOrElse(JsArray(Seq(JsString("  "))))(0) \ "msg").getOrElse(JsArray(Seq(JsString("  "))))(0) ).get.toString() )
+    //else
+
+    //cleanDquote( (((JsError.toJson(error) \ "obj").getOrElse(JsArray(Seq(JsString("  "))))(0) \ "msg").getOrElse(JsArray(Seq(JsString("  "))))(0) ).get.toString() )
+  }
+
+  def getMessageFromCkanError(error:JsValue): String ={
+
+
+    val errorMsg = (error \ "error").getOrElse(JsString("can't retrive error") )
+    //val message = (errorMsg \ "message").getOrElse( ((errorMsg \ "name")(0)).getOrElse(JsString(" can't retrive error ")) )
+
+    val ckanError = errorMsg.as[JsObject].value.foldLeft("ERRORS: "){ (s: String, pair: (String, JsValue)) =>
+      s + "<< field: "+pair._1 +"  message: "+ cleanDquote(pair._2.toString()) + " >>   "}
+
+    /*
+    val ckanError = cleanDquote( (errorLookup \ "message").getOrElse(JsString(" can't retrive error ")).toString() ) + " (" +
+                    cleanDquote( (errorLookup \ "__type").getOrElse(JsString(" can't retrive error type ")).toString() )+ ")"
+    */
+    //println("---->"+ckanError)
+
+    ckanError
 
   }
 

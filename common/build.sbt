@@ -47,19 +47,6 @@ val hadoopExcludes =
     exclude("org.slf4j", "slf4j-log4j12").
     exclude("org.slf4j", "slf4j-api")
 
-val sparkExcludes =
-  (moduleId: ModuleID) => moduleId.
-    exclude("org.slf4j", "slf4j-log4j12").
-    exclude("org.slf4j", "slf4j-api").
-    exclude("org.slf4j", "jcl-over-sl4j").
-    exclude("org.slf4j", "jul-to-sl4j")
-
-val sparkLibraries = Seq(
-  sparkExcludes("org.apache.spark" %% "spark-core" % sparkVersion % Compile),
-  sparkExcludes("org.apache.spark" %% "spark-sql" % sparkVersion % Compile),
-  "com.databricks" %% "spark-avro" % "3.2.0" % Compile
-)
-
 val hadoopLibraries = Seq(
   hadoopExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % Compile),
   hadoopExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % Test classifier "tests"),
@@ -75,13 +62,14 @@ val hadoopLibraries = Seq(
 val playLibraries = Seq(
   "io.swagger" %% "swagger-play2" % "1.5.3",
   "com.typesafe.play" %% "play-cache" % playVersion,
+  "com.typesafe.play" %% "filters-helpers" % playVersion,
   "org.pac4j" % "play-pac4j" % playPac4jVersion,
   "org.pac4j" % "pac4j-http" % pac4jVersion,
   "org.pac4j" % "pac4j-jwt" % pac4jVersion exclude("commons-io", "commons-io"),
   "org.pac4j" % "pac4j-ldap" % pac4jVersion
 )
 
-libraryDependencies ++= hadoopLibraries ++ sparkLibraries ++ playLibraries
+libraryDependencies ++= hadoopLibraries ++ playLibraries
 
 resolvers ++= Seq(
   Resolver.sonatypeRepo("releases"),

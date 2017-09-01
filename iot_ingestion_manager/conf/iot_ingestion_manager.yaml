@@ -27,7 +27,6 @@ info:
   license:
     name: Creative Commons 4.0 International
     url: http://creativecommons.org/licenses/by/4.0/
-host: localhost:9900
 # will be prefixed to all paths
 basePath: /iot-ingestion-manager/v1
 # array of all schemes that your API supports
@@ -73,6 +72,26 @@ paths:
       responses:
         200:
           description: The job has been stopped successfully
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+  "/status":
+    get:
+      summary: Get the status of the Spark Streaming job
+      description: |
+        It gets the status of the Spark Streaming job
+      tags:
+        - Gets the status of the Spark Streaming job
+      operationId: status
+      security:
+        - basicAuth: []
+      responses:
+        200:
+          description: The job status (STARTED, STOPPED)
           schema:
             type: string
         default:

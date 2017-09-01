@@ -69,7 +69,7 @@ object UriDataset  {
           typeDs = typeDs,
           groupOwn = operational.group_own.getOrElse("ERROR"),
           owner = dcatapit.owner_org.getOrElse(throw new Exception("no theme")), //.value.get,
-          theme  = dcatapit.theme.getOrElse(throw new Exception("no theme")), //.value.get,
+          theme  = dcatapit.theme,//.getOrElse(throw new Exception("no theme")), //.value.get,
           nameDs = optionalSchema.dataschema.get.avro.get.name
         )
     }

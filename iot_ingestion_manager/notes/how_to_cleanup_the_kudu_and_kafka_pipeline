@@ -1,0 +1,7 @@
+
+
+kudu table list master
+kudu table delete  master Events
+kudu table delete  master Offsets
+kafka-topics --zookeeper master:2181/kafka  --delete --topic daf-iot-events
+kafka-topics --zookeeper master:2181/kafka  --create --topic daf-iot-events --partitions 12 --replication-factor 2

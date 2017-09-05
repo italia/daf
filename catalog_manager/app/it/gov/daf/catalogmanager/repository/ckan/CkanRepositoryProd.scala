@@ -129,6 +129,19 @@ class CkanRepositoryProd extends CkanRepository{
 
   }
 
+  def patchOrganization(orgId: String, jsonOrg: JsValue, callingUserid :MetadataCat): Future[String] = {
+
+    val wsClient = AhcWSClient()
+    val url =  LOCALURL + "/ckan/patchOrganization/" + orgId
+    wsClient.url(url).withHeaders(USER_ID_HEADER -> callingUserid.get).put(jsonOrg).map({ response =>
+
+      evaluateSuccessResult(response.json)
+
+    }).andThen { case _ => wsClient.close() }
+      .andThen { case _ => system.terminate() }
+
+  }
+
   def createUser(jsonUser: JsValue, callingUserid :MetadataCat): Future[String] = {
 
     val password = (jsonUser \ "password").get.as[String]

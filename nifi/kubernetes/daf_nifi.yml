@@ -48,6 +48,10 @@ spec:
           mountPath: /nificonf
           subPath: nifi/conf
           readOnly: false
+        - name: glusterfsvol
+          mountPath: /nifiscripts
+          subPath: nifi/scripts
+          readOnly: false
         - name: hosts
           mountPath: /etc/extra_hosts
         - name: krb5conf

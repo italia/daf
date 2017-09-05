@@ -178,6 +178,10 @@ class ServiceSpec extends Specification with BeforeAfterAll {
 
       Thread.sleep(10000)
 
+      val result3 = Await.result(client.status(s"Basic $base64Creds"), Duration.Inf)
+
+      result3 must beEqualTo("STARTED")
+
       var start = System.currentTimeMillis()
       val NUMEVENTS = 100
       val events = Range(0, NUMEVENTS).map(r =>

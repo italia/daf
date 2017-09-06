@@ -3,7 +3,7 @@ package it.gov.daf.catalogmanager.tempo
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import catalog_manager.yaml.{Error, IpaUser, Success}
-import it.gov.daf.catalogmanager.utilities.WebServiceUtil
+import it.gov.daf.catalogmanager.utilities.{ConfigReader, WebServiceUtil}
 import org.asynchttpclient.DefaultAsyncHttpClientConfig
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
@@ -17,11 +17,12 @@ object ApiClientIPA {
 
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()
-  private val IPA_URL = "https://ipa.example.test"
+  private val CKAN_URL = ConfigReader.getCkanHost
+  private val IPA_URL = "https://ipa.example.test"// TODO mettere in config
   private val IPA_APP_ULR = IPA_URL+"/ipa"
   private val IPA_SERVICES_URL = IPA_URL+"/ipa/session/json"
   private val IPA_LOGIN_ULR = IPA_URL+"/ipa/session/login_password"
-  private val USER_PASSWORD_POST_DATA = "user=admin&password=adminpassword"
+  private val USER_PASSWORD_POST_DATA = "user=admin&password=adminpassword"// TODO mettere in config
   private val sslconfig = new DefaultAsyncHttpClientConfig.Builder().setAcceptAnyCertificate(true).build
 
   private var sessionCookie:String=null
@@ -35,17 +36,66 @@ object ApiClientIPA {
     ).post(USER_PASSWORD_POST_DATA)
 
     println("login")
-    println("-->"+wsResponse)
 
     wsResponse map { response =>
 
-      val setCookie=response.header("Set-Cookie").getOrElse( throw new Exception("haa") )
+      val setCookie=response.header("Set-Cookie").getOrElse( throw new Exception("Set-Cookie header not found") )
       println("SET COOKIE: "+setCookie)
       val cookie = setCookie.split(";")(0)
       println("COOKIE: "+cookie)
       cookie
 
     }
+
+  }
+
+  private def loginCkan(userName:String, pwd:String ):Future[String] = {
+
+    val wsClient = AhcWSClient()
+
+    val login = s"login=$userName&password=$pwd"//&remember=63072000
+
+    val url = wsClient.url(CKAN_URL+"/ldap_login_handler")
+      .withHeaders(   "Host"->"localhost:5000",
+                      "User-Agent"->"""Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:55.0) Gecko/20100101 Firefox/55.0""",
+                      "Accept"->"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                      "Accept-Language"-> "en-US,en;q=0.5",
+                      "Accept-Encoding"-> "gzip, deflate",
+                      "Referer"->"http://localhost:5000/user/login",
+                      "Content-Type"->"application/x-www-form-urlencoded",
+                      "Content-Length"-> login.length.toString,
+                      "Connection"-> "keep-alive",
+                      "Upgrade-Insecure-Requests"-> "1"
+    )
+
+    //url.followRedirects = Option(true)
+    //println(">>>>"+url.headers)
+    val wsResponse = url.post(login)
+
+    println("login ckan")
+
+
+    wsResponse.map({ response =>
+
+      if(response.status==200)
+        "ok"
+      else
+        throw new Exception("response status not valid")
+      /*
+      println("-->"+response.status)
+      println("--->"+response.body)
+      println("---->"+response.allHeaders)
+      */
+      /*
+      val setCookie=response.header("Set-cookie").getOrElse( throw new Exception("Set-Cookie header not found") )
+      println("(CKAN) SET COOKIE: "+setCookie)
+      val cookie = setCookie.split(";")(0)
+      println("(CKAN) COOKIE: "+cookie)
+      cookie
+      */
+
+    }).andThen { case _ => wsClient.close() }
+      .andThen { case _ => system.terminate() }
 
   }
 
@@ -69,7 +119,7 @@ object ApiClientIPA {
 
     else
 
-      fx( wsClient, jsIn ).map{ response =>
+      fx(wsClient, jsIn).map{ response =>
         if(response.status == 200)
           println("RESPONSE:"+response.json)
         response
@@ -80,7 +130,7 @@ object ApiClientIPA {
 
 
 
-  def call(jsIn:JsValue, fx:(AhcWSClient,JsValue)  => Future[WSResponse]) : Future[JsValue] = {
+  private def call(jsIn:JsValue, fx:(AhcWSClient,JsValue)  => Future[WSResponse]) : Future[JsValue] = {
 
     val wsClient = AhcWSClient(sslconfig)
 
@@ -100,18 +150,19 @@ object ApiClientIPA {
   }
 
 
-  def createUser(user: IpaUser):Future[Either[Error,Success]]={
+  def createUser(user: IpaUser):Future[Either[Error,Success]]= {
 
 
-    val jsonUser:JsValue = Json.parse(s"""{
+    val jsonUser: JsValue = Json.parse(
+      s"""{
                                        "method":"user_add",
                                        "params":[
                                           [
                                              "${user.uid.get}"
                                           ],
                                           {
-                                             "cn":"${user.givenname.get+" "+user.sn.get}",
-                                             "displayname":"${user.givenname.get+" "+ user.sn.get}",
+                                             "cn":"${user.givenname.get + " " + user.sn.get}",
+                                             "displayname":"${user.givenname.get + " " + user.sn.get}",
                                              "givenname":"${user.givenname.get}",
                                              "sn":"${user.sn.get}",
                                              "mail":"${user.mail.get}",
@@ -129,15 +180,15 @@ object ApiClientIPA {
 
     println(jsonUser.toString())
 
-    call(jsonUser,callIpaUrl).map { json =>
+    call(jsonUser, callIpaUrl).flatMap { json =>
 
       val result = (json \ "result").getOrElse(JsString("null")).toString()
 
-      if( result!= "null" )
-        Right( Success(Some("User created"), Some("ok")) )
-
-      else
-        Left( Error(None,Some(readIpaErrorMessage(json)),None) )
+      if (result != "null") {
+        loginCkan(user.uid.get, user.userpassword.get).map { _ =>
+          Right(Success(Some("User created"), Some("ok")))
+        }
+      } else Future { Left( Error(None,Some(readIpaErrorMessage(json)),None) ) }
 
     }
 
@@ -246,7 +297,6 @@ def createUser(jsonUser: JsValue): Future[JsValue] = {
 
     }).andThen { case _ => wsClient.close() }
       .andThen { case _ => system.terminate() }
-
 
   }
 

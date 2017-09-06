@@ -76,13 +76,17 @@ class CkanRepositoryProd extends CkanRepository{
   def getMongoUser(name:String, callingUserid :MetadataCat): JsResult[User] = {
 
     var jsUser = readMongo("users","name", name )
-    jsUser = jsUser.as[JsObject] ++ Json.obj("password" -> "")
+
+    if( !( jsUser \ "password").toOption.isEmpty )
+      jsUser = jsUser.as[JsObject] ++ Json.obj("password" -> "")
+
     val userValidate = jsUser.validate[User]
     userValidate
 
   }
 
   def verifyCredentials(credentials: Credentials):Boolean = {
+
 
     val result = readMongo("users", "name", credentials.username.get.toString)
     val hpasswd = (result \ "password").get.as[String]
@@ -116,6 +120,19 @@ class CkanRepositoryProd extends CkanRepository{
 
     val wsClient = AhcWSClient()
     val url =  LOCALURL + "/ckan/updateOrganization/" + orgId
+    wsClient.url(url).withHeaders(USER_ID_HEADER -> callingUserid.get).put(jsonOrg).map({ response =>
+
+      evaluateSuccessResult(response.json)
+
+    }).andThen { case _ => wsClient.close() }
+      .andThen { case _ => system.terminate() }
+
+  }
+
+  def patchOrganization(orgId: String, jsonOrg: JsValue, callingUserid :MetadataCat): Future[String] = {
+
+    val wsClient = AhcWSClient()
+    val url =  LOCALURL + "/ckan/patchOrganization/" + orgId
     wsClient.url(url).withHeaders(USER_ID_HEADER -> callingUserid.get).put(jsonOrg).map({ response =>
 
       evaluateSuccessResult(response.json)

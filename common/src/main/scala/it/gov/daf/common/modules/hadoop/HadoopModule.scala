@@ -38,6 +38,8 @@ import javax.inject.Inject
 
 import akka.actor.ActorSystem
 import com.google.inject.{AbstractModule, Singleton}
+import play.Logger
+import play.Logger.ALogger
 import play.api.{Configuration, Environment}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -51,9 +53,14 @@ import scala.sys.process.Process
   )
 )
 class SchedulingTask @Inject()(val system: ActorSystem, val configuration: Configuration) {
-  system.scheduler.schedule(10 seconds, 12 * 60 minutes) { //TODO make those magic numbers configurable
+  implicit private val alogger: ALogger = Logger.of(this.getClass.getCanonicalName)
+
+  alogger.info("Started the keytab refresher")
+  system.scheduler.schedule(10 seconds, configuration.getInt("keytab_refresh_interval").getOrElse(12 * 60) minutes) {
+    alogger.info("About to refresh the keytab")
     val process = Process(s"/usr/bin/kinit -kt ${configuration.getString("keytab").getOrElse("")} ${configuration.getString("principal").getOrElse("")}")
     val _ = process.!
+    alogger.info("Refreshed the keytab")
   }
 }
 

@@ -10,7 +10,6 @@ spec:
   - port: 9090 
   selector:
     app: nifi 
-  clusterIP: None
 ---
 apiVersion: apps/v1beta1
 kind: Deployment
@@ -36,7 +35,7 @@ spec:
         lifecycle:
           postStart:
             exec:
-             command: ["/bin/sh", "-c", "cat /etc/extra_hosts >> /etc/hosts"]
+             command: ["/bin/sh", "-c", "cat /etc/extra_hosts >> /etc/hosts; echo \"nameserver 10.96.0.10\n$(cat /etc/resolv.conf)\" > /etc/resolv.conf"]
         ports:
         - name: client
           containerPort: 9090

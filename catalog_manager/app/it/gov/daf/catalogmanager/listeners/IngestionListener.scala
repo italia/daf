@@ -51,7 +51,7 @@ class IngestionListenerImpl @Inject() (appLifecycle: ApplicationLifecycle) exten
         val org = x.dcatapit.get.owner_org.get
         val name = x.dcatapit.get.identifier//.get //.value.get
         val logicalUri = x.operational.get.logical_uri.get
-        IngestionUtils.datasetsNameUri += (name -> logicalUri)
+        IngestionUtils.datasetsNameUri += (name.get -> logicalUri)
         val orgDir: File = Environment.simple().getFile("data/org/" + org + "/" + name)
         if(!orgDir.exists()) {
           orgDir.mkdirs()
@@ -76,7 +76,7 @@ class IngestionListenerImpl @Inject() (appLifecycle: ApplicationLifecycle) exten
     implicit val system: ActorSystem = ActorSystem()
     val org = metaCatalog.dcatapit.get.owner_org.get  //.value.get
     val name = metaCatalog.dcatapit.get.identifier//.get //.value.get
-    IngestionUtils.datasetsNameUri += (name -> logicalUri)
+    IngestionUtils.datasetsNameUri += (name.get -> logicalUri)
     val orgDir: File = Environment.simple().getFile("data/org/" + org + "/" + name)
     if(!orgDir.exists()) {
       orgDir.mkdirs()

@@ -22,6 +22,7 @@ trait CkanRepository {
   def getMongoUser(name:String,callingUserid :MetadataCat): JsResult[User]
   def verifyCredentials(credentials: Credentials):Boolean
   def updateOrganization(orgId: String, jsonOrg: JsValue,callingUserid :MetadataCat): Future[String]
+  def patchOrganization(orgId: String, jsonOrg: JsValue,callingUserid :MetadataCat): Future[String]
   def createUser(jsonUser: JsValue,callingUserid :MetadataCat): Future[String]
   def getUserOrganizations(userName :String,callingUserid :MetadataCat) : Future[JsResult[Seq[Organization]]]
   def createDataset(jsonDataset: JsValue,callingUserid :MetadataCat): Future[String]

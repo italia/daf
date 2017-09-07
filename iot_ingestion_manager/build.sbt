@@ -1,6 +1,6 @@
 import CommonBuild._
 import Versions._
-import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
+import com.typesafe.sbt.packager.docker.Cmd
 
 organization in ThisBuild := "it.gov.daf"
 name := "daf-iot-ingestion-manager"
@@ -214,7 +214,8 @@ dockerCommands := dockerCommands.value.flatMap {
   )
   case other => List(other)
 }
-dockerCommands += ExecCmd("ENTRYPOINT", s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
+dockerEntrypoint := Seq(s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
+dockerCmd := Seq("-jvm-debug", "5005")
 dockerExposedPorts := Seq(9900)
 dockerRepository := Option("10.98.74.120:5000")
 

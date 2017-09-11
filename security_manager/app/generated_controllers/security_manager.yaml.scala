@@ -29,7 +29,7 @@ import play.api.Configuration
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-
+                                                                    
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -44,23 +44,39 @@ package security_manager.yaml {
 
     Authentication(configuration, playSessionStore)
 
-    @SuppressWarnings(
+  /*  @SuppressWarnings(
       Array(
         "org.wartremover.warts.StringPlusAny",
         "org.wartremover.warts.NonUnitStatements"
       )
-    )
+    ) */
         // ----- End of unmanaged code area for constructor Security_managerYaml
         val token = tokenAction {  _ =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.token
-            Token200(Authentication.getStringToken(current_request_for_tokenAction).getOrElse(""))
+            Token200(Authentication.getStringToken(currentRequest).getOrElse(""))
             // ----- End of unmanaged code area for action  Security_managerYaml.token
         }
-        val createIPAuser = createIPAuserAction { (user: User) =>  
+        val createIPAuser = createIPAuserAction { (user: UserIpa) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.createIPAuser
             NotImplementedYet
             // ----- End of unmanaged code area for action  Security_managerYaml.createIPAuser
         }
+    
+     // Dead code for absent methodSecurity_managerYaml.getckanuser
+     /*
+            // ----- Start of unmanaged code area for action  Security_managerYaml.getckanuser
+            NotImplementedYet
+            // ----- End of unmanaged code area for action  Security_managerYaml.getckanuser
+     */
+
+    
+     // Dead code for absent methodSecurity_managerYaml.getIPAuser
+     /*
+            // ----- Start of unmanaged code area for action  Security_managerYaml.getIPAuser
+            NotImplementedYet
+            // ----- End of unmanaged code area for action  Security_managerYaml.getIPAuser
+     */
+
     
     }
 }

@@ -25,7 +25,7 @@ import play.api.mvc._
 
 import scala.io.Source
 
-@SuppressWarnings(Array("org.wartremover.warts.Equals", "org.wartremover.warts.AsInstanceOf", "org.wartremover.warts.ExplicitImplicitTypes"))
+//@SuppressWarnings(Array("org.wartremover.warts.Equals", "org.wartremover.warts.AsInstanceOf", "org.wartremover.warts.ExplicitImplicitTypes"))
 class Swagger extends Controller {
 
   def notSpec = Seq("application.conf", "logback.xml", "routes")

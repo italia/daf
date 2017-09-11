@@ -11,8 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 # Questo e' la descrizione delle API che vengono esposte da dati.gov.it.
 # Le API sono pubbliche
+
 swagger: '2.0'
 info:
   title: Security Manager API
@@ -57,58 +59,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  "/user":
-    post:
-      tags:
-        - IPA
-      description: Create a user
-      operationId: createIPAuser
-      #security:
-      #- basicAuth: []
-      produces:
-      - application/json
-      parameters:
-      - name: user
-        in: body
-        description: User
-        required: true
-        schema:
-          #type: object
-          $ref: '#/definitions/UserIpa'
-      responses:
-        200:
-          description: Success
-          schema:
-            #type: object
-            $ref: '#/definitions/Success'
-        default:
-          description: Error Message
-          schema:
-            $ref: '#/definitions/Error'
 definitions:
-  UserIpa:
-    #type: object
-    properties:
-      uid:
-        #description: user login
-        type: string
-      givenname:
-        #description: First name
-        type: string
-      sn:
-        #description: Last name
-        type: string
-      mail:
-        type: string
-      userpassword:
-        type: string
-  Success:
-    #type: object
-    properties:
-      message:
-        type: string
-      warnings:
-        type: string
   Error:
     properties:
       code:

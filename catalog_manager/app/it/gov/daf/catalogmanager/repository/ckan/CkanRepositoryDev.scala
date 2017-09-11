@@ -48,6 +48,10 @@ class CkanRepositoryDev extends CkanRepository{
     Future("todo")
   }
 
+  def patchOrganization(orgId: String, jsonOrg: JsValue, callingUserid :MetadataCat): Future[String] = {
+    Future("todo")
+  }
+
   def createOrganization( jsonDataset: JsValue, callingUserid :MetadataCat ) : Future[String] = {
     Future("todo")
   }

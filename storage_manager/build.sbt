@@ -15,7 +15,7 @@
  */
 
 import Versions._
-import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
+import com.typesafe.sbt.packager.docker.Cmd
 import sbt.Keys.resolvers
 
 name := "daf-storage-manager"
@@ -102,7 +102,8 @@ dockerCommands := dockerCommands.value.flatMap {
   )
   case other => List(other)
 }
-dockerCommands += ExecCmd("ENTRYPOINT", s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
+dockerEntrypoint := Seq(s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
+dockerCmd := Seq("-jvm-debug", "5005")
 dockerExposedPorts := Seq(9000)
 dockerRepository := Option("10.98.74.120:5000")
 

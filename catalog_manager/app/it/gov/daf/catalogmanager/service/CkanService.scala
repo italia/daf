@@ -30,6 +30,10 @@ trait CkanServiceComponent {
     def updateOrganization(orgId: String, jsonOrg: JsValue, callingUserid :MetadataCat ): Future[String] = {
       ckanRepository.updateOrganization(orgId,jsonOrg, callingUserid)
     }
+    def patchOrganization(orgId: String, jsonOrg: JsValue, callingUserid :MetadataCat ): Future[String] = {
+      ckanRepository.patchOrganization(orgId,jsonOrg, callingUserid)
+    }
+
     def createUser(jsonUser: JsValue, callingUserid :MetadataCat): Future[String] = {
       ckanRepository.createUser(jsonUser, callingUserid)
     }

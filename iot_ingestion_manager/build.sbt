@@ -1,6 +1,6 @@
 import CommonBuild._
 import Versions._
-import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
+import com.typesafe.sbt.packager.docker.Cmd
 
 organization in ThisBuild := "it.gov.daf"
 name := "daf-iot-ingestion-manager"
@@ -113,13 +113,15 @@ val hadoopExcludes =
   (moduleId: ModuleID) => moduleId.
     exclude("org.slf4j", "slf4j-api").
     exclude("org.slf4j", "slf4j-log4j12").
+    exclude("org.mortbay.jetty", "jetty").
+    exclude("org.mortbay.jetty", "jetty-util").
+    exclude("org.mortbay.jetty", "jetty-sslengine").
     exclude("javax.servlet", "servlet-api")
 
 val hadoopHBaseExcludes =
   (moduleId: ModuleID) => moduleId.
     exclude("org.slf4j", "slf4j-log4j12").
     exclude("javax.servlet", "servlet-api").
-    excludeAll(ExclusionRule(organization = "org.mortbay.jetty")).
     excludeAll(ExclusionRule(organization = "javax.servlet"))
 
 val kafkaExcludes =
@@ -143,10 +145,6 @@ val applicationLibraries = Seq(
   hbaseExcludes("org.apache.hbase" % "hbase-hadoop-compat" % hbaseVersion % "compile"),
   hbaseExcludes("org.apache.hbase" % "hbase-server" % hbaseVersion % "compile"),
   hbaseExcludes("org.apache.hbase" % "hbase-common" % hbaseVersion % "compile"),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-yarn-api" % hadoopVersion % "compile"),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-yarn-client" % hadoopVersion % "compile"),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-yarn-common" % hadoopVersion % "compile"),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-yarn-applications-distributedshell" % hadoopVersion % "compile"),
   hadoopExcludes("org.apache.hadoop" % "hadoop-yarn-server-web-proxy" % hadoopVersion % "compile"),
   hadoopExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % "compile"),
   "org.typelevel" %% "cats" % catsVersion % "compile",
@@ -216,7 +214,8 @@ dockerCommands := dockerCommands.value.flatMap {
   )
   case other => List(other)
 }
-dockerCommands += ExecCmd("ENTRYPOINT", s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
+dockerEntrypoint := Seq(s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
+dockerCmd := Seq("-jvm-debug", "5005")
 dockerExposedPorts := Seq(9900)
 dockerRepository := Option("10.98.74.120:5000")
 

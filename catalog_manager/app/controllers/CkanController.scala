@@ -480,6 +480,22 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
   }
 
+  def patchOrganization(orgId :String)= Action.async { implicit request =>
+
+    // curl -H "Content-Type: application/json" -X PUT -d @org.json http://localhost:9001/ckan/updateOrganization/id=232cad97-ecf2-447d-9656-63899023887t
+
+    val serviceUserId = request.headers.get(USER_ID_HEADER).getOrElse("")
+    val json:JsValue = request.body.asJson.get
+
+    def callPatchOrganization( userApiKey: String ):Future[WSResponse] = {
+      val url = CKAN_URL + "/api/3/action/organization_patch?id=" + orgId
+      ws.url(url).withHeaders("Authorization" -> userApiKey).post(json)
+    }
+
+    serviceWrappedCall( serviceUserId, callPatchOrganization )
+
+  }
+
 
   def deleteOrganization(orgId :String) = Action.async { implicit request =>
 

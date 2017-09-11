@@ -8,11 +8,14 @@ addSbtPlugin("com.typesafe.play" % "sbt-plugin"  % "2.5.14")
 
 addSbtPlugin("de.zalando" % "sbt-api-first-hand" % "0.2.3")
 
-addSbtPlugin("eu.unicredit" % "sbt-swagger-codegen" % "0.0.9")
+addSbtPlugin("eu.unicredit" % "sbt-swagger-codegen" % "0.0.10" excludeAll(
+  ExclusionRule(organization = "com.fasterxml.jackson.core"),
+  ExclusionRule(organization = "com.fasterxml.jackson.dataformat"),
+  ExclusionRule(organization = "com.fasterxml.jackson.datatype")))
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.2.0-M9")
 
-addSbtPlugin("org.wartremover" % "sbt-wartremover" % "2.0.3")
+//addSbtPlugin("org.wartremover" % "sbt-wartremover" % "2.0.3")
 
 addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.3.0")
 

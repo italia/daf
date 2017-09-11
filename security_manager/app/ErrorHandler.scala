@@ -30,7 +30,7 @@ import de.zalando.play.controllers.PlayBodyParsing
 /**
   * The purpose of this ErrorHandler is to override default play's error reporting with application/json content type.
   */
-@SuppressWarnings(Array("org.wartremover.warts.Equals", "org.wartremover.warts.ExplicitImplicitTypes"))
+//@SuppressWarnings(Array("org.wartremover.warts.Equals", "org.wartremover.warts.ExplicitImplicitTypes"))
 class ErrorHandler @Inject() (
                                env: Environment,
                                config: Configuration,

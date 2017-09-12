@@ -520,6 +520,70 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  "/ckan/autocompleteDataset":
+    get:
+      security:
+      - basicAuth: []
+      tags:
+        - Ckan
+      description: Autocomplete function on ckan datasets.
+      operationId: autocompletedataset
+      produces:
+      - application/json
+      parameters:
+      - name: q
+        in: query
+        description: query
+        type: string
+      - name: limit
+        in: query
+        description: The max number results returned
+        type: integer
+      responses:
+        200:
+          description: List of results.
+          schema:
+            type: array
+            items:
+              "$ref": "#/definitions/AutocompRes"
+        401:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+  "/ckan/autocompleteDummy":
+    post:
+      security:
+      - basicAuth: []
+      tags:
+        - Ckan
+      operationId: autocompletedummy
+      produces:
+      - application/json
+      parameters:
+      - name: autocompRes
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/AutocompRes'
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            $ref: '#/definitions/Success'
+        401:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   "/ckan/create/user":
     post:
       security:
@@ -1273,6 +1337,17 @@ definitions:
       fullname:
         type: string
       about:
+        type: string
+  AutocompRes:
+    type: object
+    properties:
+      match_field:
+        type: string
+      match_displayed:
+        type: string
+      name:
+        type: string
+      title:
         type: string
   IpaUser:
     type: object

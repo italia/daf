@@ -28,6 +28,8 @@ object ApiClientIPA {
   private var sessionCookie:String=null
 
 
+
+
   private def login( wsClient:AhcWSClient ):Future[String] = {
 
     val wsResponse = wsClient.url(IPA_LOGIN_ULR).withHeaders(  "Content-Type"->"application/x-www-form-urlencoded",

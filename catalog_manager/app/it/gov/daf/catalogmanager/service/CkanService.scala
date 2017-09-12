@@ -3,7 +3,7 @@ package it.gov.daf.catalogmanager.service
 /**
   * Created by ale on 18/07/17.
   */
-import catalog_manager.yaml.{Credentials, Dataset, MetadataCat, Organization, ResourceSize, User}
+import catalog_manager.yaml.{AutocompRes, Credentials, Dataset, MetadataCat, Organization, ResourceSize, User}
 import play.api.{Configuration, Environment}
 import play.api.libs.json.{JsResult, JsValue}
 import it.gov.daf.catalogmanager.repository.ckan.{CkanRepository, CkanRepositoryComponent}
@@ -65,6 +65,9 @@ trait CkanServiceComponent {
 
     def searchDatasets( input: (MetadataCat, MetadataCat, ResourceSize), callingUserid :MetadataCat) : Future[JsResult[Seq[Dataset]]] = {
       ckanRepository.searchDatasets(input, callingUserid)
+    }
+    def autocompleteDatasets( input: (MetadataCat, ResourceSize), callingUserid :MetadataCat) : Future[JsResult[Seq[AutocompRes]]] = {
+      ckanRepository.autocompleteDatasets(input, callingUserid)
     }
 
     def getDatasetsWithRes( input: (ResourceSize, ResourceSize),callingUserid :MetadataCat ) : Future[JsResult[Seq[Dataset]]] = {

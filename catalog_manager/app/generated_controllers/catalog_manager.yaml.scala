@@ -33,7 +33,7 @@ import it.gov.daf.catalogmanager.tempo.ApiClientIPA
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                        
 
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
@@ -48,6 +48,11 @@ package catalog_manager.yaml {
         // ----- Start of unmanaged code area for constructor Catalog_managerYaml
         val GENERIC_ERROR=Error(None,Some("An Error occurred"),None)
         // ----- End of unmanaged code area for constructor Catalog_managerYaml
+        val autocompletedummy = autocompletedummyAction { (autocompRes: AutocompRes) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.autocompletedummy
+            NotImplementedYet
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.autocompletedummy
+        }
         val searchdataset = searchdatasetAction { input: (MetadataCat, MetadataCat, ResourceSize) =>
             val (q, sort, rows) = input
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.searchdataset
@@ -130,6 +135,25 @@ package catalog_manager.yaml {
             Standardsuri200(stdUris)
             // NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.standardsuri
+        }
+        val autocompletedataset = autocompletedatasetAction { input: (MetadataCat, ResourceSize) =>
+            val (q, limit) = input
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.autocompletedataset
+            val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
+
+            val datasetsFuture: Future[JsResult[Seq[AutocompRes]]] = CkanRegistry.ckanService.autocompleteDatasets(input, credentials.username)
+            val eitherDatasets: Future[Either[String, Seq[AutocompRes]]] = datasetsFuture.map(result => {
+                result match {
+                    case s: JsSuccess[Seq[AutocompRes]] => Right(s.get)
+                    case e: JsError => Left( WebServiceUtil.getMessageFromJsError(e) )
+                }
+            })
+
+            eitherDatasets.flatMap {
+                case Right(autocomp) => Autocompletedataset200(autocomp)
+                case Left(error) => Autocompletedataset401(Error(None,Option(error),None))
+            }
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.autocompletedataset
         }
         val createdatasetcatalog = createdatasetcatalogAction { (catalog: MetaCatalog) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalog

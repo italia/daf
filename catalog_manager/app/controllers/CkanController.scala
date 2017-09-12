@@ -575,8 +575,6 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
   def searchDataset(q:Option[String], sort:Option[String], rows:Option[Int]) = Action.async { implicit request =>
 
-    //curl -X GET "http://localhost:9001/ckan/datasetsWithResources?limit=1&offset=1
-
     val serviceUserId = request.headers.get(USER_ID_HEADER).getOrElse("")
 
     val params= Map( ("q",q), ("sort",sort), ("rows",rows) )
@@ -588,6 +586,22 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
     }
 
     serviceWrappedCall( serviceUserId, callSearchDataset )
+
+  }
+
+  def autocompleteDataset(q:Option[String], limit:Option[Int]) = Action.async { implicit request =>
+
+    val serviceUserId = request.headers.get(USER_ID_HEADER).getOrElse("")
+
+    val params= Map( ("q",q), ("limit",limit) )
+    val queryString = WebServiceUtil.buildEncodedQueryString(params)
+
+    def autocompleteDataset( userApiKey: String ):Future[WSResponse] = {
+      val url = CKAN_URL + s"/api/3/action/package_autocomplete$queryString"
+      ws.url(url).withHeaders("Authorization" -> userApiKey).get
+    }
+
+    serviceWrappedCall( serviceUserId, autocompleteDataset )
 
   }
 

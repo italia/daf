@@ -177,6 +177,8 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
               case format: String => format
             }
             locationScheme match {
+              case "hdfs" if actualFormat == "raw" =>
+                Ok("No Scheme Available for raw format").as("text/plain")
               case "hdfs" if actualFormat == "text" =>
                 Ok("No Scheme Available").as("text/plain")
               case "hdfs" =>

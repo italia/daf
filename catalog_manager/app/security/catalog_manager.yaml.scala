@@ -23,6 +23,8 @@ trait SecurityExtractors {
         header => basicAuth(header) { (username: String, password: String) =>
             userFromToken("abracadabra")
     }
+
+
     implicit val unauthorizedContentWriter = ResponseWriters.choose[String]("application/json")
     def unauthorizedContent(req: RequestHeader) = Results.Unauthorized("Unauthorized")
 

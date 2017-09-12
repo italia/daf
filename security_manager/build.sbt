@@ -21,9 +21,9 @@ scalacOptions ++= Seq(
   "-Xfuture"
 )
 
-wartremoverErrors ++= Warts.allBut(Wart.Nothing, Wart.PublicInference, Wart.Any, Wart.Equals, Wart.Option2Iterable)
-wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value / "target" / "scala-2.11" / "routes").toSeq
-wartremoverExcluded ++= routes.in(Compile).value
+//wartremoverErrors ++= Warts.allBut(Wart.Nothing, Wart.PublicInference, Wart.Any, Wart.Equals, Wart.Option2Iterable)
+//wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value / "target" / "scala-2.11" / "routes").toSeq
+//wartremoverExcluded ++= routes.in(Compile).value
 
 lazy val client = (project in file("client")).
   settings(Seq(
@@ -85,7 +85,7 @@ dockerCommands := dockerCommands.value.flatMap {
   )
   case other => List(other)
 }
-dockerCommands += ExecCmd("ENTRYPOINT", s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
+dockerEntrypoint := Seq(s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
 dockerExposedPorts := Seq(9000)
 dockerRepository := Option("10.98.74.120:5000")
 

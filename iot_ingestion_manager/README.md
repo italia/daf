@@ -1,17 +1,15 @@
-## Compile the code
+## How to publish iot_ingestion_manager project 
 
 In the directory *daf* run the following commands:
 
 > cd common
 
-> sbt clean compile publishLocal
+> sbt compile 
 
-> cd ../iot_ingestion_manager
-
-> sbt clean compile 
+> sbt compile publishLocal
 
 Note
-If the last command *sbt clean compile* throws a *java.lang.NullPointerException* :
+The first execution of the first *compile* command throws a *java.lang.NullPointerException* :
 
 ```bash
 [warn] Here are some of the libraries that were evicted:
@@ -19,4 +17,17 @@ If the last command *sbt clean compile* throws a *java.lang.NullPointerException
 [warn] Run 'evicted' to see detailed eviction warnings
 java.lang.NullPointerException
 ```
-you have to run two times the command *sbt compile*
+Therefore, you have to run the command *sbt compile* another time.
+
+> cd ../iot_ingestion_manager/client
+
+> sbt compile publishLocal
+
+> cd /path/to/iot_ingestion_manager/common
+
+> sbt compile publishLocal
+
+> cd ..
+
+> sbt compile publishLocal
+

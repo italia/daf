@@ -1,0 +1,2651 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<!DOCTYPE rdf:RDF [
+<!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+<!ENTITY dct "http://purl.org/dc/terms/" >
+<!ENTITY time "http://www.w3.org/2006/time#" >
+<!ENTITY uri "http://www.mc.camcom.it/uploaded/linked-open-data/" >
+<!ENTITY mdr "http://publications.europa.eu/resource/authority/" >
+<!ENTITY foaf "http://xmlns.com/foaf/0.1/" >
+<!ENTITY skos "http://www.w3.org/2004/02/skos/core#" >
+<!ENTITY img "http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Italy.jpg" >
+<!ENTITY dcat "http://www.w3.org/ns/dcat#" >
+]>
+
+<rdf:RDF
+		xmlns="http://www.mc.camcom.it/uploaded/linked-open-data/data/property.rdf#"
+		xmlns:adms="http://www.w3.org/ns/adms#" 
+		xmlns:dcat="http://www.w3.org/ns/dcat#"
+		xmlns:dct="http://purl.org/dc/terms/"
+		xmlns:foaf="http://xmlns.com/foaf/0.1/"
+		xmlns:owl="http://www.w3.org/2002/07/owl#"
+		xmlns:pos="http://www.w3.org/2003/01/geo/wgs84_pos#"
+		xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+		xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+		xmlns:schema="http://schema.org/"
+		xmlns:skos="http://www.w3.org/2004/02/skos/core#"
+		xmlns:spdx="http://spdx.org/rdf/terms#"
+		xmlns:vcard="http://www.w3.org/2006/vcard/ns#"
+		xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+		xmlns:dcatapit="http://dati.gov.it/onto/dcatapit#" >
+
+
+	<!-- DCAT Catalog > Datasets -->
+
+	<dcatapit:Catalog rdf:about="">
+		<rdf:type rdf:resource="&dcat;Catalog"/> 
+		<dct:title xml:lang="it">Catalogo Open Data - Demografia Imprese</dct:title>
+		<dct:description xml:lang="it">RDF Data Cube Linked Open Data e JSON-stat Dataset - Camera di Commercio di Macerata (dati InfoCamere)</dct:description>
+		<foaf:depiction rdf:resource="&img;"/>
+		<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+		<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+		<dct:language rdf:resource="&mdr;language/ITA"/>
+		<foaf:homepage rdf:resource="http://www.mc.camcom.it/P42A784C90S39/open-data.htm"/>
+		<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+		<foaf:maker rdf:resource="#Maker"/>
+		<dct:spatial rdf:resource="&mdr;country/ITA"/>
+		<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+		<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+		<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+		<dcat:themeTaxonomy rdf:resource="&mdr;data-theme"/>
+		<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#Stock-Imprese-Attive-Italia">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>stock-imprese-attive-italia</dct:identifier>
+				<dct:title xml:lang="it">Imprese Attive in Italia per Territorio, Settore Ateco e Tempo (frequenza mensile)</dct:title>
+				<dct:description xml:lang="it">Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni), Settore di Attività Economica (Ateco 2007) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-imprese"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Stock-Imprese.htm?f2v=22"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#Stock-Imprese-Attive-Italia-JSON">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>stock-imprese-attive-italia-json-stat</dct:identifier>
+						<dct:title xml:lang="it">Imprese Attive in Italia per Territorio, Settore Ateco e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni), Settore di Attività Economica (Ateco 2007) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/JSON"/>
+						<dcat:mediaType>application/json</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;Stock-Imprese-Attive-Italia.json"/>
+						<dcat:downloadURL rdf:resource="&uri;Stock-Imprese-Attive-Italia.json"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#Stock-Imprese-Attive-Italia-CSV">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>stock-imprese-attive-italia-csv</dct:identifier>
+						<dct:title xml:lang="it">Imprese Attive in Italia per Territorio, Settore Ateco e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni), Settore di Attività Economica (Ateco 2007) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/CSV"/>
+						<dcat:mediaType>text/csv</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;Stock-Imprese-Attive-Italia.csv"/>
+						<dcat:downloadURL rdf:resource="&uri;Stock-Imprese-Attive-Italia.csv"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+
+				<dct:hasPart rdf:resource="#a-imprese-attive"/>
+				<dct:hasPart rdf:resource="#b-imprese-attive"/>
+				<dct:hasPart rdf:resource="#c-imprese-attive"/>
+				<dct:hasPart rdf:resource="#d-imprese-attive"/>
+				<dct:hasPart rdf:resource="#e-imprese-attive"/>
+				<dct:hasPart rdf:resource="#f-imprese-attive"/>
+				<dct:hasPart rdf:resource="#g-imprese-attive"/>
+				<dct:hasPart rdf:resource="#h-imprese-attive"/>
+				<dct:hasPart rdf:resource="#i-imprese-attive"/>
+				<dct:hasPart rdf:resource="#j-imprese-attive"/>
+				<dct:hasPart rdf:resource="#k-imprese-attive"/>
+				<dct:hasPart rdf:resource="#l-imprese-attive"/>
+				<dct:hasPart rdf:resource="#m-imprese-attive"/>
+				<dct:hasPart rdf:resource="#n-imprese-attive"/>
+				<dct:hasPart rdf:resource="#o-imprese-attive"/>
+				<dct:hasPart rdf:resource="#p-imprese-attive"/>
+				<dct:hasPart rdf:resource="#q-imprese-attive"/>
+				<dct:hasPart rdf:resource="#r-imprese-attive"/>
+				<dct:hasPart rdf:resource="#s-imprese-attive"/>
+				<dct:hasPart rdf:resource="#t-imprese-attive"/>
+				<dct:hasPart rdf:resource="#u-imprese-attive"/>
+				<dct:hasPart rdf:resource="#x-imprese-attive"/>
+				<dct:hasPart rdf:resource="#total-imprese-attive"/>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#Stock-Imprese-Attive-Italia-6-Cifre-Ateco">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>stock-imprese-attive-italia-6-cifre-ateco</dct:identifier>
+				<dct:title xml:lang="it">Imprese Attive in Italia per Provincia, Settore, Divisione, Classe, Sottocategoria Ateco e Tempo (frequenza trimestrale)</dct:title>
+				<dct:description xml:lang="it">Stock Sedi di Impresa Attive in Italia per Provincia, Settore, Divisione, Classe e Sottocategoria di Attività Economica (Ateco 2007) e Tempo (Frequenza Trimestrale, Valori fine periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/QUARTERLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-imprese-ateco"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Pivot-Table.htm?geo=Italia"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#Q"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#Stock-Imprese-Attive-Italia-6-Cifre-Ateco-CSV">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>stock-imprese-attive-italia-6-cifre-ateco-csv</dct:identifier>
+						<dct:title xml:lang="it">Imprese Attive in Italia per Provincia, Settore, Divisione, Classe, Sottocategoria Ateco e Tempo (frequenza trimestrale)</dct:title>
+						<dct:description xml:lang="it">Stock Sedi di Impresa Attive in Italia per Provincia, Settore, Divisione, Classe e Sottocategoria di Attività Economica (Ateco 2007) e Tempo (Frequenza Trimestrale, Valori fine periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/CSV"/>
+						<dcat:mediaType>text/csv</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Pivot-Table.htm?geo=Italia"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#Stock-Imprese-Attive-Marche">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>stock-imprese-attive-marche</dct:identifier>
+				<dct:title xml:lang="it">Imprese Attive nelle Marche per Comune, Settore Ateco e Tempo (frequenza mensile)</dct:title>
+				<dct:description xml:lang="it">Stock Sedi di Impresa Attive nella Regione Marche per Comune, Settore di Attività Economica (Ateco 2007) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="http://www.geonames.org/3174004"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#ITI3"/>
+				<pos:lat rdf:datatype="&xsd;float">43.5</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">13.25</pos:long>
+				<dct:temporal rdf:resource="#time-imprese"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Stock-Imprese.htm?url=http://www.mc.camcom.it/uploaded/linked-open-data/Stock-Imprese-Attive-Marche.json"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#Stock-Imprese-Attive-Marche-JSON">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>stock-imprese-attive-marche-json-stat</dct:identifier>
+						<dct:title xml:lang="it">Imprese Attive nelle Marche per Comune, Settore Ateco e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Stock Sedi di Impresa Attive nella Regione Marche per Comune, Settore di Attività Economica (Ateco 2007) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/JSON"/>
+						<dcat:mediaType>application/json</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;Stock-Imprese-Attive-Marche.json"/>
+						<dcat:downloadURL rdf:resource="&uri;Stock-Imprese-Attive-Marche.json"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#Stock-Imprese-Attive-Marche-CSV">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>stock-imprese-attive-marche-csv</dct:identifier>
+						<dct:title xml:lang="it">Imprese Attive nelle Marche per Comune, Settore Ateco e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Stock Sedi di Impresa Attive nella Regione Marche per Comune, Settore di Attività Economica (Ateco 2007) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/CSV"/>
+						<dcat:mediaType>text/csv</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;Stock-Imprese-Attive-Marche.csv"/>
+						<dcat:downloadURL rdf:resource="&uri;Stock-Imprese-Attive-Marche.csv"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#Stock-Imprese-Attive-Marche-6-Cifre-Ateco">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>stock-imprese-attive-marche-6-cifre-ateco</dct:identifier>
+				<dct:title xml:lang="it">Imprese Attive nelle Marche per Comune, Settore, Divisione, Classe, Sottocategoria Ateco e Tempo (frequenza trimestrale)</dct:title>
+				<dct:description xml:lang="it">Stock Sedi di Impresa Attive nella Regione Marche per Comune, Settore, Divisione, Classe e Sottocategoria di Attività Economica (Ateco 2007) e Tempo (Frequenza Trimestrale, Valori fine periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/QUARTERLY"/>
+				<dct:spatial rdf:resource="http://www.geonames.org/3174004"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#ITI3"/>
+				<pos:lat rdf:datatype="&xsd;float">43.5</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">13.25</pos:long>
+				<dct:temporal rdf:resource="#time-imprese-ateco"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Pivot-Table.htm?geo=Marche"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#Q"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#Stock-Imprese-Attive-Marche-6-Cifre-Ateco-CSV">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>stock-imprese-attive-marche-6-cifre-ateco-csv</dct:identifier>
+						<dct:title xml:lang="it">Imprese Attive nelle Marche per Comune, Settore, Divisione, Classe, Sottocategoria Ateco e Tempo (frequenza trimestrale)</dct:title>
+						<dct:description xml:lang="it">Stock Sedi di Impresa Attive nella Regione Marche per Comune, Settore, Divisione, Classe e Sottocategoria di Attività Economica (Ateco 2007) e Tempo (Frequenza Trimestrale, Valori fine periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/CSV"/>
+						<dcat:mediaType>text/csv</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Pivot-Table.htm?geo=Marche"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#Quota-Stock-Imprese-Attive-Italia">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>quota-stock-imprese-attive-italia</dct:identifier>
+				<dct:title xml:lang="it">Composizione % Ateco delle Imprese Attive in Italia per Territorio, Settore Ateco e Tempo (frequenza mensile)</dct:title>
+				<dct:description xml:lang="it">Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni), Settore di Attività Economica (Ateco 2007) e Tempo (Frequenza Mensile, Valori fine periodo) - Composizione % Settori di Attività Economica</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-imprese"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Map.htm?url=http://www.mc.camcom.it/uploaded/linked-open-data/Quota-Stock-Imprese-Attive-Italia.json"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910SHARE"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#Quota-Stock-Imprese-Attive-Italia-JSON">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>quota-stock-imprese-attive-italia-json-stat</dct:identifier>
+						<dct:title xml:lang="it">Composizione % Ateco delle Imprese Attive in Italia per Territorio, Settore Ateco e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni), Settore di Attività Economica (Ateco 2007) e Tempo (Frequenza Mensile, Valori fine periodo) - Composizione % Settori di Attività Economica</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/JSON"/>
+						<dcat:mediaType>application/json</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;Quota-Stock-Imprese-Attive-Italia.json"/>
+						<dcat:downloadURL rdf:resource="&uri;Quota-Stock-Imprese-Attive-Italia.json"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#Quota-Stock-Imprese-Attive-Italia-CSV">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>quota-stock-imprese-attive-italia-csv</dct:identifier>
+						<dct:title xml:lang="it">Composizione % Ateco delle Imprese Attive in Italia per Territorio, Settore Ateco e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni), Settore di Attività Economica (Ateco 2007) e Tempo (Frequenza Mensile, Valori fine periodo) - Composizione % Settori di Attività Economica</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/CSV"/>
+						<dcat:mediaType>text/csv</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;Quota-Stock-Imprese-Attive-Italia.csv"/>
+						<dcat:downloadURL rdf:resource="&uri;Quota-Stock-Imprese-Attive-Italia.csv"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#Quota-Stock-Imprese-Attive-Marche">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>quota-stock-imprese-attive-marche</dct:identifier>
+				<dct:title xml:lang="it">Composizione % Ateco delle Imprese Attive nelle Marche per Comune, Settore Ateco e Tempo (frequenza mensile)</dct:title>
+				<dct:description xml:lang="it">Stock Sedi di Impresa Attive nelle Marche per Comune, Settore di Attività Economica (Ateco 2007) e Tempo (Frequenza Mensile, Valori fine periodo) - Composizione % Settori di Attività Economica</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="http://www.geonames.org/3174004"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#ITI3"/>
+				<pos:lat rdf:datatype="&xsd;float">43.5</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">13.25</pos:long>
+				<dct:temporal rdf:resource="#time-imprese"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Map.htm?url=http://www.mc.camcom.it/uploaded/linked-open-data/Quota-Stock-Imprese-Attive-Marche.json"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910SHARE"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#Quota-Stock-Imprese-Attive-Marche-JSON">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>quota-stock-imprese-attive-marche-json-stat</dct:identifier>
+						<dct:title xml:lang="it">Composizione % Ateco delle Imprese Attive nelle Marche per Comune, Settore Ateco e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Stock Sedi di Impresa Attive nelle Marche per Comune, Settore di Attività Economica (Ateco 2007) e Tempo (Frequenza Mensile, Valori fine periodo) - Composizione % Settori di Attività Economica</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/JSON"/>
+						<dcat:mediaType>application/json</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;Quota-Stock-Imprese-Attive-Marche.json"/>
+						<dcat:downloadURL rdf:resource="&uri;Quota-Stock-Imprese-Attive-Marche.json"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#Variazione-Tendenziale-Stock-Imprese-Attive-Italia">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>variazione-tendenziale-stock-imprese-attive-italia</dct:identifier>
+				<dct:title xml:lang="it">Variazione % Tendenziale delle Imprese Attive in Italia per Territorio, Settore Ateco e Tempo (frequenza mensile)</dct:title>
+				<dct:description xml:lang="it">Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni), Settore di Attività Economica (Ateco 2007) e Tempo (Frequenza Mensile, Valori fine periodo) - Variazione % Tendenziale</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-imprese-var"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Map.htm?url=http://www.mc.camcom.it/uploaded/linked-open-data/Variazione-Tendenziale-Stock-Imprese-Attive-Italia.json"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910YOY"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#Variazione-Tendenziale-Stock-Imprese-Attive-Italia-JSON">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>variazione-tendenziale-stock-imprese-attive-italia-json-stat</dct:identifier>
+						<dct:title xml:lang="it">Variazione % Tendenziale delle Imprese Attive in Italia per Territorio, Settore Ateco e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni), Settore di Attività Economica (Ateco 2007) e Tempo (Frequenza Mensile, Valori fine periodo) - Variazione % Tendenziale</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/JSON"/>
+						<dcat:mediaType>application/json</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;Variazione-Tendenziale-Stock-Imprese-Attive-Italia.json"/>
+						<dcat:downloadURL rdf:resource="&uri;Variazione-Tendenziale-Stock-Imprese-Attive-Italia.json"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#Variazione-Tendenziale-Stock-Imprese-Attive-Italia-CSV">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>variazione-tendenziale-stock-imprese-attive-italia-csv</dct:identifier>
+						<dct:title xml:lang="it">Variazione % Tendenziale delle Imprese Attive in Italia per Territorio, Settore Ateco e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni), Settore di Attività Economica (Ateco 2007) e Tempo (Frequenza Mensile, Valori fine periodo) - Variazione % Tendenziale</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/CSV"/>
+						<dcat:mediaType>text/csv</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;Variazione-Tendenziale-Stock-Imprese-Attive-Italia.csv"/>
+						<dcat:downloadURL rdf:resource="&uri;Variazione-Tendenziale-Stock-Imprese-Attive-Italia.csv"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#Stock-Imprese-Attive-Italia-Anno-Iscrizione">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>stock-imprese-attive-italia-anno-iscrizione</dct:identifier>
+				<dct:title xml:lang="it">Imprese Attive in Italia per Territorio, Settore Ateco e Anno di Iscrizione</dct:title>
+				<dct:description xml:lang="it">Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni), Settore di Attività Economica (Ateco 2007) e Anno di Iscrizione</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/QUARTERLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-imprese-anno"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Imprese-Attive-Anno-Iscrizione.htm"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#Q"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#Stock-Imprese-Attive-Italia-Anno-Iscrizione-JSON">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>stock-imprese-attive-italia-anno-iscrizione-json-stat</dct:identifier>
+						<dct:title xml:lang="it">Imprese Attive in Italia per Territorio, Settore Ateco e Anno di Iscrizione</dct:title>
+						<dct:description xml:lang="it">Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni), Settore di Attività Economica (Ateco 2007) e Anno di Iscrizione</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/JSON"/>
+						<dcat:mediaType>application/json</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;Stock-Imprese-Attive-Italia-Anno-Iscrizione.json"/>
+						<dcat:downloadURL rdf:resource="&uri;Stock-Imprese-Attive-Italia-Anno-Iscrizione.json"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#Procedure-Concorsuali-Italia">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>procedure-concorsuali-italia</dct:identifier>
+				<dct:title xml:lang="it">Aperture Procedure Concorsuali in Italia per Territorio, Settore Ateco e Tempo (flussi mensili)</dct:title>
+				<dct:description xml:lang="it">Aperture di Procedure Concorsuali in Italia per Territorio (Province e Regioni), Settore di Attività Economica (Ateco 2007) e Tempo (Frequenza Mensile, Totale Eventi nel periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-proc-fall"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>procedure-concorsuali</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Procedure-Concorsuali.htm"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#PROC"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#TOT"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#Procedure-Concorsuali-Italia-JSON">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>procedure-concorsuali-italia-json-stat</dct:identifier>
+						<dct:title xml:lang="it">Aperture Procedure Concorsuali in Italia per Territorio, Settore Ateco e Tempo (flussi mensili)</dct:title>
+						<dct:description xml:lang="it">Aperture di Procedure Concorsuali in Italia per Territorio (Province e Regioni), Settore di Attività Economica (Ateco 2007) e Tempo (Frequenza Mensile, Totale Eventi nel periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/JSON"/>
+						<dcat:mediaType>application/json</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;Procedure-Concorsuali-Italia.json"/>
+						<dcat:downloadURL rdf:resource="&uri;Procedure-Concorsuali-Italia.json"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#Procedure-Concorsuali-Italia-CSV">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>procedure-concorsuali-italia-csv</dct:identifier>
+						<dct:title xml:lang="it">Aperture Procedure Concorsuali in Italia per Territorio, Settore Ateco e Tempo (flussi mensili)</dct:title>
+						<dct:description xml:lang="it">Aperture di Procedure Concorsuali in Italia per Territorio (Province e Regioni), Settore di Attività Economica (Ateco 2007) e Tempo (Frequenza Mensile, Totale Eventi nel periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/CSV"/>
+						<dcat:mediaType>text/csv</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;Procedure-Concorsuali-Italia.csv"/>
+						<dcat:downloadURL rdf:resource="&uri;Procedure-Concorsuali-Italia.csv"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#Procedure-Concorsuali-Italia-RDF">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>procedure-concorsuali-italia-datacube</dct:identifier>
+						<dct:title xml:lang="it">Aperture Procedure Concorsuali in Italia per Territorio, Settore Ateco e Tempo (flussi mensili)</dct:title>
+						<dct:description xml:lang="it">Aperture di Procedure Concorsuali in Italia per Territorio (Province e Regioni), Settore di Attività Economica (Ateco 2007) e Tempo (Frequenza Mensile, Totale Eventi nel periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/RDF"/>
+						<dcat:mediaType>application/rdf+xml</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;data/procedure-concorsuali.rdf"/>
+						<dcat:downloadURL rdf:resource="&uri;data/procedure-concorsuali.rdf"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#Fallimenti-Italia">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>fallimenti-italia</dct:identifier>
+				<dct:title xml:lang="it">Aperture Procedure di Fallimento in Italia per Territorio, Settore Ateco e Tempo (flussi mensili)</dct:title>
+				<dct:description xml:lang="it">Aperture di Procedure di Fallimento in Italia per Territorio (Province e Regioni), Settore di Attività Economica (Ateco 2007) e Tempo (Frequenza Mensile, Totale Eventi nel periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-proc-fall"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>fallimenti</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Procedure-Fallimento.htm"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#FALL"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#TOT"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#Fallimenti-Italia-JSON">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>fallimenti-italia-json-stat</dct:identifier>
+						<dct:title xml:lang="it">Aperture Procedure di Fallimento in Italia per Territorio, Settore Ateco e Tempo (flussi mensili)</dct:title>
+						<dct:description xml:lang="it">Aperture di Procedure di Fallimento in Italia per Territorio (Province e Regioni), Settore di Attività Economica (Ateco 2007) e Tempo (Frequenza Mensile, Totale Eventi nel periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/JSON"/>
+						<dcat:mediaType>application/json</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;Fallimenti-Italia.json"/>
+						<dcat:downloadURL rdf:resource="&uri;Fallimenti-Italia.json"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#Fallimenti-Italia-CSV">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>fallimenti-italia-csv</dct:identifier>
+						<dct:title xml:lang="it">Aperture Procedure di Fallimento in Italia per Territorio, Settore Ateco e Tempo (flussi mensili)</dct:title>
+						<dct:description xml:lang="it">Aperture di Procedure di Fallimento in Italia per Territorio (Province e Regioni), Settore di Attività Economica (Ateco 2007) e Tempo (Frequenza Mensile, Totale Eventi nel periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/CSV"/>
+						<dcat:mediaType>text/csv</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;Fallimenti-Italia.csv"/>
+						<dcat:downloadURL rdf:resource="&uri;Fallimenti-Italia.csv"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#Fallimenti-Italia-RDF">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>fallimenti-italia-datacube</dct:identifier>
+						<dct:title xml:lang="it">Aperture Procedure di Fallimento in Italia per Territorio, Settore Ateco e Tempo (flussi mensili)</dct:title>
+						<dct:description xml:lang="it">Aperture di Procedure di Fallimento in Italia per Territorio (Province e Regioni), Settore di Attività Economica (Ateco 2007) e Tempo (Frequenza Mensile, Totale Eventi nel periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/RDF"/>
+						<dcat:mediaType>application/rdf+xml</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;data/fallimenti.rdf"/>
+						<dcat:downloadURL rdf:resource="&uri;data/fallimenti.rdf"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#imprese-attive-ateco">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>imprese-attive-ateco</dct:identifier>
+				<dct:title xml:lang="it">Imprese Attive in Italia per Settore e Divisione Ateco e Tempo (frequenza mensile)</dct:title>
+				<dct:description xml:lang="it">Stock Sedi di Impresa Attive in Italia per Settore e Divisione di Attività Economica (Ateco 2007) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-imprese"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Pivot-Table.htm?geo=Italia"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#imprese-attive-ateco-RDF">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>imprese-attive-ateco-datacube</dct:identifier>
+						<dct:title xml:lang="it">Imprese Attive in Italia per Settore e Divisione Ateco e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Stock Sedi di Impresa Attive in Italia per Settore e Divisione di Attività Economica (Ateco 2007) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/RDF"/>
+						<dcat:mediaType>application/rdf+xml</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;data/imprese-attive-ateco.rdf"/>
+						<dcat:downloadURL rdf:resource="&uri;data/imprese-attive-ateco.rdf"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#total-imprese-attive">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>total-imprese-attive</dct:identifier>
+				<dct:title xml:lang="it">Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+				<dct:description xml:lang="it">Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-imprese"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Stock-Imprese.htm?f2v=22"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#total-imprese-attive-RDF">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>total-imprese-attive-datacube</dct:identifier>
+						<dct:title xml:lang="it">Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/RDF"/>
+						<dcat:mediaType>application/rdf+xml</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;data/total-imprese-attive.rdf"/>
+						<dcat:downloadURL rdf:resource="&uri;data/total-imprese-attive.rdf"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+				<dct:isPartOf rdf:resource="#Stock-Imprese-Attive-Italia"/>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#a-imprese-attive">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>a-imprese-attive</dct:identifier>
+				<dct:title xml:lang="it">Settore Ateco A - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+				<dct:description xml:lang="it">Settore Ateco A: Agricoltura, silvicoltura e pesca - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-imprese"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Stock-Imprese.htm?f2v=0"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#a-imprese-attive-RDF">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>a-imprese-attive-datacube</dct:identifier>
+						<dct:title xml:lang="it">Settore Ateco A - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Settore Ateco A: Agricoltura, silvicoltura e pesca - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/RDF"/>
+						<dcat:mediaType>application/rdf+xml</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;data/a-imprese-attive.rdf"/>
+						<dcat:downloadURL rdf:resource="&uri;data/a-imprese-attive.rdf"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+				<dct:isPartOf rdf:resource="#Stock-Imprese-Attive-Italia"/>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#b-imprese-attive">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>b-imprese-attive</dct:identifier>
+				<dct:title xml:lang="it">Settore Ateco B - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+				<dct:description xml:lang="it">Settore Ateco B: Estrazione di minerali da cave e miniere - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-imprese"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Stock-Imprese.htm?f2v=1"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#b-imprese-attive-RDF">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>b-imprese-attive-datacube</dct:identifier>
+						<dct:title xml:lang="it">Settore Ateco B - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Settore Ateco B: Estrazione di minerali da cave e miniere - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/RDF"/>
+						<dcat:mediaType>application/rdf+xml</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;data/b-imprese-attive.rdf"/>
+						<dcat:downloadURL rdf:resource="&uri;data/b-imprese-attive.rdf"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+				<dct:isPartOf rdf:resource="#Stock-Imprese-Attive-Italia"/>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#c-imprese-attive">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>c-imprese-attive</dct:identifier>
+				<dct:title xml:lang="it">Settore Ateco C - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+				<dct:description xml:lang="it">Settore Ateco C: Attività manifatturiere - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-imprese"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Stock-Imprese.htm?f2v=2"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#c-imprese-attive-RDF">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>c-imprese-attive-datacube</dct:identifier>
+						<dct:title xml:lang="it">Settore Ateco C - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Settore Ateco C: Attività manifatturiere - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/RDF"/>
+						<dcat:mediaType>application/rdf+xml</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;data/c-imprese-attive.rdf"/>
+						<dcat:downloadURL rdf:resource="&uri;data/c-imprese-attive.rdf"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+				<dct:isPartOf rdf:resource="#Stock-Imprese-Attive-Italia"/>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#d-imprese-attive">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>d-imprese-attive</dct:identifier>
+				<dct:title xml:lang="it">Settore Ateco D - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+				<dct:description xml:lang="it">Settore Ateco D: Fornitura di energia elettrica, gas, vapore e aria condizionata - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-imprese"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Stock-Imprese.htm?f2v=3"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#d-imprese-attive-RDF">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>d-imprese-attive-datacube</dct:identifier>
+						<dct:title xml:lang="it">Settore Ateco D - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Settore Ateco D: Fornitura di energia elettrica, gas, vapore e aria condizionata - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/RDF"/>
+						<dcat:mediaType>application/rdf+xml</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;data/d-imprese-attive.rdf"/>
+						<dcat:downloadURL rdf:resource="&uri;data/d-imprese-attive.rdf"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+				<dct:isPartOf rdf:resource="#Stock-Imprese-Attive-Italia"/>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#e-imprese-attive">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>e-imprese-attive</dct:identifier>
+				<dct:title xml:lang="it">Settore Ateco E - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+				<dct:description xml:lang="it">Settore Ateco E: Fornitura di acqua; Reti fognarie, attività di trattamento dei rifiuti e risanamento - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-imprese"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Stock-Imprese.htm?f2v=4"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#e-imprese-attive-RDF">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>e-imprese-attive-datacube</dct:identifier>
+						<dct:title xml:lang="it">Settore Ateco E - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Settore Ateco E: Fornitura di acqua; Reti fognarie, attività di trattamento dei rifiuti e risanamento - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/RDF"/>
+						<dcat:mediaType>application/rdf+xml</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;data/e-imprese-attive.rdf"/>
+						<dcat:downloadURL rdf:resource="&uri;data/e-imprese-attive.rdf"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+				<dct:isPartOf rdf:resource="#Stock-Imprese-Attive-Italia"/>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#f-imprese-attive">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>f-imprese-attive</dct:identifier>
+				<dct:title xml:lang="it">Settore Ateco F - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+				<dct:description xml:lang="it">Settore Ateco F: Costruzioni - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-imprese"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Stock-Imprese.htm?f2v=5"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#f-imprese-attive-RDF">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>f-imprese-attive-datacube</dct:identifier>
+						<dct:title xml:lang="it">Settore Ateco F - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Settore Ateco F: Costruzioni - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/RDF"/>
+						<dcat:mediaType>application/rdf+xml</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;data/f-imprese-attive.rdf"/>
+						<dcat:downloadURL rdf:resource="&uri;data/f-imprese-attive.rdf"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+				<dct:isPartOf rdf:resource="#Stock-Imprese-Attive-Italia"/>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#g-imprese-attive">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>g-imprese-attive</dct:identifier>
+				<dct:title xml:lang="it">Settore Ateco G - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+				<dct:description xml:lang="it">Settore Ateco G: Commercio all'ingrosso e al dettaglio, riparazione di autoveicoli e motocicli - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-imprese"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Stock-Imprese.htm?f2v=6"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#g-imprese-attive-RDF">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>g-imprese-attive-datacube</dct:identifier>
+						<dct:title xml:lang="it">Settore Ateco G - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Settore Ateco G: Commercio all'ingrosso e al dettaglio, riparazione di autoveicoli e motocicli - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/RDF"/>
+						<dcat:mediaType>application/rdf+xml</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;data/g-imprese-attive.rdf"/>
+						<dcat:downloadURL rdf:resource="&uri;data/g-imprese-attive.rdf"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+				<dct:isPartOf rdf:resource="#Stock-Imprese-Attive-Italia"/>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#h-imprese-attive">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>h-imprese-attive</dct:identifier>
+				<dct:title xml:lang="it">Settore Ateco H - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+				<dct:description xml:lang="it">Settore Ateco H: Trasporto e magazzinaggio - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-imprese"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Stock-Imprese.htm?f2v=7"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#h-imprese-attive-RDF">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>h-imprese-attive-datacube</dct:identifier>
+						<dct:title xml:lang="it">Settore Ateco H - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Settore Ateco H: Trasporto e magazzinaggio - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/RDF"/>
+						<dcat:mediaType>application/rdf+xml</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;data/h-imprese-attive.rdf"/>
+						<dcat:downloadURL rdf:resource="&uri;data/h-imprese-attive.rdf"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+				<dct:isPartOf rdf:resource="#Stock-Imprese-Attive-Italia"/>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#i-imprese-attive">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>i-imprese-attive</dct:identifier>
+				<dct:title xml:lang="it">Settore Ateco I - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+				<dct:description xml:lang="it">Settore Ateco I: Attività dei servizi alloggio e ristorazione - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-imprese"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Stock-Imprese.htm?f2v=8"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#i-imprese-attive-RDF">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>i-imprese-attive-datacube</dct:identifier>
+						<dct:title xml:lang="it">Settore Ateco I - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Settore Ateco I: Attività dei servizi alloggio e ristorazione - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/RDF"/>
+						<dcat:mediaType>application/rdf+xml</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;data/i-imprese-attive.rdf"/>
+						<dcat:downloadURL rdf:resource="&uri;data/i-imprese-attive.rdf"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+				<dct:isPartOf rdf:resource="#Stock-Imprese-Attive-Italia"/>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#j-imprese-attive">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>j-imprese-attive</dct:identifier>
+				<dct:title xml:lang="it">Settore Ateco J - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+				<dct:description xml:lang="it">Settore Ateco J: Servizi di informazione e comunicazione - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-imprese"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Stock-Imprese.htm?f2v=9"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#j-imprese-attive-RDF">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>j-imprese-attive-datacube</dct:identifier>
+						<dct:title xml:lang="it">Settore Ateco J - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Settore Ateco J: Servizi di informazione e comunicazione - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/RDF"/>
+						<dcat:mediaType>application/rdf+xml</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;data/j-imprese-attive.rdf"/>
+						<dcat:downloadURL rdf:resource="&uri;data/j-imprese-attive.rdf"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+				<dct:isPartOf rdf:resource="#Stock-Imprese-Attive-Italia"/>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#k-imprese-attive">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>k-imprese-attive</dct:identifier>
+				<dct:title xml:lang="it">Settore Ateco K - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+				<dct:description xml:lang="it">Settore Ateco K: Attività finanziarie e assicurative - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-imprese"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Stock-Imprese.htm?f2v=10"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#k-imprese-attive-RDF">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>k-imprese-attive-datacube</dct:identifier>
+						<dct:title xml:lang="it">Settore Ateco K - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Settore Ateco K: Attività finanziarie e assicurative - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/RDF"/>
+						<dcat:mediaType>application/rdf+xml</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;data/k-imprese-attive.rdf"/>
+						<dcat:downloadURL rdf:resource="&uri;data/k-imprese-attive.rdf"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+				<dct:isPartOf rdf:resource="#Stock-Imprese-Attive-Italia"/>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#l-imprese-attive">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>l-imprese-attive</dct:identifier>
+				<dct:title xml:lang="it">Settore Ateco L - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+				<dct:description xml:lang="it">Settore Ateco L: Attività immobiliari - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-imprese"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Stock-Imprese.htm?f2v=11"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#l-imprese-attive-RDF">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>l-imprese-attive-datacube</dct:identifier>
+						<dct:title xml:lang="it">Settore Ateco L - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Settore Ateco L: Attività immobiliari - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/RDF"/>
+						<dcat:mediaType>application/rdf+xml</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;data/l-imprese-attive.rdf"/>
+						<dcat:downloadURL rdf:resource="&uri;data/l-imprese-attive.rdf"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+				<dct:isPartOf rdf:resource="#Stock-Imprese-Attive-Italia"/>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#m-imprese-attive">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>m-imprese-attive</dct:identifier>
+				<dct:title xml:lang="it">Settore Ateco M - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+				<dct:description xml:lang="it">Settore Ateco M: Attività professionali, scientifiche e tecniche - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-imprese"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Stock-Imprese.htm?f2v=12"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#m-imprese-attive-RDF">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>m-imprese-attive-datacube</dct:identifier>
+						<dct:title xml:lang="it">Settore Ateco M - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Settore Ateco M: Attività professionali, scientifiche e tecniche - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/RDF"/>
+						<dcat:mediaType>application/rdf+xml</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;data/m-imprese-attive.rdf"/>
+						<dcat:downloadURL rdf:resource="&uri;data/m-imprese-attive.rdf"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+				<dct:isPartOf rdf:resource="#Stock-Imprese-Attive-Italia"/>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#n-imprese-attive">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>n-imprese-attive</dct:identifier>
+				<dct:title xml:lang="it">Settore Ateco N - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+				<dct:description xml:lang="it">Settore Ateco N: Noleggio, agenzie di viaggio, servizi di supporto alle imprese - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-imprese"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Stock-Imprese.htm?f2v=13"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#n-imprese-attive-RDF">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>n-imprese-attive-datacube</dct:identifier>
+						<dct:title xml:lang="it">Settore Ateco N - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Settore Ateco N: Noleggio, agenzie di viaggio, servizi di supporto alle imprese - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/RDF"/>
+						<dcat:mediaType>application/rdf+xml</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;data/n-imprese-attive.rdf"/>
+						<dcat:downloadURL rdf:resource="&uri;data/n-imprese-attive.rdf"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+				<dct:isPartOf rdf:resource="#Stock-Imprese-Attive-Italia"/>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#o-imprese-attive">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>o-imprese-attive</dct:identifier>
+				<dct:title xml:lang="it">Settore Ateco O - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+				<dct:description xml:lang="it">Settore Ateco O: Amministrazione pubblica e difesa; Assicurazione sociale obbligatoria - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-imprese"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Stock-Imprese.htm?f2v=14"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#o-imprese-attive-RDF">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>o-imprese-attive-datacube</dct:identifier>
+						<dct:title xml:lang="it">Settore Ateco O - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Settore Ateco O: Amministrazione pubblica e difesa; Assicurazione sociale obbligatoria - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/RDF"/>
+						<dcat:mediaType>application/rdf+xml</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;data/o-imprese-attive.rdf"/>
+						<dcat:downloadURL rdf:resource="&uri;data/o-imprese-attive.rdf"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+				<dct:isPartOf rdf:resource="#Stock-Imprese-Attive-Italia"/>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#p-imprese-attive">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>p-imprese-attive</dct:identifier>
+				<dct:title xml:lang="it">Settore Ateco P - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+				<dct:description xml:lang="it">Settore Ateco P: Istruzione - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-imprese"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Stock-Imprese.htm?f2v=15"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#p-imprese-attive-RDF">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>p-imprese-attive-datacube</dct:identifier>
+						<dct:title xml:lang="it">Settore Ateco P - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Settore Ateco P: Istruzione - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/RDF"/>
+						<dcat:mediaType>application/rdf+xml</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;data/p-imprese-attive.rdf"/>
+						<dcat:downloadURL rdf:resource="&uri;data/p-imprese-attive.rdf"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+				<dct:isPartOf rdf:resource="#Stock-Imprese-Attive-Italia"/>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#q-imprese-attive">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>q-imprese-attive</dct:identifier>
+				<dct:title xml:lang="it">Settore Ateco Q - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+				<dct:description xml:lang="it">Settore Ateco Q: Sanità e assistenza sociale - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-imprese"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Stock-Imprese.htm?f2v=16"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#q-imprese-attive-RDF">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>q-imprese-attive-datacube</dct:identifier>
+						<dct:title xml:lang="it">Settore Ateco Q - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Settore Ateco Q: Sanità e assistenza sociale - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/RDF"/>
+						<dcat:mediaType>application/rdf+xml</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;data/q-imprese-attive.rdf"/>
+						<dcat:downloadURL rdf:resource="&uri;data/q-imprese-attive.rdf"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+				<dct:isPartOf rdf:resource="#Stock-Imprese-Attive-Italia"/>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#r-imprese-attive">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>r-imprese-attive</dct:identifier>
+				<dct:title xml:lang="it">Settore Ateco R - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+				<dct:description xml:lang="it">Settore Ateco R: Attività artistiche, sportive, di intrattenimento e divertimento - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-imprese"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Stock-Imprese.htm?f2v=17"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#r-imprese-attive-RDF">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>r-imprese-attive-datacube</dct:identifier>
+						<dct:title xml:lang="it">Settore Ateco R - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Settore Ateco R: Attività artistiche, sportive, di intrattenimento e divertimento - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/RDF"/>
+						<dcat:mediaType>application/rdf+xml</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;data/r-imprese-attive.rdf"/>
+						<dcat:downloadURL rdf:resource="&uri;data/r-imprese-attive.rdf"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+				<dct:isPartOf rdf:resource="#Stock-Imprese-Attive-Italia"/>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#s-imprese-attive">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>s-imprese-attive</dct:identifier>
+				<dct:title xml:lang="it">Settore Ateco S - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+				<dct:description xml:lang="it">Settore Ateco S: Altre attività di servizi - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-imprese"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Stock-Imprese.htm?f2v=18"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#s-imprese-attive-RDF">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>s-imprese-attive-datacube</dct:identifier>
+						<dct:title xml:lang="it">Settore Ateco S - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Settore Ateco S: Altre attività di servizi - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/RDF"/>
+						<dcat:mediaType>application/rdf+xml</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;data/s-imprese-attive.rdf"/>
+						<dcat:downloadURL rdf:resource="&uri;data/s-imprese-attive.rdf"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+				<dct:isPartOf rdf:resource="#Stock-Imprese-Attive-Italia"/>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#t-imprese-attive">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>t-imprese-attive</dct:identifier>
+				<dct:title xml:lang="it">Settore Ateco T - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+				<dct:description xml:lang="it">Settore Ateco T: Attività di famiglie e convivenze come datori di lavoro per personale domestico - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-imprese"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Stock-Imprese.htm?f2v=19"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#t-imprese-attive-RDF">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>t-imprese-attive-datacube</dct:identifier>
+						<dct:title xml:lang="it">Settore Ateco T - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Settore Ateco T: Attività di famiglie e convivenze come datori di lavoro per personale domestico - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/RDF"/>
+						<dcat:mediaType>application/rdf+xml</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;data/t-imprese-attive.rdf"/>
+						<dcat:downloadURL rdf:resource="&uri;data/t-imprese-attive.rdf"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+				<dct:isPartOf rdf:resource="#Stock-Imprese-Attive-Italia"/>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#u-imprese-attive">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>u-imprese-attive</dct:identifier>
+				<dct:title xml:lang="it">Settore Ateco U - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+				<dct:description xml:lang="it">Settore Ateco U: Organizzazioni ed organismi extraterritoriali - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-imprese"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Stock-Imprese.htm?f2v=20"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#u-imprese-attive-RDF">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>u-imprese-attive-datacube</dct:identifier>
+						<dct:title xml:lang="it">Settore Ateco U - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Settore Ateco U: Organizzazioni ed organismi extraterritoriali - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/RDF"/>
+						<dcat:mediaType>application/rdf+xml</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;data/u-imprese-attive.rdf"/>
+						<dcat:downloadURL rdf:resource="&uri;data/u-imprese-attive.rdf"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+				<dct:isPartOf rdf:resource="#Stock-Imprese-Attive-Italia"/>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#x-imprese-attive">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>x-imprese-attive</dct:identifier>
+				<dct:title xml:lang="it">Settore Ateco X - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+				<dct:description xml:lang="it">Settore Ateco X: Imprese non classificate - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-imprese"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Stock-Imprese.htm?f2v=21"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#x-imprese-attive-RDF">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>x-imprese-attive-datacube</dct:identifier>
+						<dct:title xml:lang="it">Settore Ateco X - Imprese Attive in Italia per Territorio e Tempo (frequenza mensile)</dct:title>
+						<dct:description xml:lang="it">Settore Ateco X: Imprese non classificate - Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni) e Tempo (Frequenza Mensile, Valori fine periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/RDF"/>
+						<dcat:mediaType>application/rdf+xml</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;data/x-imprese-attive.rdf"/>
+						<dcat:downloadURL rdf:resource="&uri;data/x-imprese-attive.rdf"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+				<dct:isPartOf rdf:resource="#Stock-Imprese-Attive-Italia"/>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#Persone-Attive-Italia">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>persone-attive-italia</dct:identifier>
+				<dct:title xml:lang="it">Persone con Carica Attive in Italia per Territorio Sede d’Impresa, Stato di Nascita e Tempo (frequenza trimestrale)</dct:title>
+				<dct:description xml:lang="it">Persone con Carica Attive in Italia per Territorio Sede d’Impresa (Province e Regioni), Stato di Nascita e Tempo (Frequenza Trimestrale, Valori fine periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/QUARTERLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-persone"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Persone-Attive.htm"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#PERS"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#Q"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#Persone-Attive-Italia-CSV">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>persone-attive-italia-csv</dct:identifier>
+						<dct:title xml:lang="it">Persone con Carica Attive in Italia per Territorio Sede d’Impresa, Stato di Nascita e Tempo (frequenza trimestrale)</dct:title>
+						<dct:description xml:lang="it">Persone con Carica Attive in Italia per Territorio Sede d’Impresa (Province e Regioni), Stato di Nascita e Tempo (Frequenza Trimestrale, Valori fine periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/CSV"/>
+						<dcat:mediaType>text/csv</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;Persone-Attive-Italia.csv"/>
+						<dcat:downloadURL rdf:resource="&uri;Persone-Attive-Italia.csv"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#Iscrizioni-Imprese-Italia">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>iscrizioni-imprese-italia</dct:identifier>
+				<dct:title xml:lang="it">Iscrizioni Imprese in Italia per Territorio, Settore Ateco e Tempo (flussi mensili)</dct:title>
+				<dct:description xml:lang="it">Flusso Iscrizioni Imprese in Italia per Territorio (Province e Regioni), Settore di Attività Economica (Ateco 2007) e Tempo (Frequenza Mensile, Totale Eventi nel periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-iscr-canc"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Iscrizioni-Imprese.htm"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11920"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#TOT"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#Iscrizioni-Imprese-Italia-JSON">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>iscrizioni-imprese-italia-json-stat</dct:identifier>
+						<dct:title xml:lang="it">Iscrizioni Imprese in Italia per Territorio, Settore Ateco e Tempo (flussi mensili)</dct:title>
+						<dct:description xml:lang="it">Flusso Iscrizioni Imprese in Italia per Territorio (Province e Regioni), Settore di Attività Economica (Ateco 2007) e Tempo (Frequenza Mensile, Totale Eventi nel periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/JSON"/>
+						<dcat:mediaType>application/json</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;Iscrizioni-Imprese-Italia.json"/>
+						<dcat:downloadURL rdf:resource="&uri;Iscrizioni-Imprese-Italia.json"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#Iscrizioni-Imprese-Italia-CSV">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>iscrizioni-imprese-italia-csv</dct:identifier>
+						<dct:title xml:lang="it">Iscrizioni Imprese in Italia per Territorio, Settore Ateco e Tempo (flussi mensili)</dct:title>
+						<dct:description xml:lang="it">Flusso Iscrizioni Imprese in Italia per Territorio (Province e Regioni), Settore di Attività Economica (Ateco 2007) e Tempo (Frequenza Mensile, Totale Eventi nel periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/CSV"/>
+						<dcat:mediaType>text/csv</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;Iscrizioni-Imprese-Italia.csv"/>
+						<dcat:downloadURL rdf:resource="&uri;Iscrizioni-Imprese-Italia.csv"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#Cancellazioni-Imprese-Italia">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>cancellazioni-imprese-italia</dct:identifier>
+				<dct:title xml:lang="it">Cancellazioni Imprese in Italia per Territorio, Settore Ateco e Tempo (flussi mensili)</dct:title>
+				<dct:description xml:lang="it">Flusso Cancellazioni Imprese in Italia per Territorio (Province e Regioni), Settore di Attività Economica (Ateco 2007) e Tempo (Frequenza Mensile, Totale Eventi nel periodo)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/MONTHLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-iscr-canc"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Cancellazioni-Imprese.htm"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11930"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#TOT"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#M"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#Cancellazioni-Imprese-Italia-JSON">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>cancellazioni-imprese-italia-json-stat</dct:identifier>
+						<dct:title xml:lang="it">Cancellazioni Imprese in Italia per Territorio, Settore Ateco e Tempo (flussi mensili)</dct:title>
+						<dct:description xml:lang="it">Flusso Cancellazioni Imprese in Italia per Territorio (Province e Regioni), Settore di Attività Economica (Ateco 2007) e Tempo (Frequenza Mensile, Totale Eventi nel periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/JSON"/>
+						<dcat:mediaType>application/json</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;Cancellazioni-Imprese-Italia.json"/>
+						<dcat:downloadURL rdf:resource="&uri;Cancellazioni-Imprese-Italia.json"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#Cancellazioni-Imprese-Italia-CSV">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>cancellazioni-imprese-italia-csv</dct:identifier>
+						<dct:title xml:lang="it">Cancellazioni Imprese in Italia per Territorio, Settore Ateco e Tempo (flussi mensili)</dct:title>
+						<dct:description xml:lang="it">Flusso Cancellazioni Imprese in Italia per Territorio (Province e Regioni), Settore di Attività Economica (Ateco 2007) e Tempo (Frequenza Mensile, Totale Eventi nel periodo)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/CSV"/>
+						<dcat:mediaType>text/csv</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;Cancellazioni-Imprese-Italia.csv"/>
+						<dcat:downloadURL rdf:resource="&uri;Cancellazioni-Imprese-Italia.csv"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#Bilanci-Italia-Ateco">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>bilanci-italia-ateco</dct:identifier>
+				<dct:title xml:lang="it">Indicatori di Bilancio per Settore Ateco e Annualità (dati provvisori)</dct:title>
+				<dct:description xml:lang="it">Bilanci depositati al Registro delle Imprese: Indicatori Economici e Patrimoniali per Settore di Attività Economica (Ateco 2007) e Annualità (Dati Provvisori)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/QUARTERLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-bilanci"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>bilanci</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Flussi.htm?url=http://www.mc.camcom.it/uploaded/linked-open-data/Bilanci-Italia-Ateco.json"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#BIL"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#TOT"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#A"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#Bilanci-Italia-Ateco-JSON">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>bilanci-italia-ateco-json-stat</dct:identifier>
+						<dct:title xml:lang="it">Indicatori di Bilancio per Settore Ateco e Annualità (dati provvisori)</dct:title>
+						<dct:description xml:lang="it">Bilanci depositati al Registro delle Imprese: Indicatori Economici e Patrimoniali per Settore di Attività Economica (Ateco 2007) e Annualità (Dati Provvisori)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/JSON"/>
+						<dcat:mediaType>application/json</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;Bilanci-Italia-Ateco.json"/>
+						<dcat:downloadURL rdf:resource="&uri;Bilanci-Italia-Ateco.json"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#Bilanci-Italia-Territorio">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>bilanci-italia-territorio</dct:identifier>
+				<dct:title xml:lang="it">Indicatori di Bilancio per Territorio e Annualità (dati provvisori)</dct:title>
+				<dct:description xml:lang="it">Bilanci depositati al Registro delle Imprese: Indicatori Economici e Patrimoniali per Territorio (Province e Regioni) e Annualità (Dati Provvisori)</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/QUARTERLY"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-bilanci"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>bilanci</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Flussi.htm?url=http://www.mc.camcom.it/uploaded/linked-open-data/Bilanci-Italia-Territorio.json"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#BIL"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#TOT"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#A"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#Bilanci-Italia-Territorio-JSON">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>bilanci-italia-territorio-json-stat</dct:identifier>
+						<dct:title xml:lang="it">Indicatori di Bilancio per Territorio e Annualità (dati provvisori)</dct:title>
+						<dct:description xml:lang="it">Bilanci depositati al Registro delle Imprese: Indicatori Economici e Patrimoniali per Territorio (Province e Regioni) e Annualità (Dati Provvisori)</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/JSON"/>
+						<dcat:mediaType>application/json</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2017-07-24</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;Bilanci-Italia-Territorio.json"/>
+						<dcat:downloadURL rdf:resource="&uri;Bilanci-Italia-Territorio.json"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#Stock-Imprese-Attive-Italia-2004-2008">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>stock-imprese-attive-italia-2004-2008</dct:identifier>
+				<dct:title xml:lang="it">Imprese Attive in Italia per Territorio, Settore Ateco e Tempo (frequenza trimestrale) - Anni dal 2004 al 2008</dct:title>
+				<dct:description xml:lang="it">Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni), Settore di Attività Economica (Ateco 2002) e Tempo (Frequenza Trimestrale, Valori fine periodo) - Anni dal 2004 al 2008</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2012-08-31</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/NEVER"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-imprese-2004"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Stock-Imprese.htm?url=http://www.mc.camcom.it/uploaded/linked-open-data/Stock-Imprese-Attive-Italia-2004-2008.json"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#Q"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#Stock-Imprese-Attive-Italia-2004-2008-JSON">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>stock-imprese-attive-italia-2004-2008-json-stat</dct:identifier>
+						<dct:title xml:lang="it">Imprese Attive in Italia per Territorio, Settore Ateco e Tempo (frequenza trimestrale) - Anni dal 2004 al 2008</dct:title>
+						<dct:description xml:lang="it">Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni), Settore di Attività Economica (Ateco 2002) e Tempo (Frequenza Trimestrale, Valori fine periodo) - Anni dal 2004 al 2008</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/JSON"/>
+						<dcat:mediaType>application/json</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2012-08-31</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;Stock-Imprese-Attive-Italia-2004-2008.json"/>
+						<dcat:downloadURL rdf:resource="&uri;Stock-Imprese-Attive-Italia-2004-2008.json"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#Stock-Imprese-Attive-Italia-2004-2008-CSV">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>stock-imprese-attive-italia-2004-2008-csv</dct:identifier>
+						<dct:title xml:lang="it">Imprese Attive in Italia per Territorio, Settore Ateco e Tempo (frequenza trimestrale) - Anni dal 2004 al 2008</dct:title>
+						<dct:description xml:lang="it">Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni), Settore di Attività Economica (Ateco 2002) e Tempo (Frequenza Trimestrale, Valori fine periodo) - Anni dal 2004 al 2008</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/CSV"/>
+						<dcat:mediaType>text/csv</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2012-08-31</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;Stock-Imprese-Attive-Italia-2004-2008.csv"/>
+						<dcat:downloadURL rdf:resource="&uri;Stock-Imprese-Attive-Italia-2004-2008.csv"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+
+		<dcat:dataset>
+			<dcatapit:Dataset rdf:about="#Stock-Imprese-Attive-Italia-1997-2003">
+				<rdf:type rdf:resource="&dcat;Dataset"/>
+				<dct:identifier>stock-imprese-attive-italia-1997-2003</dct:identifier>
+				<dct:title xml:lang="it">Imprese Attive in Italia per Territorio, Settore Ateco e Tempo (frequenza trimestrale) - Anni dal 1997 al 2003</dct:title>
+				<dct:description xml:lang="it">Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni), Settore di Attività Economica (Ateco 1991) e Tempo (Frequenza Trimestrale, Valori fine periodo) - Anni dal 1997 al 2003</dct:description>
+				<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+				<dct:modified rdf:datatype="&xsd;date">2012-08-31</dct:modified>
+				<dct:language rdf:resource="&mdr;language/ITA"/>
+				<dct:publisher rdf:resource="http://www.mc.camcom.it"/>
+				<dct:creator rdf:resource="http://www.mc.camcom.it"/>
+				<dct:rightsHolder rdf:resource="#RightsHolder"/>
+				<dcat:contactPoint rdf:resource="#ContactPoint"/>
+				<foaf:maker rdf:resource="#Maker"/>
+				<dct:accrualPeriodicity rdf:resource="&mdr;frequency/NEVER"/>
+				<dct:spatial rdf:resource="&mdr;country/ITA"/>
+				<geo rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/geo.rdf#IT"/>
+				<pos:lat rdf:datatype="&xsd;float">42.83333</pos:lat>
+				<pos:long rdf:datatype="&xsd;float">12.83333</pos:long>
+				<dct:temporal rdf:resource="#time-imprese-1997"/>
+				<dcat:theme rdf:resource="&mdr;data-theme/ECON"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100188"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100226"/>
+				<dct:subject rdf:resource="http://eurovoc.europa.eu/100227"/>
+				<dcat:keyword>imprese</dcat:keyword>
+				<dcat:keyword>economia</dcat:keyword>
+				<dcat:keyword>statistica</dcat:keyword>
+				<dcat:keyword>settori-economici</dcat:keyword>
+				<dcat:landingPage rdf:resource="http://www.mc.camcom.it/uploaded/Allegati/Promozione/Charts/Open-Data-Stock-Imprese.htm?url=http://www.mc.camcom.it/uploaded/linked-open-data/Stock-Imprese-Attive-Italia-1997-2003.json"/>
+				<indic rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/indic.rdf#V11910"/>
+				<otp rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/otp.rdf#END"/>
+				<freq rdf:resource="http://www.mc.camcom.it/uploaded/linked-open-data/data/freq.rdf#Q"/>
+				<foaf:depiction rdf:resource="&img;"/>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#Stock-Imprese-Attive-Italia-1997-2003-JSON">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>stock-imprese-attive-italia-1997-2003-json-stat</dct:identifier>
+						<dct:title xml:lang="it">Imprese Attive in Italia per Territorio, Settore Ateco e Tempo (frequenza trimestrale) - Anni dal 1997 al 2003</dct:title>
+						<dct:description xml:lang="it">Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni), Settore di Attività Economica (Ateco 1991) e Tempo (Frequenza Trimestrale, Valori fine periodo) - Anni dal 1997 al 2003</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/JSON"/>
+						<dcat:mediaType>application/json</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2012-08-31</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;Stock-Imprese-Attive-Italia-1997-2003.json"/>
+						<dcat:downloadURL rdf:resource="&uri;Stock-Imprese-Attive-Italia-1997-2003.json"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+
+				<dcat:distribution>
+					<dcatapit:Distribution rdf:about="#Stock-Imprese-Attive-Italia-1997-2003-CSV">
+						<rdf:type rdf:resource="&dcat;Distribution"/>
+						<dct:identifier>stock-imprese-attive-italia-1997-2003-csv</dct:identifier>
+						<dct:title xml:lang="it">Imprese Attive in Italia per Territorio, Settore Ateco e Tempo (frequenza trimestrale) - Anni dal 1997 al 2003</dct:title>
+						<dct:description xml:lang="it">Stock Sedi di Impresa Attive in Italia per Territorio (Province e Regioni), Settore di Attività Economica (Ateco 1991) e Tempo (Frequenza Trimestrale, Valori fine periodo) - Anni dal 1997 al 2003</dct:description>
+						<dct:format rdf:resource="&mdr;file-type/CSV"/>
+						<dcat:mediaType>text/csv</dcat:mediaType>
+						<dct:issued rdf:datatype="&xsd;date">2012-08-31</dct:issued>
+						<dct:modified rdf:datatype="&xsd;date">2012-08-31</dct:modified>
+						<dct:license rdf:resource="http://creativecommons.org/licenses/by/4.0/"/>
+						<dcat:accessURL rdf:resource="&uri;Stock-Imprese-Attive-Italia-1997-2003.csv"/>
+						<dcat:downloadURL rdf:resource="&uri;Stock-Imprese-Attive-Italia-1997-2003.csv"/>
+						<foaf:depiction rdf:resource="&img;"/>
+					</dcatapit:Distribution>
+				</dcat:distribution>
+
+			</dcatapit:Dataset>
+		</dcat:dataset>
+	</dcatapit:Catalog>
+
+
+	<!-- Temporal -->
+
+	<dct:PeriodOfTime rdf:about="#time-imprese">
+		<rdf:type rdf:resource="&time;Interval"/>
+		<schema:startDate rdf:datatype="&xsd;date">2009-03-31</schema:startDate>
+		<schema:endDate rdf:datatype="&xsd;date">2017-06-30</schema:endDate>
+	</dct:PeriodOfTime>
+
+	<dct:PeriodOfTime rdf:about="#time-imprese-ateco">
+		<rdf:type rdf:resource="&time;Interval"/>
+		<schema:startDate rdf:datatype="&xsd;date">2009-03-31</schema:startDate>
+		<schema:endDate rdf:datatype="&xsd;date">2017-06-30</schema:endDate>
+	</dct:PeriodOfTime>
+
+	<dct:PeriodOfTime rdf:about="#time-imprese-var">
+		<rdf:type rdf:resource="&time;Interval"/>
+		<schema:startDate rdf:datatype="&xsd;date">2010-03-31</schema:startDate>
+		<schema:endDate rdf:datatype="&xsd;date">2017-06-30</schema:endDate>
+	</dct:PeriodOfTime>
+
+	<dct:PeriodOfTime rdf:about="#time-proc-fall">
+		<rdf:type rdf:resource="&time;Interval"/>
+		<schema:startDate rdf:datatype="&xsd;date">2012-01-01</schema:startDate>
+		<schema:endDate rdf:datatype="&xsd;date">2017-06-30</schema:endDate>
+	</dct:PeriodOfTime>
+
+	<dct:PeriodOfTime rdf:about="#time-iscr-canc">
+		<rdf:type rdf:resource="&time;Interval"/>
+		<schema:startDate rdf:datatype="&xsd;date">2009-04-01</schema:startDate>
+		<schema:endDate rdf:datatype="&xsd;date">2017-06-30</schema:endDate>
+	</dct:PeriodOfTime>
+
+	<dct:PeriodOfTime rdf:about="#time-imprese-anno">
+		<rdf:type rdf:resource="&time;Instant"/>
+		<schema:startDate rdf:datatype="&xsd;date">2017-06-30</schema:startDate>
+	</dct:PeriodOfTime>
+
+	<dct:PeriodOfTime rdf:about="#time-persone">
+		<rdf:type rdf:resource="&time;Interval"/>
+		<schema:startDate rdf:datatype="&xsd;date">2000-03-31</schema:startDate>
+		<schema:endDate rdf:datatype="&xsd;date">2017-06-30</schema:endDate>
+	</dct:PeriodOfTime>
+
+	<dct:PeriodOfTime rdf:about="#time-bilanci">
+		<rdf:type rdf:resource="&time;Interval"/>
+		<schema:startDate rdf:datatype="&xsd;date">2007-01-01</schema:startDate>
+		<schema:endDate rdf:datatype="&xsd;date">2017-06-30</schema:endDate>
+	</dct:PeriodOfTime>
+
+	<dct:PeriodOfTime rdf:about="#time-imprese-1997">
+		<rdf:type rdf:resource="&time;Interval"/>
+		<schema:startDate rdf:datatype="&xsd;date">1997-03-31</schema:startDate>
+		<schema:endDate rdf:datatype="&xsd;date">2003-12-31</schema:endDate>
+	</dct:PeriodOfTime>
+
+	<dct:PeriodOfTime rdf:about="#time-imprese-2004">
+		<rdf:type rdf:resource="&time;Interval"/>
+		<schema:startDate rdf:datatype="&xsd;date">2004-03-31</schema:startDate>
+		<schema:endDate rdf:datatype="&xsd;date">2008-12-31</schema:endDate>
+	</dct:PeriodOfTime>
+
+
+	<!-- Common -->
+
+	<skos:ConceptScheme rdf:about="&mdr;data-theme">
+		<dct:title xml:lang="it">Il Vocabolario Data Theme</dct:title>
+	</skos:ConceptScheme>
+
+	<skos:Concept rdf:about="&mdr;data-theme/ECON">
+		<skos:prefLabel xml:lang="it">Economia e finanze</skos:prefLabel>
+	</skos:Concept>
+
+	<skos:Concept rdf:about="http://eurovoc.europa.eu/100188">
+		<skos:prefLabel xml:lang="it">struttura economica</skos:prefLabel>
+	</skos:Concept>
+
+	<skos:Concept rdf:about="http://eurovoc.europa.eu/100226">
+		<skos:prefLabel xml:lang="it">organizzazione aziendale</skos:prefLabel>
+	</skos:Concept>
+
+	<skos:Concept rdf:about="http://eurovoc.europa.eu/100227">
+		<skos:prefLabel xml:lang="it">tipo d'impresa</skos:prefLabel>
+	</skos:Concept>
+
+	<dcatapit:LicenseDocument rdf:about="http://creativecommons.org/licenses/by/4.0/">
+		<rdf:type rdf:resource="&dct;LicenseDocument"/>
+		<dct:type rdf:resource="http://purl.org/adms/licencetype/Attribution"/>
+		<foaf:name>CC BY</foaf:name>
+		<owl:versionInfo>4.0</owl:versionInfo>
+	</dcatapit:LicenseDocument>
+
+	<dcatapit:Agent rdf:about="http://www.mc.camcom.it">
+		<rdf:type rdf:resource="&foaf;Agent"/>
+		<dct:type rdf:resource="http://purl.org/adms/publishertype/LocalAuthority"/>
+		<dct:identifier>cciaa_mc</dct:identifier>
+		<foaf:name>Camera di Commercio di Macerata</foaf:name>
+		<foaf:mbox rdf:resource="mailto:promozione@mc.camcom.it"/>
+		<foaf:homepage rdf:resource="http://www.mc.camcom.it"/>
+		<foaf:phone rdf:resource="tel:+39-0733-2511" />
+	</dcatapit:Agent>
+
+	<dcatapit:Agent rdf:about="#RightsHolder">
+		<rdf:type rdf:resource="&foaf;Agent"/>
+		<dct:type rdf:resource="http://purl.org/adms/publishertype/NationalAuthority"/>
+		<dct:identifier>UICCIAA</dct:identifier>
+		<foaf:name>Sistema Camerale - Unione Italiana delle Camere di Commercio Industria, Artigianato e Agricoltura</foaf:name>
+		<foaf:homepage rdf:resource="http://www.unioncamere.it"/>
+	</dcatapit:Agent>
+
+	<dcatapit:Organization rdf:about="#ContactPoint">
+		<rdf:type rdf:resource="http://www.w3.org/2006/vcard/ns#Organization"/>
+		<rdf:type rdf:resource="http://www.w3.org/2006/vcard/ns#Kind"/>
+		<vcard:fn>Camera di Commercio di Macerata - Area Promozione</vcard:fn>
+		<vcard:hasEmail rdf:resource="mailto:promozione@mc.camcom.it"/>
+		<vcard:hasURL rdf:resource="http://www.mc.camcom.it"/>
+		<vcard:hasTelephone rdf:resource="#Telephone"/>
+	</dcatapit:Organization>
+
+	<vcard:Voice rdf:about="#Telephone">
+		<vcard:hasValue rdf:resource="tel:+3907332511"/>
+	</vcard:Voice>
+
+	<foaf:Person rdf:about="#Maker">
+		<foaf:name>Fabio Castelletti</foaf:name>
+		<foaf:mbox rdf:resource="mailto:fabio.castelletti@mc.camcom.it"/>
+		<foaf:OnlineAccount rdf:resource="http://twitter.com/zabov"/>
+	</foaf:Person>
+
+
+</rdf:RDF>

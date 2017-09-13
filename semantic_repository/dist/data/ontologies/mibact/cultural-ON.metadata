@@ -1,0 +1,5 @@
+prefix: "culton"
+uri: "http://dati.beniculturali.it/cultural-on/"
+contexts: [
+	"http://dati.beniculturali.it/cultural-on/"
+]

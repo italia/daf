@@ -1,0 +1,5 @@
+prefix: "dcatapit"
+uri: "http://dati.gov.it/ontologies/dcat-ap-it/"
+contexts: [
+	"http://dati.gov.it/ontologies/dcat-ap-it/"
+]

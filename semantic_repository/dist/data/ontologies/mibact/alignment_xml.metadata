@@ -1,0 +1,5 @@
+prefix: "cultonlnk"
+uri: "http://dati.beniculturali.it/cultural-on/alignment/"
+contexts: [
+	"http://dati.beniculturali.it/cultural-on/alignment/"
+]

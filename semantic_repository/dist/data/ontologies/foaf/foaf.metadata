@@ -1,0 +1,5 @@
+prefix : "foaf"
+uri: "http://xmlns.com/foaf/0.1/"
+contexts: [
+	"http://xmlns.com/foaf/0.1/"
+]

@@ -1,0 +1,9 @@
+# all the triples using named graphs & contexts...
+SELECT DISTINCT * 
+FROM <> 
+FROM <http://graph>
+WHERE {
+	GRAPH <http://graph> {
+	?s ?p ?o
+}
+}

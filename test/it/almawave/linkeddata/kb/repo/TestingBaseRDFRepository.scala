@@ -16,8 +16,7 @@ import java.io.File
 import org.junit.Assume
 
 import it.almawave.linkeddata.kb.utils.RDF4JAdapters._
-import it.almawave.linkeddata.kb.repo.RDFRepository;
-import it.almawave.linkeddata.kb.repo.RDFRepositoryBase
+import it.almawave.linkeddata.kb.utils.TryHandlers._
 
 /*
  * basic tests for the RDFRepository instances
@@ -54,7 +53,7 @@ abstract class TestingBaseRDFRepository {
   @Before()
   def before() {
 
-    org.junit.Assume.assumeTrue(mock.isAlive())
+    org.junit.Assume.assumeTrue(mock.isAlive().get)
 
     mock.start()
     mock.store.clear()

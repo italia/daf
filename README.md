@@ -38,7 +38,8 @@ SEE: [teamdigitale/daf](https://github.com/teamdigitale/daf)
 	```
 	$ sbt clean dist
 	$ unzip -o -d  target/universal/ target/universal/semantic_repository-0.1.0.zip
-	$ target/universal/semantic_repository-0.1.0/bin/semantic-repository  -Dconfig.file=./conf/application.conf
+	$ cd target/universal/semantic_repository-0.1.0
+	$ bin/semantic-repository -Dconfig.file=./conf/application.conf
 	```
 
 	**NOTE**: if the application crashed, the pid file whould be deleted before attempting re-run 

@@ -25,11 +25,14 @@ class RDFFileManager(kbrepo: RDFRepositoryBase) {
 
   // TODO: refactorize configurations
   private val _conf = ConfigFactory.parseString("""
-      import.formats = [ "owl", "rdf", "ttl", "nt" ]
-    """)
+    import.formats = [ "owl", "rdf", "ttl", "nt" ]
+  """)
 
   val default_format = RDFFormat.TURTLE
 
+  /**
+   * adding an RDF file (ontology/vocabulary)
+   */
   def addFile(rdfName: String, rdfFileFromInput: File, prefix: String, context: String) {
 
     TryLog {

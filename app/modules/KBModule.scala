@@ -19,8 +19,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import java.nio.file.Paths
 import play.api.Mode
 import java.io.File
-import modules.clients.OntonethubClient
 import it.almawave.linkeddata.kb.repo.RDFRepository
+import com.typesafe.config.ConfigFactory
 
 @ImplementedBy(classOf[KBModuleBase])
 trait KBModule
@@ -30,9 +30,6 @@ class KBModuleBase @Inject() (lifecycle: ApplicationLifecycle) extends KBModule 
 
   // TODO: SPI per dev / prod
   val kbrepo = RDFRepository.memory()
-  //  val kbrepo = RDFRepository.virtuoso()
-
-  val ontonethub = OntonethubClient
 
   // when application starts...
   @Inject
@@ -41,11 +38,17 @@ class KBModuleBase @Inject() (lifecycle: ApplicationLifecycle) extends KBModule 
     env: Environment,
     configuration: Configuration)(implicit ec: ExecutionContext) {
 
-    kbrepo.configuration(configuration.getConfig("kb").get.underlying)
+    val kbconf = configuration.getConfig("kb")
+      .getOrElse(Configuration.empty)
+      .underlying
+
+    kbrepo.configuration(kbconf)
     val conf = kbrepo.configuration()
 
     Logger.info("KBModule.START....")
     Logger.debug("KBModule using configuration:\n" + ConfigHelper.pretty(conf))
+
+    println("KBModule using configuration:\n" + ConfigHelper.pretty(conf))
 
     // this is needed for ensure proper connection(s) etc
     kbrepo.start()
@@ -54,7 +57,8 @@ class KBModuleBase @Inject() (lifecycle: ApplicationLifecycle) extends KBModule 
     kbrepo.prefixes.clear()
     kbrepo.prefixes.add(kbrepo.prefixes.DEFAULT.toList: _*)
 
-    kbrepo.io.importFrom(conf.getString("cache"))
+    if (conf.hasPath("cache"))
+      kbrepo.io.importFrom(conf.getString("cache"))
 
     // CHECK the initial (total) triples count
     var triples = kbrepo.store.size()

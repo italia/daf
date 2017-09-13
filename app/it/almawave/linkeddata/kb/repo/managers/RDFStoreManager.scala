@@ -10,6 +10,8 @@ import org.eclipse.rdf4j.model.Model
 import it.almawave.linkeddata.kb.utils.TryHandlers._
 import it.almawave.linkeddata.kb.utils.RDF4JAdapters._
 import it.almawave.linkeddata.kb.repo.RepositoryAction
+import scala.concurrent.Future
+import org.eclipse.rdf4j.model.Statement
 
 /*
  * this component can be seen as an RDF datastore abstraction
@@ -18,7 +20,7 @@ class RDFStoreManager(repo: Repository) {
 
   implicit val logger = LoggerFactory.getLogger(this.getClass)
 
-  def clear(contexts: String*) {
+  def clear(contexts: String*) = {
 
     RepositoryAction(repo) { conn =>
 
@@ -39,18 +41,17 @@ class RDFStoreManager(repo: Repository) {
 
   def contexts(): Try[Seq[String]] = {
 
-    val results = RepositoryAction(repo) { conn =>
+    RepositoryAction(repo) { conn =>
 
       conn.getContextIDs.map { ctx => ctx.stringValue() }.toList
 
     }(s"KB:RDF> cannot retrieve contexts list")
 
-    results
   }
 
   def size(contexts: String*): Try[Long] = {
 
-    val size = RepositoryAction(repo) { conn =>
+    RepositoryAction(repo) { conn =>
 
       if (contexts.size > 0)
         conn.size(contexts.toIRIList: _*)
@@ -60,23 +61,20 @@ class RDFStoreManager(repo: Repository) {
 
     }(s"can't obtain size for contexts: ${contexts.mkString(" | ")}")
 
-    size
   }
 
-  def statements(s: Resource, p: IRI, o: Value, inferred: Boolean, contexts: String*) = {
+  def statements(s: Resource, p: IRI, o: Value, inferred: Boolean, contexts: String*): Try[Stream[Statement]] = {
 
     // CHECK: not efficient! (reference to stream head!)
-    val results = RepositoryAction(repo) { conn =>
+    RepositoryAction(repo) { conn =>
 
       conn.getStatements(null, null, null, false, contexts.toIRIList: _*).toStream
 
     }(s"cannot get statements for ${contexts.mkString(" | ")}")
 
-    results
-
   }
 
-  def add(doc: Model, contexts: String*) {
+  def add(doc: Model, contexts: String*) = {
 
     RepositoryAction(repo) { conn =>
 
@@ -88,7 +86,7 @@ class RDFStoreManager(repo: Repository) {
 
   }
 
-  def remove(doc: Model, contexts: String*) {
+  def remove(doc: Model, contexts: String*) = {
 
     RepositoryAction(repo) { conn =>
 

@@ -16,9 +16,10 @@ val playVersion = "2.5.14"
 // default port
 PlayKeys.playDefaultPort := 8888
 
+
 lazy val root = (project in file(".")).enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser)
 
-scalaVersion in ThisBuild := "2.11.8"
+scalaVersion := "2.11.8"
 
 crossPaths := false
 
@@ -49,13 +50,9 @@ libraryDependencies ++= Seq(
 // "org.eclipse.rdf4j" % "rdf4j-sail-solr" % "2.2.2", 
 // "org.apache.solr" % "solr-solrj" % "5.1.0", 
 // "org.apache.solr" % "solr-core" % "5.1.0", 
-// TODO: jdk.tools
-  
-  // DISABLED: now copied source internally. CHECK sub-modules?
-  // "it.awave.kb" % "kb-core" % "0.0.1", // CHECK: see how to point to maven local!
-  // "it.almawave.linkeddata.kb" % "kb-core_2.11" % "0.0.1"  cross CrossVersion.Disabled ,
-  // withSources() withJavadoc() cross CrossVersion.full 
-  
+
+	// TODO: jdk.tools
+	//CHECK: withSources() withJavadoc() cross CrossVersion.full 
   "ch.qos.logback" % "logback-classic" % "1.2.3" % "test"
  
 )
@@ -90,7 +87,7 @@ apiFirstParsers := Seq(ApiFirstSwaggerParser.swaggerSpec2Ast.value).flatten
 
 // play.modules.enabled += "modules.OnStartupModule"
 
-playScalaAutogenerateTests := false
+playScalaAutogenerateTests := true
 
 headers := Map(
   "sbt" -> Apache2_0("2017", "TEAM PER LA TRASFORMAZIONE DIGITALE"),
@@ -110,7 +107,7 @@ dockerCommands := dockerCommands.value.flatMap {
 }
 
 dockerCommands += ExecCmd("ENTRYPOINT", s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
-dockerExposedPorts := Seq(9000)
+dockerExposedPorts := Seq(8888)
 dockerRepository := Option("10.98.74.120:5000")
 
 

@@ -21,7 +21,7 @@ protected class GraphManager(repo: Repository) {
   val MAX_EXEC_TIME = 120000
   val INCLUDE_INFERRED = false
 
-  def exists(IRIref: IRI): Boolean = {
+  def exists(IRIref: IRI): Try[Boolean] = {
 
     val query = s"""
       ASK { 
@@ -43,7 +43,7 @@ protected class GraphManager(repo: Repository) {
 
       result
 
-    }(s"SPARQL> problems executing query:\n${query}").isSuccess
+    }(s"SPARQL> problems executing query:\n${query}")
 
   }
 

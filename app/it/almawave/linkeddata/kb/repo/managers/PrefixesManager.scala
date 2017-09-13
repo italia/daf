@@ -7,11 +7,15 @@ import org.slf4j.LoggerFactory
 import it.almawave.linkeddata.kb.utils.TryHandlers._
 import it.almawave.linkeddata.kb.utils.RDF4JAdapters._
 import it.almawave.linkeddata.kb.repo.RepositoryAction
+import scala.concurrent.Future
 
 class PrefixesManager(repo: Repository) {
 
   implicit val logger = LoggerFactory.getLogger(this.getClass)
 
+  /**
+   * clearing namespaces
+   */
   def clear() = {
 
     RepositoryAction(repo) { conn =>
@@ -22,6 +26,9 @@ class PrefixesManager(repo: Repository) {
 
   }
 
+  /**
+   * adding prefix/namespace pairs
+   */
   def add(namespaces: (String, String)*) {
 
     RepositoryAction(repo) { conn =>
@@ -33,6 +40,9 @@ class PrefixesManager(repo: Repository) {
 
   }
 
+  /**
+   * removing prefix/namespace pairs
+   */
   def remove(namespaces: (String, String)*) {
 
     RepositoryAction(repo) { conn =>
@@ -44,18 +54,18 @@ class PrefixesManager(repo: Repository) {
 
   }
 
-  // get prefixes
+  /**
+   * gets a map of prefixes
+   */
   def list(): Try[Map[String, String]] = {
 
-    val results = RepositoryAction(repo) { conn =>
+    RepositoryAction(repo) { conn =>
 
       conn.getNamespaces.toList
         .map { ns => (ns.getPrefix, ns.getName) }
         .toMap
 
     }("cannot retrieve a list of prefixes")
-
-    results
 
   }
 

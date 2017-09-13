@@ -8,7 +8,7 @@ SEE: [teamdigitale/daf](https://github.com/teamdigitale/daf)
 
 1. local publish of dependencies
 
-	1.2. virtuoso JDBC / RDF4J jar
+	1.1 virtuoso JDBC / RDF4J jar
 
 	The dependencies for virtuoso integration are currently not yet published on the maven central, so they are linked using the convetional `lib` folder in the sbt project:
 
@@ -19,7 +19,7 @@ SEE: [teamdigitale/daf](https://github.com/teamdigitale/daf)
 	│   └───virt_rdf4j.jar
 	```
 
-	We could avoid this if/when the libraries will be published, or by publishing them on a private nexus.
+	We could avoid this if/when the libraries will be published, or by publishing them, for example on a private nexus.
 
 2. compile / package
 
@@ -33,7 +33,7 @@ SEE: [teamdigitale/daf](https://github.com/teamdigitale/daf)
 	$ sbt run 
 	```
 
-4. (local) deploy
+4. (local, manual) deploy
 
 	```
 	$ sbt clean dist
@@ -50,8 +50,21 @@ SEE: [teamdigitale/daf](https://github.com/teamdigitale/daf)
 
 5. release
 
-	working draft: [0.0.1](https://github.com/seralf/semantic_repository/releases/tag/0.1.0)
+	working draft: [0.1.0](https://github.com/seralf/semantic_repository/releases/tag/0.1.0)
 
+6. preparing docker image with sbt (manually)
+
+	```bash
+	$ sbt docker:publishLocal 
+	```
+	
+	after this command, will be generated an image including the deployed application, and published on the local docker system.
+	The generated image should be used for starting a new container, exposing the ports with a command similar to the following one:
+	
+	```
+	$ sbt docker run -d -p 8888:9000 {docker-image-id}
+	```
+	
 
 * * *
 
@@ -75,7 +88,7 @@ val map: Map[String, Object] = bs.toMap()
 It's possible to simplify the code used for interacting with the underling RDF4J Repository instance, focusing on the actual code, using the `RepositoryAction` construct like in the following example:
 
 ```scala
-import it.almawave.kb.utils.TryHandlers._
+import it.almawave.kb.utils.Handlers._
 
 ...
 
@@ -106,7 +119,7 @@ def clear_all() {
 
 ## TODO
 
-- [ ] move TryLog to FutureWithLog
+- [ ] move from usage of TryLog to FutureWithLog
 - [ ] switch to new name conventions: `semantic_*`, merge into main daf.
 	NOTE: consider using `git subtree` for the local fork
 - [ ] publish `kb-core` (changing name conventions) on github / bitbucket or as sub-module

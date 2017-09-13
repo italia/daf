@@ -7,6 +7,7 @@ import org.eclipse.rdf4j.query.QueryLanguage
 import it.almawave.linkeddata.kb.utils.TryHandlers._
 import it.almawave.linkeddata.kb.utils.RDF4JAdapters._
 import it.almawave.linkeddata.kb.repo.RepositoryAction
+import scala.concurrent.Future
 
 /*
  * this part can be seen as a sparql datastore abstraction
@@ -20,7 +21,7 @@ class SPARQLManager(repo: Repository) {
 
   def query(query: String): Try[Seq[Map[String, Object]]] = {
 
-    val results = RepositoryAction(repo) { conn =>
+    RepositoryAction(repo) { conn =>
 
       // CHECK: not efficient!
       conn.prepareTupleQuery(QueryLanguage.SPARQL, query)
@@ -30,7 +31,6 @@ class SPARQLManager(repo: Repository) {
 
     }(s"SPARQL> cannot execute query ${query}")
 
-    results
   }
 
 }

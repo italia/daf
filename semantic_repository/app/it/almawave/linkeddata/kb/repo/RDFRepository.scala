@@ -24,8 +24,9 @@ import it.almawave.linkeddata.kb.repo.managers.RDFFileManager
 import it.almawave.linkeddata.kb.repo.managers.RDFStoreManager
 import it.almawave.linkeddata.kb.repo.managers.PrefixesManager
 import it.almawave.linkeddata.kb.repo.managers.SPARQLManager
-import it.almawave.linkeddata.kb.utils.TryHandlers.FutureWithLog
 import scala.concurrent.Future
+import it.almawave.linkeddata.kb.utils.TryHandlers.FutureWithLog
+import scala.util.Try
 
 object RDFRepository {
 
@@ -122,7 +123,6 @@ class RDFRepositoryBase(repo: Repository) {
   implicit val logger = LoggerFactory.getLogger(this.getClass)
 
   // CHECK: providing custom implementation for BN
-  var vf: ValueFactory = SimpleValueFactory.getInstance
 
   private var conf = ConfigFactory.empty()
 
@@ -133,9 +133,9 @@ class RDFRepositoryBase(repo: Repository) {
   def configuration(): Config = conf
 
   // checking if the repository is up.
-  def isAlive(): Future[Boolean] = {
+  def isAlive(): Try[Boolean] = {
 
-    FutureWithLog {
+    TryLog {
 
       if (!repo.isInitialized()) repo.initialize()
       repo.getConnection.close()
@@ -153,13 +153,11 @@ class RDFRepositoryBase(repo: Repository) {
       if (!repo.isInitialized())
         repo.initialize()
 
-      vf = repo.getValueFactory
-
     }(s"KB:RDF> cannot start repository!")
 
   }
 
-  def stop() {
+  def stop() = {
 
     TryLog {
 

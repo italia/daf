@@ -6,6 +6,7 @@ import scala.util.Failure
 import scala.util.Try
 import org.eclipse.rdf4j.repository.Repository
 import scala.util.Success
+import scala.concurrent.Future
 
 /*
    * this could be useful for simplifying code: 
@@ -14,7 +15,7 @@ import scala.util.Success
    */
 object RepositoryAction {
 
-  def apply[R](repo: Repository)(conn_action: (RepositoryConnection => Any))(msg_err: String)(implicit logger: Logger) = {
+  def apply[R](repo: Repository)(conn_action: (RepositoryConnection => Any))(msg_err: String)(implicit logger: Logger): Try[R] = {
 
     // NOTE: we could imagine using a connection pool here
     val _conn = repo.getConnection
@@ -38,6 +39,9 @@ object RepositoryAction {
     }
 
     _conn.close()
+
+    // gets the result as a Future
+    //  TODO:  Future.fromTry(results)
 
     results
   }

@@ -173,7 +173,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 package semantic_repository.yaml {
     // ----- Start of unmanaged code area for package Semantic_repositoryYaml
-                                                                                
+                                                                                        
     // ----- End of unmanaged code area for package Semantic_repositoryYaml
     class Semantic_repositoryYaml @Inject() (
         // ----- Start of unmanaged code area for injections Semantic_repositoryYaml

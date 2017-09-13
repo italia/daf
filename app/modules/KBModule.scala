@@ -57,8 +57,9 @@ class KBModuleBase @Inject() (lifecycle: ApplicationLifecycle) extends KBModule 
     kbrepo.prefixes.clear()
     kbrepo.prefixes.add(kbrepo.prefixes.DEFAULT.toList: _*)
 
-    if (conf.hasPath("cache"))
-      kbrepo.io.importFrom(conf.getString("cache"))
+    // CHECK for pre-loading of ontologies
+    //    if (conf.hasPath("cache"))
+    //      kbrepo.io.importFrom(conf.getString("cache"))
 
     // CHECK the initial (total) triples count
     var triples = kbrepo.store.size()

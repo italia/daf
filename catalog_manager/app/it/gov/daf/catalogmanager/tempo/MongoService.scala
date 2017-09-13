@@ -7,8 +7,7 @@ import com.mongodb.casbah.{MongoClient, MongoCollection}
 import com.mongodb.{BasicDBObject, MongoCredential, ServerAddress}
 import com.mongodb.casbah.commons.MongoDBObject
 import it.gov.daf.catalogmanager.utilities.ConfigReader
-import it.gov.daf.catalogmanager.utilities.Prova3.{credentials, server}
-import play.api.libs.json.{JsString, JsValue, Json}
+import play.api.libs.json.{JsValue, Json}
 
 object MongoService {
 
@@ -17,6 +16,7 @@ object MongoService {
   private val userName = ConfigReader.userName
   private val dbName = ConfigReader.database
   private val password = ConfigReader.password
+  private val credentials = MongoCredential.createCredential(userName, dbName, password.toCharArray)
   private val USER_COLLECTION_NAME = "PreRegistratedUsers"
   private val PRE_REGISTRATION_TTL = 60*60*2
 

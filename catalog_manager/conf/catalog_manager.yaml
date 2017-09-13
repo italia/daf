@@ -700,6 +700,60 @@ paths:
           description: Error Message
           schema:
             $ref: '#/definitions/Error'
+  "/ipa/registration/request":
+    post:
+      tags:
+        - IPA
+      description: Handle a user registration request
+      operationId: registrationrequest
+      security:
+      - basicAuth: []
+      produces:
+      - application/json
+      parameters:
+      - name: user
+        in: body
+        description: User
+        required: true
+        schema:
+          #type: object
+          $ref: '#/definitions/IpaUser'
+      responses:
+        200:
+          description: Success
+          schema:
+            #type: object
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+  "/ipa/registration/confirm":
+    get:
+      security:
+      - basicAuth: []
+      tags:
+        - IPA
+      description: Confirm registration
+      operationId: registrationconfirm
+      produces:
+      - application/json
+      parameters:
+      - name: token
+        in: query
+        description: Confirmation token
+        required: true
+        type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            #type: object
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
   "/ipa/user/{uid}":
     get:
       security:

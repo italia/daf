@@ -25,6 +25,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import it.gov.daf.catalogmanager.utilities.WebServiceUtil
 import scala.concurrent.Future
 import it.gov.daf.catalogmanager.tempo.ApiClientIPA
+import it.gov.daf.catalogmanager.tempo.RegistrationService
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -33,7 +34,7 @@ import it.gov.daf.catalogmanager.tempo.ApiClientIPA
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                                                                                                                                                                                                                                                                        
+                                                                                                                                                                                                                                                                                                                        
 
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
@@ -52,6 +53,14 @@ package catalog_manager.yaml {
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.autocompletedummy
             NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.autocompletedummy
+        }
+        val registrationconfirm = registrationconfirmAction { (token: String) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.registrationconfirm
+            RegistrationService.createUser(token) flatMap {
+                case Right(success) => Registrationconfirm200(success)
+                case Left(err) => Registrationconfirm500(err)
+            }
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.registrationconfirm
         }
         val searchdataset = searchdatasetAction { input: (MetadataCat, MetadataCat, ResourceSize) =>
             val (q, sort, rows) = input
@@ -338,6 +347,19 @@ package catalog_manager.yaml {
                 case Left(error) => GetckanorganizationList401(error)
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.getckanorganizationList
+        }
+        val registrationrequest = registrationrequestAction { (user: IpaUser) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.registrationrequest
+            val reg = RegistrationService.requestRegistration(user) match {
+                case Right(mailService) => Right(mailService.sendMail())
+                case Left(msg) => Left(Future{msg})
+            }
+
+            reg match {
+                case Right(r) => r.flatMap{ msg => Registrationrequest200( Success(Some("Success"), Some(msg)) ) }
+                case Left(l) => l.flatMap{ msg => Registrationrequest500( Error(None,Option(msg),None) ) }
+            }
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.registrationrequest
         }
     
      // Dead code for absent methodCatalog_managerYaml.tempo

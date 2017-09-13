@@ -160,14 +160,14 @@ object ApiClientIPA {
                                        "method":"user_add",
                                        "params":[
                                           [
-                                             "${user.uid.get}"
+                                             "${user.uid}"
                                           ],
                                           {
-                                             "cn":"${user.givenname.get + " " + user.sn.get}",
-                                             "displayname":"${user.givenname.get + " " + user.sn.get}",
-                                             "givenname":"${user.givenname.get}",
-                                             "sn":"${user.sn.get}",
-                                             "mail":"${user.mail.get}",
+                                             "cn":"${user.givenname + " " + user.sn}",
+                                             "displayname":"${user.givenname + " " + user.sn}",
+                                             "givenname":"${user.givenname}",
+                                             "sn":"${user.sn}",
+                                             "mail":"${user.mail}",
                                              "userpassword":"${user.userpassword.get}",
 
                                              "no_members":false,
@@ -187,7 +187,7 @@ object ApiClientIPA {
       val result = (json \ "result").getOrElse(JsString("null")).toString()
 
       if (result != "null") {
-        loginCkan(user.uid.get, user.userpassword.get).map { _ =>
+        loginCkan(user.uid, user.userpassword.get).map { _ =>
           Right(Success(Some("User created"), Some("ok")))
         }
       } else Future { Left( Error(None,Some(readIpaErrorMessage(json)),None) ) }
@@ -218,18 +218,15 @@ object ApiClientIPA {
 
       val result = ((json \ "result") \"result")//.getOrElse(JsString("null")).toString()
 
-
-
-
       if( result!= "null" )
 
         Right(
           IpaUser(
-            (result \ "sn")(0).asOpt[String],
-            (result \ "givenname").asOpt[String],
-            (result \ "mail")(0).asOpt[String],
-            None,
-            (result \ "uid")(0).asOpt[String]
+            (result \ "sn")(0).asOpt[String].getOrElse(""),
+            (result \ "givenname")(0).asOpt[String].getOrElse(""),
+            (result \ "mail")(0).asOpt[String].getOrElse(""),
+            (result \ "uid")(0).asOpt[String].getOrElse(""),
+            None
           )
         )
 

@@ -7,8 +7,7 @@ import com.mongodb.casbah.{MongoClient, MongoCollection}
 import com.mongodb.{BasicDBObject, MongoCredential, ServerAddress}
 import com.mongodb.casbah.commons.MongoDBObject
 import it.gov.daf.catalogmanager.utilities.ConfigReader
-import it.gov.daf.catalogmanager.utilities.Prova3.{credentials, server}
-import play.api.libs.json.{JsString, JsValue, Json}
+import play.api.libs.json.{JsValue, Json}
 
 object MongoService {
 
@@ -17,6 +16,7 @@ object MongoService {
   private val userName = ConfigReader.userName
   private val dbName = ConfigReader.database
   private val password = ConfigReader.password
+  private val credentials = MongoCredential.createCredential(userName, dbName, password.toCharArray)
   private val USER_COLLECTION_NAME = "PreRegistratedUsers"
   private val PRE_REGISTRATION_TTL = 60*60*2
 
@@ -45,9 +45,14 @@ object MongoService {
     findData(USER_COLLECTION_NAME,"token",token)
   }
 
+  def findAndRemoveUserByToken(token:String): Either[String,JsValue] = {
+    findAndRemoveData(USER_COLLECTION_NAME,"token",token)
+  }
+
   def findUserByUid(uid:String): Either[String,JsValue] = {
     findData(USER_COLLECTION_NAME,"uid",uid)
   }
+
 
 
 
@@ -60,6 +65,27 @@ object MongoService {
 
     val query = MongoDBObject(filterAttName -> filterValue)
     val result = coll.findOne(query)
+    mongoClient.close
+
+    result match {
+      case Some(x) => {
+        val jsonString = com.mongodb.util.JSON.serialize(x)
+        Right(Json.parse(jsonString))
+      }
+      case None => Left("Not found")
+    }
+
+  }
+
+  private def findAndRemoveData(collectionName:String, filterAttName:String, filterValue:String): Either[String,JsValue] = {
+
+    val mongoClient = MongoClient(server,List(credentials))
+    val db = mongoClient(dbName)
+
+    val coll = db(collectionName)
+
+    val query = MongoDBObject(filterAttName -> filterValue)
+    val result = coll.findAndRemove(query)
     mongoClient.close
 
     result match {

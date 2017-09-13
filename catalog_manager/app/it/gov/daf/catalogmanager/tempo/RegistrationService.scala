@@ -10,20 +10,26 @@ object RegistrationService {
   import catalog_manager.yaml.BodyReads._
   import scala.concurrent.ExecutionContext.Implicits._
 
-  val tokenGenerator = new BearerTokenGenerator
+  private val tokenGenerator = new BearerTokenGenerator
+
 
   def requestRegistration(user:IpaUser):Either[String,MailService] = {
 
-    MongoService.findUserByUid(user.uid.get) match{
-      case Right(o) => Left("Username already registered")
-      case Left(o) => Right(registration(user))
+    if (user.userpassword.isEmpty || user.userpassword.get.length <= 5)
+      Left("Password minimum length is 5 character")
+    else {
+      MongoService.findUserByUid(user.uid) match {
+        case Right(o) => Left("Username already registered")
+        case Left(o) => Right(registration(user))
+      }
     }
 
   }
 
+
   def createUser(token:String): Future[Either[Error,Success]] = {
 
-    MongoService.findUserByToken(token) match{
+    MongoService.findAndRemoveUserByToken(token) match{
       case Right(json) => createUser(json)
       case Left(l) => Future{ Left( Error(None,Some("User pre-registration not found"),None) )}
     }
@@ -43,11 +49,11 @@ object RegistrationService {
 
   private def registration(user:IpaUser):MailService = {
 
-    val token = tokenGenerator.generateMD5Token(user.uid.get)
+    val token = tokenGenerator.generateMD5Token(user.uid)
 
     MongoService.writeUserData(user,token)
 
-    new MailService(user.mail.get,token)
+    new MailService(user.mail,token)
 
   }
 

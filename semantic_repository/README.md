@@ -2,7 +2,20 @@
 semantic_repository
 ====================
 
-SEE: [teamdigitale/daf](https://github.com/teamdigitale/daf) 
+The Semantic Repository is a component (based on RDF4J) designed to provide basic functionalities for managing ontologies/vocabularies (not data, at the moment) on an underlying triplestore.
+NOTE: the default triplestore used is in-memory.
+
+![semantic_repository component inside the semantic_manager architecture](./docs/semantic_repository-v0.1.0.png)
+
+
+## HTTP API
+
++ entrypoint for the play application (swagger-ui)
+[http://localhost:8888](http://localhost:8888)
+
++ swagger definition
+[http://localhost:8888/spec/semantic_repository.yaml](http://localhost:8888/spec/semantic_repository.yaml)
+
 
 ## instructions
 
@@ -137,5 +150,7 @@ def clear_all() {
 - [ ] review local filestorage code base
 - [ ] review / refactor the response from services, using more meaningful data structures
 
+* * *
 
+SEE: [teamdigitale/daf](https://github.com/teamdigitale/daf) 
 

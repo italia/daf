@@ -1,0 +1,5 @@
+prefix: "exarts"
+uri: "http://example.org/example-data-artists/"
+contexts: [
+	"http://example.org/example-data-artists/"
+]

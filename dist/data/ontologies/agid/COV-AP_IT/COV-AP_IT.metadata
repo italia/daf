@@ -1,0 +1,5 @@
+prefix: "covapit"
+uri: "http://dati.gov.it/ontologies/cov-ap-it/"
+contexts: [
+	"http://dati.gov.it/ontologies/cov-ap-it/"
+]

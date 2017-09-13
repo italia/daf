@@ -34,7 +34,7 @@ import it.gov.daf.catalogmanager.tempo.RegistrationService
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                                                                                                                                                                                                                                                                                                        
+                                                                                                                                                                                                                                                                                                                                            
 
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (

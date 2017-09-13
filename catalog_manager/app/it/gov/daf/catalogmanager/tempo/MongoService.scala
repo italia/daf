@@ -45,9 +45,14 @@ object MongoService {
     findData(USER_COLLECTION_NAME,"token",token)
   }
 
+  def findAndRemoveUserByToken(token:String): Either[String,JsValue] = {
+    findAndRemoveData(USER_COLLECTION_NAME,"token",token)
+  }
+
   def findUserByUid(uid:String): Either[String,JsValue] = {
     findData(USER_COLLECTION_NAME,"uid",uid)
   }
+
 
 
 
@@ -60,6 +65,27 @@ object MongoService {
 
     val query = MongoDBObject(filterAttName -> filterValue)
     val result = coll.findOne(query)
+    mongoClient.close
+
+    result match {
+      case Some(x) => {
+        val jsonString = com.mongodb.util.JSON.serialize(x)
+        Right(Json.parse(jsonString))
+      }
+      case None => Left("Not found")
+    }
+
+  }
+
+  private def findAndRemoveData(collectionName:String, filterAttName:String, filterValue:String): Either[String,JsValue] = {
+
+    val mongoClient = MongoClient(server,List(credentials))
+    val db = mongoClient(dbName)
+
+    val coll = db(collectionName)
+
+    val query = MongoDBObject(filterAttName -> filterValue)
+    val result = coll.findAndRemove(query)
     mongoClient.close
 
     result match {

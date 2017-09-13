@@ -1401,6 +1401,11 @@ definitions:
         type: string
   IpaUser:
     type: object
+    required:
+      - uid
+      - givenname
+      - sn
+      - mail
     properties:
       uid:
         description: user login

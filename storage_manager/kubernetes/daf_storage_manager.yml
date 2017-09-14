@@ -10,6 +10,9 @@ spec:
   - port: 9000
     protocol: TCP
     name: http
+  - port: 5005
+    protocol: TCP
+    name: debugger
   selector:
     app: storage-manager
 ---
@@ -35,6 +38,8 @@ spec:
         ports:
         - name: client
           containerPort: 9000
+        - name: debugger
+          containerPort: 5005
         securityContext:
           privileged: true
           runAsUser: 0

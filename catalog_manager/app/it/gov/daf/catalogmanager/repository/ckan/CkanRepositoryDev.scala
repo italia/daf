@@ -2,7 +2,7 @@ package it.gov.daf.catalogmanager.repository.ckan
 
 import java.io.{FileInputStream, PrintWriter}
 
-import catalog_manager.yaml.{Credentials, Dataset, MetadataCat, Organization, ResourceSize, User}
+import catalog_manager.yaml.{AutocompRes, Credentials, Dataset, MetadataCat, Organization, ResourceSize, User}
 import play.Environment
 import play.api.libs.json._
 
@@ -48,6 +48,10 @@ class CkanRepositoryDev extends CkanRepository{
     Future("todo")
   }
 
+  def patchOrganization(orgId: String, jsonOrg: JsValue, callingUserid :MetadataCat): Future[String] = {
+    Future("todo")
+  }
+
   def createOrganization( jsonDataset: JsValue, callingUserid :MetadataCat ) : Future[String] = {
     Future("todo")
   }
@@ -78,6 +82,10 @@ class CkanRepositoryDev extends CkanRepository{
   }
 
   def searchDatasets( input: (MetadataCat, MetadataCat, ResourceSize), callingUserid :MetadataCat ) : Future[JsResult[Seq[Dataset]]]={
+    Future(null)
+  }
+
+  def autocompleteDatasets( input: (MetadataCat, ResourceSize), callingUserid :MetadataCat) : Future[JsResult[Seq[AutocompRes]]] = {
     Future(null)
   }
 

@@ -45,7 +45,9 @@ libraryDependencies ++= Seq(
   "org.mongodb" %% "casbah" % "3.1.1", //,
   "net.caoticode.dirwatcher" %% "dir-watcher" % "0.1.0",
   "it.gov.daf" %% "common" % "1.0-SNAPSHOT",
-  "me.lessis" %% "base64" % "0.2.0"
+  "me.lessis" %% "base64" % "0.2.0",
+  "ch.lightshed" %% "courier" % "0.1.4"
+  //"com.unboundid" % "unboundid-ldapsdk" % "4.0.0"
   //"it.teamdigitale" %% "ingestion-module" % "0.1.0" exclude("org.apache.avro", "avro")
 )
 
@@ -58,6 +60,7 @@ resolvers ++= Seq(
   "jeffmay" at "https://dl.bintray.com/jeffmay/maven",
   Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns),
   Resolver.mavenLocal,
+  "lightshed-maven" at "http://dl.bintray.com/content/lightshed/maven",
   "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/"
 )
 
@@ -87,8 +90,7 @@ dockerCommands := dockerCommands.value.flatMap {
   )
   case other => List(other)
 }
-
-dockerCommands += ExecCmd("ENTRYPOINT", s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
+dockerEntrypoint := Seq(s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
 dockerExposedPorts := Seq(9000)
 dockerRepository := Option("10.98.74.120:5000")
 

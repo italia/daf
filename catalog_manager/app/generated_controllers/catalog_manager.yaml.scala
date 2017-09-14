@@ -25,6 +25,8 @@ import play.api.libs.json._
 import scala.concurrent.ExecutionContext.Implicits.global
 import it.gov.daf.catalogmanager.utilities.WebServiceUtil
 import scala.concurrent.Future
+import it.gov.daf.catalogmanager.tempo.ApiClientIPA
+import it.gov.daf.catalogmanager.tempo.RegistrationService
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -33,7 +35,8 @@ import scala.concurrent.Future
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                
+
+
 
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
@@ -48,6 +51,19 @@ package catalog_manager.yaml {
         // ----- Start of unmanaged code area for constructor Catalog_managerYaml
         val GENERIC_ERROR=Error(None,Some("An Error occurred"),None)
         // ----- End of unmanaged code area for constructor Catalog_managerYaml
+        val autocompletedummy = autocompletedummyAction { (autocompRes: AutocompRes) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.autocompletedummy
+            NotImplementedYet
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.autocompletedummy
+        }
+        val registrationconfirm = registrationconfirmAction { (token: String) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.registrationconfirm
+            RegistrationService.createUser(token) flatMap {
+                case Right(success) => Registrationconfirm200(success)
+                case Left(err) => Registrationconfirm500(err)
+            }
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.registrationconfirm
+        }
         val searchdataset = searchdatasetAction { input: (MetadataCat, MetadataCat, ResourceSize) =>
             val (q, sort, rows) = input
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.searchdataset
@@ -69,6 +85,14 @@ package catalog_manager.yaml {
                 case Left(error) => Searchdataset401(Error(None,Option(error),None))
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.searchdataset
+        }
+        val createIPAuser = createIPAuserAction { (user: IpaUser) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.createIPAuser
+            ApiClientIPA.createUser(user) flatMap {
+                case Right(success) => CreateIPAuser200(success)
+                case Left(err) => CreateIPAuser500(err)
+            }
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.createIPAuser
         }
         val getckanorganizationbyid = getckanorganizationbyidAction { (org_id: String) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.getckanorganizationbyid
@@ -123,6 +147,25 @@ package catalog_manager.yaml {
             // NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.standardsuri
         }
+        val autocompletedataset = autocompletedatasetAction { input: (MetadataCat, ResourceSize) =>
+            val (q, limit) = input
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.autocompletedataset
+            val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
+
+            val datasetsFuture: Future[JsResult[Seq[AutocompRes]]] = CkanRegistry.ckanService.autocompleteDatasets(input, credentials.username)
+            val eitherDatasets: Future[Either[String, Seq[AutocompRes]]] = datasetsFuture.map(result => {
+                result match {
+                    case s: JsSuccess[Seq[AutocompRes]] => Right(s.get)
+                    case e: JsError => Left( WebServiceUtil.getMessageFromJsError(e) )
+                }
+            })
+
+            eitherDatasets.flatMap {
+                case Right(autocomp) => Autocompletedataset200(autocomp)
+                case Left(error) => Autocompletedataset401(Error(None,Option(error),None))
+            }
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.autocompletedataset
+        }
         val createdatasetcatalog = createdatasetcatalogAction { (catalog: MetaCatalog) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalog
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
@@ -139,6 +182,14 @@ package catalog_manager.yaml {
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.test
             NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.test
+        }
+        val showipauser = showipauserAction { (uid: String) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.showipauser
+            ApiClientIPA.showUser(uid) flatMap {
+                case Right(success) => Showipauser200(success)
+                case Left(err) => Showipauser500(err)
+            }
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.showipauser
         }
         val verifycredentials = verifycredentialsAction { (credentials: Credentials) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.verifycredentials
@@ -259,6 +310,18 @@ package catalog_manager.yaml {
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.getckandatasetbyid
         }
+        val patchckanorganization = patchckanorganizationAction { input: (String, Organization) =>
+            val (org_id, organization) = input
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.patchckanorganization
+            val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
+            val jsonv : JsValue = ResponseWrites.OrganizationWrites.writes(organization)
+
+            CkanRegistry.ckanService.patchOrganization(org_id,jsonv, credentials.username)flatMap {
+                case "true" => Patchckanorganization200(Success(Some("Success"), Some("organization patched")))
+                case e =>  Patchckanorganization401(Error(None,Some(e),None))
+            }
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.patchckanorganization
+        }
         val datasetcatalogbyid = datasetcatalogbyidAction { (catalog_id: String) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbyid
             val logical_uri = new java.net.URI(catalog_id)
@@ -287,6 +350,27 @@ package catalog_manager.yaml {
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.getckanorganizationList
         }
+        val registrationrequest = registrationrequestAction { (user: IpaUser) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.registrationrequest
+            val reg = RegistrationService.requestRegistration(user) match {
+                case Right(mailService) => Right(mailService.sendMail())
+                case Left(msg) => Left(Future{msg})
+            }
+
+            reg match {
+                case Right(r) => r.flatMap{ msg => Registrationrequest200( Success(Some("Success"), Some(msg)) ) }
+                case Left(l) => l.flatMap{ msg => Registrationrequest500( Error(None,Option(msg),None) ) }
+            }
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.registrationrequest
+        }
+    
+     // Dead code for absent methodCatalog_managerYaml.tempo
+     /*
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.tempo
+            NotImplementedYet
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.tempo
+     */
+
     
      // Dead code for absent methodCatalog_managerYaml.addDataset
      /*
@@ -303,6 +387,14 @@ package catalog_manager.yaml {
                   Ckandatasetbyid200(dataset)
                   //NotImplementedYet
                   // ----- End of unmanaged code area for action  Catalog_managerYaml.ckandatasetbyid
+     */
+
+    
+     // Dead code for absent methodCatalog_managerYaml.showIPAuser
+     /*
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.showIPAuser
+            NotImplementedYet
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.showIPAuser
      */
 
     

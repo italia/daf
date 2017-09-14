@@ -15,7 +15,7 @@ RUN apt-get update && \
     python3 python3-dev python3-pip python3-requests-kerberos build-essential && \
     pip3 install --upgrade pip && \
     pip3 install setuptools && \
-    pip3 install thrift_sasl sasl impyla hdfs && \
+    pip3 install thrift_sasl sasl impyla hdfs polling && \
     rm -rf /hadoop/etc/hadoop && \
     ln -sf /etc/hadoop/conf /hadoop/etc/hadoop && \
     chmod +x /start.sh

@@ -45,18 +45,11 @@ scalaVersion := "2.11.8"
 val hadoopExcludes =
   (moduleId: ModuleID) => moduleId.
     exclude("org.slf4j", "slf4j-log4j12").
-    exclude("org.slf4j", "slf4j-api")
+    exclude("org.slf4j", "slf4j-api").
+    exclude("javax.servlet", "servlet-api")
 
 val hadoopLibraries = Seq(
-  hadoopExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % Compile),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % Test classifier "tests"),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-hdfs" % hadoopVersion % Test classifier "tests"),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-hdfs" % hadoopVersion % Test classifier "tests" extra "type" -> "test-jar"),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-hdfs" % hadoopVersion % Test extra "type" -> "test-jar"),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % Test classifier "tests"),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-minicluster" % hadoopVersion % Test),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-common" % hadoopVersion % Test classifier "tests" extra "type" -> "test-jar"),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-mapreduce-client-jobclient" % hadoopVersion % Test classifier "tests")
+  hadoopExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % Compile)
 )
 
 val playLibraries = Seq(
@@ -85,7 +78,7 @@ publishTo := {
   if (isSnapshot.value)
     Some("snapshots" at nexus + "maven-snapshots/")
   else
-    Some("releases"  at nexus + "maven-releases/")
+    Some("releases" at nexus + "maven-releases/")
 }
 
 credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")

@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
         - name: nexus
-          image: sonatype/nexus3:3.5.0
+          image: sonatype/nexus3:3.5.1
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8081
@@ -42,10 +42,11 @@ spec:
             privileged: true
             runAsUser: 0
           volumeMounts:
-            - name: glusterfsvol
+            - name: nexus-volume
               mountPath: /nexus-data
-              subPath: nexus/nexus-data
+      nodeSelector:
+          kubernetes.io/hostname: edge3.platform.daf.gov.it
       volumes:
-        - name: glusterfsvol
-          persistentVolumeClaim:
-            claimName: gluster-claim
+        - name: nexus-volume
+          hostPath:
+            path:  /var/daf/nexus

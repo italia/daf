@@ -1,6 +1,6 @@
 package it.gov.daf.catalogmanager.repository.ckan
 
-import catalog_manager.yaml.{Credentials, User}
+import catalog_manager.yaml.{AutocompRes, Credentials, User}
 import play.api.libs.json.JsValue
 
 import scala.concurrent.Future
@@ -22,6 +22,7 @@ trait CkanRepository {
   def getMongoUser(name:String,callingUserid :MetadataCat): JsResult[User]
   def verifyCredentials(credentials: Credentials):Boolean
   def updateOrganization(orgId: String, jsonOrg: JsValue,callingUserid :MetadataCat): Future[String]
+  def patchOrganization(orgId: String, jsonOrg: JsValue,callingUserid :MetadataCat): Future[String]
   def createUser(jsonUser: JsValue,callingUserid :MetadataCat): Future[String]
   def getUserOrganizations(userName :String,callingUserid :MetadataCat) : Future[JsResult[Seq[Organization]]]
   def createDataset(jsonDataset: JsValue,callingUserid :MetadataCat): Future[String]
@@ -31,6 +32,7 @@ trait CkanRepository {
   def getOrganizations(callingUserid :MetadataCat) : Future[JsValue]
   def getDatasets(callingUserid :MetadataCat) : Future[JsValue]
   def searchDatasets( input: (MetadataCat, MetadataCat, ResourceSize), callingUserid :MetadataCat ) : Future[JsResult[Seq[Dataset]]]
+  def autocompleteDatasets( input: (MetadataCat, ResourceSize), callingUserid :MetadataCat) : Future[JsResult[Seq[AutocompRes]]]
   def getDatasetsWithRes( input: (ResourceSize, ResourceSize), callingUserid :MetadataCat ) : Future[JsResult[Seq[Dataset]]]
   def testDataset(datasetId :String, callingUserid :MetadataCat) : Future[JsResult[Dataset]]
 

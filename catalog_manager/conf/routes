@@ -33,9 +33,11 @@ POST   /ckan/createUser                         controllers.ckan.CkanController.
 GET    /ckan/datasets                           controllers.ckan.CkanController.getDatasetList
 GET    /ckan/datasetsWithResources              controllers.ckan.CkanController.getDatasetListWithResources(limit:Option[Int], offset:Option[Int])
 GET    /ckan/searchDataset                      controllers.ckan.CkanController.searchDataset(q:Option[String], sort:Option[String], rows:Option[Int])
+GET    /ckan/autocompleteDataset                controllers.ckan.CkanController.autocompleteDataset(q:Option[String], limit:Option[Int])
 GET    /ckan/organization/:orgId                controllers.ckan.CkanController.getOrganization(orgId :String)
 PUT    /ckan/updateDataset/:datasetId           controllers.ckan.CkanController.updateDataset(datasetId :String)
 PUT    /ckan/updateOrganization/:orgId          controllers.ckan.CkanController.updateOrganization(orgId :String)
+PUT    /ckan/patchOrganization/:orgId           controllers.ckan.CkanController.patchOrganization(orgId :String)
 DELETE /ckan/deleteDataset/:datasetId           controllers.ckan.CkanController.deleteDataset(datasetId :String)
 DELETE /ckan/deleteOrganization/:orgId          controllers.ckan.CkanController.deleteOrganization(orgId :String)
 DELETE /ckan/purgeDataset/:datasetId            controllers.ckan.CkanController.purgeDataset(datasetId :String)

@@ -88,7 +88,7 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
       val userApiKey = ((response.json \ "result") \ "apikey").getOrElse( JsString("xxxx")).as[String]
 
       println("USER:"+userId)
-      println("API KEY:" + userApiKey)
+      println("API KEY:"+userApiKey)
 
       fx( userApiKey ) map { response =>
         println("RESPONSE FROM CKAN:"+response.json)
@@ -481,6 +481,22 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
   }
 
+  def patchOrganization(orgId :String)= Action.async { implicit request =>
+
+    // curl -H "Content-Type: application/json" -X PUT -d @org.json http://localhost:9001/ckan/updateOrganization/id=232cad97-ecf2-447d-9656-63899023887t
+
+    val serviceUserId = request.headers.get(USER_ID_HEADER).getOrElse("")
+    val json:JsValue = request.body.asJson.get
+
+    def callPatchOrganization( userApiKey: String ):Future[WSResponse] = {
+      val url = CKAN_URL + "/api/3/action/organization_patch?id=" + orgId
+      ws.url(url).withHeaders("Authorization" -> userApiKey).post(json)
+    }
+
+    serviceWrappedCall( serviceUserId, callPatchOrganization )
+
+  }
+
 
   def deleteOrganization(orgId :String) = Action.async { implicit request =>
 
@@ -560,8 +576,6 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
   def searchDataset(q:Option[String], sort:Option[String], rows:Option[Int]) = Action.async { implicit request =>
 
-    //curl -X GET "http://localhost:9000/ckan/datasetsWithResources?limit=1&offset=1
-
     val serviceUserId = request.headers.get(USER_ID_HEADER).getOrElse("")
 
     val params= Map( ("q",q), ("sort",sort), ("rows",rows) )
@@ -573,6 +587,22 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
     }
 
     serviceWrappedCall( serviceUserId, callSearchDataset )
+
+  }
+
+  def autocompleteDataset(q:Option[String], limit:Option[Int]) = Action.async { implicit request =>
+
+    val serviceUserId = request.headers.get(USER_ID_HEADER).getOrElse("")
+
+    val params= Map( ("q",q), ("limit",limit) )
+    val queryString = WebServiceUtil.buildEncodedQueryString(params)
+
+    def autocompleteDataset( userApiKey: String ):Future[WSResponse] = {
+      val url = CKAN_URL + s"/api/3/action/package_autocomplete$queryString"
+      ws.url(url).withHeaders("Authorization" -> userApiKey).get
+    }
+
+    serviceWrappedCall( serviceUserId, autocompleteDataset )
 
   }
 

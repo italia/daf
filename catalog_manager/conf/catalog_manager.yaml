@@ -296,6 +296,42 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  "/ckan/patch/organization/{org_id}":
+    put:
+      security:
+      - basicAuth: []
+      tags:
+        - Ckan
+      description: Patch ckan organization
+      operationId: patchckanorganization
+      produces:
+      - application/json
+      parameters:
+      - name: org_id
+        in: path
+        description: OrganizationId or Name
+        required: true
+        type: string
+      - name: organization
+        in: body
+        description: Organization
+        required: true
+        schema:
+          $ref: '#/definitions/Organization'
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            $ref: '#/definitions/Success'
+        401:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   "/ckan/organization/{org_id}":
     get:
       security:
@@ -480,6 +516,70 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  "/ckan/autocompleteDataset":
+    get:
+      security:
+      - basicAuth: []
+      tags:
+        - Ckan
+      description: Autocomplete function on ckan datasets.
+      operationId: autocompletedataset
+      produces:
+      - application/json
+      parameters:
+      - name: q
+        in: query
+        description: query
+        type: string
+      - name: limit
+        in: query
+        description: The max number results returned
+        type: integer
+      responses:
+        200:
+          description: List of results.
+          schema:
+            type: array
+            items:
+              "$ref": "#/definitions/AutocompRes"
+        401:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+  "/ckan/autocompleteDummy":
+    post:
+      security:
+      - basicAuth: []
+      tags:
+        - Ckan
+      operationId: autocompletedummy
+      produces:
+      - application/json
+      parameters:
+      - name: autocompRes
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/AutocompRes'
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            $ref: '#/definitions/Success'
+        401:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   "/ckan/create/user":
     post:
       security:
@@ -572,7 +672,114 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-
+  "/ipa/user":
+    post:
+      tags:
+        - IPA
+      description: Create a user
+      operationId: createIPAuser
+      security:
+      - basicAuth: []
+      produces:
+      - application/json
+      parameters:
+      - name: user
+        in: body
+        description: User
+        required: true
+        schema:
+          #type: object
+          $ref: '#/definitions/IpaUser'
+      responses:
+        200:
+          description: Success
+          schema:
+            #type: object
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+  "/ipa/registration/request":
+    post:
+      tags:
+        - IPA
+      description: Handle a user registration request
+      operationId: registrationrequest
+      security:
+      - basicAuth: []
+      produces:
+      - application/json
+      parameters:
+      - name: user
+        in: body
+        description: User
+        required: true
+        schema:
+          #type: object
+          $ref: '#/definitions/IpaUser'
+      responses:
+        200:
+          description: Success
+          schema:
+            #type: object
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+  "/ipa/registration/confirm":
+    get:
+      security:
+      - basicAuth: []
+      tags:
+        - IPA
+      description: Confirm registration
+      operationId: registrationconfirm
+      produces:
+      - application/json
+      parameters:
+      - name: token
+        in: query
+        description: Confirmation token
+        required: true
+        type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            #type: object
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+  "/ipa/user/{uid}":
+    get:
+      security:
+      - basicAuth: []
+      tags:
+        - IPA
+      description: Show user info
+      operationId: showipauser
+      produces:
+      - application/json
+      parameters:
+      - name: uid
+        in: path
+        description: User id
+        required: true
+        type: string
+      responses:
+        200:
+          description: IPA User
+          schema:
+            type: object
+            $ref: '#/definitions/IpaUser'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
 definitions:
   MetaCatalog:
     type: object
@@ -902,23 +1109,23 @@ definitions:
   Dataset:
     #type: Object
     required:
-      - frequency
-      - holder_identifier
-      - holder_name
-      - identifier
-      - modified
+      #- frequency
+      #- holder_identifier
+      #- holder_name
+      #- identifier
+      #- modified
       - name
       - notes
-      - publisher_identifier
-      - publisher_name
-      - theme
+      #- publisher_identifier
+      #- publisher_name
+      #- theme
     properties:
       alternate_identifier:
         type: string
       author:
         type: string
-      author_email:
-        type: string
+      #author_email:
+        #type: string
       #conforms_to:
        # type: string
       #contact:
@@ -1020,8 +1227,8 @@ definitions:
         #type: string
       theme:
         type: string
-      #title:
-        #type: string
+      title:
+        type: string
       #type:
         #type: string
       #url:
@@ -1180,6 +1387,38 @@ definitions:
       fullname:
         type: string
       about:
+        type: string
+  AutocompRes:
+    type: object
+    properties:
+      match_field:
+        type: string
+      match_displayed:
+        type: string
+      name:
+        type: string
+      title:
+        type: string
+  IpaUser:
+    type: object
+    required:
+      - uid
+      - givenname
+      - sn
+      - mail
+    properties:
+      uid:
+        description: user login
+        type: string
+      givenname:
+        description: First name
+        type: string
+      sn:
+        description: Last name
+        type: string
+      mail:
+        type: string
+      userpassword:
         type: string
   UserOrg:
     type: object

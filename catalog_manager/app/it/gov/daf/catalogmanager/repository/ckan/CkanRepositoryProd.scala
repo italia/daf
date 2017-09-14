@@ -2,7 +2,7 @@ package it.gov.daf.catalogmanager.repository.ckan
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import catalog_manager.yaml.{Credentials, Dataset, MetadataCat, Organization, ResourceSize, User}
+import catalog_manager.yaml.{AutocompRes, Credentials, Dataset, MetadataCat, Organization, ResourceSize, User}
 import com.mongodb.{DBObject, MongoCredential, ServerAddress}
 import com.mongodb.casbah.MongoClient
 import com.mongodb.casbah.commons.MongoDBObject
@@ -76,13 +76,17 @@ class CkanRepositoryProd extends CkanRepository{
   def getMongoUser(name:String, callingUserid :MetadataCat): JsResult[User] = {
 
     var jsUser = readMongo("users","name", name )
-    jsUser = jsUser.as[JsObject] ++ Json.obj("password" -> "")
+
+    if( !( jsUser \ "password").toOption.isEmpty )
+      jsUser = jsUser.as[JsObject] ++ Json.obj("password" -> "")
+
     val userValidate = jsUser.validate[User]
     userValidate
 
   }
 
   def verifyCredentials(credentials: Credentials):Boolean = {
+
 
     val result = readMongo("users", "name", credentials.username.get.toString)
     val hpasswd = (result \ "password").get.as[String]
@@ -116,6 +120,19 @@ class CkanRepositoryProd extends CkanRepository{
 
     val wsClient = AhcWSClient()
     val url =  LOCALURL + "/ckan/updateOrganization/" + orgId
+    wsClient.url(url).withHeaders(USER_ID_HEADER -> callingUserid.get).put(jsonOrg).map({ response =>
+
+      evaluateSuccessResult(response.json)
+
+    }).andThen { case _ => wsClient.close() }
+      .andThen { case _ => system.terminate() }
+
+  }
+
+  def patchOrganization(orgId: String, jsonOrg: JsValue, callingUserid :MetadataCat): Future[String] = {
+
+    val wsClient = AhcWSClient()
+    val url =  LOCALURL + "/ckan/patchOrganization/" + orgId
     wsClient.url(url).withHeaders(USER_ID_HEADER -> callingUserid.get).put(jsonOrg).map({ response =>
 
       evaluateSuccessResult(response.json)
@@ -275,6 +292,28 @@ class CkanRepositoryProd extends CkanRepository{
     }).andThen { case _ => wsClient.close() }
       .andThen { case _ => system.terminate() }
 
+  }
+
+  def autocompleteDatasets( input: (MetadataCat, ResourceSize), callingUserid :MetadataCat) : Future[JsResult[Seq[AutocompRes]]] = {
+    val wsClient = AhcWSClient()
+
+    val params = Map(("q",input._1),("limit",input._2))
+
+    val queryString = WebServiceUtil.buildEncodedQueryString(params)
+
+    val url =  LOCALURL + "/ckan/autocompleteDataset"+queryString
+
+    wsClient.url(url).withHeaders(USER_ID_HEADER -> callingUserid.get).get().map ({ response =>
+
+      val datasetJson: JsLookupResult = (response.json \ "result")
+
+      if(datasetJson.toOption.isEmpty)
+        JsError( WebServiceUtil.getMessageFromCkanError(response.json) )
+      else
+        datasetJson.get.validate[Seq[AutocompRes]]
+
+    }).andThen { case _ => wsClient.close() }
+      .andThen { case _ => system.terminate() }
   }
 
   def getDatasetsWithRes( input: (ResourceSize, ResourceSize), callingUserid :MetadataCat ) : Future[JsResult[Seq[Dataset]]] = {

@@ -13,16 +13,39 @@ object RegistrationService {
   private val tokenGenerator = new BearerTokenGenerator
 
 
-  def requestRegistration(user:IpaUser):Either[String,MailService] = {
+  def requestRegistration(user:IpaUser):Future[Either[String,MailService]] = {
 
     if (user.userpassword.isEmpty || user.userpassword.get.length <= 5)
-      Left("Password minimum length is 5 character")
+      Future{Left("Password minimum length is 5 character")}
     else {
       MongoService.findUserByUid(user.uid) match {
-        case Right(o) => Left("Username already registered")
-        case Left(o) => Right(registration(user))
+        case Right(o) => Future{Left("Username already requested")}
+        case Left(o) => chekNregister(user)
       }
     }
+
+  }
+
+  private def chekNregister(user:IpaUser):Future[Either[String,MailService]] = {
+
+    ApiClientIPA.showUser(user.uid) flatMap { result =>
+
+      result match{
+        case Right(r) => Future { Left("Username already registered") }
+        case Left(l) => Future { Right(registration(user)) }
+      }
+
+    }
+
+  }
+
+  private def registration(user:IpaUser):MailService = {
+
+    val token = tokenGenerator.generateMD5Token(user.uid)
+
+    MongoService.writeUserData(user,token)
+
+    new MailService(user.mail,token)
 
   }
 
@@ -40,21 +63,26 @@ object RegistrationService {
 
     val result = json.validate[IpaUser]
     result match {
-      case s: JsSuccess[IpaUser] =>  ApiClientIPA.createUser(s.get)
+      case s: JsSuccess[IpaUser] =>  createUser(s.get)
       case e: JsError => Future{ Left( Error(None,Some("Error during user data conversion"),None) )}
     }
 
   }
 
+  private def createUser(user:IpaUser):Future[Either[Error,Success]] = {
 
-  private def registration(user:IpaUser):MailService = {
+    ApiClientIPA.showUser(user.uid) flatMap { result =>
 
-    val token = tokenGenerator.generateMD5Token(user.uid)
+      result match{
+        case Right(r) => Future {Left(Error(None, Some("Username already registered"), None))}
+        case Left(l) => ApiClientIPA.createUser(user)
+      }
 
-    MongoService.writeUserData(user,token)
-
-    new MailService(user.mail,token)
+    }
 
   }
+
+
+
 
 }

@@ -17,6 +17,7 @@ import scala.util._
 
 import javax.inject._
 
+import java.io.File
 import de.zalando.play.controllers.PlayBodyParsing._
 import it.gov.daf.catalogmanager.listeners.IngestionListenerImpl
 import it.gov.daf.catalogmanager.service.{CkanRegistry,ServiceRegistry}
@@ -32,7 +33,7 @@ import scala.concurrent.Future
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-
+                                
 
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
@@ -128,7 +129,7 @@ package catalog_manager.yaml {
             val created: Success = ServiceRegistry.catalogService.createCatalog(catalog, credentials.username )
             if (!created.message.get.toLowerCase.equals("error")) {
                 val logicalUri = created.message.get
-                ingestionListener.addDirListener(catalog, logicalUri)
+             //   ingestionListener.addDirListener(catalog, logicalUri)
             }
             Createdatasetcatalog200(created)
             //NotImplementedYet
@@ -286,6 +287,14 @@ package catalog_manager.yaml {
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.getckanorganizationList
         }
+    
+     // Dead code for absent methodCatalog_managerYaml.addDataset
+     /*
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.addDataset
+            NotImplementedYet
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.addDataset
+     */
+
     
      // Dead code for absent methodCatalog_managerYaml.ckandatasetbyid
      /*

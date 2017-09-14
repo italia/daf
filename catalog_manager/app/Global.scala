@@ -31,6 +31,7 @@ class Global @Inject() (lifecycle: ApplicationLifecycle) {
 @Singleton
 class Module extends AbstractModule {
   def configure() = {
+  // REMEMBER TO LEAVE COMMENT FOR DEALING WIth Ingestion of file
     bind(classOf[IngestionListener]).to(classOf[IngestionListenerImpl]).asEagerSingleton()
   }
 

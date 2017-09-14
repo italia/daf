@@ -1,0 +1,299 @@
+swagger: "2.0"
+info: 
+  version: "0.1.0"
+  title: "semantic repository"
+  description: "semantic_repository api"
+  termsOfService: "http://swagger.io/terms/"
+  contact: 
+    name: "swagger"
+    email: "apiteam@swagger.io"
+    url: https://github.com/seralf/semantic_repository
+    
+  license: 
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+    
+host: localhost:8888
+basePath: /kb/v1
+schemes: 
+  - "http"
+consumes: 
+  - "application/json"
+produces: 
+  - "application/json"
+  
+paths: 
+
+  # CRUD
+  "/ontologies":
+  
+    post:
+      summary: adds an ontology
+      consumes:
+        - multipart/form-data
+      operationId: addRDFDoc
+      parameters:
+        - in: formData
+          name: fileName
+          type: string
+          required: true
+        - in: formData
+          name: rdfDocument
+          type: file
+          required: true
+          description: the RDF document to add
+        - in: formData
+          name: prefix
+          type: string
+          required: true
+        - in: formData
+          name: context
+          type: string
+          required: true
+          description: the context used for the addition of the RDF document
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/ResultMessage'
+        500:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+      tags: [test]
+
+
+  "/ontologies/remove":
+    delete:
+      summary: deletes an RDF document
+      operationId: removeRDFDoc
+      parameters:
+        - in: query
+          name: context
+          type: string
+          required: true
+          description: the context used for the addition of the RDF document
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/ResultMessage'
+        400:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+      tags: [test]
+      
+   
+  
+  "/contexts": 
+    get: 
+      summary: "a list of used contexts"
+      description: "a list of used contexts"
+      operationId: "contextsList"
+      produces: 
+        - "application/json"
+      responses: 
+        200:
+          description: "contexts"
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Context"
+        500:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+      tags: [ catalog ]
+  
+  "/prefixes": 
+    get: 
+      summary: "a list of used prefixes"
+      description: "a list of used prefixes"
+      operationId: "prefixesList"
+      produces: 
+        - "application/json"
+      responses: 
+        200:
+          description: "prefixes"
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Prefix"
+        500:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+      tags: [ catalog ]
+
+  "/prefixes/lookup": 
+    get: 
+      summary: "direct prefix lookup"
+      description: "this endpoint return the namespace currently associated with the given prefix"
+      operationId: "prefixDirectLookup"
+      produces: 
+        - "application/json"
+      parameters:
+        - in: query
+          name: prefix
+          description: the defaul prefix associated with a specific ontology
+          required: true
+          type: string
+      responses: 
+        200:
+          description: "prefix/namespace"
+          examples: { "prefix": "foaf", "namespace": "http://xmlns.com/foaf/spec/index.rdf" }
+          schema:
+            $ref: "#/definitions/Prefix"
+        500:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+      tags: [ catalog ]
+      
+  "/prefixes/reverse": 
+    get: 
+      summary: "inverse prefix lookup"
+      description: "this endpoint return the prefix currently associated with the given namespace"
+      operationId: "prefixReverseLookup"
+      produces: 
+        - "application/json"
+      parameters:
+        - in: query
+          name: namespace
+          description: the defaul prefix associated with a specific ontology
+          required: true
+          type: string
+      responses: 
+        200:
+          description: "namespace/prefix"
+          examples: { "prefix": "foaf", "namespace": "http://xmlns.com/foaf/spec/index.rdf" }
+          schema:
+            $ref: "#/definitions/Prefix"
+        500:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+      tags: [ catalog ]
+
+
+  "/triples": 
+    get: 
+      summary: "number of triples"
+      description: "number of triples"
+      operationId: "countTriples"
+      produces: 
+        - "application/json"
+      responses: 
+        200:
+          description: "triples"
+          examples: { "triples": 0 }
+          schema:
+            $ref: "#/definitions/TriplesCount"
+        500:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+      tags: [ stats ]
+      
+  "/triples/{prefix}": 
+    get: 
+      summary: "number of triples"
+      description: "number of triples"
+      operationId: "countTriplesByOntology"
+      produces: 
+        - "application/json"
+      parameters:
+        - in: path
+          name: prefix
+          description: the prefix used for an ontology 
+          required: true
+          type: string
+      responses: 
+        200:
+          description: "triples"
+          examples: { "triples": 0 }
+          schema:
+            $ref: "#/definitions/TriplesCount"
+        400:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+      tags: [ stats ]
+
+definitions: 
+
+  OntologyList:
+    type: array
+    items:
+      $ref: '#/definitions/Ontology'
+      
+  Ontology:
+    type: object
+    required: 
+      - name
+      - prefix
+      - base_uri
+      - description
+    properties: 
+      name:
+        type: "string"
+      prefix:
+        type: "string"
+      base_uri:
+        type: "string"
+      description:
+        type: "string"
+
+  Prefix: 
+    type: "object"
+    required: 
+      - "prefix"
+      - "namespace"
+    properties: 
+      prefix: 
+        type: "string"
+      namespace: 
+        type: "string"
+
+  Context: 
+    type: "object"
+    required: 
+      - "context"
+      - "triples"
+    properties: 
+      context: 
+        type: "string"
+      triples: 
+        type: "integer"
+
+  # TODO: rewrite!
+  TriplesCount: 
+    type: "object"
+    required: 
+      - "id"
+      - "triples"
+    properties: 
+      id: 
+        type: "string"
+      triples: 
+        type: "integer"
+
+  ResultMessage:
+    type: "object"
+    required:
+      - message
+    properties:
+      message:
+        type: string
+  
+  Error:
+    type: "object"
+    required:
+      - message
+      - description
+    properties:
+      message:
+        type: string
+      description:
+        type: string

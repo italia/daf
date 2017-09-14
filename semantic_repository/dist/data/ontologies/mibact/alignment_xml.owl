@@ -1,0 +1,1037 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY schema "http://schema.org/" >
+    <!ENTITY tio "http://purl.org/tio/ns#" >
+    <!ENTITY org "http://www.w3.org/ns/org#" >
+    <!ENTITY pro "http://purl.org/spar/pro/" >
+    <!ENTITY dcterms "http://purl.org/dc/terms/" >
+    <!ENTITY cito "http://purl.org/spar/cito/" >
+    <!ENTITY foaf "http://xmlns.com/foaf/0.1/" >
+    <!ENTITY lcn "http://www.w3.org/ns/locn#" >
+    <!ENTITY fabio "http://purl.org/spar/fabio/" >
+    <!ENTITY dcmitype "http://purl.org/dc/dcmitype/" >
+    <!ENTITY cidoc "http://purl.org/NET/crm-owl#" >
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY dc "http://purl.org/dc/elements/1.1/" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY lode "http://linkedevents.org/ontology/" >
+    <!ENTITY gn "http://www.geonames.org/ontology#" >
+    <!ENTITY gr "http://purl.org/goodrelations/v1#" >
+    <!ENTITY event "http://purl.org/NET/c4dm/event.owl#" >
+    <!ENTITY xml "http://www.w3.org/XML/1998/namespace" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY tvc "http://www.essepuntato.it/2012/04/tvc#" >
+    <!ENTITY dul "http://www.loa-cnr.it/ontologies/DUL.owl#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+    <!ENTITY spcdata "http://spcdata.digitpa.gov.it#ipaschema.owl" >
+    <!ENTITY ti "http://www.ontologydesignpatterns.org/cp/owl/timeinterval.owl#" >
+    <!ENTITY istat "http://datiopen.istat.it/odi/ontologia/territorio/" >
+    <!ENTITY san "http://san.beniculturali.it/SAN/" >
+]>
+
+
+<rdf:RDF xmlns="http://dati.beniculturali.it/cis/"
+     xml:base="http://dati.beniculturali.it/cis/"
+     xmlns:lode="http://linkedevents.org/ontology/"
+     xmlns:cito="http://purl.org/spar/cito/"
+     xmlns:cidoc="http://purl.org/NET/crm-owl#"
+     xmlns:org="http://www.w3.org/ns/org#"
+     xmlns:ti="http://www.ontologydesignpatterns.org/cp/owl/timeinterval.owl#"
+     xmlns:tio="http://purl.org/tio/ns#"
+     xmlns:dcterms="http://purl.org/dc/terms/"
+     xmlns:schema="http://schema.org/"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:lcn="http://www.w3.org/ns/locn#"
+     xmlns:event="http://purl.org/NET/c4dm/event.owl#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:tvc="http://www.essepuntato.it/2012/04/tvc#"
+     xmlns:dc="http://purl.org/dc/elements/1.1/"
+     xmlns:foaf="http://xmlns.com/foaf/0.1/"
+     xmlns:dcmitype="http://purl.org/dc/dcmitype/"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:fabio="http://purl.org/spar/fabio/"
+     xmlns:gn="http://www.geonames.org/ontology#"
+     xmlns:dul="http://www.loa-cnr.it/ontologies/DUL.owl#"
+     xmlns:pro="http://purl.org/spar/pro/"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:gr="http://purl.org/goodrelations/v1#"
+     xmlns:spcdata="http://spcdata.digitpa.gov.it#ipaschema.owl"
+     xmlns:istat="http://datiopen.istat.it/odi/ontologia/territorio/"
+     xmlns:san="http://san.beniculturali.it/SAN/" >
+    <owl:Ontology rdf:about="http://dati.beniculturali.it/cis-alignment">
+        <dc:creator>Semantic Technology Laboratory, Istituto di Scienze e Tecnologie della Cognizione, Consiglio Nazionale delle Ricerche (CNR)</dc:creator>
+        <dc:modified>2015-12-14</dc:modified>
+        <dc:title>Cultural-ON Alignment: Cultural Institute/Site and Event alignment with external modules</dc:title>
+        <dc:date>2015-01-12</dc:date>
+        <owl:versionInfo>1.2 - December 14 2015</owl:versionInfo>
+        <dc:creator>Ministero dei Beni e delle Attività Culturali e il Turismo (MIBACT)</dc:creator>
+        <owl:imports rdf:resource="http://dati.beniculturali.it/cis/"/>
+        <owl:versionIRI rdf:resource="http://dati.beniculturali.it/cis-alignment/1.2"/>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Annotation properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://purl.org/dc/elements/1.1/creator -->
+
+    <owl:AnnotationProperty rdf:about="&dc;creator"/>
+    
+
+
+    <!-- http://purl.org/dc/elements/1.1/date -->
+
+    <owl:AnnotationProperty rdf:about="&dc;date"/>
+    
+
+
+    <!-- http://purl.org/dc/elements/1.1/description -->
+
+    <owl:AnnotationProperty rdf:about="&dc;description"/>
+    
+
+
+    <!-- http://purl.org/dc/elements/1.1/modified -->
+
+    <owl:AnnotationProperty rdf:about="&dc;modified"/>
+    
+
+
+    <!-- http://purl.org/dc/elements/1.1/title -->
+
+    <owl:AnnotationProperty rdf:about="&dc;title"/>
+    
+
+
+    <!-- http://www.w3.org/2000/01/rdf-schema#comment -->
+
+    <owl:AnnotationProperty rdf:about="&rdfs;comment"/>
+    
+
+
+    <!-- http://www.w3.org/2000/01/rdf-schema#isDefinedBy -->
+
+    <owl:AnnotationProperty rdf:about="&rdfs;isDefinedBy"/>
+    
+
+
+    <!-- http://www.w3.org/2000/01/rdf-schema#label -->
+
+    <owl:AnnotationProperty rdf:about="&rdfs;label"/>
+    
+
+
+    <!-- http://www.w3.org/2002/07/owl#versionInfo -->
+
+    <owl:AnnotationProperty rdf:about="&owl;versionInfo"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Datatypes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.w3.org/2000/01/rdf-schema#Literal -->
+
+    <rdfs:Datatype rdf:about="&rdfs;Literal"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    <!-- http://dati.beniculturali.it/cis/reportsTo -->
+
+    <owl:ObjectProperty rdf:about="http://dati.beniculturali.it/cis/reportsTo">
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+        <owl:equivalentProperty rdf:resource="&org;reportsTo"/>
+    </owl:ObjectProperty>
+
+
+    <!-- http://dati.beniculturali.it/cis/atTime -->
+
+    <owl:ObjectProperty rdf:about="http://dati.beniculturali.it/cis/atTime">
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+        <owl:equivalentProperty rdf:resource="&tvc;atTime"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/forAccessTo -->
+
+    <owl:ObjectProperty rdf:about="http://dati.beniculturali.it/cis/forAccessTo">
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+        <owl:equivalentProperty rdf:resource="&tio;accessTo"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/hasAddress -->
+
+    <owl:ObjectProperty rdf:about="http://dati.beniculturali.it/cis/hasAddress">
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+        <owl:equivalentProperty rdf:resource="&org;siteAddress"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/hasEligibleUser -->
+
+    <owl:ObjectProperty rdf:about="http://dati.beniculturali.it/cis/hasEligibleUser">
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+        <owl:equivalentProperty rdf:resource="&gr;eligibleCustomerTypes"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/hasGeographicalLocation -->
+
+    <owl:ObjectProperty rdf:about="http://dati.beniculturali.it/cis/hasGeographicalLocation">
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+        <owl:equivalentProperty rdf:resource="&gn;locatedIn"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/hasGeometry -->
+
+    <owl:ObjectProperty rdf:about="http://dati.beniculturali.it/cis/hasGeometry">
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+        <owl:subPropertyOf rdf:resource="&lcn;geometry"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/hasSubEvent -->
+
+    <owl:ObjectProperty rdf:about="http://dati.beniculturali.it/cis/hasSubEvent">
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+        <owl:equivalentProperty rdf:resource="&event;sub_event"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/hasSubject -->
+
+    <owl:ObjectProperty rdf:about="http://dati.beniculturali.it/cis/hasSubject">
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+        <owl:equivalentProperty rdf:resource="&dc;subject"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/holdsRoleInTime -->
+
+    <owl:ObjectProperty rdf:about="http://dati.beniculturali.it/cis/holdsRoleInTime">
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+        <owl:equivalentProperty rdf:resource="&pro;holdsRoleInTime"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/includes -->
+
+    <owl:ObjectProperty rdf:about="http://dati.beniculturali.it/cis/includes">
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+        <owl:equivalentProperty rdf:resource="&gr;includes"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/involves -->
+
+    <owl:ObjectProperty rdf:about="http://dati.beniculturali.it/cis/involves">
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+        <owl:equivalentProperty rdf:resource="&lode;involved"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/isReferencedBy -->
+
+    <owl:ObjectProperty rdf:about="http://dati.beniculturali.it/cis/isReferencedBy">
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+        <rdfs:subPropertyOf rdf:resource="&dcterms;isReferencedBy"/>
+        <rdfs:subPropertyOf rdf:resource="&cito;cites"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/offers -->
+
+    <owl:ObjectProperty rdf:about="http://dati.beniculturali.it/cis/offers">
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+        <owl:equivalentProperty rdf:resource="&gr;offers"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/takesPlaceDuring -->
+
+    <owl:ObjectProperty rdf:about="http://dati.beniculturali.it/cis/takesPlaceDuring">
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+        <owl:equivalentProperty rdf:resource="&lode;atTime"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/withRole -->
+
+    <owl:ObjectProperty rdf:about="http://dati.beniculturali.it/cis/withRole">
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+        <owl:equivalentProperty rdf:resource="&pro;withRole"/>
+    </owl:ObjectProperty>
+    
+    
+     <!-- http://dati.beniculturali.it/cis/hasDiscipline -->
+
+    <owl:ObjectProperty rdf:about="http://dati.beniculturali.it/cis/hasDiscipline">
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+        <owl:subPropertyOf rdf:resource="&fabio;hasDiscipline"/>
+    </owl:ObjectProperty>
+    
+    
+    
+    <!-- http://purl.org/spar/fabio/hasDiscipline -->
+    
+    <owl:ObjectProperty rdf:about="&fabio;hasDiscipline"/>
+
+
+
+    <!-- http://linkedevents.org/ontology/atTime -->
+
+    <owl:ObjectProperty rdf:about="&lode;atTime"/>
+    
+
+
+    <!-- http://linkedevents.org/ontology/involved -->
+
+    <owl:ObjectProperty rdf:about="&lode;involved"/>
+    
+
+
+    <!-- http://purl.org/NET/c4dm/event.owl#sub_event -->
+
+    <owl:ObjectProperty rdf:about="&event;sub_event"/>
+    
+
+
+    <!-- http://purl.org/dc/elements/1.1/subject -->
+
+    <owl:ObjectProperty rdf:about="&dc;subject"/>
+    
+
+
+    <!-- http://purl.org/dc/terms/isReferencedBy -->
+
+    <owl:ObjectProperty rdf:about="&dcterms;isReferencedBy"/>
+    
+
+
+    <!-- http://purl.org/goodrelations/v1#eligibleCustomer -->
+
+    <owl:ObjectProperty rdf:about="&gr;eligibleCustomer"/>
+    
+
+
+    <!-- http://purl.org/goodrelations/v1#eligibleCustomerTypes -->
+
+    <owl:ObjectProperty rdf:about="&gr;eligibleCustomerTypes"/>
+    
+
+
+    <!-- http://purl.org/goodrelations/v1#includes -->
+
+    <owl:ObjectProperty rdf:about="&gr;includes"/>
+    
+
+
+    <!-- http://purl.org/goodrelations/v1#offers -->
+
+    <owl:ObjectProperty rdf:about="&gr;offers"/>
+    
+
+
+    <!-- http://purl.org/spar/cito/cites -->
+
+    <owl:ObjectProperty rdf:about="&cito;cites"/>
+    
+
+
+    <!-- http://purl.org/spar/pro/holdsRoleInTime -->
+
+    <owl:ObjectProperty rdf:about="&pro;holdsRoleInTime"/>
+    
+
+
+    <!-- http://purl.org/spar/pro/withRole -->
+
+    <owl:ObjectProperty rdf:about="&pro;withRole"/>
+    
+
+
+    <!-- http://purl.org/tio/ns#accessTo -->
+
+    <owl:ObjectProperty rdf:about="&tio;accessTo"/>
+    
+
+
+    <!-- http://www.essepuntato.it/2012/04/tvc#atTime -->
+
+    <owl:ObjectProperty rdf:about="&tvc;atTime"/>
+    
+
+    <!-- http://www.w3.org/ns/org#reportsTo -->
+
+    <owl:ObjectProperty rdf:about="&org;reportsTo"/>
+    
+    
+
+    <!-- http://www.geonames.org/ontology#locatedIn -->
+
+    <owl:ObjectProperty rdf:about="&gn;locatedIn"/>
+    
+
+
+    <!-- http://www.w3.org/ns/locn#geometry -->
+
+    <owl:ObjectProperty rdf:about="&lcn;geometry"/>
+    
+
+
+    <!-- http://www.w3.org/ns/org#siteAddress -->
+
+    <owl:ObjectProperty rdf:about="&org;siteAddress"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+    <!-- http://dati.beniculturali.it/cis/hasCetifiedEmail -->
+
+    <rdf:Description rdf:about="http://dati.beniculturali.it/cis/hasCertifiedEmail">
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+        <owl:equivalentProperty rdf:resource="&spcdata;PEC"/>
+    </rdf:Description>
+
+
+    <!-- http://dati.beniculturali.it/cis/addressID -->
+
+    <rdf:Description rdf:about="http://dati.beniculturali.it/cis/addressID">
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+        <owl:equivalentProperty rdf:resource="&lcn;addressID"/>
+    </rdf:Description>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/adminUnitL1 -->
+
+    <rdf:Description rdf:about="http://dati.beniculturali.it/cis/adminUnitL1">
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+        <owl:equivalentProperty rdf:resource="&lcn;adminUnitL1"/>
+    </rdf:Description>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/adminUnitL2 -->
+
+    <rdf:Description rdf:about="http://dati.beniculturali.it/cis/adminUnitL2">
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+        <owl:equivalentProperty rdf:resource="&lcn;adminUnitL2"/>
+    </rdf:Description>
+    
+
+    <!-- http://dati.beniculturali.it/cis/fullAddress -->
+
+    <rdf:Description rdf:about="http://dati.beniculturali.it/cis/fullAddress">
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+        <owl:equivalentProperty rdf:resource="&lcn;fullAddress"/>
+    </rdf:Description>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/hasCurrency -->
+
+    <rdf:Description rdf:about="http://dati.beniculturali.it/cis/hasCurrency">
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+        <owl:equivalentProperty rdf:resource="&gr;hasCurrency"/>
+    </rdf:Description>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/hasCurrencyValue -->
+
+    <rdf:Description rdf:about="http://dati.beniculturali.it/cis/hasCurrencyValue">
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+        <owl:equivalentProperty rdf:resource="&gr;hasCurrencyValue"/>
+    </rdf:Description>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/name -->
+
+    <rdf:Description rdf:about="http://dati.beniculturali.it/cis/name">
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+        <owl:subPropertyOf rdf:resource="&foaf;name"/>
+        <owl:subPropertyOf rdf:resource="&dcterms;title"/>
+    </rdf:Description>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/postCode -->
+
+    <rdf:Description rdf:about="http://dati.beniculturali.it/cis/postCode">
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+        <owl:equivalentProperty rdf:resource="&lcn;postCode"/>
+    </rdf:Description>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/postName -->
+
+    <rdf:Description rdf:about="http://dati.beniculturali.it/cis/postName">
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+        <owl:equivalentProperty rdf:resource="&lcn;postName"/>
+    </rdf:Description>
+    
+
+
+	 <!-- http://dati.beniculturali.it/cis/endDate -->
+
+    <rdf:Description rdf:about="http://dati.beniculturali.it/cis/endDate">
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+        <owl:equivalentProperty rdf:resource="&ti;hasIntervalEndDate"/>
+    </rdf:Description>
+    
+    
+     <!-- http://dati.beniculturali.it/cis/startDate -->
+
+    <rdf:Description rdf:about="http://dati.beniculturali.it/cis/startDate">
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+        <owl:equivalentProperty rdf:resource="&ti;hasIntervalStartDate"/>
+    </rdf:Description>
+    
+    
+    
+    <!-- http://purl.org/dc/terms/title -->
+    
+    <owl:DatatypeProperty rdf:about="&dcterms;title"/>
+    
+    
+    
+    <!-- http://www.ontologydesignpatterns.org/cp/owl/timeinterval.owl#hasIntervalEndDate -->
+    
+    <owl:DatatypeProperty rdf:about="&ti;hasIntervalEndDate"/>
+     
+    
+    <!-- http://www.ontologydesignpatterns.org/cp/owl/timeinterval.owl#hasIntervalStartDate -->
+    
+    <owl:DatatypeProperty rdf:about="&ti;hasIntervalStartDate"/>
+     
+
+    <!-- http://purl.org/goodrelations/v1#hasCurrency -->
+
+    <owl:DatatypeProperty rdf:about="&gr;hasCurrency"/>
+    
+
+
+    <!-- http://purl.org/goodrelations/v1#hasCurrencyValue -->
+
+    <owl:DatatypeProperty rdf:about="&gr;hasCurrencyValue"/>
+    
+
+
+    <!-- http://www.w3.org/ns/locn#addressID -->
+
+    <owl:DatatypeProperty rdf:about="&lcn;addressID"/>
+    
+    
+    <!-- http://www.w3.org/ns/locn#PEC -->
+
+    <owl:DatatypeProperty rdf:about="&spcdata;PEC"/>
+
+
+    <!-- http://www.w3.org/ns/locn#adminUnitL1 -->
+
+    <owl:DatatypeProperty rdf:about="&lcn;adminUnitL1"/>
+    
+
+
+    <!-- http://www.w3.org/ns/locn#adminUnitL2 -->
+
+    <owl:DatatypeProperty rdf:about="&lcn;adminUnitL2"/>
+    
+
+
+    <!-- http://www.w3.org/ns/locn#fullAddress -->
+
+    <owl:DatatypeProperty rdf:about="&lcn;fullAddress"/>
+    
+
+
+    <!-- http://www.w3.org/ns/locn#postCode -->
+
+    <owl:DatatypeProperty rdf:about="&lcn;postCode"/>
+    
+
+
+    <!-- http://www.w3.org/ns/locn#postName -->
+
+    <owl:DatatypeProperty rdf:about="&lcn;postName"/>
+    
+
+
+    <!-- http://xmlns.com/foaf/0.1/name -->
+
+    <owl:DatatypeProperty rdf:about="&foaf;name"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/Address -->
+
+    <owl:Class rdf:about="http://dati.beniculturali.it/cis/Address">
+        <owl:equivalentClass rdf:resource="&lcn;Address"/>
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+    </owl:Class>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/Agent -->
+
+    <owl:Class rdf:about="http://dati.beniculturali.it/cis/Agent">
+        <owl:equivalentClass rdf:resource="&foaf;Agent"/>
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+    </owl:Class>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/AudioObject -->
+
+    <owl:Class rdf:about="http://dati.beniculturali.it/cis/AudioObject">
+        <owl:equivalentClass rdf:resource="&schema;AudioObject"/>
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+    </owl:Class>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/Collection -->
+
+    <owl:Class rdf:about="http://dati.beniculturali.it/cis/Collection">
+        <rdfs:subClassOf>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="&dcmitype;Collection"/>
+                    <rdf:Description rdf:about="&dul;Collection"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:subClassOf>
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+    </owl:Class>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/CreativeWork -->
+
+    <owl:Class rdf:about="http://dati.beniculturali.it/cis/CreativeWork">
+        <owl:equivalentClass rdf:resource="&schema;CreativeWork"/>
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="&fabio;Expression"/>
+                    <rdf:Description rdf:about="&fabio;Work"/>
+                </owl:unionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+    </owl:Class>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/Event -->
+
+    <owl:Class rdf:about="http://dati.beniculturali.it/cis/Event">
+        <rdfs:subClassOf rdf:resource="&lode;Event"/>
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+    </owl:Class>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/GeographicalFeature -->
+
+    <owl:Class rdf:about="http://dati.beniculturali.it/cis/GeographicalFeature">
+        <owl:equivalentClass rdf:resource="&gn;Feature"/>
+        <rdfs:subClassOf rdf:resource="&lcn;Location"/>
+        <rdfs:subClassOf rdf:resource="&istat;EntitaTerritoriale"/>
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+    </owl:Class>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/ImageObject -->
+
+    <owl:Class rdf:about="http://dati.beniculturali.it/cis/ImageObject">
+        <owl:equivalentClass rdf:resource="&schema;ImageObject"/>
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+    </owl:Class>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/Museum -->
+
+    <owl:Class rdf:about="http://dati.beniculturali.it/cis/Museum">
+        <owl:subClassOf rdf:resource="&schema;Museum"/>
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+    </owl:Class>
+    
+
+ 	<!-- http://dati.beniculturali.it/cis/HolderArchive -->
+
+    <owl:Class rdf:about="http://dati.beniculturali.it/cis/HolderArchive">
+        <owl:equivalentClass rdf:resource="&san;conservatore"/>
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+    </owl:Class>
+    
+
+    <!-- http://dati.beniculturali.it/cis/NewsArticle -->
+
+    <owl:Class rdf:about="http://dati.beniculturali.it/cis/NewsArticle">
+        <owl:equivalentClass rdf:resource="&schema;NewsArticle"/>
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+    </owl:Class>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/Offer -->
+
+    <owl:Class rdf:about="http://dati.beniculturali.it/cis/Offer">
+        <owl:equivalentClass rdf:resource="&gr;Offering"/>
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+    </owl:Class>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/Geometry -->
+
+    <owl:Class rdf:about="http://dati.beniculturali.it/cis/Geometry">
+        <owl:equivalentClass rdf:resource="&lcn;Geometry"/>
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+    </owl:Class>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/PriceSpecification -->
+
+    <owl:Class rdf:about="http://dati.beniculturali.it/cis/PriceSpecification">
+        <owl:equivalentClass rdf:resource="&gr;PriceSpecification"/>
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+    </owl:Class>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/Project -->
+
+    <owl:Class rdf:about="http://dati.beniculturali.it/cis/Project">
+        <owl:equivalentClass rdf:resource="&foaf;Project"/>
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+    </owl:Class>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/Role -->
+
+    <owl:Class rdf:about="http://dati.beniculturali.it/cis/Role">
+        <owl:equivalentClass rdf:resource="&pro;Role"/>
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+    </owl:Class>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/RoleInTIme -->
+
+    <owl:Class rdf:about="http://dati.beniculturali.it/cis/RoleInTIme">
+        <owl:equivalentClass rdf:resource="&pro;RoleInTime"/>
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+    </owl:Class>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/Site -->
+
+    <owl:Class rdf:about="http://dati.beniculturali.it/cis/Site">
+        <owl:equivalentClass rdf:resource="&cidoc;E53_Place"/>
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+    </owl:Class>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/Ticket -->
+
+    <owl:Class rdf:about="http://dati.beniculturali.it/cis/Ticket">
+        <owl:equivalentClass rdf:resource="&tio;Ticket"/>
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+    </owl:Class>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/TimeInterval -->
+
+    <owl:Class rdf:about="http://dati.beniculturali.it/cis/TimeInterval">
+        <owl:equivalentClass rdf:resource="&ti;TimeInterval"/>
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+    </owl:Class>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/UserType -->
+
+    <owl:Class rdf:about="http://dati.beniculturali.it/cis/UserType">
+        <owl:equivalentClass rdf:resource="&gr;BusinessEntityType"/>
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+    </owl:Class>
+    
+
+
+    <!-- http://dati.beniculturali.it/cis/VideoObject -->
+
+    <owl:Class rdf:about="http://dati.beniculturali.it/cis/VideoObject">
+        <owl:equivalentClass rdf:resource="&schema;VideoObject"/>
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+    </owl:Class>
+    
+    
+    <!-- http://dati.beniculturali.it/cis/ContactPoint -->
+
+    <owl:Class rdf:about="http://dati.beniculturali.it/cis/VideoObject">
+        <owl:subClassOf rdf:resource="&schema;ContactPoint"/>
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+    </owl:Class>
+    
+    
+     <!-- http://dati.beniculturali.it/cis/SubjectDiscipline -->
+
+    <owl:Class rdf:about="http://dati.beniculturali.it/cis/SubjectDiscipline">
+        <owl:subClassOf rdf:resource="&fabio;SubjectDiscipline"/>
+        <rdfs:isDefinedBy rdf:resource="http://dati.beniculturali.it/cis/"/>
+    </owl:Class>
+    
+    
+    
+     <!-- http://purl.org/spar/fabio/SubjectDiscipline -->
+     
+    <owl:Class rdf:about="&fabio;SubjectDiscipline"/>
+    
+    
+    
+    <!-- http://schema.org/ContactPoint -->
+    
+	   <owl:Class rdf:about="&schema;ContactPoint"/>
+	
+	
+
+    <!-- http://linkedevents.org/ontology/Event -->
+
+    <owl:Class rdf:about="&lode;Event"/>
+    
+
+
+    <!-- http://purl.org/NET/crm-owl#E53_Place -->
+
+    <owl:Class rdf:about="&cidoc;E53_Place"/>
+    
+
+
+    <!-- http://purl.org/dc/dcmitype/Collection -->
+
+    <owl:Class rdf:about="&dcmitype;Collection"/>
+    
+
+
+    <!-- http://purl.org/goodrelations/v1#BusinessEntityType -->
+
+    <owl:Class rdf:about="&gr;BusinessEntityType"/>
+    
+
+
+    <!-- http://purl.org/goodrelations/v1#Offering -->
+
+    <owl:Class rdf:about="&gr;Offering"/>
+    
+
+
+    <!-- http://purl.org/goodrelations/v1#PriceSpecification -->
+
+    <owl:Class rdf:about="&gr;PriceSpecification"/>
+    
+
+
+    <!-- http://purl.org/spar/fabio/Expression -->
+
+    <owl:Class rdf:about="&fabio;Expression"/>
+    
+
+
+    <!-- http://purl.org/spar/fabio/Work -->
+
+    <owl:Class rdf:about="&fabio;Work"/>
+    
+
+
+    <!-- http://purl.org/spar/pro/Role -->
+
+    <owl:Class rdf:about="&pro;Role"/>
+    
+
+
+    <!-- http://purl.org/spar/pro/RoleInTime -->
+
+    <owl:Class rdf:about="&pro;RoleInTime"/>
+    
+
+
+    <!-- http://purl.org/tio/ns#Ticket -->
+
+    <owl:Class rdf:about="&tio;Ticket"/>
+    
+
+
+    <!-- http://schema.org/AudioObject -->
+
+    <owl:Class rdf:about="&schema;AudioObject"/>
+    
+
+
+    <!-- http://schema.org/CreativeWork -->
+
+    <owl:Class rdf:about="&schema;CreativeWork"/>
+    
+
+
+    <!-- http://schema.org/ImageObject -->
+
+    <owl:Class rdf:about="&schema;ImageObject"/>
+    
+
+
+    <!-- http://schema.org/Museum -->
+
+    <owl:Class rdf:about="&schema;Museum"/>
+    
+    
+    <!-- http://http://san.beniculturali.it/SAN/conservatore -->
+    <owl:Class rdf:about="&san;conservatore"/>
+
+
+    <!-- http://schema.org/NewsArticle -->
+
+    <owl:Class rdf:about="&schema;NewsArticle"/>
+    
+
+
+    <!-- http://schema.org/VideoObject -->
+
+    <owl:Class rdf:about="&schema;VideoObject"/>
+    
+
+
+    <!-- http://www.geonames.org/ontology#Feature -->
+
+    <owl:Class rdf:about="&gn;Feature"/>
+    
+
+
+    <!-- http://www.loa-cnr.it/ontologies/DUL.owl#Collection -->
+
+    <owl:Class rdf:about="&dul;Collection"/>
+    
+
+
+    <!-- http://www.ontologydesignpatterns.org/cp/owl/timeinterval.owl#TimeInterval -->
+
+    <owl:Class rdf:about="&ti;TimeInterval"/>
+    
+    
+    <!-- http://www.w3.org/ns/locn#Address -->
+
+    <owl:Class rdf:about="&lcn;Address"/>
+ 
+    
+    <!-- http://www.w3.org/ns/locn#Geometry -->
+
+    <owl:Class rdf:about="&lcn;Geometry"/>
+    
+    
+    <!-- http://www.w3.org/ns/locn#Location -->
+
+    <owl:Class rdf:about="&lcn;Location"/>
+    
+
+
+    <!-- http://www.w3.org/ns/org#Site -->
+
+    <owl:Class rdf:about="&org;Site"/>
+    
+
+
+    <!-- http://xmlns.com/foaf/0.1/Agent -->
+
+    <owl:Class rdf:about="&foaf;Agent"/>
+    
+
+
+    <!-- http://xmlns.com/foaf/0.1/Project -->
+
+    <owl:Class rdf:about="&foaf;Project"/>
+    
+    
+    <!-- http://datiopen.istat.it/odi/ontologia/territorio/EntitaTerritoriale -->
+    
+    <owl:Class rdf:about="&istat;EntitaTerritoriale"/>
+    
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 3.4.2) http://owlapi.sourceforge.net -->
+

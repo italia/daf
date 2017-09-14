@@ -20,6 +20,7 @@ private class AppConfig @Inject()(playConfig: Configuration) {
   val password :Option[String] = playConfig.getString("mongo.password")
   val database :Option[String] = playConfig.getString("mongo.database")
   val localUrl :Option[String] = playConfig.getString("app.local.url")
+  val registrationUrl :Option[String] = playConfig.getString("app.registration.url")
 }
 
 
@@ -34,5 +35,6 @@ object ConfigReader {
   def password :String = config.password.getOrElse("")
   def userName :String = config.userName.getOrElse("")
   def localUrl :String = config.localUrl.getOrElse("http://localhost:9001")
+  def registrationUrl :String = config.registrationUrl.getOrElse("http://localhost:3000/confirmregistration?t=")
 }
 

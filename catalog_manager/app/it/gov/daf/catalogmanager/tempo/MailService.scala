@@ -1,12 +1,11 @@
 package it.gov.daf.catalogmanager.tempo
 
-import java.util.concurrent.TimeUnit
 import javax.mail.internet.InternetAddress
 
 import courier.{Envelope, Mailer, Text}
+import it.gov.daf.catalogmanager.utilities.ConfigReader
 
 import scala.concurrent.{Await, Future}
-import scala.concurrent.duration.Duration
 
 
 class MailService(to:String,token:String) {
@@ -26,13 +25,6 @@ class MailService(to:String,token:String) {
       Right("Mail sent")
     }
 
-    //println("we")
-    /*
-    fut.onComplete {
-      case _ => println("completed")
-    }*/
-
-    //Await.ready(fut, Duration(60, TimeUnit.SECONDS))
 
   }
 
@@ -55,6 +47,6 @@ object MailService{
   private val SENDER = "a.cherici@gmail.com"
   private val SUBJECT = "Registration to DAF"
   private val CONTENT = "Clik on this link to complete registration:\n"
-  private val LINK = "http://localhost:9001/bo?t="
+  private val LINK = ConfigReader.registrationUrl
 
 }

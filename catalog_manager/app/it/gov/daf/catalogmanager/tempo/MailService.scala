@@ -13,7 +13,7 @@ class MailService(to:String,token:String) {
 
   import scala.concurrent.ExecutionContext.Implicits._
 
-  def sendMail():Future[String]={
+  def sendMail():Future[Either[String,String]]={
 
    // def fut =
    def fut = MailService.mailer(Envelope.from(new InternetAddress(MailService.SENDER))
@@ -23,7 +23,7 @@ class MailService(to:String,token:String) {
     .content(Text(MailService.CONTENT+MailService.LINK+token)))
 
     fut map { _ =>
-      "Mail sent"
+      Right("Mail sent")
     }
 
     //println("we")
@@ -41,6 +41,7 @@ class MailService(to:String,token:String) {
 
 object MailService{
 
+  // TODO da mettere in configurazione
   private val SMTP_SERVER = "smtp.gmail.com"
   private val SMTP_PORT = 587
   private val SMTP_LOGIN = "maildaf2017@gmail.com"

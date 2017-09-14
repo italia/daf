@@ -218,8 +218,11 @@ object ApiClientIPA {
 
       val result = ((json \ "result") \"result")//.getOrElse(JsString("null")).toString()
 
-      if( result!= "null" )
+      if( result == "null" || result.isInstanceOf[JsUndefined] )
 
+        Left( Error(None,Some(readIpaErrorMessage(json)),None) )
+
+      else
         Right(
           IpaUser(
             (result \ "sn")(0).asOpt[String].getOrElse(""),
@@ -229,9 +232,6 @@ object ApiClientIPA {
             None
           )
         )
-
-      else
-        Left( Error(None,Some(readIpaErrorMessage(json)),None) )
 
     }
 

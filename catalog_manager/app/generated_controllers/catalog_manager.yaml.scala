@@ -37,7 +37,6 @@ package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
 
 
-
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -352,14 +351,14 @@ package catalog_manager.yaml {
         }
         val registrationrequest = registrationrequestAction { (user: IpaUser) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.registrationrequest
-            val reg = RegistrationService.requestRegistration(user) match {
-                case Right(mailService) => Right(mailService.sendMail())
-                case Left(msg) => Left(Future{msg})
+            val reg = RegistrationService.requestRegistration(user) flatMap {
+                case Right(mailService) => mailService.sendMail()
+                case Left(msg) => Future {Left(msg)}
             }
 
-            reg match {
-                case Right(r) => r.flatMap{ msg => Registrationrequest200( Success(Some("Success"), Some(msg)) ) }
-                case Left(l) => l.flatMap{ msg => Registrationrequest500( Error(None,Option(msg),None) ) }
+            reg flatMap {
+                case Right(msg) => Registrationrequest200(Success(Some("Success"), Some(msg)))
+                case Left(msg) => Registrationrequest500(Error(None, Option(msg), None))
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.registrationrequest
         }

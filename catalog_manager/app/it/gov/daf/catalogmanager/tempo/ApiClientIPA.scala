@@ -18,11 +18,11 @@ object ApiClientIPA {
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()
   private val CKAN_URL = ConfigReader.getCkanHost
-  private val IPA_URL = "https://ipa.example.test"// TODO mettere in config
+  private val IPA_URL = ConfigReader.ipaUrl
   private val IPA_APP_ULR = IPA_URL+"/ipa"
   private val IPA_SERVICES_URL = IPA_URL+"/ipa/session/json"
   private val IPA_LOGIN_ULR = IPA_URL+"/ipa/session/login_password"
-  private val USER_PASSWORD_POST_DATA = "user=admin&password=adminpassword"// TODO mettere in config
+  private val USER_PASSWORD_POST_DATA = s"user=${ConfigReader.ipaUser}&password=${ConfigReader.ipaUserPwd}"
   private val sslconfig = new DefaultAsyncHttpClientConfig.Builder().setAcceptAnyCertificate(true).build
 
   private var sessionCookie:String=null

@@ -47,6 +47,8 @@ object MailService{
   private val SENDER = "a.cherici@gmail.com"
   private val SUBJECT = "Registration to DAF"
   private val CONTENT = "Clik on this link to complete registration:\n"
+
   private val LINK = ConfigReader.registrationUrl
+
 
 }

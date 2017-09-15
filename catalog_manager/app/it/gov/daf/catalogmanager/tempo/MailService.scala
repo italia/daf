@@ -56,5 +56,6 @@ object MailService{
   private val SUBJECT = "Registration to DAF"
   private val CONTENT = "Clik on this link to complete registration:\n"
   private val LINK = "http://localhost:9001/bo?t="
+  //private val LINK = "http://localhost:9001/bo?t="
 
 }

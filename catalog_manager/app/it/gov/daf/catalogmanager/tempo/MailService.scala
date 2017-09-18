@@ -33,11 +33,10 @@ class MailService(to:String,token:String) {
 
 object MailService{
 
-  // TODO da mettere in configurazione
-  private val SMTP_SERVER = "smtp.gmail.com"
-  private val SMTP_PORT = 587
-  private val SMTP_LOGIN = "maildaf2017@gmail.com"
-  private val SMTP_PWD = "birradaf"
+  private val SMTP_SERVER = ConfigReader.smtpServer
+  private val SMTP_PORT = ConfigReader.smtpPort
+  private val SMTP_LOGIN = ConfigReader.smtpLogin
+  private val SMTP_PWD = ConfigReader.smtpPwd
 
   private val mailer = Mailer(SMTP_SERVER, SMTP_PORT)
     .auth(true)

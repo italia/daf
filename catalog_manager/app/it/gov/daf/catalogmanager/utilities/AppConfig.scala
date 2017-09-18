@@ -25,6 +25,11 @@ private class AppConfig @Inject()(playConfig: Configuration) {
   val ipaUrl :Option[String] = playConfig.getString("ipa.url")
   val ipaUser :Option[String] = playConfig.getString("ipa.user")
   val ipaUserPwd :Option[String] = playConfig.getString("ipa.userpwd")
+  val smtpServer :Option[String] = playConfig.getString("smtp.server")
+  val smtpPort: Option[Int] = playConfig.getInt("smtp.port")
+  val smtpLogin :Option[String] = playConfig.getString("smtp.login")
+  val smtpPwd :Option[String] = playConfig.getString("smtp.pwd")
+
 }
 
 
@@ -44,5 +49,9 @@ object ConfigReader {
   def ipaUrl :String = config.ipaUrl.getOrElse("xxx")
   def ipaUser :String = config.ipaUser.getOrElse("xxx")
   def ipaUserPwd :String = config.ipaUserPwd.getOrElse("xxx")
+  def smtpServer :String = config.smtpServer.getOrElse("xxx")
+  def smtpPort: Int = config.smtpPort.getOrElse(0)
+  def smtpLogin :String = config.smtpLogin.getOrElse("xxx")
+  def smtpPwd :String = config.smtpPwd.getOrElse("xxx")
 }
 

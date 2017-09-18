@@ -61,6 +61,8 @@ import org.apache.kudu.ColumnSchema
 import org.apache.kudu.client.CreateTableOptions
 import org.apache.kudu.ColumnSchema
 import org.apache.kudu.client.CreateTableOptions
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -69,7 +71,7 @@ import org.apache.kudu.client.CreateTableOptions
 
 package iot_ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Iot_ingestion_managerYaml
-                                
+                                    
   @SuppressWarnings(
     Array(
       "org.wartremover.warts.While",
@@ -133,7 +135,9 @@ package iot_ingestion_manager.yaml {
       thread
     }
 
-    private def HadoopDoAsAction[T](proxyUser: UserGroupInformation, request: Request[AnyContent])(block: => T): T = {
+    private def HadoopDoAsAction[T](request: Request[AnyContent])(block: => T): T = {
+      UserGroupInformation.loginUserFromSubject(null)
+      val proxyUser = UserGroupInformation.getCurrentUser
       val profiles = Authentication.getProfiles(request)
       val user = profiles.headOption.map(_.getId).getOrElse("anonymous")
       val ugi = UserGroupInformation.createProxyUser(user, proxyUser)
@@ -141,10 +145,6 @@ package iot_ingestion_manager.yaml {
         override def run: T = block
       })
     }
-
-    UserGroupInformation.loginUserFromSubject(null)
-
-    private val proxyUser = UserGroupInformation.getCurrentUser
 
     private var jobThread: Option[Thread] = None
 
@@ -198,7 +198,7 @@ package iot_ingestion_manager.yaml {
         val start = startAction {  _ =>  
             // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.start
             alogger.info("Begin operation 'start'")
-      HadoopDoAsAction(proxyUser, current_request_for_startAction) {
+      HadoopDoAsAction(current_request_for_startAction) {
         synchronized {
           jobThread = Some(thread {
             sparkSession match {
@@ -343,7 +343,7 @@ package iot_ingestion_manager.yaml {
         val stop = stopAction {  _ =>  
             // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.stop
             alogger.info("Begin operation 'stop'")
-      HadoopDoAsAction(proxyUser, current_request_for_startAction) {
+      HadoopDoAsAction(current_request_for_startAction) {
         synchronized {
           sparkSession match {
             case Failure(_) => ()
@@ -367,7 +367,7 @@ package iot_ingestion_manager.yaml {
               case Failure(_) =>
                 Status200("STOPPED")
               case Success(_) =>
-                if (stopFlag == false)
+                if (!stopFlag)
                   Status200("STARTED")
                 else
                   Status200("STOPPING")

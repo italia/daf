@@ -24,8 +24,7 @@ lazy val client = (project in file("client")).
       "com.typesafe.play" %% "play-json" % playVersion,
       "com.typesafe.play" %% "play-ws" %  playVersion
     )
-  )).
-  enablePlugins(SwaggerCodegenPlugin)
+  )).enablePlugins(SwaggerCodegenPlugin)
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser)
 .dependsOn(client).aggregate(client)

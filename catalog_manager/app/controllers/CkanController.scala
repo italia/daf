@@ -209,6 +209,7 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
       val serviceUserId = request.headers.get(USER_ID_HEADER).getOrElse("")
 
+      println(json)
       def callCreateDataset(userApiKey: String ):Future[WSResponse] = {
         ws.url(CKAN_URL + "/api/3/action/package_create").withHeaders("Authorization" -> userApiKey).post(json)
       }

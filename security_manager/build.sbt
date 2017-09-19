@@ -51,6 +51,8 @@ libraryDependencies ++= Seq(
   ws,
   "org.webjars" % "swagger-ui" % swaggerUiVersion,
   "it.gov.daf" %% "common" % version.value,
+  "org.mongodb" %% "casbah" % "3.1.1", //,
+  "ch.lightshed" %% "courier" % "0.1.4",
   specs2 % Test
 )
 
@@ -60,6 +62,7 @@ resolvers ++= Seq(
   "jeffmay" at "https://dl.bintray.com/jeffmay/maven",
   Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns),
   "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos/",
+  "lightshed-maven" at "http://dl.bintray.com/content/lightshed/maven",
   "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/"
 )
 

@@ -1,13 +1,16 @@
-package it.gov.daf.catalogmanager.tempo
+package it.gov.daf.securitymanager.service
 
-import catalog_manager.yaml.{Error, IpaUser, Success}
+import it.gov.daf.securitymanager.service.utilities.BearerTokenGenerator
 import play.api.libs.json.{JsError, JsSuccess, JsValue}
+import security_manager.yaml.IpaUser
+import security_manager.yaml.Success
+import security_manager.yaml.Error
 
 import scala.concurrent.Future
 
 object RegistrationService {
 
-  import catalog_manager.yaml.BodyReads._
+  import security_manager.yaml.BodyReads._
   import scala.concurrent.ExecutionContext.Implicits._
 
   private val tokenGenerator = new BearerTokenGenerator

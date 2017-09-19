@@ -25,6 +25,7 @@ info:
   license:
     name: Creative Commons 4.0 International
     url: http://creativecommons.org/licenses/by/4.0/
+host : localhost:9002
 # will be prefixed to all paths
 basePath: /security-manager/v1
 # array of all schemes that your API supports
@@ -33,10 +34,12 @@ schemes:
   - https
 produces:
   - application/json
-securityDefinitions:
-  basicAuth:
-    type: basic
-    description: HTTP Basic Authentication. Works over `HTTP` and `HTTPS`
+consumes:
+  - application/json
+#securityDefinitions:
+  #basicAuth:
+    #type: basic
+    #description: HTTP Basic Authentication. Works over `HTTP` and `HTTPS`
 paths:
   "/token":
     get:
@@ -46,8 +49,8 @@ paths:
       tags:
         - JWT Token
       operationId: token
-      security:
-        - basicAuth: []
+      #security:
+        #- basicAuth: []
       responses:
         200:
           description: The JWT token
@@ -57,14 +60,12 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  "/user":
+  "/ipa/user":
     post:
       tags:
         - IPA
       description: Create a user
       operationId: createIPAuser
-      #security:
-      #- basicAuth: []
       produces:
       - application/json
       parameters:
@@ -74,46 +75,125 @@ paths:
         required: true
         schema:
           #type: object
-          $ref: '#/definitions/UserIpa'
+          $ref: '#/definitions/IpaUser'
       responses:
         200:
           description: Success
           schema:
             #type: object
             $ref: '#/definitions/Success'
-        default:
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+  "/ipa/registration/request":
+    post:
+      tags:
+        - IPA
+      description: Handle a user registration request
+      operationId: registrationrequest
+      produces:
+      - application/json
+      parameters:
+      - name: user
+        in: body
+        description: User
+        required: true
+        schema:
+          #type: object
+          $ref: '#/definitions/IpaUser'
+      responses:
+        200:
+          description: Success
+          schema:
+            #type: object
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+  "/ipa/registration/confirm":
+    get:
+      tags:
+        - IPA
+      description: Confirm registration
+      operationId: registrationconfirm
+      produces:
+      - application/json
+      parameters:
+      - name: token
+        in: query
+        description: Confirmation token
+        required: true
+        type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            #type: object
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+  "/ipa/user/{uid}":
+    get:
+      tags:
+        - IPA
+      description: Show user info
+      operationId: showipauser
+      produces:
+      - application/json
+      parameters:
+      - name: uid
+        in: path
+        description: User id
+        required: true
+        type: string
+      responses:
+        200:
+          description: IPA User
+          schema:
+            type: object
+            $ref: '#/definitions/IpaUser'
+        500:
           description: Error Message
           schema:
             $ref: '#/definitions/Error'
 definitions:
-  UserIpa:
-    #type: object
+  IpaUser:
+    type: object
+    required:
+      - uid
+      - givenname
+      - sn
+      - mail
     properties:
       uid:
-        #description: user login
+        description: user login
         type: string
       givenname:
-        #description: First name
+        description: First name
         type: string
       sn:
-        #description: Last name
+        description: Last name
         type: string
       mail:
         type: string
       userpassword:
-        type: string
-  Success:
-    #type: object
-    properties:
-      message:
-        type: string
-      warnings:
         type: string
   Error:
     properties:
       code:
         type: integer
         format: int32
+      message:
+        type: string
+      fields:
+        type: string
+  Success:
+    type: object
+    properties:
       message:
         type: string
       fields:

@@ -27,8 +27,8 @@ info:
   license:
     name: Creative Commons 4.0 International
     url: http://creativecommons.org/licenses/by/4.0/
-host: catalog-manager.default.svc.cluster.local:9000
-#host : localhost:9001
+#host: catalog-manager.default.svc.cluster.local:9000
+host : localhost:9001
 # will be prefixed to all paths
 basePath: /catalog-manager/v1
 # array of all schemes that your API supports
@@ -39,15 +39,15 @@ produces:
   - application/json
 consumes:
   - application/json
-securityDefinitions:
-  basicAuth:
-    type: basic
-    description: HTTP Basic Authentication. Works over `HTTP` and `HTTPS`
+#securityDefinitions:
+#  basicAuth:
+#    type: basic
+#    description: HTTP Basic Authentication. Works over `HTTP` and `HTTPS`
 paths:
   "/test":
     get:
-      security:
-       - basicAuth: []
+      #security:
+       #- basicAuth: []
       operationId: test
       responses:
         200:
@@ -56,8 +56,8 @@ paths:
             $ref: '#/definitions/Token'
   "/dataset-catalogs":
     get:
-      security:
-      - basicAuth: []
+      #security:
+      #- basicAuth: []
       summary: DatasetCatalog
       description: |
         List of MetaCatalog stored
@@ -82,8 +82,8 @@ paths:
             $ref: '#/definitions/Error'
   "/dataset-catalogs/standard-uris":
     get:
-      security:
-      - basicAuth: []
+      #security:
+      #- basicAuth: []
       summary: DatasetCatalog standard uri
       description: |
         List of Standard Uri
@@ -108,8 +108,8 @@ paths:
             $ref: '#/definitions/Error'
   "/catalog-ds/get/{catalog_id}":
     get:
-      security:
-      - basicAuth: []
+      #security:
+      #- basicAuth: []
       summary: DatasetCatalog
       description: |
         DatasetCatalog data
@@ -138,8 +138,8 @@ paths:
             $ref: '#/definitions/Error'
   "/catalog-ds/add":
     post:
-      security:
-      - basicAuth: []
+      #security:
+      #- basicAuth: []
       summary: DatasetCatalog
       description: |
         The DatasetCatalog for ....
@@ -169,8 +169,8 @@ paths:
             $ref: '#/definitions/Error'
   "/ckan/create/dataset":
     post:
-      security:
-      - basicAuth: []
+      #security:
+      #- basicAuth: []
       tags:
         - Ckan
       description: Create ckan dataset for ....
@@ -201,8 +201,8 @@ paths:
             $ref: '#/definitions/Error'
   "/ckan/datasets/{dataset_id}":
     get:
-      security:
-      - basicAuth: []
+      #security:
+      #- basicAuth: []
       tags:
         - Ckan
       description: Get ckan dataset for ....
@@ -231,8 +231,8 @@ paths:
             $ref: '#/definitions/Error'
   "/ckan/create/organization":
     post:
-      security:
-      - basicAuth: []
+      #security:
+      #- basicAuth: []
       tags:
         - Ckan
       description: Create ckan organization
@@ -262,8 +262,8 @@ paths:
             $ref: '#/definitions/Error'
   "/ckan/update/organization/{org_id}":
     put:
-      security:
-      - basicAuth: []
+      #security:
+      #- basicAuth: []
       tags:
         - Ckan
       description: Update ckan organization
@@ -298,8 +298,8 @@ paths:
             $ref: '#/definitions/Error'
   "/ckan/patch/organization/{org_id}":
     put:
-      security:
-      - basicAuth: []
+      #security:
+      #- basicAuth: []
       tags:
         - Ckan
       description: Patch ckan organization
@@ -334,8 +334,8 @@ paths:
             $ref: '#/definitions/Error'
   "/ckan/organization/{org_id}":
     get:
-      security:
-      - basicAuth: []
+      #security:
+      #- basicAuth: []
       tags:
         - Ckan
       description: Get ckan organization
@@ -364,8 +364,8 @@ paths:
             $ref: '#/definitions/Error'
   "/ckan/organizations":
     get:
-      security:
-      - basicAuth: []
+      #security:
+      #- basicAuth: []
       tags:
         - Ckan
       description: Get ckan organization list
@@ -390,8 +390,8 @@ paths:
 
   "/ckan/userOrganizations/{username}":
     get:
-      security:
-      - basicAuth: []
+      #security:
+      #- basicAuth: []
       tags:
         - Ckan
       description: Get ckan organizations created by the user
@@ -421,8 +421,8 @@ paths:
             $ref: '#/definitions/Error'
   "/ckan/datasets":
     get:
-      security:
-      - basicAuth: []
+      #security:
+      #- basicAuth: []
       tags:
         - Ckan
       description: Get ckan dataset list
@@ -446,8 +446,8 @@ paths:
             $ref: '#/definitions/Error'
   "/ckan/datasetsWithResources":
     get:
-      security:
-      - basicAuth: []
+      #security:
+      #- basicAuth: []
       tags:
         - Ckan
       description: Get ckan dataset list with all infos associated.
@@ -480,8 +480,8 @@ paths:
             $ref: '#/definitions/Error'
   "/ckan/searchDataset":
     get:
-      security:
-      - basicAuth: []
+      #security:
+      #- basicAuth: []
       tags:
         - Ckan
       description: Search ckan datasets with all infos associated.
@@ -518,8 +518,8 @@ paths:
             $ref: '#/definitions/Error'
   "/ckan/autocompleteDataset":
     get:
-      security:
-      - basicAuth: []
+      #security:
+      #- basicAuth: []
       tags:
         - Ckan
       description: Autocomplete function on ckan datasets.
@@ -553,8 +553,8 @@ paths:
 
   "/ckan/autocompleteDummy":
     post:
-      security:
-      - basicAuth: []
+      #security:
+      #- basicAuth: []
       tags:
         - Ckan
       operationId: autocompletedummy
@@ -582,8 +582,8 @@ paths:
             $ref: '#/definitions/Error'
   "/ckan/create/user":
     post:
-      security:
-      - basicAuth: []
+      #security:
+      #- basicAuth: []
       tags:
         - Ckan
       description: Create a user
@@ -613,8 +613,8 @@ paths:
             $ref: '#/definitions/Error'
   "/ckan/verifyCredentials":
       post:
-        security:
-        - basicAuth: []
+        #security:
+        #- basicAuth: []
         tags:
           - Ckan
         description: Verify username & pwd
@@ -644,8 +644,8 @@ paths:
               $ref: '#/definitions/Error'
   "/ckan/user/{username}":
     get:
-      security:
-      - basicAuth: []
+      #security:
+      #- basicAuth: []
       tags:
         - Ckan
       description: Get ckan user info (from mongodb)
@@ -670,114 +670,6 @@ paths:
             $ref: '#/definitions/Error'
         default:
           description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
-  "/ipa/user":
-    post:
-      tags:
-        - IPA
-      description: Create a user
-      operationId: createIPAuser
-      security:
-      - basicAuth: []
-      produces:
-      - application/json
-      parameters:
-      - name: user
-        in: body
-        description: User
-        required: true
-        schema:
-          #type: object
-          $ref: '#/definitions/IpaUser'
-      responses:
-        200:
-          description: Success
-          schema:
-            #type: object
-            $ref: '#/definitions/Success'
-        500:
-          description: Error Message
-          schema:
-            $ref: '#/definitions/Error'
-  "/ipa/registration/request":
-    post:
-      tags:
-        - IPA
-      description: Handle a user registration request
-      operationId: registrationrequest
-      security:
-      - basicAuth: []
-      produces:
-      - application/json
-      parameters:
-      - name: user
-        in: body
-        description: User
-        required: true
-        schema:
-          #type: object
-          $ref: '#/definitions/IpaUser'
-      responses:
-        200:
-          description: Success
-          schema:
-            #type: object
-            $ref: '#/definitions/Success'
-        500:
-          description: Error Message
-          schema:
-            $ref: '#/definitions/Error'
-  "/ipa/registration/confirm":
-    get:
-      security:
-      - basicAuth: []
-      tags:
-        - IPA
-      description: Confirm registration
-      operationId: registrationconfirm
-      produces:
-      - application/json
-      parameters:
-      - name: token
-        in: query
-        description: Confirmation token
-        required: true
-        type: string
-      responses:
-        200:
-          description: Success
-          schema:
-            #type: object
-            $ref: '#/definitions/Success'
-        500:
-          description: Error Message
-          schema:
-            $ref: '#/definitions/Error'
-  "/ipa/user/{uid}":
-    get:
-      security:
-      - basicAuth: []
-      tags:
-        - IPA
-      description: Show user info
-      operationId: showipauser
-      produces:
-      - application/json
-      parameters:
-      - name: uid
-        in: path
-        description: User id
-        required: true
-        type: string
-      responses:
-        200:
-          description: IPA User
-          schema:
-            type: object
-            $ref: '#/definitions/IpaUser'
-        500:
-          description: Error Message
           schema:
             $ref: '#/definitions/Error'
 definitions:
@@ -1398,27 +1290,6 @@ definitions:
       name:
         type: string
       title:
-        type: string
-  IpaUser:
-    type: object
-    required:
-      - uid
-      - givenname
-      - sn
-      - mail
-    properties:
-      uid:
-        description: user login
-        type: string
-      givenname:
-        description: First name
-        type: string
-      sn:
-        description: Last name
-        type: string
-      mail:
-        type: string
-      userpassword:
         type: string
   UserOrg:
     type: object

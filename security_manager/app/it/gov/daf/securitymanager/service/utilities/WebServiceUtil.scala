@@ -1,16 +1,12 @@
-package it.gov.daf.catalogmanager.utilities
+package it.gov.daf.securitymanager.service.utilities
 
 import java.io.File
 import java.net.URLEncoder
 
-import catalog_manager.yaml.Credentials
 import it.gov.daf.common.authentication.Authentication
 import org.apache.commons.net.util.Base64
-import play.api.libs.json
-import play.api.libs.json.{JsArray, JsError, JsObject, JsString, JsValue}
+import play.api.libs.json._
 import play.api.mvc.Request
-
-import scala.util.parsing.json.JSONObject
 
 //import akka.actor.ActorSystem
 //import akka.stream.ActorMaterializer
@@ -19,14 +15,13 @@ import org.asynchttpclient.AsyncHttpClientConfig
 import play.api.libs.ws.WSConfigParser
 import play.api.libs.ws.ahc.{AhcConfigBuilder, AhcWSClientConfig}
 import play.api.{Configuration, Environment, Mode}
-import base64.Decode.{ urlSafe => fromBase64UrlSafe }
 
 /**
   * Created by ale on 11/05/17.
   */
 
 object WebServiceUtil {
-
+  /*
   val configuration = Configuration.reference ++ Configuration(ConfigFactory.parseString(
     """
       |ws.followRedirects = true
@@ -49,6 +44,7 @@ object WebServiceUtil {
   val ahcBuilder = builder.configure()
   ahcBuilder.setHttpAdditionalChannelInitializer(logging)
   val ahcConfig = ahcBuilder.build()
+*/
 
   def buildEncodedQueryString(params: Map[String, Any]): String = {
     val encoded = for {
@@ -63,7 +59,7 @@ object WebServiceUtil {
   }
 
 
-  def readCredentialFromRequest( request:Request[Any] ) :Credentials ={
+  def readCredentialFromRequest( request:Request[Any] ) :(Option[String],Option[String]) ={
 
     val auth = request.headers.get("authorization")
     val authType = auth.get.split(" ")(0)
@@ -71,13 +67,13 @@ object WebServiceUtil {
     if( authType.equalsIgnoreCase("basic") ){
 
       val userAndPass = new String(Base64.decodeBase64(auth.get.split(" ").drop(1).head.getBytes)).split(":")
-      Credentials( Option(userAndPass(0)), Option(userAndPass(1)) )
+      ( Option(userAndPass(0)), Option(userAndPass(1)) )
 
     }else if( authType.equalsIgnoreCase("bearer") ) {
 
       val user:Option[String] = Option( Authentication.getClaims(request).get.get("sub").get.toString )
       println("JWT user:"+user)
-      Credentials(user , None)
+      (user , None)
 
     }else
       throw new Exception("Authorization header not found")
@@ -104,30 +100,19 @@ object WebServiceUtil {
     else
       cleanDquote( (( (jsonError \ "obj")(0) \ "msg").getOrElse(JsArray(Seq(JsString(" ?? "))))(0) ).get.toString() )
 
-    //if( error.errors.length > 1 )
-      //cleanDquote( (((JsError.toJson(error) \ "obj[0].theme").getOrElse(JsArray(Seq(JsString("  "))))(0) \ "msg").getOrElse(JsArray(Seq(JsString("  "))))(0) ).get.toString() )
-    //else
-
-    //cleanDquote( (((JsError.toJson(error) \ "obj").getOrElse(JsArray(Seq(JsString("  "))))(0) \ "msg").getOrElse(JsArray(Seq(JsString("  "))))(0) ).get.toString() )
   }
 
+  /*
   def getMessageFromCkanError(error:JsValue): String ={
 
 
     val errorMsg = (error \ "error").getOrElse(JsString("can't retrive error") )
-    //val message = (errorMsg \ "message").getOrElse( ((errorMsg \ "name")(0)).getOrElse(JsString(" can't retrive error ")) )
 
     val ckanError = errorMsg.as[JsObject].value.foldLeft("ERRORS: "){ (s: String, pair: (String, JsValue)) =>
       s + "<< field: "+pair._1 +"  message: "+ cleanDquote(pair._2.toString()) + " >>   "}
 
-    /*
-    val ckanError = cleanDquote( (errorLookup \ "message").getOrElse(JsString(" can't retrive error ")).toString() ) + " (" +
-                    cleanDquote( (errorLookup \ "__type").getOrElse(JsString(" can't retrive error type ")).toString() )+ ")"
-    */
-    //println("---->"+ckanError)
-
     ckanError
 
-  }
+  }*/
 
 }

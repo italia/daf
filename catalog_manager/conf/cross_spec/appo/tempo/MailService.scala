@@ -5,7 +5,7 @@ import javax.mail.internet.InternetAddress
 import courier.{Envelope, Mailer, Text}
 import it.gov.daf.catalogmanager.utilities.ConfigReader
 
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Future
 
 
 class MailService(to:String,token:String) {

@@ -1,13 +1,15 @@
-package it.gov.daf.catalogmanager.tempo
+package it.gov.daf.securitymanager.service
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import catalog_manager.yaml.{Error, IpaUser, Success}
-import it.gov.daf.catalogmanager.utilities.{ConfigReader, WebServiceUtil}
+import it.gov.daf.securitymanager.service.utilities.{ConfigReader, WebServiceUtil}
 import org.asynchttpclient.DefaultAsyncHttpClientConfig
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
 import play.api.libs.ws.ahc.AhcWSClient
+import security_manager.yaml.IpaUser
+import security_manager.yaml.Error
+import security_manager.yaml.Success
 
 import scala.concurrent.Future
 
@@ -58,12 +60,12 @@ object ApiClientIPA {
     val login = s"login=$userName&password=$pwd"//&remember=63072000
 
     val url = wsClient.url(CKAN_URL+"/ldap_login_handler")
-      .withHeaders(   "Host"->CKAN_URL,
+      .withHeaders(   //"Host"->"localhost:5000",
                       "User-Agent"->"""Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:55.0) Gecko/20100101 Firefox/55.0""",
                       "Accept"->"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
                       "Accept-Language"-> "en-US,en;q=0.5",
                       "Accept-Encoding"-> "gzip, deflate",
-                      "Referer"->"http://localhost:5000/user/login",
+                      "Referer"-> (CKAN_URL+"/user/login"),
                       "Content-Type"->"application/x-www-form-urlencoded",
                       "Content-Length"-> login.length.toString,
                       "Connection"-> "keep-alive",

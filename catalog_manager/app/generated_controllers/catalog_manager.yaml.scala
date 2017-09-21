@@ -25,8 +25,6 @@ import play.api.libs.json._
 import scala.concurrent.ExecutionContext.Implicits.global
 import it.gov.daf.catalogmanager.utilities.WebServiceUtil
 import scala.concurrent.Future
-import it.gov.daf.catalogmanager.tempo.ApiClientIPA
-import it.gov.daf.catalogmanager.tempo.RegistrationService
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -35,7 +33,6 @@ import it.gov.daf.catalogmanager.tempo.RegistrationService
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-        
 
 
     // ----- End of unmanaged code area for package Catalog_managerYaml
@@ -55,14 +52,6 @@ package catalog_manager.yaml {
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.autocompletedummy
             NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.autocompletedummy
-        }
-        val registrationconfirm = registrationconfirmAction { (token: String) =>  
-            // ----- Start of unmanaged code area for action  Catalog_managerYaml.registrationconfirm
-            RegistrationService.createUser(token) flatMap {
-                case Right(success) => Registrationconfirm200(success)
-                case Left(err) => Registrationconfirm500(err)
-            }
-            // ----- End of unmanaged code area for action  Catalog_managerYaml.registrationconfirm
         }
         val searchdataset = searchdatasetAction { input: (MetadataCat, MetadataCat, ResourceSize) =>
             val (q, sort, rows) = input
@@ -85,14 +74,6 @@ package catalog_manager.yaml {
                 case Left(error) => Searchdataset401(Error(None,Option(error),None))
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.searchdataset
-        }
-        val createIPAuser = createIPAuserAction { (user: IpaUser) =>  
-            // ----- Start of unmanaged code area for action  Catalog_managerYaml.createIPAuser
-            ApiClientIPA.createUser(user) flatMap {
-                case Right(success) => CreateIPAuser200(success)
-                case Left(err) => CreateIPAuser500(err)
-            }
-            // ----- End of unmanaged code area for action  Catalog_managerYaml.createIPAuser
         }
         val getckanorganizationbyid = getckanorganizationbyidAction { (org_id: String) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.getckanorganizationbyid
@@ -182,14 +163,6 @@ package catalog_manager.yaml {
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.test
             NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.test
-        }
-        val showipauser = showipauserAction { (uid: String) =>  
-            // ----- Start of unmanaged code area for action  Catalog_managerYaml.showipauser
-            ApiClientIPA.showUser(uid) flatMap {
-                case Right(success) => Showipauser200(success)
-                case Left(err) => Showipauser500(err)
-            }
-            // ----- End of unmanaged code area for action  Catalog_managerYaml.showipauser
         }
         val verifycredentials = verifycredentialsAction { (credentials: Credentials) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.verifycredentials
@@ -350,19 +323,28 @@ package catalog_manager.yaml {
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.getckanorganizationList
         }
-        val registrationrequest = registrationrequestAction { (user: IpaUser) =>  
-            // ----- Start of unmanaged code area for action  Catalog_managerYaml.registrationrequest
-            val reg = RegistrationService.requestRegistration(user) flatMap {
-                case Right(mailService) => mailService.sendMail()
-                case Left(msg) => Future {Left(msg)}
+    
+     // Dead code for absent methodCatalog_managerYaml.createIPAuser
+     /*
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.createIPAuser
+            ApiClientIPA.createUser(user) flatMap {
+                case Right(success) => CreateIPAuser200(success)
+                case Left(err) => CreateIPAuser500(err)
             }
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.createIPAuser
+     */
 
-            reg flatMap {
-                case Right(msg) => Registrationrequest200(Success(Some("Success"), Some(msg)))
-                case Left(msg) => Registrationrequest500(Error(None, Option(msg), None))
+    
+     // Dead code for absent methodCatalog_managerYaml.registrationconfirm
+     /*
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.registrationconfirm
+            RegistrationService.createUser(token) flatMap {
+                case Right(success) => Registrationconfirm200(success)
+                case Left(err) => Registrationconfirm500(err)
             }
-            // ----- End of unmanaged code area for action  Catalog_managerYaml.registrationrequest
-        }
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.registrationconfirm
+     */
+
     
      // Dead code for absent methodCatalog_managerYaml.tempo
      /*
@@ -377,6 +359,33 @@ package catalog_manager.yaml {
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.addDataset
             NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.addDataset
+     */
+
+    
+     // Dead code for absent methodCatalog_managerYaml.registrationrequest
+     /*
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.registrationrequest
+            val reg = RegistrationService.requestRegistration(user) flatMap {
+                case Right(mailService) => mailService.sendMail()
+                case Left(msg) => Future {Left(msg)}
+            }
+
+            reg flatMap {
+                case Right(msg) => Registrationrequest200(Success(Some("Success"), Some(msg)))
+                case Left(msg) => Registrationrequest500(Error(None, Option(msg), None))
+            }
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.registrationrequest
+     */
+
+    
+     // Dead code for absent methodCatalog_managerYaml.showipauser
+     /*
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.showipauser
+            ApiClientIPA.showUser(uid) flatMap {
+                case Right(success) => Showipauser200(success)
+                case Left(err) => Showipauser500(err)
+            }
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.showipauser
      */
 
     

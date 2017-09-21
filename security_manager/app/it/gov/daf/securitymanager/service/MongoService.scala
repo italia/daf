@@ -1,13 +1,13 @@
-package it.gov.daf.catalogmanager.tempo
+package it.gov.daf.securitymanager.service
 
 import java.util.Calendar
 
-import catalog_manager.yaml.IpaUser
-import com.mongodb.casbah.{MongoClient, MongoCollection}
-import com.mongodb.{BasicDBObject, MongoCredential, ServerAddress}
 import com.mongodb.casbah.commons.MongoDBObject
-import it.gov.daf.catalogmanager.utilities.ConfigReader
+import com.mongodb.{BasicDBObject, ServerAddress}
+import com.mongodb.casbah.{MongoClient, MongoCredential}
+import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import play.api.libs.json.{JsValue, Json}
+import security_manager.yaml.IpaUser
 
 object MongoService {
 

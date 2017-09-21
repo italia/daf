@@ -17,8 +17,8 @@
 
 swagger: '2.0'
 info:
-  title: Ingestion Manager API
-  description: Catalog Manager API
+  title: MicroSrv Plain API
+  description: This is a plain Micro Services to be used as starting point for microservice development
   version: "BETA"
   termsOfService: http://termofservice
   contact:
@@ -29,7 +29,7 @@ info:
     url: http://creativecommons.org/licenses/by/4.0/
 host : localhost:9001
 # will be prefixed to all paths
-basePath: /ingestion-manager/v1
+basePath: /microsrv-plain/v1
 # array of all schemes that your API supports
 schemes:
   - http
@@ -38,12 +38,12 @@ produces:
 paths:
   "/test":
     get:
-      summary: Ingestion Catalog
+      summary: Test Endpoint
       description: |
-        Test Ingestion
+        Test Endpoint
       tags:
-        - Test Ingestion
-      operationId: testingestion
+        - Test Endpoint
+      operationId: testmicrosrv
       responses:
         200:
           description: Successfull
@@ -53,56 +53,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  "/add-newdataset/{uri}":
-    get:
-      summary: Start the ingestion of a new dataset
-      description: Setup the ingestion procedures for a new dataset. It will call NiFi to set up a new pipeline
-      operationId: addNewDataset
-      parameters:
-        - name: uri
-          in: path
-          description: uri (unique identifier) of the dataset, that has been already created from the Catalog Manager
-          required: true
-          type: string
-      responses:
-        200:
-          description: A JSON Object that returns the result of the ingestion setup of a new dataset.
-          schema:
-            type: string
-        default:
-            description: Unexpected error
-            type: string
-          #schema:
-            #type: string
-            #$ref: '#/definitions/IngestionReport'
-  "/add-datasets/{uri}":
-     post:
-       tags:
-       - Ingestion
-       summary: Add dataset, as append
-       operationId: addDataset
-       consumes:
-          - multipart/form-data
-       parameters:
-       - in: formData
-         name: upfile
-         type: file
-         required: true
-         description: The file to upload
-       - name: uri
-         in: path
-         description: uri of the dataset into the catalog manager
-         required: true
-         type: string
-       responses:
-         200:
-           description: successful operation
-           schema:
-             $ref: '#/definitions/Successfull'
-         default:
-           description: Unexpected error
-           schema:
-             $ref: '#/definitions/Error'
+
 definitions:
   Error:
     properties:
@@ -118,12 +69,3 @@ definitions:
     properties:
       message:
         type: string
-  IngestionReport:
-    type: object
-    properties:
-      status:
-        type: string
-        description: The status of the ingestion operation
-      message:
-        type: string
-        description: The message information describing the ingestion operation performed

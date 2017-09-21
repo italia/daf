@@ -39,7 +39,6 @@ libraryDependencies ++= Seq(
   "org.webjars" % "swagger-ui" % "3.0.10", //excludeAll( ExclusionRule(organization = "com.fasterxml.jackson.core") ),
   "it.gov.daf" %% "daf-catalog-manager-client" % "1.0.0-SNAPSHOT",
 //  "org.json4s" %% "json4s-jackson" % "3.5.2"  exclude("com.fasterxml.jackson.core", "jackson-databind"),
-  "com.databricks" %% "spark-avro" % "3.2.0",
   specs2 % Test,
   "org.scalacheck" %% "scalacheck" % "1.13.5" % Test,
   "org.specs2" %% "specs2-scalacheck" % "3.8.9" % Test,
@@ -72,15 +71,28 @@ headers := Map(
   "yaml" -> Apache2_0("2017", "TEAM PER LA TRASFORMAZIONE DIGITALE", "#")
 )
 
-dockerBaseImage := "frolvlad/alpine-oraclejdk8:latest"
+dockerBaseImage := "anapsix/alpine-java:8_jdk_unlimited"
 dockerCommands := dockerCommands.value.flatMap {
-  case cmd@Cmd("FROM", _) => List(cmd, Cmd("RUN", "apk update && apk add bash"))
+  case cmd@Cmd("FROM", _) => List(cmd,
+    Cmd("RUN", "apk update && apk add bash krb5-libs krb5"),
+    Cmd("RUN", "ln -sf /etc/krb5.conf /opt/jdk/jre/lib/security/krb5.conf")
+  )
   case other => List(other)
 }
-dockerCommands += ExecCmd("ENTRYPOINT", s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
+dockerEntrypoint := Seq(s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
 dockerExposedPorts := Seq(9000)
+dockerRepository := Option("10.98.74.120:5000")
 
-/*
+
+publishTo in ThisBuild := {
+  val nexus = "http://nexus.default.svc.cluster.local:8081/repository/"
+  if (isSnapshot.value)
+    Some("snapshots" at nexus + "maven-snapshots/")
+  else
+    Some("releases"  at nexus + "maven-releases/")
+}
+credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
+
 // Wart Remover Plugin Configuration
 wartremoverErrors ++= Warts.allBut(Wart.Nothing,
   Wart.PublicInference,
@@ -92,4 +104,3 @@ wartremoverErrors ++= Warts.allBut(Wart.Nothing,
 
 //wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value / "target" / "scala-2.11" / "routes").toSeq
 wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value).toSeq
-*/

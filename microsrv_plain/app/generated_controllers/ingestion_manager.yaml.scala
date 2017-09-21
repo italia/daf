@@ -43,6 +43,7 @@ package ingestion_manager.yaml {
         // ----- End of unmanaged code area for constructor Ingestion_managerYaml
         val testmicrosrv = testmicrosrvAction {  _ =>  
             // ----- Start of unmanaged code area for action  Ingestion_managerYaml.testmicrosrv
+            //val res:  = ClientCaller.callSrv("Ciao bello")
             NotImplementedYet
             // ----- End of unmanaged code area for action  Ingestion_managerYaml.testmicrosrv
         }

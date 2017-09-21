@@ -28,7 +28,7 @@ object ClientCaller {
   val uriSrvManager = ConfigFactory.load().getString("WebServices.servManagerUrl")
 
 
-  def callSrv(param :String) : Future[ServerType] = {
+  def callSrv(param :String) : Future[Successfull] = {
     implicit val system: ActorSystem = ActorSystem()
     implicit val materializer: ActorMaterializer = ActorMaterializer()
 
@@ -56,6 +56,6 @@ object ClientCaller {
 class Service_managerClient(client: AhcWSClient)(uriSrvManager: String) {
 
   def get(param: String): Future[ServerRequest] = {
-    ???
+    Future(param)
   }
 }

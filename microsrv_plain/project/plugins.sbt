@@ -19,3 +19,5 @@ addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.3.0")
 addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.8.2")
 
 addSbtPlugin("de.heikoseeberger" % "sbt-header" % "1.8.0")
+
+addSbtPlugin("eu.unicredit" % "sbt-swagger-codegen" % "0.0.9")

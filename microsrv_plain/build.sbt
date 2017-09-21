@@ -6,26 +6,30 @@ import play.sbt.routes.RoutesKeys.routesGenerator
 import sbt.Keys.resolvers
 
 organization in ThisBuild := "it.gov.daf"
-name := "daf-ingestion-manager"
+name := "daf-microsrv-plain"
 version := "1.0-SNAPSHOT"
-
-lazy val sparkVersion = "2.0.0"
-lazy val spark = "org.apache.spark"
 
 val playVersion = "2.5.14"
 
+lazy val client = (project in file("client")).
+  settings(Seq(
+    name := "daf-catalog-manager-client",
+    swaggerGenerateClient := true,
+    swaggerClientCodeGenClass := new it.gov.daf.swaggergenerators.DafClientGenerator,
+    swaggerCodeGenPackage := "it.gov.daf.catalogmanager",
+    swaggerSourcesDir := file(s"${baseDirectory.value}/../conf"),
+    libraryDependencies ++= Seq(
+      "com.typesafe.play" %% "play-json" % playVersion,
+      "com.typesafe.play" %% "play-ws" %  playVersion
+    )
+  )).enablePlugins(SwaggerCodegenPlugin)
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser)
-
+  .dependsOn(client).aggregate(client)
 
 scalaVersion in ThisBuild := "2.11.8"
 
 
-def dependencyToProvide(scope: String = "compile") = Seq(
-  spark %% "spark-core" % sparkVersion % scope exclude("com.fasterxml.jackson.core", "jackson-databind"),
-  spark %% "spark-sql" % sparkVersion % scope exclude("com.fasterxml.jackson.core", "jackson-databind"),
-  spark %% "spark-streaming" % sparkVersion % scope exclude("com.fasterxml.jackson.core", "jackson-databind")
-)
 
 libraryDependencies ++= Seq(
   jdbc,
@@ -40,7 +44,7 @@ libraryDependencies ++= Seq(
   "org.scalacheck" %% "scalacheck" % "1.13.5" % Test,
   "org.specs2" %% "specs2-scalacheck" % "3.8.9" % Test,
   //"me.jeffmay" %% "play-json-tests" % "1.5.0" % Test,
-  "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test) ++ dependencyToProvide()
+  "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test)
 
 playScalaCustomTemplateLocation := Some(baseDirectory.value / "templates")
 

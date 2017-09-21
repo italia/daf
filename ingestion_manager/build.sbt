@@ -7,7 +7,7 @@ import sbt.Keys.resolvers
 
 organization in ThisBuild := "it.gov.daf"
 name := "daf-ingestion-manager"
-version := "1.0.0"
+version := "1.0-SNAPSHOT"
 
 lazy val sparkVersion = "2.0.0"
 lazy val spark = "org.apache.spark"
@@ -33,7 +33,7 @@ libraryDependencies ++= Seq(
   ws,
   filters,
   "org.webjars" % "swagger-ui" % "3.0.10", //excludeAll( ExclusionRule(organization = "com.fasterxml.jackson.core") ),
-  "it.gov.daf" %% "daf-catalog-manager-client" % "1.0.0",
+  "it.gov.daf" %% "daf-catalog-manager-client" % "1.0.0-SNAPSHOT",
 //  "org.json4s" %% "json4s-jackson" % "3.5.2"  exclude("com.fasterxml.jackson.core", "jackson-databind"),
   "com.databricks" %% "spark-avro" % "3.2.0",
   specs2 % Test,
@@ -49,6 +49,7 @@ resolvers ++= Seq(
   "zalando-bintray" at "https://dl.bintray.com/zalando/maven",
   "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
   "jeffmay" at "https://dl.bintray.com/jeffmay/maven",
+  "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/",
   Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns)//, Resolver.mavenLocal
 )
 

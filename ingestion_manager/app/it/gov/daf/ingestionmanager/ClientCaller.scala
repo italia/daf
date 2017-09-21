@@ -43,4 +43,8 @@ object ClientCaller {
     res
   }
 
+  def callCatalogManager(logicalUri: String): Future[Successful] ={
+
+  }
+
 }

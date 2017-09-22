@@ -45,8 +45,8 @@ object ClientCaller {
     val response: Future[ServerRequest] = serviceClient.get("param")
     val res: Future[Successfull] = response
       .map{
-        case Success(true) => Successfull(Some("Dataset stored"))
-        case Success(false) => Successfull(Some("ERROR dataset cannot be stored"))
+        case Success(a) => Successfull(Some("Operation OK"))
+        case Success(false) => Successfull(Some("ERROR"))
         case Failure(ex) => Successfull(Some(s"ERROR ${ex.getStackTrace.mkString("\t\n")}"))
       }
     res

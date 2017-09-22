@@ -17,6 +17,8 @@ import scala.util._
 
 import javax.inject._
 
+import scala.concurrent.Future
+import it.gov.daf.microsrv.ClientCaller
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -25,7 +27,7 @@ import javax.inject._
 
 package microsrv_plain.yaml {
     // ----- Start of unmanaged code area for package Microsrv_plainYaml
-                
+                            
     // ----- End of unmanaged code area for package Microsrv_plainYaml
     class Microsrv_plainYaml @Inject() (
         // ----- Start of unmanaged code area for injections Microsrv_plainYaml
@@ -40,7 +42,8 @@ package microsrv_plain.yaml {
         // ----- End of unmanaged code area for constructor Microsrv_plainYaml
         val testmicrosrv = testmicrosrvAction {  _ =>  
             // ----- Start of unmanaged code area for action  Microsrv_plainYaml.testmicrosrv
-            NotImplementedYet
+            val res: Future[Successfull] = ClientCaller.callSrv("Ciao bello")
+            Testmicrosrv200(res)
             // ----- End of unmanaged code area for action  Microsrv_plainYaml.testmicrosrv
         }
     

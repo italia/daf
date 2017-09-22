@@ -116,7 +116,7 @@ object Transformers {
     }
   }
 
-  object eventToDatapoint extends transform[Event, DataPoint[Double]] {
+ /* object eventToDatapoint extends transform[Event, DataPoint[Double]] {
     def apply(a: Event): Try[DataPoint[Double]] = {
 
       val eventType = EventType(a.event_type_id)
@@ -135,7 +135,7 @@ object Transformers {
               .split(",").toList
               .flatMap { s =>
                 val strim = s.trim
-                a.attributes.get(strim).map((strim, _))
+                a.attributes.get(strim).map((convertString(strim), _))
               }
             DataPoint[Double](m, a.ts, v, tags.toMap)
           }
@@ -144,6 +144,6 @@ object Transformers {
       }
 
     }
-  }
+  }*/
 
 }

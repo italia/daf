@@ -33,7 +33,7 @@ libraryDependencies ++= Seq(
   ws,
   filters,
   "org.webjars" % "swagger-ui" % "3.0.10", //excludeAll( ExclusionRule(organization = "com.fasterxml.jackson.core") ),
-  "it.gov.daf" %% "daf-catalog-manager-client" % "1.0.0",
+  "it.gov.daf" %% "daf-catalog-manager-client" % "1.0-SNAPSHOT",
 //  "org.json4s" %% "json4s-jackson" % "3.5.2"  exclude("com.fasterxml.jackson.core", "jackson-databind"),
   "com.databricks" %% "spark-avro" % "3.2.0",
   specs2 % Test,
@@ -43,7 +43,7 @@ libraryDependencies ++= Seq(
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test) ++ dependencyToProvide()
 
 
-
+playScalaCustomTemplateLocation := Some(baseDirectory.value / "templates")
 
 resolvers ++= Seq(
   "zalando-bintray" at "https://dl.bintray.com/zalando/maven",
@@ -77,13 +77,14 @@ dockerCommands += ExecCmd("ENTRYPOINT", s"bin/${name.value}", "-Dconfig.file=con
 dockerExposedPorts := Seq(9000)
 
 // Wart Remover Plugin Configuration
+/*
 wartremoverErrors ++= Warts.allBut(Wart.Nothing,
   Wart.PublicInference,
   Wart.Any,
   Wart.Equals,
   Wart.AsInstanceOf,
   Wart.DefaultArguments,
-  Wart.OptionPartial)
+  Wart.OptionPartial) */
 
 //wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value / "target" / "scala-2.11" / "routes").toSeq
-wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value).toSeq
+//wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value).toSeq

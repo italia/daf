@@ -65,16 +65,15 @@
   </defs>
 </svg>
 
-
 <div id="swagger-ui"></div>
 
-<script src="./swagger-ui-bundle.js"> </script>
-<script src="./swagger-ui-standalone-preset.js"> </script>
+<script src="/docs/swagger-ui/swagger-ui-bundle.js"> </script>
+<script src="/docs/swagger-ui/swagger-ui-standalone-preset.js"> </script>
 <script>
 window.onload = function() {
   // Build a system
   const ui = SwaggerUIBundle({
-    url: "/spec/microsrv_plain.yaml",
+    url: "/spec/ingestion_manager.yaml",
     dom_id: '#swagger-ui',
     presets: [
       SwaggerUIBundle.presets.apis,

@@ -6,30 +6,26 @@ import play.sbt.routes.RoutesKeys.routesGenerator
 import sbt.Keys.resolvers
 
 organization in ThisBuild := "it.gov.daf"
-name := "daf-microsrv-plain"
+name := "daf-ingestion-manager"
 version := "1.0-SNAPSHOT"
+
+lazy val sparkVersion = "2.0.0"
+lazy val spark = "org.apache.spark"
 
 val playVersion = "2.5.14"
 
-lazy val client = (project in file("client")).
-  settings(Seq(
-    name := "daf-catalog-manager-client",
-    swaggerGenerateClient := true,
-    swaggerClientCodeGenClass := new it.gov.daf.swaggergenerators.DafClientGenerator,
-    swaggerCodeGenPackage := "it.gov.daf.catalogmanager",
-    swaggerSourcesDir := file(s"${baseDirectory.value}/../conf"),
-    libraryDependencies ++= Seq(
-      "com.typesafe.play" %% "play-json" % playVersion,
-      "com.typesafe.play" %% "play-ws" %  playVersion
-    )
-  )).enablePlugins(SwaggerCodegenPlugin)
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser)
-  .dependsOn(client).aggregate(client)
+
 
 scalaVersion in ThisBuild := "2.11.8"
 
 
+def dependencyToProvide(scope: String = "compile") = Seq(
+  spark %% "spark-core" % sparkVersion % scope exclude("com.fasterxml.jackson.core", "jackson-databind"),
+  spark %% "spark-sql" % sparkVersion % scope exclude("com.fasterxml.jackson.core", "jackson-databind"),
+  spark %% "spark-streaming" % sparkVersion % scope exclude("com.fasterxml.jackson.core", "jackson-databind")
+)
 
 libraryDependencies ++= Seq(
   jdbc,
@@ -37,14 +33,14 @@ libraryDependencies ++= Seq(
   ws,
   filters,
   "org.webjars" % "swagger-ui" % "3.0.10", //excludeAll( ExclusionRule(organization = "com.fasterxml.jackson.core") ),
+  "it.gov.daf" %% "daf-catalog-manager-client" % "1.0.0-SNAPSHOT",
 //  "org.json4s" %% "json4s-jackson" % "3.5.2"  exclude("com.fasterxml.jackson.core", "jackson-databind"),
+  "com.databricks" %% "spark-avro" % "3.2.0",
   specs2 % Test,
   "org.scalacheck" %% "scalacheck" % "1.13.5" % Test,
   "org.specs2" %% "specs2-scalacheck" % "3.8.9" % Test,
   //"me.jeffmay" %% "play-json-tests" % "1.5.0" % Test,
-  "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test,
-  "me.lessis" %% "base64" % "0.2.0",
-  "it.gov.daf" %% "common" % "1.0-SNAPSHOT")
+  "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test) ++ dependencyToProvide()
 
 playScalaCustomTemplateLocation := Some(baseDirectory.value / "templates")
 
@@ -72,36 +68,25 @@ headers := Map(
   "yaml" -> Apache2_0("2017", "TEAM PER LA TRASFORMAZIONE DIGITALE", "#")
 )
 
-dockerBaseImage := "anapsix/alpine-java:8_jdk_unlimited"
+dockerBaseImage := "frolvlad/alpine-oraclejdk8:latest"
 dockerCommands := dockerCommands.value.flatMap {
-  case cmd@Cmd("FROM", _) => List(cmd,
-    Cmd("RUN", "apk update && apk add bash krb5-libs krb5"),
-    Cmd("RUN", "ln -sf /etc/krb5.conf /opt/jdk/jre/lib/security/krb5.conf")
-  )
+  case cmd@Cmd("FROM", _) => List(cmd, Cmd("RUN", "apk update && apk add bash"))
   case other => List(other)
 }
-dockerEntrypoint := Seq(s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
+dockerCommands += ExecCmd("ENTRYPOINT", s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
 dockerExposedPorts := Seq(9000)
-dockerRepository := Option("10.98.74.120:5000")
 
-
-publishTo in ThisBuild := {
-  val nexus = "http://nexus.default.svc.cluster.local:8081/repository/"
-  if (isSnapshot.value)
-    Some("snapshots" at nexus + "maven-snapshots/")
-  else
-    Some("releases"  at nexus + "maven-releases/")
-}
-credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
 
 // Wart Remover Plugin Configuration
+/*
 wartremoverErrors ++= Warts.allBut(Wart.Nothing,
   Wart.PublicInference,
   Wart.Any,
   Wart.Equals,
   Wart.AsInstanceOf,
   Wart.DefaultArguments,
-  Wart.OptionPartial)
+  Wart.OptionPartial) */
 
 //wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value / "target" / "scala-2.11" / "routes").toSeq
-wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value).toSeq
+//wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value).toSeq
+

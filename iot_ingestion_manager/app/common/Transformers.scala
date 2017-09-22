@@ -83,6 +83,9 @@ object Transformers {
 
   object storableEventToDatapoint extends transform[StorableEvent, DataPoint[Double]] {
 
+    def convertString(string: String): String = string.replaceAll("[^a-zA-Z0-9]+","")
+
+
     def apply(a: StorableEvent): Try[DataPoint[Double]] = {
 
       val eventType = EventType(a.event_type_id)
@@ -95,13 +98,14 @@ object Transformers {
             value <- Try(valueString.toDouble)
           } yield (metric, value)
 
-          metricTry.map { case (m, v) =>
+          metricTry.map {
+            case (m, v) =>
             val tags = ("source", a.source) :: attributes
               .getOrElse("tags", ",")
               .split(",").toList
               .flatMap { s =>
                 val strim = s.trim
-                attributes.get(strim).map((strim, _))
+                attributes.get(strim).map((convertString(strim), _))
               }
             DataPoint[Double](m, a.ts, v, tags.toMap)
           }

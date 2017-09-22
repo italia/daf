@@ -6,12 +6,13 @@ import java.net.URLEncoder
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import com.typesafe.config.ConfigFactory
-import ingestion_manager.yaml.Successfull
+import microsrv_plain.yaml.Successfull
 import it.gov.daf.microsrv.ClientCaller.ServerRequest
 import play.api.libs.ws.ahc.AhcWSClient
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Created by ale on 14/06/17.

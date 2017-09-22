@@ -69,3 +69,10 @@ definitions:
     properties:
       message:
         type: string
+  Credentials:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string

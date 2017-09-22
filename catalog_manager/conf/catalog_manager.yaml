@@ -28,7 +28,7 @@ info:
     name: Creative Commons 4.0 International
     url: http://creativecommons.org/licenses/by/4.0/
 #host: catalog-manager.default.svc.cluster.local:9000
-host : localhost:9001
+host : localhost:9000
 # will be prefixed to all paths
 basePath: /catalog-manager/v1
 # array of all schemes that your API supports
@@ -126,7 +126,7 @@ paths:
         200:
           description: A Catalog
           schema:
-            type: object
+            type:
             $ref: '#/definitions/MetaCatalog'
         401:
           description: Error Message
@@ -879,7 +879,7 @@ definitions:
       properties:
         ingestion_type:
           type: string
-          enum: ["push", "pull"]
+          #enum: ["push", "pull"]
           description: It takes two values pull or push
         origin:
           type: string

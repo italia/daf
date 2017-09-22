@@ -133,6 +133,8 @@ class CatalogRepositoryMongo extends  CatalogRepository{
     Success(Some(msg),Some(msg))
   }
 
+
+  // Not used implement query on db
   def standardUris(): List[String] = List("raf", "org", "cert")
 
 }

@@ -18,8 +18,9 @@ object RegistrationService {
 
   def requestRegistration(user:IpaUser):Future[Either[String,MailService]] = {
 
-    if (user.userpassword.isEmpty || user.userpassword.get.length <= 5)
-      Future{Left("Password minimum length is 5 character")}
+    if (user.userpassword.isEmpty || user.userpassword.get.length < 8){
+      Future{Left("Password minimum length is 8 characters")}
+    }
     else {
       MongoService.findUserByUid(user.uid) match {
         case Right(o) => Future{Left("Username already requested")}

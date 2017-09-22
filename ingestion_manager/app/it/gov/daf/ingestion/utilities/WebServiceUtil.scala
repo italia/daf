@@ -1,9 +1,9 @@
-package it.gov.daf.microsrv.utilities
+package it.gov.daf.ingestion.utilities
 
 import java.io.File
 import java.net.URLEncoder
 
-import microsrv_plain.yaml.Credentials
+import ingestion_manager.yaml.Credentials
 import it.gov.daf.common.authentication.Authentication
 import org.apache.commons.net.util.Base64
 import play.api.libs.json

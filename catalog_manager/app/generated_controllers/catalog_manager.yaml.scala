@@ -34,7 +34,7 @@ import play.api.http.Writeable
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-    
+        
 
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
@@ -300,7 +300,9 @@ package catalog_manager.yaml {
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbyid
             val logical_uri = new java.net.URI(catalog_id)
             val catalog = ServiceRegistry.catalogService.getCatalogs(logical_uri.toString)
-
+            println("*******")
+            println(logical_uri.toString)
+            println(catalog.toString)
             val resutl  = catalog match {
                 case MetaCatalog(None,None,None) => Datasetcatalogbyid401("Error no data with that logical_uri")
                 case  _ =>  Datasetcatalogbyid200(catalog)

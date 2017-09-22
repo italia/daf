@@ -17,8 +17,8 @@
 
 swagger: '2.0'
 info:
-  title: MicroSrv Plain API
-  description: This is a plain Micro Services to be used as starting point for microservice development
+  title: Ingestion Manager API
+  description: This microservice manages the ingestion procedures
   version: "BETA"
   termsOfService: http://termofservice
   contact:
@@ -29,7 +29,7 @@ info:
     url: http://creativecommons.org/licenses/by/4.0/
 host : localhost:9001
 # will be prefixed to all paths
-basePath: /microsrv-plain/v1
+basePath: /ingestion-manager/v1
 # array of all schemes that your API supports
 schemes:
   - http
@@ -53,6 +53,29 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  "/add-new-dataset/{ds_logical_uri}":
+      get:
+        summary: Setup ingestion procs for a new dataset added in the catalog manager
+        description: |
+          Setup ingestion procs for a new dataset added in the catalog manager. It calls NiFi API to manage the new pipeline.
+        tags:
+          - Ingestion, new dataset
+        operationId: addNewDataset
+        parameters:
+          - name: ds_logical_uri
+            in: path
+            description: logical uri of the dataset
+            required: true
+            type: string
+        responses:
+          200:
+            description: IngestionReport
+            schema:
+              $ref: '#/definitions/IngestionReport'
+          default:
+            description: Unexpected error
+            schema:
+              $ref: '#/definitions/Error'
 
 definitions:
   Error:
@@ -69,10 +92,17 @@ definitions:
     properties:
       message:
         type: string
+  IngestionReport:
+    type: object
+    properties:
+      status:
+        type: string
+      nifi:
+        type: string
   Credentials:
-      type: object
-      properties:
-        username:
-          type: string
-        password:
-          type: string
+    type: object
+    properties:
+      username:
+        type: string
+      password:
+        type: string

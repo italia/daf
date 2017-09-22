@@ -6,7 +6,7 @@ import play.sbt.routes.RoutesKeys.routesGenerator
 import sbt.Keys.resolvers
 
 organization in ThisBuild := "it.gov.daf"
-name := "daf-microsrv-plain"
+name := "daf-ingestion-manager"
 version := "1.0-SNAPSHOT"
 
 val playVersion = "2.5.14"

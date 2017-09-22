@@ -7,7 +7,7 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import com.typesafe.config.ConfigFactory
 import ingestion_manager.yaml.Successfull
-import it.gov.daf.catalogmanager.MetaCatalog
+import it.gov.daf.catalogmanager.{Dataset, MetaCatalog, StdUris}
 import it.gov.daf.catalogmanager.client.Catalog_managerClient
 import play.api.libs.ws.ahc.AhcWSClient
 
@@ -28,7 +28,7 @@ object ClientCaller {
     implicit val system: ActorSystem = ActorSystem()
     implicit val materializer: ActorMaterializer = ActorMaterializer()
     val client: AhcWSClient = AhcWSClient()
-    val catalogManager = new Catalog_managerClient(client)(uriCatalogManager)
+    val catalogManager: Catalog_managerClient = new Catalog_managerClient(client)(uriCatalogManager)
     //val service = s"$uriCatalogManager/dataset-catalogs/$uri"
     //val response = ingestionManager.connect(client)(service)
     val logical_uri = URLEncoder.encode(logicalUri)
@@ -43,18 +43,30 @@ object ClientCaller {
     res
   }
 
-  def callCatalogManager(auth: String, logicalUri: String): Future[MetaCatalog] ={
+
+  def callCatalogManager(auth: String, logicalUri: String): Future[String] = {
+
     implicit val system: ActorSystem = ActorSystem()
     implicit val materializer: ActorMaterializer = ActorMaterializer()
     val client: AhcWSClient = AhcWSClient()
 
-    val catalogManager = new Catalog_managerClient(client)(uriCatalogManager)
+    //val catalogManager = new Catalog_managerClient(client)(uriCatalogManager)
     //val service = s"$uriCatalogManager/dataset-catalogs/$uri"
     //val response = ingestionManager.connect(client)(service)
+
     val logical_uri = URLEncoder.encode(logicalUri)
-    val response: Future[MetaCatalog] = catalogManager.datasetcatalogbyid(auth,logical_uri)
-    println(logical_uri)
-    response
-  }
+    val url = uriCatalogManager + "/catalog-manager/v1/catalog-ds/get/" + logical_uri
+    //val response = catalogManager.standardsuri(auth)
+
+    client.url(url).withHeaders("Authorization" ->  auth).get().map { response =>
+        val metadata = response.json
+        println("Qui tutto il json")
+        println(metadata)
+        val name = ((metadata \ "dcatapit") \ "name").as[String]
+        name
+       }.andThen { case _ => client.close() }
+        .andThen { case _ => system.terminate() }
+
+    }
 
 }

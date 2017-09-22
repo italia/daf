@@ -28,9 +28,10 @@ import org.apache.spark.streaming.kafka010.ConsumerStrategies._
 import org.apache.spark.streaming.kafka010.LocationStrategies.PreferConsistent
 import org.apache.spark.streaming.kafka010.{HasOffsetRanges, KafkaUtils}
 import org.apache.spark.streaming.{StreamingContext, Time => SparkTime}
+import play.Logger
 
 import scala.reflect.ClassTag
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 @SuppressWarnings(
   Array(
@@ -38,6 +39,9 @@ import scala.util.Try
   )
 )
 object TransformersStream extends OffsetsManagement {
+
+  @transient
+  implicit private val alogger = Logger.of(this.getClass.getCanonicalName)
 
   private def commitOffsets[A, B](kuduClient: KuduClient, tableName: String, topic: String, groupId: String, rdd: RDD[ConsumerRecord[A, B]], time: SparkTime): RDD[ConsumerRecord[A, B]] = rdd match {
     case hasRanges: HasOffsetRanges => setOffsets(kuduClient, tableName, topic, groupId, hasRanges, time); rdd
@@ -59,6 +63,7 @@ object TransformersStream extends OffsetsManagement {
     */
   private def stageOffsets[A, B](kuduClient: KuduClient, tableName: String, topic: String, groupId: String)(stream: Try[DStream[ConsumerRecord[A, B]]])(implicit A: ClassTag[A]) = stream.map(_.transform((rdd, time) => commitOffsets(kuduClient, tableName, topic, groupId, rdd, time)))
 
+
   /**
     * It creates a kafka direct stream where the kafka offsets are managed.
     *
@@ -72,7 +77,7 @@ object TransformersStream extends OffsetsManagement {
     * @param groupId
     * @param transform
     * @tparam B
-    * @return
+    * @return a stream
     */
   def getTransformersStream[B: ClassTag](
                                           ssc: StreamingContext,
@@ -100,18 +105,21 @@ object TransformersStream extends OffsetsManagement {
     val inputStream = stageOffsets[Array[Byte], Array[Byte]](kuduContext.syncClient, tableName, topic, groupId) {
       fromOffsets.map(fromOffsets => KafkaUtils.createDirectStream(ssc, PreferConsistent, Assign[Array[Byte], Array[Byte]](fromOffsets.keys, kafkaParams, fromOffsets)))
     }
-    inputStream.map(_.flatMap(cr => {
-      val dp = transform(cr.value)
+    inputStream.map(_.flatMap{cr =>
+      val dp  = transform(cr.value)
+      logInfo(dp)
       dp.toOption
-    }))
+    })
   }
 
   implicit class EnrichedDStream[A](dstream: DStream[A]) extends AnyRef {
     def applyTransform[B: ClassTag](transform: Kleisli[Try, A, B]) = dstream.flatMap(e => {
       val dp = transform(e)
+      logInfo(dp)
       dp.toOption
     })
   }
+
 
   def convertDataFrameToRDD[T <: Product](data: DataFrame)(implicit encoder: Encoder[T]) = {
     data.as[T].rdd
@@ -120,6 +128,14 @@ object TransformersStream extends OffsetsManagement {
   def convertRDDtoDataFrame[T <: Product](data: RDD[T])(implicit sparkSession: SparkSession, encoder: Encoder[T]): DataFrame = {
     import sparkSession.implicits._
     data.toDS.toDF
+  }
+  @SuppressWarnings(Array("org.wartremover.warts.ToString"))
+  private def logInfo[B: ClassTag](obj: Try[B]): Unit = {
+    obj match {
+      case Failure(ex) =>
+        alogger.error(s"${ex.getMessage}")
+      case Success(d) =>  alogger.debug(s"${d.toString} correctly transformed")
+    }
   }
 
 }

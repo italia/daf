@@ -126,7 +126,7 @@ paths:
         200:
           description: A Catalog
           schema:
-            type: object
+            type:
             $ref: '#/definitions/MetaCatalog'
         401:
           description: Error Message

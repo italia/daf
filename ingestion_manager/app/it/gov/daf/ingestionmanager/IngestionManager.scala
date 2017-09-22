@@ -88,9 +88,9 @@ class IngestionManager {
     val physicalUrl = schema.operational.map(_.physical_uri.getOrElse(""))
     val rightsHolder = for{
       dct <- schema.dcatapit
-      rh <- dct.dct_rightsHolder
-      r <- rh.value
-    } yield r
+      rh <- dct.holder_name
+    //  r <- rh
+    } yield rh
 
     implicit val formats = DefaultFormats
 

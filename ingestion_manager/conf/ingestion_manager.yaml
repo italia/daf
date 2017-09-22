@@ -103,6 +103,25 @@ paths:
            description: Unexpected error
            schema:
              $ref: '#/definitions/Error'
+  "/add-newdataset/{uri}":
+    get:
+      summary: Start the ingestion of a new dataset
+      description: Setup the ingestion procedures for a new dataset. It will call NiFi to set up a new pipeline
+      operationId: addNewDataset
+      parameters:
+        - name: uri
+          in: path
+          description: uri (unique identifier) of the dataset, that has been already created from the Catalog Manager
+          required: true
+          type: string
+      responses:
+        200:
+          description: A JSON Object that returns the result of the ingestion setup of a new dataset.
+          schema:
+            type: string
+        default:
+            description: Unexpected error
+            type: string
 definitions:
   Error:
     properties:

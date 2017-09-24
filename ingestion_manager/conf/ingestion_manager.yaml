@@ -71,7 +71,8 @@ paths:
           200:
             description: IngestionReport
             schema:
-              $ref: '#/definitions/IngestionReport'
+              type: string
+              #$ref: '#/definitions/IngestionReport'
           default:
             description: Unexpected error
             schema:

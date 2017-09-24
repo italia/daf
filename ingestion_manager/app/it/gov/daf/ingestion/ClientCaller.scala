@@ -7,7 +7,8 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import com.typesafe.config.ConfigFactory
 import ingestion_manager.yaml.Successfull
-import it.gov.daf.ingestion.ClientCaller.ServerRequest
+import it.gov.daf.catalogmanager.MetaCatalog
+import it.gov.daf.catalogmanager.client.Catalog_managerClient
 import play.api.libs.ws.ahc.AhcWSClient
 
 import scala.concurrent.Future
@@ -29,7 +30,7 @@ object ClientCaller {
   val uriCatalogManager = ConfigFactory.load().getString("WebServices.catalogManagerUrl")
 
 
-  def callSrv(auth: String, param :String) : Future[String] = {
+  def clientCatalogMgrMetaCatalog(auth: String, logicalUri :String) : Future[MetaCatalog] = {
     implicit val system: ActorSystem = ActorSystem()
     implicit val materializer: ActorMaterializer = ActorMaterializer()
 
@@ -39,30 +40,27 @@ object ClientCaller {
     //val serviceClient = new Service_managerClient(client)(uriSrvManager)
 
     //Anytime the param is a uri, you need to trun this
-    //val logical_uri = URLEncoder.encode(logicalUri)
+    val logicalUriEncoded = URLEncoder.encode(logicalUri)
+
+    val catalogManagerClient = new Catalog_managerClient(client)(uriCatalogManager)
+    val response: Future[MetaCatalog] = catalogManagerClient.datasetcatalogbyid(auth,logicalUriEncoded)
+
+    response
+
+
 
     /*
-    val response: Future[ServerRequest] = serviceClient.get("param")
-    val res: Future[String] = response
-      .map{
-        case Success(a) => "Operation OK"
-        //case Success(false) => Successfull(Some("ERROR"))
-        case Failure(ex) => s"ERROR ${ex.getStackTrace.mkString("\t\n")}"
-      }
-
-    response.value
-    */
     println(uriCatalogManager)
     val logical_uri = URLEncoder.encode(param)
     val url = uriCatalogManager + "/catalog-manager/v1/catalog-ds/get/" + logical_uri
     //val response = catalogManager.standardsuri(auth)
     println(url)
 
-    val test = client.url(url).withHeaders(("Authorization" ->  auth), ("user"->"admin"), ("password"->"admin") ).get()
+    //val test = client.url(url).withHeaders(("Authorization" ->  auth)).get()
+    //, ("user"->"admin"), ("password"->"admin")
+    //println(test)
 
-    println(test)
-
-    test.map { response =>
+    client.url(url).withHeaders(("Authorization" ->  auth)).get().map { response =>
       val metadata = response.json
       println("Qui tutto il json")
       println(metadata)
@@ -70,15 +68,10 @@ object ClientCaller {
       name
     }.andThen { case _ => client.close() }
       .andThen { case _ => system.terminate() }
+*/
 
   }
 
 
 }
 
-class Service_managerClient(client: AhcWSClient)(uriSrvManager: String) {
-
-  def get(param: String): Future[ServerRequest] = {
-    Future(param)
-  }
-}

@@ -13,10 +13,10 @@ val playVersion = "2.5.14"
 
 lazy val client = (project in file("client")).
   settings(Seq(
-    name := "daf-catalog-manager-client",
+    name := "daf-ingestion-manager-client",
     swaggerGenerateClient := true,
     swaggerClientCodeGenClass := new it.gov.daf.swaggergenerators.DafClientGenerator,
-    swaggerCodeGenPackage := "it.gov.daf.catalogmanager",
+    swaggerCodeGenPackage := "it.gov.daf.ingestionmanager",
     swaggerSourcesDir := file(s"${baseDirectory.value}/../conf"),
     libraryDependencies ++= Seq(
       "com.typesafe.play" %% "play-json" % playVersion,
@@ -44,11 +44,14 @@ libraryDependencies ++= Seq(
   //"me.jeffmay" %% "play-json-tests" % "1.5.0" % Test,
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test,
   "me.lessis" %% "base64" % "0.2.0",
-  "it.gov.daf" %% "common" % "1.0-SNAPSHOT")
+  "it.gov.daf" %% "common" % "1.0-SNAPSHOT",
+  "it.gov.daf" %% "daf-catalog-manager-client" % "1.0.0-SNAPSHOT"
+  )
 
 playScalaCustomTemplateLocation := Some(baseDirectory.value / "templates")
 
 resolvers ++= Seq(
+  Resolver.mavenLocal,
   "zalando-bintray" at "https://dl.bintray.com/zalando/maven",
   "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
   "jeffmay" at "https://dl.bintray.com/jeffmay/maven",

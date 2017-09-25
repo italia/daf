@@ -9,6 +9,7 @@ import com.mongodb.casbah.Imports._
 import it.gov.daf.catalogmanager.utilities.{CatalogManager, ConfigReader}
 import it.gov.daf.catalogmanager.service.CkanRegistry
 
+import scala.concurrent.Future
 import scala.util.Try
 
 
@@ -88,7 +89,7 @@ class CatalogRepositoryMongo extends  CatalogRepository{
     val dcatapit: Dataset = metaCatalog.dcatapit.get
     val datasetJs : JsValue = ResponseWrites.DatasetWrites.writes(dcatapit)
 
-    CkanRegistry.ckanRepository.createDataset(datasetJs,callingUserid)
+    val result: Future[String] = CkanRegistry.ckanRepository.createDataset(datasetJs,callingUserid)
 
     val msg: String = metaCatalog match {
       case MetaCatalog(Some(dataSchema), Some(operational), _) =>

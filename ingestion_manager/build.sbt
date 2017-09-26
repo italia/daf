@@ -44,6 +44,9 @@ libraryDependencies ++= Seq(
   //"me.jeffmay" %% "play-json-tests" % "1.5.0" % Test,
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test,
   "me.lessis" %% "base64" % "0.2.0",
+  "org.apache.logging.log4j" % "log4j-core" % "2.9.0",
+  "org.apache.logging.log4j" % "log4j-api" % "2.9.0",
+  "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.9.0",
   "it.gov.daf" %% "common" % "1.0-SNAPSHOT",
   "it.gov.daf" %% "daf-catalog-manager-client" % "1.0.0-SNAPSHOT"
   )
@@ -54,7 +57,7 @@ resolvers ++= Seq(
   Resolver.mavenLocal,
   "zalando-bintray" at "https://dl.bintray.com/zalando/maven",
   "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
-  "jeffmay" at "https://dl.bintray.com/jeffmay/maven",
+  "jeffmay" at "https://dl.bintray.com/jeffmay/maƒven",
   "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/",
   Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns)//, Resolver.mavenLocal
 )

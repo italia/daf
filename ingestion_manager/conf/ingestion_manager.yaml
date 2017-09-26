@@ -71,8 +71,7 @@ paths:
           200:
             description: IngestionReport
             schema:
-              type: string
-              #$ref: '#/definitions/IngestionReport'
+              $ref: '#/definitions/IngestionReport'
           default:
             description: Unexpected error
             schema:
@@ -95,8 +94,10 @@ definitions:
         type: string
   IngestionReport:
     type: object
+    required:
+      - resultStatus
     properties:
-      status:
+      resultStatus:
         type: string
       nifi:
         type: string

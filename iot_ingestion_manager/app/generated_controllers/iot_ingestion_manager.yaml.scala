@@ -63,6 +63,11 @@ import org.apache.kudu.ColumnSchema
 import org.apache.kudu.client.CreateTableOptions
 import org.apache.kudu.ColumnSchema
 import org.apache.kudu.client.CreateTableOptions
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
+import org.apache.spark.rdd.RDD
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -71,7 +76,7 @@ import org.apache.kudu.client.CreateTableOptions
 
 package iot_ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Iot_ingestion_managerYaml
-                                    
+                                            
   @SuppressWarnings(
     Array(
       "org.wartremover.warts.While",
@@ -299,12 +304,14 @@ package iot_ingestion_manager.yaml {
 
                             implicit val storableEventEncoder: Encoder[StorableEvent] = ExpressionEncoder()
 
+                            stream.print(10)
+
                             val dataPoints = stream.
                               applyTransform(eventToStorableEvent). //Transform the avro event to StorableEvent (the event format for Kudu)
-                              transform { //then each stream rdd is stored into kudu, the returned rdd contains only non repeated events (idempotency)
+                              transform ( //then each stream rdd is stored into kudu, the returned rdd contains only non repeated events (idempotency)
                               source =>
                                 convertDataFrameToRDD[StorableEvent](kuduContext.insertAndReturn(convertRDDtoDataFrame[StorableEvent](source), kuduEventsTableName))
-                            }.
+                            ).
                               applyTransform(storableEventToDatapoint) //Transform the StorableEvent to DataPoint (for OpenTSDB)
 
                             openTSDBContext.foreach(_.streamWrite(dataPoints))

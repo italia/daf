@@ -165,5 +165,6 @@
       Success(Some(msg),Some(msg))
     }
 
-     def standardUris(): List[String] = List("raf", "org", "cert")
+    // Not used
+     def standardUris(): List[String] = List("ale", "raf")
   }

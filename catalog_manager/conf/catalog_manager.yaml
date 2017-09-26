@@ -677,6 +677,7 @@ definitions:
     type: object
     properties:
       dataschema:
+
         type: object
         $ref: '#/definitions/DatasetCatalog'
       operational:
@@ -829,6 +830,7 @@ definitions:
         type: string
         description: Unique resource identifier of the dataset. It is calculated automatically and assigned once for all
       physical_uri:
+      #Not shure we should have this info here. This should be built programmatically
         type: string
         description: Physical uri. Physical storage path
       is_std:
@@ -837,6 +839,11 @@ definitions:
       group_own:
         type: string
         description: Group of ownership to which the dataset belongs. It is set to 'open' by default.
+      group_access:
+        type: array
+        description: Groups that have rights to access the datasets. It contains the name and the role associated to the group
+        items:
+          $ref: '#/definitions/GroupAccess'
       std_schema:
         $ref: '#/definitions/StdSchema'
       read_type:
@@ -847,15 +854,76 @@ definitions:
          $ref: '#/definitions/GeoRef'
       input_src:
         $ref: '#/definitions/InputSrc'
+  GroupAccess:
+    type: object
+    description: Type associated with group_access
+    properties:
+      name:
+        type: string
+      role:
+        type: string
   InputSrc:
     type: object
     properties:
-      ing_type:
-        type: string
+      sftp:
+        type: array
+        description: SFTP object that specifies info to access data stored in SFTP source. This is the dafault entrypoint for batch data.
+        items:
+          $ref: '#/definitions/SourceSftp'
+      srv_pull:
+        type: array
+        items:
+        $ref: '#/definitions/SourceSrvPull'
       src_type:
         type: string
       url:
         type: string
+  SourceSftp:
+    type: object
+    description: Info for the ingestion source of type SFTP
+    required:
+      - name
+    properties:
+      name:
+        type: string
+        description: Name of the SFTP. Default will be 'sftp_daf' for the standard sftp
+      url:
+        type: string
+        description: Url of the sftp. It will be None if the sftp name is 'sftp_daf' that will automatically point to the standard sftp
+      username:
+        type: string
+        description: Username to use to access the SFTP. It will be None if the sftp name is 'sftp_daf'
+      password:
+        type: string
+        description: Password to use to access the SFTP. It will be None if the sftp name is 'sftp_daf'
+      param:
+        type: string
+        description: Other parameters to be passed in JSON format. It will be None by default.
+  SourceSrvPull:
+    type: object
+    description: Info for the ingestion source of type pulling a service
+    required:
+      - name
+      - url
+    properties:
+      name:
+        type: string
+        description: Name of the service to pull, that is we make a call to the specified url
+      url:
+        type: string
+        description: Url of the service to pull.
+      username:
+        type: string
+        description: Username to use to access the SFTP. It will be None if the sftp name is 'sftp_daf'
+      password:
+        type: string
+        description: Password to use to access the SFTP. It will be None if the sftp name is 'sftp_daf'
+      access_token:
+        type: string
+        description: Auth token to be passed to the service called.
+      param:
+        type: string
+        description: Other parameters to be passed in JSON format. It will be None by default.
   GeoRef:
     type: object
     properties:

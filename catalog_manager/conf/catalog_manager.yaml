@@ -853,7 +853,19 @@ definitions:
         items:
          $ref: '#/definitions/GeoRef'
       input_src:
+        description: Input sources for data to be ingested into the dataset.
         $ref: '#/definitions/InputSrc'
+      ingestion_pipeline:
+        type: array
+        description: List of ingestion pipeline to be applied, in order of declaration, to the data to be ingested.
+        items:
+          type: string
+      storage_info:
+        description: Information on the storage to be used to save the dataset.
+        $ref: '#/definitions/StorageInfo'
+      dataset_type:
+        type: string
+        description: It tells whether the dataset is at rest ('batch') or realtime stream ('stream').
   GroupAccess:
     type: object
     description: Type associated with group_access
@@ -873,11 +885,15 @@ definitions:
       srv_pull:
         type: array
         items:
-        $ref: '#/definitions/SourceSrvPull'
-      src_type:
-        type: string
-      url:
-        type: string
+          $ref: '#/definitions/SourceSrvPull'
+      srv_pull:
+        type: array
+        items:
+          $ref: '#/definitions/SourceSrvPush'
+      daf_dataset:
+        type: array
+        items:
+          $ref: '#/definitions/SourceDafDataset'
   SourceSftp:
     type: object
     description: Info for the ingestion source of type SFTP
@@ -901,29 +917,167 @@ definitions:
         description: Other parameters to be passed in JSON format. It will be None by default.
   SourceSrvPull:
     type: object
-    description: Info for the ingestion source of type pulling a service
+    description: Info for the ingestion source of type pulling a service, that is we make a call to the specified url
     required:
       - name
       - url
     properties:
       name:
         type: string
-        description: Name of the service to pull, that is we make a call to the specified url
+        description: Name of the service to pull
       url:
         type: string
         description: Url of the service to pull.
       username:
         type: string
-        description: Username to use to access the SFTP. It will be None if the sftp name is 'sftp_daf'
+        description: Username to use to access the service.
       password:
         type: string
-        description: Password to use to access the SFTP. It will be None if the sftp name is 'sftp_daf'
+        description: Password to use to access the service.
       access_token:
         type: string
         description: Auth token to be passed to the service called.
       param:
         type: string
         description: Other parameters to be passed in JSON format. It will be None by default.
+  SourceSrvPush:
+    type: object
+    description: Info for the ingestion source of type pushing a service, that is we expose a service that is continuously listening
+    required:
+      - name
+      - url
+    properties:
+      name:
+        type: string
+        description: Name of the service to push
+      url:
+        type: string
+        description: Url of the service to push.
+      username:
+        type: string
+        description: Username to use to access the service.
+      password:
+        type: string
+        description: Password to use to access the SFTP.
+      access_token:
+        type: string
+        description: Auth token to be passed to the service called.
+      param:
+        type: string
+        description: Other parameters to be passed in JSON format. It will be None by default.
+  SourceDafDataset:
+    type: object
+    description: It contains info to build the dataset based on already existing dataset in DAF.
+    required:
+      - datasets
+    properties:
+      dataset_uri:
+        type: array
+        items:
+          type: string
+        description: List of uri of datasets to be used for the derived dataset.
+      sql:
+        type: string
+        description: Sql statement to create the derived dataset based on the ones indicated in 'dataset_uri'.
+      param:
+        type: string
+        description: Other parameters to be passed in JSON format. It will be None by default.
+  StorageInfo:
+    type: object
+    properties:
+      hdfs:
+        type: object
+        description: StorageHdfs object that contains info for the HDFS storage.
+        $ref: '#/definitions/StorageHdfs'
+      kudu:
+        type: object
+        description: StorageKudu objects info for the Kudu storage.
+        $ref: '#/definitions/StorageKudu'
+      hbase:
+        type: object
+        description: StorageHbase objects info for the Hbase storage.
+        $ref: '#/definitions/StorageHbase'
+      textdb:
+        type: object
+        description: SourceTextdb
+        $ref: '#/definitions/StorageTextdb'
+  StorageHdfs:
+    type: object
+    description: If compiled, will tell the ingestion manager to store the data into HDFS.
+    required:
+      - name
+    properties:
+      name:
+        type: string
+        description: It is the name of the HDFS storage configuration to use. It is 'hdfs_daf' by default, with which will follow the DAF path convention.
+      path:
+        type: string
+        description: It is the hdfs path where data will be stored. It is None if the default 'hdfs_daf' is used.
+      param:
+        type: string
+        description: Other parameters to be passed in JSON format. It will be None by default.
+  StorageKudu:
+    type: object
+    description: If compiled, will tell the ingestion manager to store the data into Kudu.
+    required:
+      - name
+    properties:
+      name:
+        type: string
+        description: It is the name of the Kudu storage configuration to use. It is 'kudu_daf' by default, with which will follow the DAF convention.
+      path:
+        type: string
+        description: It is the Kudu path where data will be stored. It is None if the default 'kudu_daf' is used.
+      param:
+        type: string
+        description: Other parameters to be passed in JSON format. It will be None by default.
+  StorageHbase:
+    type: object
+    description: If compiled, will tell the ingestion manager to store the data into Hbase.
+    required:
+      - name
+    properties:
+      name:
+        type: string
+        description: It is the name of the Kudu storage configuration to use. It is 'hbase_daf' by default, with which will follow the DAF convention.
+      path:
+        type: string
+        description: It is the Hbase path where data will be stored. It is None if the default 'hbase_daf' is used.
+      param:
+        type: string
+        description: Other parameters to be passed in JSON format. It will be None by default.
+  StorageTextdb:
+    type: object
+    description: If compiled, will tell the ingestion manager to store the data into Textdb.
+    required:
+      - name
+    properties:
+      name:
+        type: string
+        description: It is the name of the Textdb storage configuration to use. It is 'textdb_daf' by default, with which will follow the DAF convention.
+      path:
+        type: string
+        description: It is the Kudu path where data will be stored. It is None if the default 'textdb_daf' is used.
+      param:
+        type: string
+        description: Other parameters to be passed in JSON format. It will be None by default.
+
+  StorageMongo:
+    type: object
+    description: If compiled, will tell the ingestion manager to store the data into Kudu.
+    required:
+      - name
+    properties:
+      name:
+        type: string
+        description: It is the name of the MongoDB storage configuration to use. It is 'mongo_daf' by default, with which will follow the DAF convention.
+      path:
+        type: string
+        description: It is the MongoDB path where data will be stored. It is None if the default 'mongo_daf' is used.
+      param:
+        type: string
+        description: Other parameters to be passed in JSON format. It will be None by default.
+
   GeoRef:
     type: object
     properties:

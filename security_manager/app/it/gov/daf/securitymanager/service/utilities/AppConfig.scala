@@ -25,6 +25,7 @@ private class AppConfig @Inject()(playConfig: Configuration) {
   val smtpLogin :Option[String] = playConfig.getString("smtp.login")
   val smtpPwd :Option[String] = playConfig.getString("smtp.pwd")
   val smtpSender:Option[String] = playConfig.getString("smtp.sender")
+  val supersetUrl :Option[String] = playConfig.getString("superset.url")
 
 }
 
@@ -49,5 +50,6 @@ object ConfigReader {
   def smtpLogin :String = config.smtpLogin.getOrElse("xxx")
   def smtpPwd :String = config.smtpPwd.getOrElse("xxx")
   def smtpSender:String = config.smtpSender.getOrElse("xxx")
+  def supersetUrl:String = config.supersetUrl.getOrElse("xxx")
 }
 

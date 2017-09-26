@@ -18,18 +18,18 @@ object RegistrationService {
 
   def requestRegistration(user:IpaUser):Future[Either[String,MailService]] = {
 
-    if (user.userpassword.isEmpty || user.userpassword.get.length <= 8)
+    if (user.userpassword.isEmpty || user.userpassword.get.length < 8)
       Future{Left("Password minimum length is 8 character")}
     else {
       MongoService.findUserByUid(user.uid) match {
         case Right(o) => Future{Left("Username already requested")}
-        case Left(o) => chekNregister(user)
+        case Left(o) => checkNregister(user)
       }
     }
 
   }
 
-  private def chekNregister(user:IpaUser):Future[Either[String,MailService]] = {
+  private def checkNregister(user:IpaUser):Future[Either[String,MailService]] = {
 
     ApiClientIPA.showUser(user.uid) flatMap { result =>
 
@@ -57,7 +57,7 @@ object RegistrationService {
 
     MongoService.findAndRemoveUserByToken(token) match{
       case Right(json) => createUser(json)
-      case Left(l) => Future{ Left( Error(None,Some("User pre-registration not found"),None) )}
+      case Left(l) => Future{ Left( Error(Option(1),Some("User pre-registration not found"),None) )}
     }
 
   }
@@ -67,7 +67,7 @@ object RegistrationService {
     val result = json.validate[IpaUser]
     result match {
       case s: JsSuccess[IpaUser] =>  createUser(s.get)
-      case e: JsError => Future{ Left( Error(None,Some("Error during user data conversion"),None) )}
+      case e: JsError => Future{ Left( Error(Option(0),Some("Error during user data conversion"),None) )}
     }
 
   }
@@ -77,7 +77,7 @@ object RegistrationService {
     ApiClientIPA.showUser(user.uid) flatMap { result =>
 
       result match{
-        case Right(r) => Future {Left(Error(None, Some("Username already registered"), None))}
+        case Right(r) => Future {Left(Error(Option(1), Some("Username already registered"), None))}
         case Left(l) => ApiClientIPA.createUser(user)
       }
 

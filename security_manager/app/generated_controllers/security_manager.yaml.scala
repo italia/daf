@@ -24,6 +24,8 @@ import org.pac4j.play.store.PlaySessionStore
 import play.api.Configuration
 import it.gov.daf.securitymanager.service.{ApiClientIPA,RegistrationService}
 import scala.concurrent.Future
+import it.gov.daf.securitymanager.service.SsoService
+import it.gov.daf.securitymanager.service.utilities.WebServiceUtil
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -32,7 +34,7 @@ import scala.concurrent.Future
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                                                            
+                                                                                                                                                                        
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -80,6 +82,9 @@ package security_manager.yaml {
         }
         val token = tokenAction {  _ =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.token
+            val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
+            SsoService.registerInternal(credentials._1.get,credentials._2.get)
+
             Token200(Authentication.getStringToken(currentRequest).getOrElse(""))
             // ----- End of unmanaged code area for action  Security_managerYaml.token
         }
@@ -92,7 +97,7 @@ package security_manager.yaml {
 
             reg flatMap {
               case Right(msg) => Registrationrequest200(Success(Some("Success"), Some(msg)))
-              case Left(msg) => Registrationrequest500(Error(None, Option(msg), None))
+              case Left(msg) => Registrationrequest500(Error(Option(1), Option(msg), None))
             }
             // ----- End of unmanaged code area for action  Security_managerYaml.registrationrequest
         }

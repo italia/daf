@@ -27,8 +27,8 @@ info:
   license:
     name: Creative Commons 4.0 International
     url: http://creativecommons.org/licenses/by/4.0/
-#host: catalog-manager.default.svc.cluster.local:9000
-host : localhost:9000
+host: catalog-manager.default.svc.cluster.local:9000
+#host : localhost:9000
 # will be prefixed to all paths
 basePath: /catalog-manager/v1
 # array of all schemes that your API supports

@@ -18,7 +18,7 @@ kind: Deployment
 metadata:
   name: catalog-manager-deployment
 spec:
-  replicas: 3
+  replicas: 1
   template:
     metadata:
       labels:
@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
       - name: catalog-manager
-        image: 10.98.74.120:5000/daf-catalog-manager:1.0.0-SNAPSHOT
+        image: 10.98.74.120:5000/daf-catalog-manager:1.1-SNAPSHOT
         imagePullPolicy: Always
         lifecycle:
           postStart:

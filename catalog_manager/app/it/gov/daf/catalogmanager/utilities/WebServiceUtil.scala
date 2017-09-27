@@ -65,16 +65,19 @@ object WebServiceUtil {
 
   def readCredentialFromRequest( request:Request[Any] ) :Credentials ={
 
+    println(request.headers)
     val auth = request.headers.get("authorization")
     val authType = auth.get.split(" ")(0)
 
-    if( authType.equalsIgnoreCase("basic") ){
 
+    if( authType.equalsIgnoreCase("basic") ){
+      println("basic")
       val userAndPass = new String(Base64.decodeBase64(auth.get.split(" ").drop(1).head.getBytes)).split(":")
+      println(userAndPass(0))
       Credentials( Option(userAndPass(0)), Option(userAndPass(1)) )
 
     }else if( authType.equalsIgnoreCase("bearer") ) {
-
+      println("bearer")
       val user:Option[String] = Option( Authentication.getClaims(request).get.get("sub").get.toString )
       println("JWT user:"+user)
       Credentials(user , None)

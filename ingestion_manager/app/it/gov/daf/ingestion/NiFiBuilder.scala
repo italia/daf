@@ -4,6 +4,7 @@ class NiFiBuilder(metaCatalogProcessor: MetaCatalogProcessor) {
 
   def getNiFiInfo(): NiFiInfo = {
     val dsName = metaCatalogProcessor.getDsName()
+    val ingSource = metaCatalogProcessor.getDsName()
     NiFiInfo(dsName)
   }
 

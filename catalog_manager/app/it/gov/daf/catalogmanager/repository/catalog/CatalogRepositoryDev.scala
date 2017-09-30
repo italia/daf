@@ -65,23 +65,31 @@ class CatalogRepositoryDev extends CatalogRepository{
  // }
 
   val dcatJson: JsResult[Dataset] = dcatSchema.validate[Dataset]
-  val dcat = dcatJson match {
+  private val dcat = dcatJson match {
     case s: JsSuccess[Dataset] => Option(s.get)
     case e: JsError => None
   }
 
   def listCatalogs() :Seq[MetaCatalog] = {
    // Seq(MetaCatalog(datasetCatalog,operational,conversion,dcat))
-    Seq(MetaCatalog(datasetCatalog,operational,dcat))
+    (datasetCatalog, operational, dcat) match {
+      case (Some(dsCat), Some(op), Some(dcatapit)) => Seq(MetaCatalog(dsCat,op,dcatapit))
+      case _ => Seq()
+    }
   }
 
-  def getCatalogs(catalogId :String) :MetaCatalog = {
+  def catalog(catalogId :String): Option[MetaCatalog] = {
   // MetaCatalog(datasetCatalog,operational,conversion,dcat)
-     MetaCatalog(datasetCatalog,operational,dcat)
+    for {
+      dc <- datasetCatalog
+      op <- operational
+      dcatapit <- dcat
+    } yield MetaCatalog(dc, op, dcatapit)
+
   }
 
   def createCatalog(metaCatalog: MetaCatalog, callingUserid :MetadataCat) :Success = {
-    Success(None,None)
+    Success("Created",None)
   }
 
   def standardUris(): List[String] = List("raf", "org", "cert")

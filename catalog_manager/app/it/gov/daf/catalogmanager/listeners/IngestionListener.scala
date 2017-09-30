@@ -44,13 +44,13 @@ class IngestionListenerImpl @Inject() (appLifecycle: ApplicationLifecycle) exten
     val metacalogs: Future[List[MetaCatalog]] = catalogManager.datasetcatalogs("test:test")
     metacalogs.map(catalogs => {
         val holders: Set[String] = catalogs.map(catalog  => {
-          catalog.dcatapit.get.owner_org.get
+          catalog.dcatapit.owner_org.get
         }).toSet
 
       val fileDirs = catalogs.map(x => {
-        val org = x.dcatapit.get.owner_org.get
-        val name = x.dcatapit.get.identifier//.get //.value.get
-        val logicalUri = x.operational.get.logical_uri.get
+        val org = x.dcatapit.owner_org.get
+        val name = x.dcatapit.identifier//.get //.value.get
+        val logicalUri = x.operational.logical_uri
         IngestionUtils.datasetsNameUri += (name.get -> logicalUri)
         val orgDir: File = Environment.simple().getFile("data/org/" + org + "/" + name)
         if(!orgDir.exists()) {
@@ -74,8 +74,8 @@ class IngestionListenerImpl @Inject() (appLifecycle: ApplicationLifecycle) exten
 
   override def addDirListener(metaCatalog: catalog_manager.yaml.MetaCatalog, logicalUri :String): Unit = {
     implicit val system: ActorSystem = ActorSystem()
-    val org = metaCatalog.dcatapit.get.owner_org.get  //.value.get
-    val name = metaCatalog.dcatapit.get.identifier//.get //.value.get
+    val org = metaCatalog.dcatapit.owner_org.get  //.value.get
+    val name = metaCatalog.dcatapit.identifier//.get //.value.get
     IngestionUtils.datasetsNameUri += (name.get -> logicalUri)
     val orgDir: File = Environment.simple().getFile("data/org/" + org + "/" + name)
     if(!orgDir.exists()) {

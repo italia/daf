@@ -30,6 +30,7 @@ class CatalogClientSpec extends Specification  {
         test.size must be greaterThan(0)
       }
 
+    /*
     "call catalog-manager/v1/dataset-catalogs and all catalogs must have logical_uri" in
       new WithServer(app = application, port = 9000) {
         implicit val system: ActorSystem = ActorSystem()
@@ -37,14 +38,14 @@ class CatalogClientSpec extends Specification  {
         val clientManager: AhcWSClient = AhcWSClient()
         val catalogManager = new Catalog_managerClient(clientManager)("http://localhost:9001")
         val test: List[it.gov.daf.catalogmanager.MetaCatalog] = Await.result(catalogManager.datasetcatalogs("test:test"), Duration.Inf)
-        val checker: Seq[Boolean] = test.map(x => x.operational.get.logical_uri match {
+        val checker: Seq[Boolean] = test.map(x => x.operational.logical_uri match {
           case Some(_) => true
           case None => false
         })
         val andAll: Boolean = checker.foldLeft(true)(_ && _)
         andAll must be equals  true
       }
-
+    */
 
   }
 

@@ -83,36 +83,40 @@
     def listCatalogs() :Seq[MetaCatalog] = {
       val file: File = Environment.simple().getFile("data/data-mgt/data_test.json")
       val lines = scala.io.Source.fromFile(file).getLines()
+
       val results= lines.map(line => {
         val metaCatalogJs = Json.parse(line)
         val metaCatalogResult: JsResult[MetaCatalog] = metaCatalogJs.validate[MetaCatalog]
         metaCatalogResult match {
-          case s: JsSuccess[MetaCatalog] => s.get
-          case e: JsError => MetaCatalog(None, None, None)
+          case s: JsSuccess[MetaCatalog] => Some(s.get)
+          case e: JsError => None
         }
 
-      }).toList
+      }).filter(x => x.isDefined).map(x=>x.get).toList
+
       results
     }
 
-    def getCatalogs(catalogId :String) :MetaCatalog = {
+    def catalog(catalogId :String): Option[MetaCatalog] = {
 
       val file: File = Environment.simple().getFile("data/data-mgt/data_test.json")
       val lines = scala.io.Source.fromFile(file).getLines()
-      val results: Seq[MetaCatalog] = lines.map(line => {
+      val results: Seq[Option[MetaCatalog]] = lines.map(line => {
         val metaCatalogJs = Json.parse(line)
         val metaCatalogResult: JsResult[MetaCatalog] = metaCatalogJs.validate[MetaCatalog]
         metaCatalogResult match {
-          case s: JsSuccess[MetaCatalog] => s.get
-          case e: JsError => MetaCatalog(None, None, None)
+          case s: JsSuccess[MetaCatalog] => Some(s.get)
+          case e: JsError => None
         }
 
-      }).toList.filter( x => x.operational match {
-        case Some(o) => o.logical_uri.get.equals(catalogId)
-        case None => false
-      })
+      }).toList.filter( x =>
+        x match {
+          case Some(s) => s.operational.logical_uri.equals(catalogId)
+          case None => false
+        })
+
       results match {
-        case List() => MetaCatalog(None,None,None)
+        case List() => None
         case _ => results(0)
       }
     }
@@ -126,31 +130,30 @@
       val metaCatalogJs = Json.toJson(metaCatalog)
 
       val msg: String = metaCatalog match {
-        case MetaCatalog(Some(dataSchema), Some(operational), _) =>
-          if(operational.std_schema.get.std_uri.isDefined ) {
-            val stdUri = operational.std_schema.get.std_uri.get
-            val res: Try[(Boolean, MetaCatalog)] = Try(getCatalogs(stdUri))
+        case MetaCatalog(dataSchema, operational, _) =>
+          if(operational.std_schema.isDefined ) {
+            val stdUri = operational.std_schema.get.std_uri
+            val res: Try[(Option[MetaCatalog])] = Try(catalog(stdUri).get)
               .map(CatalogManager.writeOrdinaryWithStandard(metaCatalog, _))
             res match {
-              case scala.util.Success((true, meta)) =>
+              case scala.util.Success(Some(meta)) =>
                 val data = Json.toJson(meta)
                 fw.write(Json.stringify(data) + "\n")
                 fw.close()
-                val msg = meta.operational.get.logical_uri.get
+                val msg = meta.operational.logical_uri
                 msg
               case _ =>
                 val msg = "Error"
                 msg
             }
           } else {
-            val res: Try[(Boolean, MetaCatalog)]= Try(CatalogManager.writeOrdinary(metaCatalog))
+            val res: Try[Option[MetaCatalog]]= Try(CatalogManager.writeOrdinary(metaCatalog))
             val msg = res match {
-              case scala.util.Success((true, meta)) =>
+              case scala.util.Success(Some(meta)) =>
                 val data = Json.toJson(meta)
                 fw.write(Json.stringify(data) + "\n")
                 fw.close()
-                val msg = meta.operational.get.logical_uri.get
-              //  val fields = meta.operational.get.logical_uri.get
+                val msg = meta.operational.logical_uri
                 msg
               case _ =>
                 val msg = "Error"
@@ -162,7 +165,7 @@
         case _ =>  val msg = "Error"; msg
       }
 
-      Success(Some(msg),Some(msg))
+      Success(msg,Some(msg))
     }
 
     // Not used

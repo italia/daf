@@ -18,13 +18,13 @@ trait CatalogServiceComponent {
 
   class CatalogService {
 
-    def listCatalogs() :Seq[MetaCatalog] = {
+    def listCatalogs: Seq[MetaCatalog] = {
        catalogRepository.listCatalogs()
     }
-    def getCatalogs(catalogId :String) :MetaCatalog = {
-      catalogRepository.getCatalogs(catalogId)
+    def catalog(catalogId :String): Option[MetaCatalog] = {
+      catalogRepository.catalog(catalogId)
     }
-    def createCatalog(metaCatalog: MetaCatalog, callingUserid :MetadataCat) :Success = {
+    def createCatalog(metaCatalog: MetaCatalog, callingUserid :MetadataCat): Success = {
       catalogRepository.createCatalog(metaCatalog, callingUserid)
     }
   }

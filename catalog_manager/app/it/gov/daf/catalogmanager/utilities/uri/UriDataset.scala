@@ -57,22 +57,21 @@ object UriDataset  {
 
   }
 
-  def convertToUriDataset(optionalSchema :MetaCatalog) = Try {
-    (optionalSchema.operational, optionalSchema.dcatapit) match {
-      case (Some(operational), Some(dcatapit)) =>
-        val typeDs = if (operational.is_std.get)
-          DatasetType.STANDARD
-        else
-          DatasetType.ORDINARY
-        new UriDataset(
-          domain = "daf",
-          typeDs = typeDs,
-          groupOwn = operational.group_own.getOrElse("ERROR"),
-          owner = dcatapit.owner_org.getOrElse(throw new Exception("no theme")), //.value.get,
-          theme  = dcatapit.theme.getOrElse(throw new Exception("no theme")), //.value.get,
-          nameDs = optionalSchema.dataschema.get.avro.get.name
-        )
-    }
+  def convertToUriDataset(schema: MetaCatalog): UriDataset =  {
+
+      val typeDs = if (schema.operational.is_std)
+        DatasetType.STANDARD
+      else
+        DatasetType.ORDINARY
+      new UriDataset(
+        domain = "daf",
+        typeDs = typeDs,
+        groupOwn = schema.operational.group_own,
+        owner = schema.dcatapit.owner_org.get,
+        theme  = schema.dcatapit.theme.get,
+        nameDs = schema.dataschema.avro.name
+      )
+
   }
 
 }

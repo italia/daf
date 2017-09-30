@@ -18,11 +18,11 @@ object CoherenceChecker {
     * @param stdMetacatalog
     */
   def checkCoherenceSchemas(ordinary: MetaCatalog, stdMetacatalog: MetaCatalog): Try[Boolean] = Try{
-    val reqStdFields: Seq[String] = stdMetacatalog.dataschema.get.avro.get
+    val reqStdFields: Seq[String] = stdMetacatalog.dataschema.avro
       .fields.get
       .map(x => x.name)
 
-    val convFields = ordinary.dataschema.get.flatSchema.get.map(x => x.name) //dataschema.get.flatSchema.get.map(x => x.).toSet
+    val convFields = ordinary.dataschema.flatSchema.get.map(x => x.name) //dataschema.get.flatSchema.get.map(x => x.).toSet
 
     reqStdFields.forall(x => convFields.contains(x))
   }

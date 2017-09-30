@@ -34,7 +34,7 @@ import play.api.http.Writeable
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                                                        
+                                                                                                    
 
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
@@ -47,7 +47,7 @@ package catalog_manager.yaml {
         config: ConfigurationProvider
     ) extends Catalog_managerYamlBase {
         // ----- Start of unmanaged code area for constructor Catalog_managerYaml
-        val GENERIC_ERROR=Error(None,Some("An Error occurred"),None)
+        val GENERIC_ERROR=Error("An Error occurred", None,None)
         // ----- End of unmanaged code area for constructor Catalog_managerYaml
         val autocompletedummy = autocompletedummyAction { (autocompRes: AutocompRes) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.autocompletedummy
@@ -72,7 +72,7 @@ package catalog_manager.yaml {
             // Getckandatasetbyid200(dataset)
             eitherDatasets.flatMap {
                 case Right(dataset) => Searchdataset200(dataset)
-                case Left(error) => Searchdataset401(Error(None,Option(error),None))
+                case Left(error) => Searchdataset401(Error(error,None,None))
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.searchdataset
         }
@@ -89,7 +89,7 @@ package catalog_manager.yaml {
 
             eitherOrg.flatMap {
                 case Right(organization) => Getckanorganizationbyid200(organization)
-                case Left(error) => Getckanorganizationbyid401(Error(None,Option(error),None))
+                case Left(error) => Getckanorganizationbyid401(Error(error,None,None))
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.getckanorganizationbyid
         }
@@ -111,9 +111,9 @@ package catalog_manager.yaml {
         }
         val datasetcatalogs = datasetcatalogsAction {  _ =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.datasetcatalogs
-            val catalogs  = ServiceRegistry.catalogService.listCatalogs()
+            val catalogs  = ServiceRegistry.catalogService.listCatalogs
             catalogs match {
-                case List() => Datasetcatalogs401("No data")
+                case Seq() => Datasetcatalogs401("No data")
                 case _ => Datasetcatalogs200(catalogs)
             }
             // Datasetcatalogs200(catalogs)
@@ -121,9 +121,9 @@ package catalog_manager.yaml {
         }
         val standardsuri = standardsuriAction {  _ =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.standardsuri
-            val catalogs = ServiceRegistry.catalogService.listCatalogs()
-            val uris: Seq[String] = catalogs.filter(x=> x.operational.get.is_std.get)
-              .map(_.operational.get.logical_uri).map(_.get)
+            val catalogs = ServiceRegistry.catalogService.listCatalogs
+            val uris: Seq[String] = catalogs.filter(x=> x.operational.is_std)
+              .map(_.operational.logical_uri).map(_.toString)
             val stdUris: Seq[StdUris] = uris.map(x => StdUris(Some(x), Some(x)))
             Standardsuri200(Seq(StdUris(Some("ale"), Some("test"))))
             // NotImplementedYet
@@ -144,7 +144,7 @@ package catalog_manager.yaml {
 
             eitherDatasets.flatMap {
                 case Right(autocomp) => Autocompletedataset200(autocomp)
-                case Left(error) => Autocompletedataset401(Error(None,Option(error),None))
+                case Left(error) => Autocompletedataset401(Error(error,None,None))
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.autocompletedataset
         }
@@ -152,7 +152,7 @@ package catalog_manager.yaml {
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalog
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
             val created: Success = ServiceRegistry.catalogService.createCatalog(catalog, credentials.username )
-            if (!created.message.get.toLowerCase.equals("error")) {
+            if (!created.message.toLowerCase.equals("error")) {
                 val logicalUri = created.message.get
              //   ingestionListener.addDirListener(catalog, logicalUri)
             }
@@ -168,8 +168,8 @@ package catalog_manager.yaml {
         val verifycredentials = verifycredentialsAction { (credentials: Credentials) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.verifycredentials
             CkanRegistry.ckanService.verifyCredentials(credentials) match {
-                case true => Verifycredentials200(Success(Some("Success"), Some("User verified")))
-                case _ =>  Verifycredentials401(Error(None,Some("Wrong Username or Password"),None))
+                case true => Verifycredentials200(Success("Success", Some("User verified")))
+                case _ =>  Verifycredentials401(Error("Wrong Username or Password",None,None))
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.verifycredentials
         }
@@ -178,8 +178,8 @@ package catalog_manager.yaml {
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
             val jsonv : JsValue = ResponseWrites.DatasetWrites.writes(dataset)
             CkanRegistry.ckanService.createDataset(jsonv, credentials.username)flatMap {
-                case "true" => Createckandataset200(Success(Some("Success"), Some("dataset created")))
-                case e =>  Createckandataset401(Error(None,Some(e),None))
+                case "true" => Createckandataset200(Success("Success", Some("dataset created")))
+                case e =>  Createckandataset401(Error(e,None,None))
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.createckandataset
         }
@@ -197,7 +197,7 @@ package catalog_manager.yaml {
             // Getckandatasetbyid200(dataset)
             eitherDatasets.flatMap {
                 case Right(dataset) => GetckandatasetListWithRes200(dataset)
-                case Left(error) => GetckandatasetListWithRes401(Error(None,Option(error),None))
+                case Left(error) => GetckandatasetListWithRes401(Error(error,None,None))
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.getckandatasetListWithRes
         }
@@ -214,7 +214,7 @@ package catalog_manager.yaml {
             // Getckandatasetbyid200(dataset)
             eitherOrgs.flatMap {
                 case Right(orgs) => GetckanuserorganizationList200(orgs)
-                case Left(error) => GetckanuserorganizationList401(Error(None,Option(error),None))
+                case Left(error) => GetckanuserorganizationList401(Error(error,None,None))
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.getckanuserorganizationList
         }
@@ -224,8 +224,8 @@ package catalog_manager.yaml {
             val jsonv : JsValue = ResponseWrites.OrganizationWrites.writes(organization)
 
             CkanRegistry.ckanService.createOrganization(jsonv, credentials.username)flatMap {
-                case "true" => Createckanorganization200(Success(Some("Success"), Some("organization created")))
-                case e =>  Createckanorganization401(Error(None,Some(e),None))
+                case "true" => Createckanorganization200(Success("Success", Some("organization created")))
+                case e =>  Createckanorganization401(Error(e,None,None))
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.createckanorganization
         }
@@ -236,8 +236,8 @@ package catalog_manager.yaml {
             val jsonv : JsValue = ResponseWrites.OrganizationWrites.writes(organization)
 
             CkanRegistry.ckanService.updateOrganization(org_id,jsonv, credentials.username)flatMap {
-                case "true" => Updateckanorganization200(Success(Some("Success"), Some("organization updated")))
-                case e =>  Updateckanorganization401(Error(None,Some(e),None))
+                case "true" => Updateckanorganization200(Success("Success", Some("organization updated")))
+                case e =>  Updateckanorganization401(Error(e,None,None))
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.updateckanorganization
         }
@@ -253,7 +253,7 @@ package catalog_manager.yaml {
 
             eitherUser match {
                 case Right(user) => Getckanuser200(user)
-                case Left(error) => Getckanuser401(Error(None,Option(error),None))
+                case Left(error) => Getckanuser401(Error(error,None,None))
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.getckanuser
         }
@@ -262,8 +262,8 @@ package catalog_manager.yaml {
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
             val jsonv : JsValue = ResponseWrites.UserWrites.writes(user)
             CkanRegistry.ckanService.createUser(jsonv, credentials.username)flatMap {
-                case "true" => Createckanuser200(Success(Some("Success"), Some("user created")))
-                case e =>  Createckanuser401(Error(None,Some(e),None))
+                case "true" => Createckanuser200(Success("Success", Some("user created")))
+                case e =>  Createckanuser401(Error(e,None,None))
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.createckanuser
         }
@@ -280,7 +280,7 @@ package catalog_manager.yaml {
 
             eitherDataset.flatMap {
                 case Right(dataset) => Getckandatasetbyid200(dataset)//Getckandatasetbyid200(dataset)
-                case Left(error) => Getckandatasetbyid401(Error(None,Option(error),None))
+                case Left(error) => Getckandatasetbyid401(Error(error,None,None))
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.getckandatasetbyid
         }
@@ -291,24 +291,33 @@ package catalog_manager.yaml {
             val jsonv : JsValue = ResponseWrites.OrganizationWrites.writes(organization)
 
             CkanRegistry.ckanService.patchOrganization(org_id,jsonv, credentials.username)flatMap {
-                case "true" => Patchckanorganization200(Success(Some("Success"), Some("organization patched")))
-                case e =>  Patchckanorganization401(Error(None,Some(e),None))
+                case "true" => Patchckanorganization200(Success("Success", Some("organization patched")))
+                case e =>  Patchckanorganization401(Error(e,None,None))
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.patchckanorganization
         }
         val datasetcatalogbyid = datasetcatalogbyidAction { (catalog_id: String) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbyid
             val logical_uri = new java.net.URI(catalog_id)
-            val catalog = ServiceRegistry.catalogService.getCatalogs(logical_uri.toString)
+            val catalog = ServiceRegistry.catalogService.catalog(logical_uri.toString)
             println("*******")
             println(logical_uri.toString)
             println(catalog.toString)
+            /*
             val resutl  = catalog match {
                 case MetaCatalog(None,None,None) => Datasetcatalogbyid401("Error no data with that logical_uri")
                 case  _ =>  Datasetcatalogbyid200(catalog)
             }
-
             resutl
+            */
+
+            catalog match {
+                case Some(c) => Datasetcatalogbyid200(c)
+                case None => Datasetcatalogbyid401("Error")
+            }
+
+            //Datasetcatalogbyid200(catalog.get)
+
              //NotImplementedYet
             //println("ale")
             //println(MetaCatalog(None,None,None))

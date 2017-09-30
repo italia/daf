@@ -9,33 +9,16 @@ class MetaCatalogProcessor(metaCatalog: MetaCatalog, logicalUri: String) {
 
   //Get Avro - Dataset Name
   def getAvroDsName(): String = {
-    val datasetName: String = metaCatalog.dataschema match {
-      case Some(dataschema) => {
-        dataschema.avro match {
-          case Some(avro) => avro.name
-          case _ => {
-            logger.error(s"Dataset Name not found on $logicalUri")
-            "na"
-          }
-        }
-      }
-      case None => {
-        logger.error(s"Dataset Name not found on $logicalUri")
-        "na"
-      }
-    }
+
+    val datasetName = metaCatalog.dataschema.avro.name
+    //logger.error(s"Dataset Name not found on $logicalUri")
+
     datasetName
   }
 
-  //Get Avro - Dataset Name
+  //Get DCATAPIT - Dataset Name
   def getDsName(): String = {
-    val datasetName: String = metaCatalog.dcatapit match {
-      case Some(dcatapit) => dcatapit.name
-      case None => {
-        logger.error(s"Dataset Name not found on $logicalUri")
-        "na"
-      }
-    }
+    val datasetName: String = metaCatalog.dcatapit.name
     datasetName
   }
 

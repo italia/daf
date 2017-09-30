@@ -675,9 +675,12 @@ paths:
 definitions:
   MetaCatalog:
     type: object
+    required:
+      - dataschema
+      - operational
+      - dcatapit
     properties:
       dataschema:
-
         type: object
         $ref: '#/definitions/DatasetCatalog'
       operational:
@@ -691,6 +694,9 @@ definitions:
         $ref: '#/definitions/Dataset'
   DatasetCatalog:
      type: object
+     required:
+      - avro
+      - flatschema
      properties:
       avro:
         $ref: '#/definitions/Avro'
@@ -725,28 +731,34 @@ definitions:
           items:
             $ref: '#/definitions/Field'
   Field:
-      required:
-        - name
-        - type
-       # - metadata
-      properties:
-        name:
-          type: string
-          description: Name of the field
-        type:
-         # $ref: '#/definitions/ActionAnyContent'
-          type: string
-          description: It can be a json object for complex type, or an array of string for primitive types (the latter may contains null in case the field can be nullable)
+    required:
+      - name
+      - type
+     # - metadata
+    properties:
+      name:
+        type: string
+        description: Name of the field
+      type:
+       # $ref: '#/definitions/ActionAnyContent'
+        type: string
+        description: It can be a json object for complex type, or an array of string for primitive types (the latter may contains null in case the field can be nullable)
   FlatSchema:
-      properties:
-        name:
-          type: string
-        type:
-          type: string
-        metadata:
-          $ref: '#/definitions/Metadata'
-          description: JSON object containing metadata information for the field
+    type: object
+    required:
+      - name
+      - type
+    properties:
+      name:
+        type: string
+      type:
+        type: string
+      metadata:
+        $ref: '#/definitions/Metadata'
+        description: JSON object containing metadata information for the field
   Metadata:
+    required:
+
     type: object
     #  - metadata_format
     #  - required
@@ -758,13 +770,12 @@ definitions:
      #   type: string
       desc:
         type: string
-      #name:
-      #  type: string
       field_type:
         type: string
       #desc_lang:
       #  $ref: '#/definitions/Lang'
       cat:
+        description: Main tag in the tag list
         type: string
       tag:
        # type: array
@@ -783,12 +794,14 @@ definitions:
   Lang:
     type: object
     properties:
-          eng:
-            type: string
-          ita:
-            type: string
+      eng:
+        type: string
+      ita:
+        type: string
   Semantic:
     type: object
+    required:
+      - id
     properties:
       id:
         type: string
@@ -822,6 +835,12 @@ definitions:
    #     description: Uri of the simple predicate
   Operational:
     required:
+      - logical_uri
+      - is_std
+      - group_own
+      - read_type
+      - input_src
+      - dataset_type
     properties:
       #id:
       #  type: integer
@@ -845,8 +864,11 @@ definitions:
         items:
           $ref: '#/definitions/GroupAccess'
       std_schema:
+        type: object
+        description:
         $ref: '#/definitions/StdSchema'
       read_type:
+        description: It tells whether the dataset is an append of snapshot ('last_update') or a time series ('time_series') and tells the program how to return the data.
         type: string
       georef:
         type: array
@@ -869,6 +891,9 @@ definitions:
   GroupAccess:
     type: object
     description: Type associated with group_access
+    required:
+      - name
+      - role
     properties:
       name:
         type: string
@@ -1080,6 +1105,9 @@ definitions:
 
   GeoRef:
     type: object
+    required:
+      - lat
+      - lon
     properties:
       lat:
         type: number
@@ -1088,39 +1116,24 @@ definitions:
         type: number
         format: double
   StdSchema:
-   type: object
-   properties:
-    std_uri:
-      type: string
-    fields_conv:
-      type: array
-      items:
-        $ref: '#/definitions/ConversionField'
-  InputType:
-      type: object
-      properties:
-        ingestion_type:
-          type: string
-          #enum: ["push", "pull"]
-          description: It takes two values pull or push
-        origin:
-          type: string
-        src_type:
-          type: string
-          description: The format of the input resource
-        url:
-          type: string
-          description: Where the data input for the ingestion is located
-        frequency:
-          type: string
-          description: Frequency at which the update procedure needs to be updated
-        table:
-          type: string
+    type: object
+    required:
+      - std_uri
+      - fields_conv
+    properties:
+      std_uri:
+        type: string
+      fields_conv:
+        type: array
+        items:
+          $ref: '#/definitions/ConversionField'
   ConversionSchema:
     type: object
+    required:
+      - fields_conv
     properties:
       fields_conv:
-        description: Array containing the conversion from the incoming schema to the vip standard one
+        description: Array containing the conversion from the incoming schema to the standard one
         type: array
         items:
           $ref: '#/definitions/ConversionField'
@@ -1150,6 +1163,9 @@ definitions:
         type: string
         description: Field name of the custom field
   Error:
+    type: object
+    required:
+      - message
     properties:
       code:
         type: integer
@@ -1160,6 +1176,8 @@ definitions:
         type: string
   Success:
     type: object
+    required:
+      - message
     properties:
       message:
         type: string
@@ -1167,9 +1185,11 @@ definitions:
         type: string
   DcatApIt:
     type: object
-    #required:
-    # - dct_theme
-    # - dct_rightsHolder
+    required:
+      - dct_identifier
+      - dct_title
+      - dct_theme
+      #- dct_rightsHolder
     properties:
       dct_identifier:
         type: string

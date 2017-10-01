@@ -53,8 +53,10 @@ libraryDependencies ++= Seq(
   "it.gov.daf" %% "common" % version.value,
   "org.mongodb" %% "casbah" % "3.1.1", //,
   "ch.lightshed" %% "courier" % "0.1.4",
+  "com.github.cb372" %% "scalacache-guava" % "0.9.4",
   specs2 % Test
 )
+
 
 resolvers ++= Seq(
   "zalando-bintray" at "https://dl.bintray.com/zalando/maven",

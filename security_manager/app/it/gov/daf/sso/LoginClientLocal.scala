@@ -167,8 +167,15 @@ object LoginClientLocal {
   val SUPERSET = "superset"
   val METABASE = "metabase"
 
-  private val _instance = new LoginClientLocal()
-  def instance() = _instance
+  private var _instance:LoginClientLocal=null
+
+  def instance() = {
+    if(_instance == null)
+      _instance = new LoginClientLocal()
+
+    _instance
+  }
+
 }
 
 

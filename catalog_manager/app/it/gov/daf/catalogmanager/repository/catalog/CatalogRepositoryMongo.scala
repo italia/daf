@@ -9,6 +9,7 @@ import com.mongodb.casbah.Imports._
 import it.gov.daf.catalogmanager.utilities.{CatalogManager, ConfigReader}
 import it.gov.daf.catalogmanager.service.CkanRegistry
 
+import scala.concurrent.Future
 import scala.util.Try
 
 
@@ -30,13 +31,17 @@ class CatalogRepositoryMongo extends  CatalogRepository{
 
   import catalog_manager.yaml.BodyReads._
 
-  def listCatalogs() :Seq[MetaCatalog] = {
+  def listCatalogs(page :Option[Int], limit :Option[Int]) :Seq[MetaCatalog] = {
 
     val mongoClient = MongoClient(server, List(credentials))
     //val mongoClient = MongoClient(mongoHost, mongoPort)
     val db = mongoClient(source)
     val coll = db("catalog_test")
-    val results = coll.find().toList
+    page.getOrElse(1)
+    val results = coll.find()
+        .skip(page.getOrElse(1))
+        .limit(limit.getOrElse(200))
+        .toList
     mongoClient.close
     val jsonString = com.mongodb.util.JSON.serialize(results)
     val json = Json.parse(jsonString) //.as[List[JsObject]]
@@ -88,7 +93,7 @@ class CatalogRepositoryMongo extends  CatalogRepository{
     val dcatapit: Dataset = metaCatalog.dcatapit.get
     val datasetJs : JsValue = ResponseWrites.DatasetWrites.writes(dcatapit)
 
-    CkanRegistry.ckanRepository.createDataset(datasetJs,callingUserid)
+    val result: Future[String] = CkanRegistry.ckanRepository.createDataset(datasetJs,callingUserid)
 
     val msg: String = metaCatalog match {
       case MetaCatalog(Some(dataSchema), Some(operational), _) =>

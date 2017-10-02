@@ -70,7 +70,7 @@ class CatalogRepositoryDev extends CatalogRepository{
     case e: JsError => None
   }
 
-  def listCatalogs() :Seq[MetaCatalog] = {
+  def listCatalogs(page :Option[Int], limit :Option[Int]) :Seq[MetaCatalog] = {
    // Seq(MetaCatalog(datasetCatalog,operational,conversion,dcat))
     Seq(MetaCatalog(datasetCatalog,operational,dcat))
   }

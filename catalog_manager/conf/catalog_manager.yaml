@@ -63,6 +63,21 @@ paths:
         List of MetaCatalog stored
       tags:
         - DatasetCatalog
+      parameters:
+        - name: page
+          in: query
+          description: number of the page
+          required: false
+          type: integer
+          format: int32
+        - name: limit
+          in: query
+          description: maximum number of results to return
+          required: false
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 500
       operationId: datasetcatalogs
       responses:
         200:

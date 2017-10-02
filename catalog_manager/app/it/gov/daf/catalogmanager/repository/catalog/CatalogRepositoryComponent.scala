@@ -12,7 +12,7 @@ trait CatalogRepository {
     import play.api.libs.functional.syntax._
 
 
-    def listCatalogs() :Seq[MetaCatalog]
+    def listCatalogs(page :Option[Int], limit :Option[Int]) :Seq[MetaCatalog]
     def getCatalogs(catalogId :String) :MetaCatalog
     def createCatalog(metaCatalog: MetaCatalog,callingUserid :MetadataCat) :Success
     def standardUris() : List[String]

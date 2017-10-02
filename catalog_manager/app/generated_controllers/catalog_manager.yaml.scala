@@ -34,7 +34,7 @@ import play.api.http.Writeable
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                                                
+                                                                                
 
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
@@ -109,9 +109,12 @@ package catalog_manager.yaml {
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.getckandatasetList
         }
-        val datasetcatalogs = datasetcatalogsAction {  _ =>  
+        val datasetcatalogs = datasetcatalogsAction { input: (MetadataRequired, Dataset_catalogsGetLimit) =>
+            val (page, limit) = input
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.datasetcatalogs
-            val catalogs  = ServiceRegistry.catalogService.listCatalogs()
+            val pageIng :Option[Int] = page
+            val limitIng :Option[Int] = limit
+            val catalogs  = ServiceRegistry.catalogService.listCatalogs(page,limit)
             catalogs match {
                 case List() => Datasetcatalogs401("No data")
                 case _ => Datasetcatalogs200(catalogs)
@@ -121,7 +124,8 @@ package catalog_manager.yaml {
         }
         val standardsuri = standardsuriAction {  _ =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.standardsuri
-            val catalogs = ServiceRegistry.catalogService.listCatalogs()
+            // Pagination wrong refactor login to db query
+            val catalogs = ServiceRegistry.catalogService.listCatalogs(Some(1), Some(500))
             val uris: Seq[String] = catalogs.filter(x=> x.operational.get.is_std.get)
               .map(_.operational.get.logical_uri).map(_.get)
             val stdUris: Seq[StdUris] = uris.map(x => StdUris(Some(x), Some(x)))

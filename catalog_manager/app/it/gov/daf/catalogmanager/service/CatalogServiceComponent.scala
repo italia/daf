@@ -16,8 +16,8 @@ trait CatalogServiceComponent {
 
   class CatalogService {
 
-    def listCatalogs() :Seq[MetaCatalog] = {
-       catalogRepository.listCatalogs()
+    def listCatalogs(page :Option[Int], limit :Option[Int]) :Seq[MetaCatalog] = {
+       catalogRepository.listCatalogs(page, limit)
     }
     def getCatalogs(catalogId :String) :MetaCatalog = {
       catalogRepository.getCatalogs(catalogId)

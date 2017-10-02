@@ -1,6 +1,7 @@
 package it.gov.daf.securitymanager.service
 
 import it.gov.daf.securitymanager.service.utilities.BearerTokenGenerator
+import it.gov.daf.sso.ApiClientIPA
 import play.api.libs.json.{JsError, JsSuccess, JsValue}
 import security_manager.yaml.IpaUser
 import security_manager.yaml.Success

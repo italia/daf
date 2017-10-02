@@ -1,15 +1,15 @@
-package it.gov.daf.securitymanager.service
+package it.gov.daf.sso
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import it.gov.daf.securitymanager.service.utilities.{ConfigReader, WebServiceUtil}
+import it.gov.daf.sso.common.{LoginInfo, SecuredInvocationManager}
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
 import play.api.libs.ws.ahc.AhcWSClient
-import security_manager.yaml.IpaUser
-import security_manager.yaml.Error
-import security_manager.yaml.Success
-import scala.concurrent.{Await, Future}
+import security_manager.yaml.{Error, IpaUser, Success}
+
+import scala.concurrent.Future
 
 
 object ApiClientIPA {
@@ -18,10 +18,15 @@ object ApiClientIPA {
 
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()
- // private val CKAN_URL = ConfigReader.getCkanHost
-  private val IPA_URL = ConfigReader.ipaUrl
-  private val IPA_APP_ULR = IPA_URL+"/ipa"
-  private val IPA_SERVICES_URL = IPA_URL+"/ipa/session/json"
+  private val loginInfo = new LoginInfo(ConfigReader.ipaUser, ConfigReader.ipaUserPwd, LoginClientLocal.FREE_IPA)
+  private val loginClient = LoginClientLocal.instance()
+  private val secInvokeManager = SecuredInvocationManager.instance(loginClient)
+
+
+  //private val CKAN_URL = ConfigReader.getCkanHost
+  //private val IPA_URL = ConfigReader.ipaUrl
+  //private val IPA_APP_ULR = IPA_URL+"/ipa"
+  //private val IPA_SERVICES_URL = IPA_URL+"/ipa/session/json"
   //private val IPA_LOGIN_ULR = IPA_URL+"/ipa/session/login_password"
   //private val USER_PASSWORD_POST_DATA = s"user=${ConfigReader.ipaUser}&password=${ConfigReader.ipaUserPwd}"
   //private val sslconfig = new DefaultAsyncHttpClientConfig.Builder().setAcceptAnyCertificate(true).build
@@ -135,7 +140,8 @@ object ApiClientIPA {
 
     println(jsonUser.toString())
 
-    SessionClient.manageServiceCall(jsonUser,LoginClient.FREE_IPA, callIpaUrl ).flatMap { json =>
+    val serviceInvoke : (String,AhcWSClient)=> Future[WSResponse] = callIpaUrl(jsonUser,_,_)
+    secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).flatMap { json =>
 
       val result = (json \ "result").getOrElse(JsString("null")).toString()
 
@@ -167,7 +173,8 @@ object ApiClientIPA {
 
     println(jsonRequest.toString())
 
-    SessionClient.manageServiceCall(jsonRequest,LoginClient.FREE_IPA, callIpaUrl ).map { json =>
+    val serviceInvoke : (String,AhcWSClient)=> Future[WSResponse] = callIpaUrl(jsonRequest,_,_)
+    secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).map { json =>
 
       val result = ((json \ "result") \"result")//.getOrElse(JsString("null")).toString()
 
@@ -191,11 +198,11 @@ object ApiClientIPA {
   }
 
 
-  private def callIpaUrl( cli:AhcWSClient, payload: JsValue, sessionCookie:String  ): Future[WSResponse] = {
+  private def callIpaUrl( payload: JsValue, sessionCookie:String, cli:AhcWSClient ): Future[WSResponse] = {
 
-    cli.url(IPA_SERVICES_URL).withHeaders(  "Content-Type"->"application/json",
+    cli.url(ConfigReader.ipaUrl+"/ipa/session/json").withHeaders( "Content-Type"->"application/json",
       "Accept"->"application/json",
-      "referer"->IPA_APP_ULR,
+      "referer"->(ConfigReader.ipaUrl+"/ipa"),
       "Cookie" -> sessionCookie
     ).post(payload)
 
@@ -207,7 +214,8 @@ object ApiClientIPA {
 
     println("login ckan")
 
-    val wsResponse = LoginClient.login(userName,pwd,wsClient,LoginClient.CKAN)
+    val loginInfo = new LoginInfo(userName,pwd,LoginClientLocal.CKAN)
+    val wsResponse = loginClient.login(loginInfo,wsClient)
 
     wsResponse.map({ response =>
 

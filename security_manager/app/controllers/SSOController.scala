@@ -42,7 +42,8 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider) exten
                                   appName)
 
     LoginClientLocal.instance.login(loginInfo, ws).map{ cookie =>
-      Ok(cookie)
+      val json=s"""{"result":"$cookie"}"""
+      Ok(json)
     }
 
   }
@@ -60,7 +61,8 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider) exten
 
     LoginClientLocal.instance.login(loginInfo, ws).map{ cookie =>
       val cookieDetail = cookie.split("=")
-      Ok("Success").withCookies( Cookie(cookieDetail(0),cookieDetail(1)) )
+      val cookieWeb = Cookie( cookieDetail(0),cookieDetail(1), None, "/", None)
+      Ok("Success").withCookies( cookieWeb )
     }
 
   }

@@ -149,7 +149,7 @@ class LoginClientLocal extends LoginClient {
     val responseWs: Future[WSResponse] = wsClient.url(METABASE_URL + "/api/session").post(data)
     responseWs.map { response =>
 
-      val cookie = (response.json \ "id").as[String]
+      val cookie = "metabase.SESSION_ID="+(response.json \ "id").as[String]
       println("COOKIE(metabase): " + cookie)
       cookie
     }

@@ -39,7 +39,7 @@ package catalog_manager.yaml {
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
-                                          ingestionListener : IngestionListenerImpl,
+        ingestionListener : IngestionListenerImpl,
 
         // ----- End of unmanaged code area for injections Catalog_managerYaml
         val messagesApi: MessagesApi,
@@ -54,8 +54,8 @@ package catalog_manager.yaml {
             NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.autocompletedummy
         }
-        val searchdataset = searchdatasetAction { input: (MetadataCat, MetadataCat, ResourceSize) =>
-            val (q, sort, rows) = input
+        val searchdataset = searchdatasetAction { input: (MetadataCat, MetadataCat, ResourceSize, ResourceSize) =>
+            val (q, sort, rows, start) = input
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.searchdataset
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
 

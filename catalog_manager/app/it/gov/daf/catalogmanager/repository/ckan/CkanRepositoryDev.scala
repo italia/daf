@@ -81,7 +81,7 @@ class CkanRepositoryDev extends CkanRepository{
     Future(null)
   }
 
-  def searchDatasets( input: (MetadataCat, MetadataCat, ResourceSize), callingUserid :MetadataCat ) : Future[JsResult[Seq[Dataset]]]={
+  def searchDatasets( input: (MetadataCat, MetadataCat, ResourceSize, ResourceSize), callingUserid :MetadataCat ) : Future[JsResult[Seq[Dataset]]]={
     Future(null)
   }
 

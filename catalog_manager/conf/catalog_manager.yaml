@@ -516,6 +516,10 @@ paths:
         in: query
         description: The number of matching rows to return
         type: integer
+      - name: start
+        in: query
+        description: the offset in the complete result for where the set of returned datasets should begin
+        type: integer
       responses:
         200:
           description: List of datasets. The list is sorted most-recently-modified first.

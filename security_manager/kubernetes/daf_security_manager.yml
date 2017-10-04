@@ -18,7 +18,7 @@ kind: Deployment
 metadata:
   name: security-manager-deployment
 spec:
-  replicas: 3
+  replicas: 1
   template:
     metadata:
       labels:

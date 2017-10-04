@@ -385,11 +385,11 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
   }
 
 
-  def searchDataset(q:Option[String], sort:Option[String], rows:Option[Int]) = Action.async { implicit request =>
+  def searchDataset(q:Option[String], sort:Option[String], rows:Option[Int], start:Option[Int]) = Action.async { implicit request =>
 
     val user = request.headers.get(USER_ID_HEADER).getOrElse("")
 
-    val params= Map( ("q",q), ("sort",sort), ("rows",rows) )
+    val params= Map( ("q",q), ("sort",sort), ("rows",rows), ("start",start) )
     val queryString = WebServiceUtil.buildEncodedQueryString(params)
 
     def callSearchDataset( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] = {

@@ -63,7 +63,7 @@ trait CkanServiceComponent {
       ckanRepository.getDatasets(callingUserid)
     }
 
-    def searchDatasets( input: (MetadataCat, MetadataCat, ResourceSize), callingUserid :MetadataCat) : Future[JsResult[Seq[Dataset]]] = {
+    def searchDatasets( input: (MetadataCat, MetadataCat, ResourceSize, ResourceSize), callingUserid :MetadataCat) : Future[JsResult[Seq[Dataset]]] = {
       ckanRepository.searchDatasets(input, callingUserid)
     }
     def autocompleteDatasets( input: (MetadataCat, ResourceSize), callingUserid :MetadataCat) : Future[JsResult[Seq[AutocompRes]]] = {

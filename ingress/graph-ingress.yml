@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: graph-ingress
+spec:
+  tls:
+  - hosts:
+    - graph.daf.teamdigitale.it
+  rules:
+  - host: graph.daf.teamdigitale.it
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: metabase
+          servicePort: 3000

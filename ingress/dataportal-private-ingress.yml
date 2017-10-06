@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: dataportal-private-ingress
+spec:
+  tls:
+  - hosts:
+    - dataportal-private.daf.teamdigitale.it
+  rules:
+  - host: dataportal-private.daf.teamdigitale.it
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: data-portal
+          servicePort: 5000

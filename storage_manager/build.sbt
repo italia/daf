@@ -17,10 +17,13 @@
 import Versions._
 import com.typesafe.sbt.packager.docker.Cmd
 import sbt.Keys.resolvers
+import uk.gov.hmrc.gitstamp.GitStampPlugin._
 
 name := "daf-storage-manager"
 
-version := "1.0-SNAPSHOT"
+Seq(gitStampSettings: _*)
+
+version in ThisBuild := sys.env.get("STORAGE_MANAGER_VERSION").getOrElse("1.0-SNAPSHOT")
 
 scalacOptions ++= Seq(
   "-deprecation",

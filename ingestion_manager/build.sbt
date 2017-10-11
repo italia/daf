@@ -1,25 +1,24 @@
 import CommonBuild._
+import Versions._
 import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
 import de.heikoseeberger.sbtheader.license.Apache2_0
 import de.zalando.play.generator.sbt.ApiFirstPlayScalaCodeGenerator.autoImport.playScalaAutogenerateTests
 import play.sbt.routes.RoutesKeys.routesGenerator
 import sbt.Keys.resolvers
+import uk.gov.hmrc.gitstamp.GitStampPlugin._
 
 organization in ThisBuild := "it.gov.daf"
 name := "daf-ingestion-manager"
-version := "1.0.0"
 
-lazy val sparkVersion = "2.0.0"
+Seq(gitStampSettings: _*)
+
+version in ThisBuild := sys.env.get("INGESTION_MANAGER_VERSION").getOrElse("1.0-SNAPSHOT")
+
 lazy val spark = "org.apache.spark"
-
-val playVersion = "2.5.14"
-
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser)
 
-
 scalaVersion in ThisBuild := "2.11.8"
-
 
 def dependencyToProvide(scope: String = "compile") = Seq(
   spark %% "spark-core" % sparkVersion % scope exclude("com.fasterxml.jackson.core", "jackson-databind"),
@@ -32,8 +31,8 @@ libraryDependencies ++= Seq(
   cache,
   ws,
   filters,
-  "org.webjars" % "swagger-ui" % "3.0.10", //excludeAll( ExclusionRule(organization = "com.fasterxml.jackson.core") ),
-  "it.gov.daf" %% "daf-catalog-manager-client" % "1.0-SNAPSHOT",
+  "org.webjars" % "swagger-ui" % swaggerUiVersion, //excludeAll( ExclusionRule(organization = "com.fasterxml.jackson.core") ),
+  "it.gov.daf" %% "daf-catalog-manager-client" % dafCatalogVersion,
 //  "org.json4s" %% "json4s-jackson" % "3.5.2"  exclude("com.fasterxml.jackson.core", "jackson-databind"),
   "com.databricks" %% "spark-avro" % "3.2.0",
   specs2 % Test,

@@ -1,16 +1,16 @@
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: kong-ingress
+  name: datascience-ingress
 spec:
   tls:
   - hosts:
-    - api.daf.teamdigitale.it
+    - datascience.daf.teamdigitale.it
   rules:
-  - host: api.daf.teamdigitale.it
+  - host: datascience.daf.teamdigitale.it
     http:
       paths:
       - path: /
         backend:
-          serviceName: kong-proxy
+          serviceName: jupyterhub
           servicePort: 8000

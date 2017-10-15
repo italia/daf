@@ -7,11 +7,11 @@ class NiFiBuilder(metaCatalog: MetaCatalog) {
 
   def getNiFiInfo(): NiFiInfo = {
     val dsName = metaCatalog.dcatapit.name
-    val inputSrc = ???
-    val storage = ???
-    val ingPipeline = ???
-    val dsType = ???
-    val groupAccess = ???
+    //val inputSrc = ???
+    //val storage = ???
+    //val ingPipeline = ???
+    //val dsType = ???
+    //val groupAccess = ???
 
 
     NiFiInfo(dsName)

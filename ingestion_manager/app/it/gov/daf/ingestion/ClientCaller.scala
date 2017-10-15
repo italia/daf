@@ -47,29 +47,6 @@ object ClientCaller {
 
     response
 
-
-
-    /*
-    println(uriCatalogManager)
-    val logical_uri = URLEncoder.encode(param)
-    val url = uriCatalogManager + "/catalog-manager/v1/catalog-ds/get/" + logical_uri
-    //val response = catalogManager.standardsuri(auth)
-    println(url)
-
-    //val test = client.url(url).withHeaders(("Authorization" ->  auth)).get()
-    //, ("user"->"admin"), ("password"->"admin")
-    //println(test)
-
-    client.url(url).withHeaders(("Authorization" ->  auth)).get().map { response =>
-      val metadata = response.json
-      println("Qui tutto il json")
-      println(metadata)
-      val name = ((metadata \ "dcatapit") \ "name").as[String]
-      name
-    }.andThen { case _ => client.close() }
-      .andThen { case _ => system.terminate() }
-*/
-
   }
 
 

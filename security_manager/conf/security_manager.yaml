@@ -25,8 +25,8 @@ info:
   license:
     name: Creative Commons 4.0 International
     url: http://creativecommons.org/licenses/by/4.0/
-#host : localhost:9002
-host : security-manager.default.svc.cluster.local:9000
+host : localhost:9002
+#host : security-manager.default.svc.cluster.local:9000
 # will be prefixed to all paths
 basePath: /security-manager/v1
 # array of all schemes that your API supports

@@ -137,7 +137,7 @@ paths:
           description: Error Message
           schema:
             $ref: '#/definitions/Error'
-  "/ipa/user/{uid}":
+  "/ipa/user/{mail}":
     get:
       tags:
         - IPA
@@ -146,9 +146,9 @@ paths:
       produces:
       - application/json
       parameters:
-      - name: uid
+      - name: mail
         in: path
-        description: User id
+        description: User email
         required: true
         type: string
       responses:

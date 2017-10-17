@@ -34,7 +34,7 @@ import play.api.http.Writeable
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-        
+
 
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
@@ -62,7 +62,7 @@ package catalog_manager.yaml {
             //if( ! CkanRegistry.ckanService.verifyCredentials(credentials) )
             //Searchdataset401(Error(None,Option("Invalid credentials!"),None))
 
-            val datasetsFuture: Future[JsResult[Seq[Dataset]]] = CkanRegistry.ckanService.searchDatasets(input, credentials.username)
+            val datasetsFuture: Future[JsResult[Seq[Dataset]]] = CkanRegistry.ckanService.searchDatasets(input, credentials._1)
             val eitherDatasets: Future[Either[String, Seq[Dataset]]] = datasetsFuture.map(result => {
                 result match {
                     case s: JsSuccess[Seq[Dataset]] => Right(s.get)
@@ -79,7 +79,7 @@ package catalog_manager.yaml {
         val getckanorganizationbyid = getckanorganizationbyidAction { (org_id: String) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.getckanorganizationbyid
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
-            val orgFuture: Future[JsResult[Organization]] = CkanRegistry.ckanService.getOrganization(org_id, credentials.username)
+            val orgFuture: Future[JsResult[Organization]] = CkanRegistry.ckanService.getOrganization(org_id, credentials._1)
             val eitherOrg: Future[Either[String, Organization]] = orgFuture.map(result => {
                 result match {
                     case s: JsSuccess[Organization] => Right(s.get)
@@ -96,7 +96,7 @@ package catalog_manager.yaml {
         val getckandatasetList = getckandatasetListAction {  _ =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.getckandatasetList
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
-            val eitherOut: Future[Either[Error, Seq[String]]] = CkanRegistry.ckanService.getDatasets(credentials.username).map(result =>{
+            val eitherOut: Future[Either[Error, Seq[String]]] = CkanRegistry.ckanService.getDatasets(credentials._1).map(result =>{
                 result match {
                     case s: JsArray => Right(s.as[Seq[String]])
                     case _ => Left(GENERIC_ERROR)
@@ -138,7 +138,7 @@ package catalog_manager.yaml {
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.autocompletedataset
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
 
-            val datasetsFuture: Future[JsResult[Seq[AutocompRes]]] = CkanRegistry.ckanService.autocompleteDatasets(input, credentials.username)
+            val datasetsFuture: Future[JsResult[Seq[AutocompRes]]] = CkanRegistry.ckanService.autocompleteDatasets(input, credentials._1)
             val eitherDatasets: Future[Either[String, Seq[AutocompRes]]] = datasetsFuture.map(result => {
                 result match {
                     case s: JsSuccess[Seq[AutocompRes]] => Right(s.get)
@@ -155,7 +155,7 @@ package catalog_manager.yaml {
         val createdatasetcatalog = createdatasetcatalogAction { (catalog: MetaCatalog) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalog
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
-            val created: Success = ServiceRegistry.catalogService.createCatalog(catalog, credentials.username )
+            val created: Success = ServiceRegistry.catalogService.createCatalog(catalog, credentials._1 )
             if (!created.message.get.toLowerCase.equals("error")) {
                 val logicalUri = created.message.get
              //   ingestionListener.addDirListener(catalog, logicalUri)
@@ -181,7 +181,7 @@ package catalog_manager.yaml {
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.createckandataset
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
             val jsonv : JsValue = ResponseWrites.DatasetWrites.writes(dataset)
-            CkanRegistry.ckanService.createDataset(jsonv, credentials.username)flatMap {
+            CkanRegistry.ckanService.createDataset(jsonv, credentials._1)flatMap {
                 case "true" => Createckandataset200(Success(Some("Success"), Some("dataset created")))
                 case e =>  Createckandataset401(Error(None,Some(e),None))
             }
@@ -191,7 +191,7 @@ package catalog_manager.yaml {
             val (limit, offset) = input
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.getckandatasetListWithRes
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
-            val datasetsFuture: Future[JsResult[Seq[Dataset]]] = CkanRegistry.ckanService.getDatasetsWithRes(input, credentials.username)
+            val datasetsFuture: Future[JsResult[Seq[Dataset]]] = CkanRegistry.ckanService.getDatasetsWithRes(input, credentials._1)
             val eitherDatasets: Future[Either[String, Seq[Dataset]]] = datasetsFuture.map(result => {
                 result match {
                     case s: JsSuccess[Seq[Dataset]] => Right(s.get)
@@ -208,7 +208,7 @@ package catalog_manager.yaml {
         val getckanuserorganizationList = getckanuserorganizationListAction { (username: String) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.getckanuserorganizationList
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
-            val orgsFuture: Future[JsResult[Seq[Organization]]] = CkanRegistry.ckanService.getUserOrganizations(username, credentials.username)
+            val orgsFuture: Future[JsResult[Seq[Organization]]] = CkanRegistry.ckanService.getUserOrganizations(username, credentials._1)
             val eitherOrgs: Future[Either[String, Seq[Organization]]] = orgsFuture.map(result => {
                 result match {
                     case s: JsSuccess[Seq[Organization]] => Right(s.get)
@@ -227,7 +227,7 @@ package catalog_manager.yaml {
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
             val jsonv : JsValue = ResponseWrites.OrganizationWrites.writes(organization)
 
-            CkanRegistry.ckanService.createOrganization(jsonv, credentials.username)flatMap {
+            CkanRegistry.ckanService.createOrganization(jsonv, credentials._1)flatMap {
                 case "true" => Createckanorganization200(Success(Some("Success"), Some("organization created")))
                 case e =>  Createckanorganization401(Error(None,Some(e),None))
             }
@@ -239,7 +239,7 @@ package catalog_manager.yaml {
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
             val jsonv : JsValue = ResponseWrites.OrganizationWrites.writes(organization)
 
-            CkanRegistry.ckanService.updateOrganization(org_id,jsonv, credentials.username)flatMap {
+            CkanRegistry.ckanService.updateOrganization(org_id,jsonv, credentials._1)flatMap {
                 case "true" => Updateckanorganization200(Success(Some("Success"), Some("organization updated")))
                 case e =>  Updateckanorganization401(Error(None,Some(e),None))
             }
@@ -248,7 +248,7 @@ package catalog_manager.yaml {
         val getckanuser = getckanuserAction { (username: String) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.getckanuser
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
-            val userResult: JsResult[User] = CkanRegistry.ckanService.getMongoUser(username, credentials.username)
+            val userResult: JsResult[User] = CkanRegistry.ckanService.getMongoUser(username, credentials._1)
             val eitherUser: Either[String, User] = userResult match {
                 case s: JsSuccess[User] => Right(s.get)
                 case e: JsError => Left("error, no user with that name")
@@ -265,7 +265,7 @@ package catalog_manager.yaml {
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.createckanuser
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
             val jsonv : JsValue = ResponseWrites.UserWrites.writes(user)
-            CkanRegistry.ckanService.createUser(jsonv, credentials.username)flatMap {
+            CkanRegistry.ckanService.createUser(jsonv, credentials._1)flatMap {
                 case "true" => Createckanuser200(Success(Some("Success"), Some("user created")))
                 case e =>  Createckanuser401(Error(None,Some(e),None))
             }
@@ -274,7 +274,7 @@ package catalog_manager.yaml {
         val getckandatasetbyid = getckandatasetbyidAction { (dataset_id: String) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.getckandatasetbyid
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
-            val datasetFuture: Future[JsResult[Dataset]] = CkanRegistry.ckanService.testDataset(dataset_id, credentials.username)
+            val datasetFuture: Future[JsResult[Dataset]] = CkanRegistry.ckanService.testDataset(dataset_id, credentials._1)
             val eitherDataset: Future[Either[String, Dataset]] = datasetFuture.map(result => {
                 result match {
                     case s: JsSuccess[Dataset] => Right(s.get)
@@ -294,7 +294,7 @@ package catalog_manager.yaml {
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
             val jsonv : JsValue = ResponseWrites.OrganizationWrites.writes(organization)
 
-            CkanRegistry.ckanService.patchOrganization(org_id,jsonv, credentials.username)flatMap {
+            CkanRegistry.ckanService.patchOrganization(org_id,jsonv, credentials._1)flatMap {
                 case "true" => Patchckanorganization200(Success(Some("Success"), Some("organization patched")))
                 case e =>  Patchckanorganization401(Error(None,Some(e),None))
             }
@@ -322,7 +322,7 @@ package catalog_manager.yaml {
         val getckanorganizationList = getckanorganizationListAction {  _ =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.getckanorganizationList
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
-            val eitherOut: Future[Either[Error, Seq[String]]] = CkanRegistry.ckanService.getOrganizations(credentials.username).map(result =>{
+            val eitherOut: Future[Either[Error, Seq[String]]] = CkanRegistry.ckanService.getOrganizations(credentials._1).map(result =>{
                 result match {
                     case s: JsArray => Right(s.as[Seq[String]])
                     case _ => Left(GENERIC_ERROR)

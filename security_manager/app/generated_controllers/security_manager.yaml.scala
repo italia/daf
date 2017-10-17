@@ -35,7 +35,7 @@ import it.gov.daf.sso.ApiClientIPA
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-        
+
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -73,14 +73,6 @@ package security_manager.yaml {
             }
             // ----- End of unmanaged code area for action  Security_managerYaml.createIPAuser
         }
-        val showipauser = showipauserAction { (uid: String) =>  
-            // ----- Start of unmanaged code area for action  Security_managerYaml.showipauser
-            ApiClientIPA.showUser(uid) flatMap {
-              case Right(success) => Showipauser200(success)
-              case Left(err) => Showipauser500(err)
-            }
-            // ----- End of unmanaged code area for action  Security_managerYaml.showipauser
-        }
         val token = tokenAction {  _ =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.token
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
@@ -89,6 +81,14 @@ package security_manager.yaml {
 
             Token200(Authentication.getStringToken(currentRequest).getOrElse(""))
             // ----- End of unmanaged code area for action  Security_managerYaml.token
+        }
+        val showipauser = showipauserAction { (mail: String) =>  
+            // ----- Start of unmanaged code area for action  Security_managerYaml.showipauser
+            ApiClientIPA.findUserByMail(mail) flatMap {
+              case Right(success) => Showipauser200(success)
+              case Left(err) => Showipauser500(err)
+            }
+            // ----- End of unmanaged code area for action  Security_managerYaml.showipauser
         }
         val registrationrequest = registrationrequestAction { (user: IpaUser) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.registrationrequest

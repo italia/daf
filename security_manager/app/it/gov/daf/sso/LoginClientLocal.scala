@@ -1,9 +1,12 @@
 package it.gov.daf.sso
 
+import java.net.URLEncoder
+
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import it.gov.daf.sso.common.{LoginClient, LoginInfo}
+import org.apache.commons.lang3.StringEscapeUtils
 import play.api.libs.json.Json
 import play.api.libs.ws.{WSClient, WSResponse}
 
@@ -43,7 +46,7 @@ class LoginClientLocal extends LoginClient {
 
   private def loginCkan(userName: String, pwd: String, wsClient: WSClient): Future[String] = {
 
-    val login = s"login=$userName&password=$pwd"
+    val login = s"login=$userName&password=${URLEncoder.encode(pwd,"UTF-8")}"
 
     //println("we"+CKAN_URL.split(":")(1))
 
@@ -74,7 +77,7 @@ class LoginClientLocal extends LoginClient {
     wsResponse.map { response =>
 
       println("STATUS-->" + response.status)
-      //println("BODY-->"+response.body)
+      println("BODY-->"+response.body)
       println("HEADERS-->" + response.allHeaders)
 
       val setCookie = response.header("Set-cookie").getOrElse(throw new Exception("Set-Cookie header not found"))
@@ -91,7 +94,7 @@ class LoginClientLocal extends LoginClient {
 
   private def loginIPA(userName: String, pwd: String, wsClient: WSClient): Future[String] = {
 
-    val login = s"user=$userName&password=$pwd"
+    val login = s"user=$userName&password=${URLEncoder.encode(pwd,"UTF-8")}"
 
     val wsResponse = wsClient.url(IPA_LOGIN_ULR).withHeaders("Content-Type" -> "application/x-www-form-urlencoded",
       "Accept" -> "text/plain",
@@ -120,7 +123,7 @@ class LoginClientLocal extends LoginClient {
       "password" -> pwd
     )
     //val sessionFuture: Future[String] = ws.url(local + "/superset/session").get().map(_.body)
-    val wsResponse: Future[WSResponse] = wsClient.url(SUPERSET_URL + "/login/").post(data)
+    val wsResponse: Future[WSResponse] = wsClient.url(SUPERSET_URL + "/login/").withHeaders("Content-Type" -> "application/json").post(data)
 
     println("login superset")
 
@@ -144,9 +147,11 @@ class LoginClientLocal extends LoginClient {
       "password" -> pwd
     )
 
-    println("login metabase")
 
-    val responseWs: Future[WSResponse] = wsClient.url(METABASE_URL + "/api/session").post(data)
+    println("login metabase")
+    //println("---->"+data.toString())
+
+    val responseWs: Future[WSResponse] = wsClient.url(METABASE_URL + "/api/session").withHeaders("Content-Type" -> "application/json").post(data)
     responseWs.map { response =>
 
       val cookie = "metabase.SESSION_ID="+(response.json \ "id").as[String]

@@ -41,6 +41,9 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider) exten
                                   CacheWrapper.getPwd(username).get,
                                   appName)
 
+
+    //println("xxxxx:"+loginInfo.password)
+
     LoginClientLocal.instance.login(loginInfo, ws).map{ cookie =>
       val json=s"""{"result":"$cookie"}"""
       Ok(json)

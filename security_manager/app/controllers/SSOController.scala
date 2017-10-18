@@ -70,6 +70,18 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider) exten
 
   }
 
+  // serve token JWT
+  def test = Action { implicit request =>
+
+    val username = WebServiceUtil.readCredentialFromRequest(request)._1.get
+    // TODO handle JWT expiration
+    if( CacheWrapper.getPwd(username).isEmpty ) {
+      Unauthorized("JWT expired")
+    }else
+      Ok("Success")
+
+  }
+
 
   //-----------------UNSECURED API-----------------------------------------
 

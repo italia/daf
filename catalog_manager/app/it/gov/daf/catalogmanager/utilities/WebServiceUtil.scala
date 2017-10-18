@@ -36,7 +36,7 @@ object WebServiceUtil {
 
   val environment = Environment(new File("."), this.getClass.getClassLoader, Mode.Prod)
 
-  Authentication(Configuration.load(Environment.simple()),null)
+  //Authentication(Configuration.load(Environment.simple()),null)
 
   val parser = new WSConfigParser(configuration, environment)
   val config = new AhcWSClientConfig(wsClientConfig = parser.parse())

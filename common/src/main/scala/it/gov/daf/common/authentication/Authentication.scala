@@ -16,6 +16,9 @@
 
 package it.gov.daf.common.authentication
 
+import java.util.Date
+
+import com.nimbusds.jwt.JWTClaimsSet
 import org.pac4j.core.profile.{CommonProfile, ProfileManager}
 import org.pac4j.jwt.config.signature.SecretSignatureConfiguration
 import org.pac4j.jwt.credentials.authenticator.JwtAuthenticator
@@ -69,19 +72,20 @@ object Authentication extends Results {
     profileManager.getAll(true).asScala.toList
   }
 
-  def getStringToken: (RequestHeader) => Option[String] = (request: RequestHeader) => {
+  def getStringToken: (RequestHeader,Long) => Option[String] = (request: RequestHeader,minutes:Long)  => {
     val generator = new JwtGenerator[CommonProfile](new SecretSignatureConfiguration(secret.getOrElse(throw new Exception("missing secret"))))
     val profiles = getProfiles(request)
     val token: Option[String] = profiles.headOption.map(profile => {
-      //val claims = new JWTClaimsSet.Builder().expirationTime(new Date).build()
-      //profile.addAttributes(claims.getClaims) //TODO It's possible here to add expiration and other token related info
+      val expDate = new Date( (new Date).getTime + 1000L*60L*minutes )//*60L*24L
+      val claims = new JWTClaimsSet.Builder().expirationTime(expDate).build()
+      profile.addAttributes(claims.getClaims)
       generator.generate(profile)
     })
     token
   }
 
-  def getToken: (RequestHeader) => Result = (request: RequestHeader) => {
-    Ok(getStringToken(request).getOrElse(""))
+  def getToken: (RequestHeader,Long) => Result = (request: RequestHeader, minutes:Long) => {
+    Ok(getStringToken(request,minutes).getOrElse(""))
   }
 
 }

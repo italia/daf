@@ -22,6 +22,8 @@ private class AppConfig @Inject()(playConfig: Configuration) {
   val localUrl :Option[String] = playConfig.getString("app.local.url")
   val securityManHost :Option[String] = playConfig.getString("security.manager.host")
 
+  val cookieExpiration :Option[Long] = playConfig.getLong("cookie.expiration")
+
 }
 
 
@@ -37,6 +39,8 @@ object ConfigReader {
   def userName :String = config.userName.getOrElse("")
   def localUrl :String = config.localUrl.getOrElse("http://localhost:9001")
   def securityManHost :String = config.securityManHost.getOrElse("http://localhost:9002")
+
+  def cookieExpiration:Long = config.cookieExpiration.getOrElse(30L)// 30 min by default
 
 }
 

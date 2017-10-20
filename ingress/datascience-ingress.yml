@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: datascience-ingress
+spec:
+  tls:
+  - hosts:
+    - datascience.daf.teamdigitale.it
+  rules:
+  - host: datascience.daf.teamdigitale.it
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: jupyterhub
+          servicePort: 8000

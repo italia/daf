@@ -3,5 +3,5 @@
 Welcome to the project homepage.
 
 
-* [Documentation for developers](docs-dev)
+* [Documentation for developers](https://developers.italia.it/it/daf/#documentazione)
 * [User Manual](docs-usr)

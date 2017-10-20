@@ -9,7 +9,8 @@ organization in ThisBuild := "it.gov.daf"
 
 name := "daf-catalog-manager"
 
-version in ThisBuild := "1.0.1-SNAPSHOT"
+version in ThisBuild := "1.1-SNAPSHOT"
+
 
 val playVersion = "2.5.14"
 
@@ -46,7 +47,8 @@ libraryDependencies ++= Seq(
   "net.caoticode.dirwatcher" %% "dir-watcher" % "0.1.0",
   "it.gov.daf" %% "common" % "1.0-SNAPSHOT",
   "me.lessis" %% "base64" % "0.2.0",
-  "ch.lightshed" %% "courier" % "0.1.4"
+  "ch.lightshed" %% "courier" % "0.1.4",
+  "com.github.cb372" %% "scalacache-guava" % "0.9.4"
   //"com.unboundid" % "unboundid-ldapsdk" % "4.0.0"
   //"it.teamdigitale" %% "ingestion-module" % "0.1.0" exclude("org.apache.avro", "avro")
 )
@@ -59,8 +61,8 @@ resolvers ++= Seq(
   //"zalando-bintray" at "https://dl.bintray.com/zalando/maven",
   "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
   "jeffmay" at "https://dl.bintray.com/jeffmay/maven",
-  //Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns),
-
+  Resolver.url("sbt-plugins", url("http://dl.bintray.com/gruggiero/sbt-plugins"))(Resolver.ivyStylePatterns),
+  Resolver.mavenLocal,
   "lightshed-maven" at "http://dl.bintray.com/content/lightshed/maven",
   "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/"
 )

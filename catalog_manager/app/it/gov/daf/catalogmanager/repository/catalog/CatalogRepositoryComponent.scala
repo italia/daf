@@ -11,11 +11,11 @@ trait CatalogRepository {
 
     import play.api.libs.functional.syntax._
 
-
-    def listCatalogs(): Seq[MetaCatalog]
+    def listCatalogs(page :Option[Int], limit :Option[Int]) :Seq[MetaCatalog]
     def catalog(catalogId :String): Option[MetaCatalog]
-    def createCatalog(metaCatalog: MetaCatalog, callingUserid :MetadataCat): Success
-    def standardUris(): Seq[String]
+    def createCatalog(metaCatalog: MetaCatalog,callingUserid :MetadataCat) :Success
+    def standardUris() : List[String]
+
 
     // DO NOT DELETE
 

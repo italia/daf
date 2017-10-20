@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: dataportal-ingress
+spec:
+  tls:
+  - hosts:
+    - dataportal.daf.teamdigitale.it
+  rules:
+  - host: dataportal.daf.teamdigitale.it
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: publicdata
+          servicePort: 5000

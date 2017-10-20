@@ -47,11 +47,17 @@ object Authentication extends Results {
   }
 
   def getClaims(requestHeader: RequestHeader): Option[mutable.Map[String, AnyRef]] = {
+
     val header: Option[String] = requestHeader.headers.get("Authorization")
     val token: Option[String] = for {
       h <- header
       t <- h.split("Bearer").lastOption
     } yield t.trim
+
+    getClaimsFromToken(token)
+  }
+
+  def getClaimsFromToken(token: Option[String]): Option[mutable.Map[String, AnyRef]] = {
     val jwtAuthenticator = new JwtAuthenticator()
     jwtAuthenticator.addSignatureConfiguration(new SecretSignatureConfiguration(secret.getOrElse(throw new Exception("missing secret"))))
     token.map(jwtAuthenticator.validateTokenAndGetClaims(_).asScala)

@@ -26,6 +26,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import it.gov.daf.catalogmanager.utilities.WebServiceUtil
 import scala.concurrent.Future
 import play.api.http.Writeable
+import it.gov.daf.common.authentication.Authentication
+import org.pac4j.play.store.PlaySessionStore
+import play.api.Configuration
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -34,12 +37,15 @@ import play.api.http.Writeable
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                
+
 
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
+
         ingestionListener : IngestionListenerImpl,
+        val configuration: Configuration,
+        val playSessionStore: PlaySessionStore,
 
         // ----- End of unmanaged code area for injections Catalog_managerYaml
         val messagesApi: MessagesApi,
@@ -47,7 +53,10 @@ package catalog_manager.yaml {
         config: ConfigurationProvider
     ) extends Catalog_managerYamlBase {
         // ----- Start of unmanaged code area for constructor Catalog_managerYaml
+
         val GENERIC_ERROR=Error("An Error occurred", None,None)
+        Authentication(configuration, playSessionStore)
+
         // ----- End of unmanaged code area for constructor Catalog_managerYaml
         val autocompletedummy = autocompletedummyAction { (autocompRes: AutocompRes) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.autocompletedummy

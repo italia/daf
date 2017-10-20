@@ -21,7 +21,9 @@ object RegistrationService {
 
     if (user.userpassword.isEmpty || user.userpassword.get.length < 8)
       Future{Left("Password minimum length is 8 characters")}
-    else {
+    else if( !user.userpassword.get.matches("^[a-zA-Z0-9%@#   &,;:_'/\\\\<\\\\(\\\\[\\\\{\\\\\\\\\\\\^\\\\-\\\\=\\\\$\\\\!\\\\|\\\\]\\\\}\\\\)\u200C\u200B\\\\?\\\\*\\\\+\\\\.\\\\>]*$") )
+      Future{Left("Invalid chars in password")}
+    else{
       MongoService.findUserByUid(user.uid) match {
         case Right(o) => Future{Left("Username already requested")}
         case Left(o) => checkUserNregister(user)

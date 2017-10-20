@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name:  monitoring-grafana
+  labels:
+    app: monitoring-grafana
+spec:
+  type: NodePort
+  ports:
+  - port: 3000
+    protocol: TCP
+    name: http
+  selector:
+    app: monitoring-grafana
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: monitoring-grafana-deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: monitoring-grafana
+    spec:
+      containers:
+      - name: monitoring-grafana
+        image: grafana/grafana
+        imagePullPolicy: Always
+        env:
+        - name: GF_PATHS_CONFIG
+          value: "/etc/grafana/grafana.ini"
+        - name: GF_AUTH_LDAP_ENABLED
+          value: true
+        - name: GF_AUTH_LDAP_CONFIG_FILE
+          value: "/etc/grafana/ldap.toml"
+        lifecycle:
+          postStart:
+            exec:
+             command: ["/bin/sh", "-c", "cat /etc/extra_hosts >> /etc/hosts"]
+        ports:
+        - name: client
+          containerPort: 3000
+        securityContext:
+          privileged: true
+          runAsUser: 0
+        volumeMounts:
+        - name: glusterfsvol
+          mountPath: /var/lib/grafana
+          subPath: grafana/data
+        - name: glusterfsvol
+          mountPath: /etc/grafana/grafana.ini
+          subPath: grafana/grafana.ini
+        - name: glusterfsvol
+          mountPath: /etc/grafana/ldap.toml
+          subPath: grafana/ldap.toml
+        - name: hosts
+          mountPath: /etc/extra_hosts
+      imagePullSecrets:
+        - name: regsecret
+      volumes:
+      - name: glusterfsvol
+        persistentVolumeClaim:
+          claimName: gluster-claim
+      - name: hosts
+        hostPath:
+          path: /etc/hosts

@@ -2,7 +2,7 @@ package controllers
 
 import javax.inject.Inject
 
-import it.gov.daf.securitymanager.service.utilities.WebServiceUtil
+import it.gov.daf.securitymanager.service.utilities.{ConfigReader, WebServiceUtil}
 import it.gov.daf.sso.LoginClientLocal
 import it.gov.daf.sso.common.{CacheWrapper, LoginInfo}
 import play.api.inject.ConfigurationProvider
@@ -15,6 +15,8 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider) exten
   import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 
+  val cacheWrapper = CacheWrapper.init(ConfigReader.cookieExpiration,ConfigReader.tokenExpiration)
+
   //----------------SECURED API---------------------------------------
 
   // servono le credenziali da BA
@@ -23,7 +25,7 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider) exten
     val credentials = WebServiceUtil.readCredentialFromRequest(request)
 
     if( !credentials._2.isEmpty ) {
-      CacheWrapper.putCredentials(credentials._1.get, credentials._2.get)
+      cacheWrapper.putCredentials(credentials._1.get, credentials._2.get)
       Ok("Success")
     }else
       InternalServerError("Basic Authentication required")
@@ -38,8 +40,11 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider) exten
 
     val loginInfo = new LoginInfo(
                                   username,
-                                  CacheWrapper.getPwd(username).get,
+                                  cacheWrapper.getPwd(username).get,
                                   appName)
+
+
+    //println("xxxxx:"+loginInfo.password)
 
     LoginClientLocal.instance.login(loginInfo, ws).map{ cookie =>
       val json=s"""{"result":"$cookie"}"""
@@ -56,7 +61,7 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider) exten
 
     val loginInfo = new LoginInfo(
                                   username,
-                                  CacheWrapper.getPwd(username).get,
+                                  cacheWrapper.getPwd(username).get,
                                   appName)
 
     LoginClientLocal.instance.login(loginInfo, ws).map{ cookie =>
@@ -67,13 +72,25 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider) exten
 
   }
 
+  // serve token JWT
+  def test = Action { implicit request =>
+
+    val username = WebServiceUtil.readCredentialFromRequest(request)._1.get
+
+    if( cacheWrapper.getPwd(username).isEmpty ) {
+      Unauthorized("JWT expired")
+    }else
+      Ok("Success")
+
+  }
+
 
   //-----------------UNSECURED API-----------------------------------------
 
   def registerInternal(username:String,password:String) = Action { implicit request =>
 
     if( username!=null &&  password != null) {
-      CacheWrapper.putCredentials(username, password)
+      cacheWrapper.putCredentials(username, password)
       Ok("Success")
     }else
       NotAcceptable("Username and password required")
@@ -85,7 +102,7 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider) exten
 
     val loginInfo = new LoginInfo(
                                   username,
-                                  CacheWrapper.getPwd(username).get,
+                                  cacheWrapper.getPwd(username).get,
                                   appName)
 
     LoginClientLocal.instance.login(loginInfo, ws).map{ cookie => Ok(cookie) }

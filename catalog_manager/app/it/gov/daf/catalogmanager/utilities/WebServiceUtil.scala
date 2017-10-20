@@ -36,7 +36,7 @@ object WebServiceUtil {
 
   val environment = Environment(new File("."), this.getClass.getClassLoader, Mode.Prod)
 
-  Authentication(Configuration.load(Environment.simple()),null)
+  //Authentication(Configuration.load(Environment.simple()),null)
 
   val parser = new WSConfigParser(configuration, environment)
   val config = new AhcWSClientConfig(wsClientConfig = parser.parse())
@@ -77,7 +77,7 @@ object WebServiceUtil {
       println("userId:"+user)
 
       val userAndPass = new String(Base64.decodeBase64(auth.get.split(" ").drop(1).head.getBytes)).split(":")
-      ( user, Option(userAndPass(1)) )
+      ( user, Option(userAndPass.drop(1).mkString(":")))
 
     }else if( authType.equalsIgnoreCase("bearer") ) {
       val user:Option[String] = Option( Authentication.getClaims(request).get.get("sub").get.toString )

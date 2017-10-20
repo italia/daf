@@ -27,6 +27,7 @@ import scala.concurrent.Future
 import it.gov.daf.securitymanager.service.utilities.WebServiceUtil
 import it.gov.daf.sso.common.CacheWrapper
 import it.gov.daf.sso.ApiClientIPA
+import it.gov.daf.securitymanager.service.utilities.ConfigReader
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -35,7 +36,7 @@ import it.gov.daf.sso.ApiClientIPA
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                                                                                
+                                                                                                                                                            
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -48,7 +49,8 @@ package security_manager.yaml {
     ) extends Security_managerYamlBase {
         // ----- Start of unmanaged code area for constructor Security_managerYaml
 
-    Authentication(configuration, playSessionStore)
+      Authentication(configuration, playSessionStore)
+      CacheWrapper.init(ConfigReader.cookieExpiration,ConfigReader.tokenExpiration)
 
   /*  @SuppressWarnings(
       Array(
@@ -77,9 +79,9 @@ package security_manager.yaml {
             // ----- Start of unmanaged code area for action  Security_managerYaml.token
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
             //SsoServiceClient.registerInternal(credentials._1.get,credentials._2.get)
-            CacheWrapper.putCredentials(credentials._1.get,credentials._2.get)
+            CacheWrapper.instance.putCredentials(credentials._1.get,credentials._2.get)
 
-            Token200(Authentication.getStringToken(currentRequest).getOrElse(""))
+            Token200(Authentication.getStringToken(currentRequest, ConfigReader.tokenExpiration).getOrElse(""))
             // ----- End of unmanaged code area for action  Security_managerYaml.token
         }
         val showipauser = showipauserAction { (mail: String) =>  

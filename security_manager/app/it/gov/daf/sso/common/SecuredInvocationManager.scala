@@ -22,13 +22,13 @@ class SecuredInvocationManager(loginClient:LoginClient) {
 
     println("callService ("+loginInfo+")")
 
-    val cookieOpt = CacheWrapper.getCookie(loginInfo.appName,loginInfo.user)
+    val cookieOpt = CacheWrapper.instance.getCookie(loginInfo.appName,loginInfo.user)
 
     if( cookieOpt.isEmpty )
 
       _loginClient.login(loginInfo, wsClient).flatMap { cookie =>
 
-        CacheWrapper.putCookie(loginInfo.appName,loginInfo.user,cookie)
+        CacheWrapper.instance.putCookie(loginInfo.appName,loginInfo.user,cookie)
 
         serviceFetch(cookie, wsClient).map({ response =>
           println("RESPONSE1 ("+loginInfo+"):"+response.body)
@@ -61,7 +61,7 @@ class SecuredInvocationManager(loginClient:LoginClient) {
 
       if(response.status == 401){
         println("Unauthorized!!")
-        CacheWrapper.deleteCookie(loginInfo.appName,loginInfo.user)
+        CacheWrapper.instance.deleteCookie(loginInfo.appName,loginInfo.user)
         callService(wsClient,loginInfo,serviceFetch).map(_.json)
           .andThen { case _ => wsClient.close() }
           .andThen { case _ => system.terminate() }

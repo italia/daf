@@ -5,6 +5,7 @@ import javax.inject.Inject
 import it.gov.daf.securitymanager.service.utilities.{ConfigReader, WebServiceUtil}
 import it.gov.daf.sso.LoginClientLocal
 import it.gov.daf.sso.common.{CacheWrapper, LoginInfo}
+import org.apache.commons.lang3.StringEscapeUtils
 import play.api.inject.ConfigurationProvider
 import play.api.libs.ws.WSClient
 import play.api.mvc.{Action, Controller, Cookie}
@@ -47,7 +48,7 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider) exten
     //println("xxxxx:"+loginInfo.password)
 
     LoginClientLocal.instance.login(loginInfo, ws).map{ cookie =>
-      val json=s"""{"result":"$cookie"}"""
+      val json=s"""{"result":"${StringEscapeUtils.escapeJson(cookie)}"}"""
       Ok(json)
     }
 

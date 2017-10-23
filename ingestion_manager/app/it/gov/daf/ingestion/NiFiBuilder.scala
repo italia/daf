@@ -1,7 +1,7 @@
 package it.gov.daf.ingestion
 
 import com.typesafe.config.ConfigFactory
-import it.gov.daf.catalogmanager.MetaCatalog
+import it.gov.daf.catalogmanager.{GroupAccess, InputSrc, MetaCatalog, StorageInfo}
 import play.api.libs.ws.{WS, WSClient, WSRequest, WSResponse}
 import javax.inject.Inject
 
@@ -18,25 +18,21 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 
 //class NiFiBuilder(metaCatalogProcessor: MetaCatalogProcessor) {
-/*
+
 class NiFiBuilder @Inject() (ws: WSClient,
                              metaCatalog: MetaCatalog) {
-*/
-class NiFiBuilder (ws: WSClient
-                             ) {
 
   val nifiUrl = ConfigFactory.load().getString("WebServices.nifiUrl")
   val nifiFunnelId = ConfigFactory.load().getString("WebServices.nifiFunnelId")
 
-  def getNiFiInfo(): NiFiInfo = {
-    //val dsName = metaCatalog.dcatapit.name
-    val dsName = "name"
-    //val inputSrc = ???
-    //val storage = ???
-    //val ingPipeline = ???
-    //val dsType = ???
-    //val groupAccess = ???
+  val dsName = metaCatalog.dcatapit.name
+  val inputSrc: InputSrc = metaCatalog.operational.input_src
+  val storage: Option[StorageInfo] = metaCatalog.operational.storage_info
+  val ingPipeline: Option[List[String]] = metaCatalog.operational.ingestion_pipeline
+  val dsType: String = metaCatalog.operational.dataset_type
+  val groupAccess: Option[List[GroupAccess]] = metaCatalog.operational.group_access
 
+  def getNiFiInfo(): NiFiInfo = {
 
     NiFiInfo(dsName)
   }
@@ -72,13 +68,25 @@ class NiFiBuilder (ws: WSClient
           (resListener.json \"revision" \ "version").as[Int].toString)
       }
 
-    } yield (resPlayListener)
+      resPlayUpdateAttr <- {
+        println("resPlayListener -> " + resPlayListener)
+        playProc((resUpdateAttr.json \ "id").as[String],
+          "RUNNING",
+          (resUpdateAttr.json \"revision" \ "clientId").as[String],
+          (resUpdateAttr.json \"revision" \ "version").as[Int].toString)
+      }
+
+    } yield (resPlayUpdateAttr)
 
     val result: Try[WSResponse] = Await.ready(futureProcSetup, Duration.Inf).value.get
 
     result match {
-      case Success(s) => println("Connection -> " + s)
-      case Failure(e) => println(e.printStackTrace())
+      case Success(s) =>
+        println("Connection -> " + s)
+        NiFiProcessStatus(niFiInfo)
+      case Failure(e) =>
+        println(e.printStackTrace())
+        NiFiProcessStatus(niFiInfo)
     }
 
   /*
@@ -97,7 +105,7 @@ class NiFiBuilder (ws: WSClient
       case Failure(e) => println(e.getStackTrace)
     }
 */
-    NiFiProcessStatus(niFiInfo)
+
   }
 
   def processorListener(): Future[WSResponse] = {

@@ -32,31 +32,14 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.ExecutionContext.Implicits.global
 import it.gov.daf.ingestion.{MetaCatalogProcessor,NiFiBuilder}
 import scala.concurrent.ExecutionContext.Implicits.global
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
+import play.api.libs.ws.ahc.AhcWSClient
+
+import scala.concurrent.Future
+import scala.util.{Failure, Success}
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
+
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -64,7 +47,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
  */
 
 package ingestion_manager.yaml {
-    // ----- Start of unmanaged code area for package Ingestion_managerYaml
+
+  import play.api.libs.ws.ahc.AhcWSClient
+  // ----- Start of unmanaged code area for package Ingestion_managerYaml
                                                                                                                                                                         
     // ----- End of unmanaged code area for package Ingestion_managerYaml
     class Ingestion_managerYaml @Inject() (
@@ -86,6 +71,8 @@ package ingestion_manager.yaml {
         val addNewDataset = addNewDatasetAction { (ds_logical_uri: String) =>  
             // ----- Start of unmanaged code area for action  Ingestion_managerYaml.addNewDataset
             import scala.concurrent.ExecutionContext.Implicits.global
+          implicit val system: ActorSystem = ActorSystem()
+          implicit val materializer: ActorMaterializer = ActorMaterializer()
             val auth = currentRequest.headers.get("authorization")
             val resFuture :Future[MetaCatalog]= ClientCaller.clientCatalogMgrMetaCatalog(auth.getOrElse(""), ds_logical_uri)
 
@@ -93,7 +80,10 @@ package ingestion_manager.yaml {
 
             result match {
               case Success(metaCatalog) =>
-                val niFiBuilder = new NiFiBuilder(metaCatalog)
+                val client: AhcWSClient = AhcWSClient()
+                //val niFiBuilder = new NiFiBuilder(client, metaCatalog)
+                val niFiBuilder = new NiFiBuilder(client)
+
                 val niFiResults = niFiBuilder.processorBuilder()
                 AddNewDataset200(IngestionReport("Status: OK", Some(niFiResults.toString)))
 

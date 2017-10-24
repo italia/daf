@@ -100,7 +100,7 @@ object Transformers {
 
           metricTry.map {
             case (m, v) =>
-            val tags = ("source", a.source) :: attributes
+            val tags = ("source", convertString(a.source)) :: attributes
               .getOrElse("tags", ",")
               .split(",").toList
               .flatMap { s =>

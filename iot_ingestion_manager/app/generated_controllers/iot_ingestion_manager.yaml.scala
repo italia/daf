@@ -70,6 +70,14 @@ import org.apache.kudu.ColumnSchema
 import org.apache.kudu.client.CreateTableOptions
 import org.apache.kudu.ColumnSchema
 import org.apache.kudu.client.CreateTableOptions
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -78,7 +86,7 @@ import org.apache.kudu.client.CreateTableOptions
 
 package iot_ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Iot_ingestion_managerYaml
-                                                
+                                                                
   @SuppressWarnings(
     Array(
       "org.wartremover.warts.While",

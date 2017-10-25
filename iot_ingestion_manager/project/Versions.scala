@@ -31,4 +31,6 @@ object Versions {
   val catsVersion = "0.9.0"
 
   val scallopVersion = "3.1.0"
+
+  val dafCommonVersion = sys.env.get("COMMON_VERSION").getOrElse("1.0-SNAPSHOT")
 }

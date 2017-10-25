@@ -46,8 +46,8 @@ libraryDependencies ++= Seq(
   "net.caoticode.dirwatcher" %% "dir-watcher" % "0.1.0",
   "it.gov.daf" %% "common" % "1.0-SNAPSHOT",
   "me.lessis" %% "base64" % "0.2.0",
-  "ch.lightshed" %% "courier" % "0.1.4",
-  "com.github.cb372" %% "scalacache-guava" % "0.9.4"
+  "ch.lightshed" %% "courier" % "0.1.4"
+  //"com.github.cb372" %% "scalacache-guava" % "0.9.4"
   //"com.unboundid" % "unboundid-ldapsdk" % "4.0.0"
   //"it.teamdigitale" %% "ingestion-module" % "0.1.0" exclude("org.apache.avro", "avro")
 )

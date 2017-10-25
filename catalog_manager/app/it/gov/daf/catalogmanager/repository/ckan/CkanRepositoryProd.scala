@@ -7,7 +7,8 @@ import com.mongodb.{DBObject, MongoCredential, ServerAddress}
 import com.mongodb.casbah.MongoClient
 import com.mongodb.casbah.commons.MongoDBObject
 import play.api.libs.ws.ahc.AhcWSClient
-import it.gov.daf.catalogmanager.utilities.{ConfigReader, SecurePasswordHashing, WebServiceUtil}
+import it.gov.daf.catalogmanager.utilities.{ConfigReader, SecurePasswordHashing}
+import it.gov.daf.common.utils.WebServiceUtil
 import play.api.libs.json._
 
 import scala.concurrent.Future

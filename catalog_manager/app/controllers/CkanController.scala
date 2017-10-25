@@ -9,13 +9,14 @@ import javax.inject._
 
 import play.api.mvc._
 import play.api.libs.ws._
+
 import scala.concurrent.Future
 import play.api.libs.json._
 import play.api.inject.ConfigurationProvider
 import it.gov.daf.catalogmanager.service.CkanRegistry
-import it.gov.daf.catalogmanager.utilities.WebServiceUtil
-import it.gov.daf.sso.common.{LoginInfo, Payload, SecuredInvocationManager}
-import it.gov.daf.sso.client.LoginClientRemote
+import it.gov.daf.common.sso.client.LoginClientRemote
+import it.gov.daf.common.sso.common.{LoginInfo, SecuredInvocationManager}
+import it.gov.daf.common.utils.WebServiceUtil
 import play.api.libs.ws.ahc.AhcWSClient
 
 
@@ -35,7 +36,9 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
   private val USER_ID_HEADER:String = config.get.getString("app.userid.header").get
 
-  private val secInvokManager = SecuredInvocationManager.instance(LoginClientRemote.instance())
+  private val SEC_MANAGER_HOST:String = config.get.getString("security.manager.host").get
+
+  private val secInvokManager = SecuredInvocationManager.init( LoginClientRemote.init(SEC_MANAGER_HOST) )
 
   private def getOrgs(orgId :String): Future[List[String]] = {
     val orgs : Future[WSResponse] = ws.url(LOCAL_URL + "/ckan/organizations/" + orgId).get()

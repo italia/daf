@@ -2,9 +2,10 @@ package controllers
 
 import javax.inject.Inject
 
-import it.gov.daf.securitymanager.service.utilities.{ConfigReader, WebServiceUtil}
+import it.gov.daf.common.sso.common.{CacheWrapper, LoginInfo}
+import it.gov.daf.common.utils.WebServiceUtil
+import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import it.gov.daf.sso.LoginClientLocal
-import it.gov.daf.sso.common.{CacheWrapper, LoginInfo}
 import org.apache.commons.lang3.StringEscapeUtils
 import play.api.inject.ConfigurationProvider
 import play.api.libs.ws.WSClient

@@ -17,7 +17,9 @@ object RegistrationService {
   private val tokenGenerator = new BearerTokenGenerator
 
 
-  def requestRegistration(user:IpaUser):Future[Either[String,MailService]] = {
+  def requestRegistration(userIn:IpaUser):Future[Either[String,MailService]] = {
+
+    val user = setUid(userIn)
 
     if (user.userpassword.isEmpty || user.userpassword.get.length < 8)
       Future{Left("Password minimum length is 8 characters")}
@@ -30,6 +32,14 @@ object RegistrationService {
       }
     }
 
+  }
+
+
+  private def setUid(user: IpaUser): IpaUser = {
+
+    println("uid-->"+user.uid)
+    if (user.uid == null || user.uid.isEmpty ) user.copy(uid = user.mail.replaceAll("[@]", "_").replaceAll("[.]", "-"))
+    else user
   }
 
   private def checkUserNregister(user:IpaUser):Future[Either[String,MailService]] = {

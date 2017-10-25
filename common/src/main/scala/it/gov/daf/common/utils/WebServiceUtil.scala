@@ -1,50 +1,44 @@
-package it.gov.daf.securitymanager.service.utilities
+/*
+ * Copyright 2017 TEAM PER LA TRASFORMAZIONE DIGITALE
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import java.io.File
+package it.gov.daf.common.utils
+
 import java.net.URLEncoder
-
 import it.gov.daf.common.authentication.Authentication
 import org.apache.commons.net.util.Base64
 import play.api.libs.json._
 import play.api.mvc.Request
 
-//import akka.actor.ActorSystem
-//import akka.stream.ActorMaterializer
-import com.typesafe.config.ConfigFactory
-import org.asynchttpclient.AsyncHttpClientConfig
-import play.api.libs.ws.WSConfigParser
-import play.api.libs.ws.ahc.{AhcConfigBuilder, AhcWSClientConfig}
-import play.api.{Configuration, Environment, Mode}
 
 /**
   * Created by ale on 11/05/17.
   */
 
+@SuppressWarnings(
+  Array(
+    "org.wartremover.warts.Any",
+    "org.wartremover.warts.OptionPartial",
+    "org.wartremover.warts.StringPlusAny",
+    "org.wartremover.warts.Throw",
+    "org.wartremover.warts.ToString",
+    "org.wartremover.warts.TraversableOps"
+  )
+)
 object WebServiceUtil {
-  /*
-  val configuration = Configuration.reference ++ Configuration(ConfigFactory.parseString(
-    """
-      |ws.followRedirects = true
-    """.stripMargin))
 
-  // If running in Play, environment should be injected
-
-  val environment = Environment(new File("."), this.getClass.getClassLoader, Mode.Prod)
-
-  Authentication(Configuration.load(Environment.simple()),null)
-
-  val parser = new WSConfigParser(configuration, environment)
-  val config = new AhcWSClientConfig(wsClientConfig = parser.parse())
-  val builder = new AhcConfigBuilder(config)
-  val logging = new AsyncHttpClientConfig.AdditionalChannelInitializer() {
-    override def initChannel(channel: io.netty.channel.Channel): Unit = {
-      channel.pipeline.addFirst("log", new io.netty.handler.logging.LoggingHandler("debug"))
-    }
-  }
-  val ahcBuilder = builder.configure()
-  ahcBuilder.setHttpAdditionalChannelInitializer(logging)
-  val ahcConfig = ahcBuilder.build()
-*/
 
   def buildEncodedQueryString(params: Map[String, Any]): String = {
     val encoded = for {
@@ -67,6 +61,7 @@ object WebServiceUtil {
 
     if( authType.equalsIgnoreCase("basic") ){
 
+      // LDAP profiles are only created  during BA
       println("profiles:"+Authentication.getProfiles(request))
       val user:Option[String] = Option( Authentication.getProfiles(request).head.getId )
       println("userId:"+user)
@@ -105,7 +100,7 @@ object WebServiceUtil {
 
   }
 
-  /*
+
   def getMessageFromCkanError(error:JsValue): String ={
 
 
@@ -116,6 +111,6 @@ object WebServiceUtil {
 
     ckanError
 
-  }*/
+  }
 
 }

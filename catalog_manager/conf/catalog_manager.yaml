@@ -877,10 +877,9 @@ definitions:
       group_own:
         type: string
         description: Group of ownership to which the dataset belongs. It is set to 'open' by default.
-#####
       group_access:
-        #type: array
-        type: string
+        type: array
+        #type: string
         description: Groups that have rights to access the datasets. It contains the name and the role associated to the group
         items:
           $ref: '#/definitions/GroupAccess'
@@ -892,28 +891,21 @@ definitions:
       read_type:
         description: It tells whether the dataset is an append of snapshot ('last_update') or a time series ('time_series') and tells the program how to return the data.
         type: string
-########
       georef:
         #type: string
         type: array
         items:
          $ref: '#/definitions/GeoRef'
-#######
       input_src:
         description: Input sources for data to be ingested into the dataset.
-        #type: string
         $ref: '#/definitions/InputSrc'
-######
       ingestion_pipeline:
-        #type: string
         type: array
         description: List of ingestion pipeline to be applied, in order of declaration, to the data to be ingested.
         items:
           type: string
-#######
       storage_info:
         description: Information on the storage to be used to save the dataset.
-        #type: string
         $ref: '#/definitions/StorageInfo'
       dataset_type:
         type: string
@@ -1056,6 +1048,10 @@ definitions:
         type: object
         description: SourceTextdb
         $ref: '#/definitions/StorageTextdb'
+      mongo:
+        type: object
+        description: Mongodb
+        $ref: '#/definitions/StorageMongo'
   StorageHdfs:
     type: object
     description: If compiled, will tell the ingestion manager to store the data into HDFS.
@@ -1116,7 +1112,6 @@ definitions:
       param:
         type: string
         description: Other parameters to be passed in JSON format. It will be None by default.
-
   StorageMongo:
     type: object
     description: If compiled, will tell the ingestion manager to store the data into Kudu.
@@ -1132,7 +1127,6 @@ definitions:
       param:
         type: string
         description: Other parameters to be passed in JSON format. It will be None by default.
-
   GeoRef:
     type: object
     required:

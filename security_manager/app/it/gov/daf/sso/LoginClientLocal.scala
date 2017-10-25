@@ -27,6 +27,7 @@ class LoginClientLocal extends LoginClient {
   private val IPA_URL = ConfigReader.ipaUrl
   private val SUPERSET_URL = ConfigReader.supersetUrl
   private val METABASE_URL = ConfigReader.metabaseUrl
+  private val JUPYTER_URL = ConfigReader.jupyterUrl
   private val IPA_APP_ULR = IPA_URL + "/ipa"
   private val IPA_LOGIN_ULR = IPA_URL + "/ipa/session/login_password"
 
@@ -38,6 +39,7 @@ class LoginClientLocal extends LoginClient {
       case LoginClientLocal.FREE_IPA => loginIPA(loginInfo.user, loginInfo.password, wsClient)
       case LoginClientLocal.SUPERSET => loginSuperset(loginInfo.user, loginInfo.password, wsClient)
       case LoginClientLocal.METABASE => loginMetabase(loginInfo.user, loginInfo.password, wsClient)
+      case LoginClientLocal.JUPYTER => loginJupyter(loginInfo.user, loginInfo.password, wsClient)
       case _ => throw new Exception("Unexpeted exception: application name not found")
     }
 
@@ -91,6 +93,42 @@ class LoginClientLocal extends LoginClient {
 
   }
 
+  private def loginJupyter(userName: String, pwd: String, wsClient: WSClient): Future[String] = {
+
+    val login = s"username=$userName&password=${URLEncoder.encode(pwd,"UTF-8")}"
+
+    val host = JUPYTER_URL.split(":")(1).replaceAll("""//""", "")
+
+    val url = wsClient.url(JUPYTER_URL + "/hub/login?next=")
+      .withHeaders("host" -> host,
+        "Accept" -> "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Referer" -> (JUPYTER_URL + "/hub/login"),
+        "Content-Type" -> "application/x-www-form-urlencoded",
+        "Content-Length" -> login.length.toString,
+        "Connection" -> "keep-alive",
+        "Upgrade-Insecure-Requests" -> "1"
+      ).withFollowRedirects(false)
+
+    val wsResponse = url.post(login)
+
+    println("login jupyter")
+
+    wsResponse.map { response =>
+
+      println("STATUS-->" + response.status)
+      println("BODY-->"+response.body)
+      println("HEADERS-->" + response.allHeaders)
+
+      val setCookie = response.header("Set-cookie").getOrElse(throw new Exception("Set-Cookie header not found"))
+      println("(JUPYTER) SET COOKIE: " + setCookie)
+      val cookie = setCookie.split(";")(0)
+      println("(JUPYTER) COOKIE: " + cookie)
+
+      cookie
+
+    }
+
+  }
 
   private def loginIPA(userName: String, pwd: String, wsClient: WSClient): Future[String] = {
 
@@ -171,6 +209,7 @@ object LoginClientLocal {
   val FREE_IPA = "freeIPA"
   val SUPERSET = "superset"
   val METABASE = "metabase"
+  val JUPYTER = "jupyter"
 
   private var _instance:LoginClientLocal=null
 

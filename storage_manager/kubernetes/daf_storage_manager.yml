@@ -29,7 +29,7 @@ spec:
     spec:
       containers:
       - name: storage-manager
-        image: 10.98.74.120:5000/daf-storage-manager:1.0-SNAPSHOT
+        image: 10.98.74.120:5000/daf-storage-manager:${STORAGE_MANAGER_VERSION}
         imagePullPolicy: Always
         lifecycle:
           postStart:

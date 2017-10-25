@@ -1,11 +1,14 @@
 import CommonBuild._
 import Versions._
 import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
+import uk.gov.hmrc.gitstamp.GitStampPlugin._
 
 organization in ThisBuild := "it.gov.daf"
 name := "daf-security-manager"
 
-version in ThisBuild := "1.0-SNAPSHOT"
+Seq(gitStampSettings: _*)
+
+version in ThisBuild := sys.env.get("SECURITY_MANAGER_VERSION").getOrElse("1.0-SNAPSHOT")
 
 scalacOptions ++= Seq(
   "-deprecation",
@@ -50,7 +53,7 @@ libraryDependencies ++= Seq(
   cache,
   ws,
   "org.webjars" % "swagger-ui" % swaggerUiVersion,
-  "it.gov.daf" %% "common" % version.value,
+  "it.gov.daf" %% "common" % dafCommonVersion,
   "org.mongodb" %% "casbah" % "3.1.1", //,
   "ch.lightshed" %% "courier" % "0.1.4",
   "com.github.cb372" %% "scalacache-guava" % "0.9.4",

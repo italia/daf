@@ -38,7 +38,7 @@ class TransformersSpec extends Specification {
         source = "http://domain/sensor/url",
         body = Option("""{"rowdata": "this json should contain row data"}""".getBytes()),
         attributes = Map(
-          "tag1" -> "value1",
+          "tag1" -> "Via Cernaia(TO)",
           "tag2" -> "value2",
           "value" -> "50",
           "tags"-> "tag1, tag2"
@@ -58,14 +58,14 @@ class TransformersSpec extends Specification {
           source = "http://domain/sensor/url",
           body = Option("""{"rowdata": "this json should contain row data"}""".getBytes()),
           attributes = Map(
-            "tag1" -> "value1",
+            "tag1" -> "Via Cernaia(TO)",
             "tag2" -> "value2",
             "metric" -> "speed",
             "tags"-> "tag1, tag2"
           )
         )
         val res = (eventToStorableEvent >>>> storableEventToDatapoint)(event)
-        //println(res)
+        println(res)
         res must beFailedTry
 
       }
@@ -80,7 +80,7 @@ class TransformersSpec extends Specification {
           source = "http://domain/sensor/url",
           body = Option("""{"rowdata": "this json should contain row data"}""".getBytes()),
           attributes = Map(
-            "tag1" -> "value1",
+            "tag1" -> "Via Cernaia(TO)",
             "tag2" -> "value2",
             "value" -> "50",
             "metric" -> "speed",
@@ -88,7 +88,7 @@ class TransformersSpec extends Specification {
           )
         )
         val res = (eventToStorableEvent >>>> storableEventToDatapoint)(event)
-        //println(res)
+        println(res)
         res must beSuccessfulTry
 
         res.get.tags.contains("tag3") mustEqual false

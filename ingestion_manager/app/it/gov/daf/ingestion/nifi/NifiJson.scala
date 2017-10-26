@@ -1,4 +1,4 @@
-package it.gov.daf.ingestion.utilities
+package it.gov.daf.ingestion.nifi
 
 import play.api.libs.json._
 

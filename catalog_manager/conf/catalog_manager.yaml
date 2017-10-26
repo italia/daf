@@ -719,7 +719,7 @@ definitions:
         name:
           type: string
           description: Name of the dataset
-        alliases:
+        aliases:
           type: string
           description: Alises for dataset
         #alliases:
@@ -758,7 +758,6 @@ definitions:
         description: JSON object containing metadata information for the field
   Metadata:
     required:
-
     type: object
     #  - metadata_format
     #  - required
@@ -858,44 +857,34 @@ definitions:
       group_own:
         type: string
         description: Group of ownership to which the dataset belongs. It is set to 'open' by default.
-#####
       group_access:
-        #type: array
-        type: string
+        type: array
         description: Groups that have rights to access the datasets. It contains the name and the role associated to the group
         items:
           $ref: '#/definitions/GroupAccess'
       std_schema:
-        #type: object
+        type: object
         description:
         $ref: '#/definitions/StdSchema'
-        #type: string
       read_type:
         description: It tells whether the dataset is an append of snapshot ('last_update') or a time series ('time_series') and tells the program how to return the data.
         type: string
-########
       georef:
-        type: string
-        #type: array
-        #items:
-        # $ref: '#/definitions/GeoRef'
-#######
+        type: array
+        items:
+          $ref: '#/definitions/GeoRef'
       input_src:
         description: Input sources for data to be ingested into the dataset.
-        type: string
-        #$ref: '#/definitions/InputSrc'
-######
+        $ref: '#/definitions/InputSrc'
       ingestion_pipeline:
-        type: string
-        #type: array
+        type: array
         description: List of ingestion pipeline to be applied, in order of declaration, to the data to be ingested.
-        #items:
-        #  type: string
-#######
+        items:
+          type: string
       storage_info:
         description: Information on the storage to be used to save the dataset.
-        type: string
-        #$ref: '#/definitions/StorageInfo'
+        type: object
+        $ref: '#/definitions/StorageInfo'
       dataset_type:
         type: string
         description: It tells whether the dataset is at rest ('batch') or realtime stream ('stream').
@@ -1037,6 +1026,10 @@ definitions:
         type: object
         description: SourceTextdb
         $ref: '#/definitions/StorageTextdb'
+      mongo:
+        type: object
+        description: MongoDB storage
+        $ref: '#/definitions/StorageMongo'
   StorageHdfs:
     type: object
     description: If compiled, will tell the ingestion manager to store the data into HDFS.
@@ -1097,7 +1090,6 @@ definitions:
       param:
         type: string
         description: Other parameters to be passed in JSON format. It will be None by default.
-
   StorageMongo:
     type: object
     description: If compiled, will tell the ingestion manager to store the data into Kudu.
@@ -1193,63 +1185,6 @@ definitions:
       message:
         type: string
       fields:
-        type: string
-  DcatApIt:
-    type: object
-    required:
-      - dct_identifier
-      - dct_title
-      - dct_theme
-      #- dct_rightsHolder
-    properties:
-      dct_identifier:
-        type: string
-      dct_title:
-        $ref: '#/definitions/DcatApItLang'
-      dct_description:
-        $ref: '#/definitions/DcatApItLang'
-      dct_theme:
-        $ref: '#/definitions/DcatApItTypeLang'
-      dct_rightsHolder:
-         $ref: '#/definitions/DcatApItTypeLang'
-      dct_accrualPeriodicity:
-        $ref: '#/definitions/DcatApItTypeLang'
-      dct_subject:
-        type: array
-        items:
-          $ref: '#/definitions/DcatApItTypeLang'
-      dct_language:
-        $ref: '#/definitions/DcatApItType'
-      dcat_keyword:
-        type: array
-        items:
-          type: string
-      dcat_spatial:
-        type: string
-      dcat_landingPage:
-        type: string
-  DcatApItLang:
-    type: object
-    properties:
-      it:
-        type: string
-      value:
-        type: string
-  DcatApItType:
-    type: object
-    properties:
-      id:
-        type: string
-      value:
-        type: string
-  DcatApItTypeLang:
-    type: object
-    properties:
-      id:
-        type: string
-      value:
-        type: string
-      it:
         type: string
   Dataset:
     #type: Object

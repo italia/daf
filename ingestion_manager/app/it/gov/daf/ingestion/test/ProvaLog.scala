@@ -1,14 +1,13 @@
 package it.gov.daf.ingestion.test
 
-import it.gov.daf.ingestion.NiFiBuilder
 import javax.inject.Inject
 
 import org.slf4j.{Logger, LoggerFactory}
 import play.api.libs.ws._
 import play.api.libs.ws.ahc.AhcWSClient
-
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
+import it.gov.daf.ingestion.nifi.NiFiBuilder
 import play.api.libs.ws.ahc.AhcWSClient
 
 import scala.concurrent.Future
@@ -20,8 +19,8 @@ object ProvaLog extends App {
   implicit val system: ActorSystem = ActorSystem()
   implicit val materializer: ActorMaterializer = ActorMaterializer()
   val client: AhcWSClient = AhcWSClient()
-  val niFiBuilder = new NiFiBuilder(client)
+  //val niFiBuilder = new NiFiBuilder(client)
 
-  val niFiResults = niFiBuilder.processorBuilder()
-  println(niFiResults)
+  //val niFiResults = niFiBuilder.processorBuilder()
+  //println(niFiResults)
 }

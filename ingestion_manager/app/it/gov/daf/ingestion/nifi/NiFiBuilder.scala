@@ -1,26 +1,24 @@
-package it.gov.daf.ingestion
+package it.gov.daf.ingestion.nifi
+
+import javax.inject.Inject
 
 import com.typesafe.config.ConfigFactory
 import it.gov.daf.catalogmanager.{GroupAccess, InputSrc, MetaCatalog, StorageInfo}
-import play.api.libs.ws.{WS, WSClient, WSRequest, WSResponse}
-import javax.inject.Inject
-
-import it.gov.daf.ingestion.utilities.NifiJson
+import it.gov.daf.ingestion.metacatalog.MetaCatalogProcessor
 import play.api.libs.json._
+import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
 
-import scala.concurrent.{Await, Future}
-import akka.stream.ActorMaterializer
-import play.api.libs.ws.ahc.AhcWSClient
-
-import scala.concurrent.Future
-import scala.util.{Failure, Success, Try}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
+import scala.util.{Failure, Success, Try}
 
 //class NiFiBuilder(metaCatalogProcessor: MetaCatalogProcessor) {
 
 class NiFiBuilder @Inject() (ws: WSClient,
                              metaCatalog: MetaCatalog) {
+
+  val metaCatalogProc = new MetaCatalogProcessor(metaCatalog)
 
   val nifiUrl = ConfigFactory.load().getString("WebServices.nifiUrl")
   val nifiFunnelId = ConfigFactory.load().getString("WebServices.nifiFunnelId")

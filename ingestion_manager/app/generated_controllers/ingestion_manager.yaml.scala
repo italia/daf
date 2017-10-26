@@ -1,45 +1,45 @@
 
-import play.api.mvc.{Action,Controller}
-
+import play.api.mvc.{Action, Controller}
 import play.api.data.validation.Constraint
-
 import play.api.i18n.MessagesApi
-
-import play.api.inject.{ApplicationLifecycle,ConfigurationProvider}
-
+import play.api.inject.{ApplicationLifecycle, ConfigurationProvider}
 import de.zalando.play.controllers._
-
 import PlayBodyParsing._
-
 import PlayValidations._
 
 import scala.util._
-
 import javax.inject._
 
 import it.gov.daf.ingestion.ClientCaller
 import it.gov.daf.ingestion.utilities.WebServiceUtil
+
 import scala.concurrent.Future
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.ExecutionContext.Implicits.global
 import it.gov.daf.catalogmanager.MetaCatalog
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.ExecutionContext.Implicits.global
-import it.gov.daf.ingestion.{MetaCatalogProcessor,NiFiBuilder}
 import scala.concurrent.ExecutionContext.Implicits.global
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
+import it.gov.daf.ingestion.metacatalog.MetaCatalogProcessor
 import play.api.libs.ws.ahc.AhcWSClient
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 import scala.concurrent.ExecutionContext.Implicits.global
+import play.api.libs.ws.ahc.AhcWSClient
 
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -48,9 +48,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 package ingestion_manager.yaml {
 
-  import play.api.libs.ws.ahc.AhcWSClient
+  import it.gov.daf.ingestion.nifi.NiFiBuilder
   // ----- Start of unmanaged code area for package Ingestion_managerYaml
-                                                                                                                                                                        
+                                                                                                                                                                                        
     // ----- End of unmanaged code area for package Ingestion_managerYaml
     class Ingestion_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Ingestion_managerYaml
@@ -81,8 +81,8 @@ package ingestion_manager.yaml {
             result match {
               case Success(metaCatalog) =>
                 val client: AhcWSClient = AhcWSClient()
-                //val niFiBuilder = new NiFiBuilder(client, metaCatalog)
-                val niFiBuilder = new NiFiBuilder(client)
+                val niFiBuilder = new NiFiBuilder(client, metaCatalog)
+                //val niFiBuilder = new NiFiBuilder(client)
 
                 val niFiResults = niFiBuilder.processorBuilder()
                 AddNewDataset200(IngestionReport("Status: OK", Some(niFiResults.toString)))
@@ -92,7 +92,6 @@ package ingestion_manager.yaml {
                 AddNewDataset200(IngestionReport("Status: Error", Some("NiFi Info")))
 
             }
-
             // ----- End of unmanaged code area for action  Ingestion_managerYaml.addNewDataset
         }
     

@@ -176,9 +176,12 @@ class ServiceSpec extends Specification with BeforeAfterAll {
       val client = new Iot_ingestion_managerClient(ws)(s"http://localhost:$port")
       val result1 = Await.result(client.start(s"Basic $base64Creds"), Duration.Inf)
 
+      println(result1)
+
       Thread.sleep(10000)
 
       val result3 = Await.result(client.status(s"Basic $base64Creds"), Duration.Inf)
+
 
       result3 must beEqualTo("STARTED")
 

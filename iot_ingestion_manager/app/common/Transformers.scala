@@ -105,16 +105,19 @@ object Transformers {
               .split(",").toList
               .flatMap { s =>
                 val strim = s.trim
-                attributes.get(strim).map((convertString(strim), _))
+                attributes.get(strim).map(x => (convertString(strim), convertString(x)))
               }
-            DataPoint[Double](m, a.ts, v, tags.toMap)
+
+              DataPoint[Double](m, a.ts, v, tags.toMap)
+
           }
 
-          res match {
-            case Failure(ex) => alogger.error(s"Exception during the conversion of: $a \n due the following error: ${ex.getMessage}")
+          //used just for logging scope
+          res recoverWith {
+            case e: Throwable =>
+              alogger.error(s"Exception during the conversion of: $a \n due the following error: ${e.getMessage}")
+              new Failure(e)
           }
-
-          res
 
         case _ =>
 

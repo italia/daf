@@ -78,19 +78,34 @@ import org.apache.kudu.ColumnSchema
 import org.apache.kudu.client.CreateTableOptions
 import org.apache.kudu.ColumnSchema
 import org.apache.kudu.client.CreateTableOptions
+import org.apache.spark.opentsdb.DataPoint
+import org.apache.spark.rdd.RDD
+import org.apache.spark.streaming.dstream.DStream
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
 
 /**
-  * This controller is re-generated after each change in the specification.
-  * Please only place your hand-written code between appropriate comments in the body of the controller.
-  */
+ * This controller is re-generated after each change in the specification.
+ * Please only place your hand-written code between appropriate comments in the body of the controller.
+ */
 
 package iot_ingestion_manager.yaml {
-
-  import org.apache.spark.opentsdb.DataPoint
-  import org.apache.spark.rdd.RDD
-  import org.apache.spark.streaming.dstream.DStream
-  // ----- Start of unmanaged code area for package Iot_ingestion_managerYaml
-
+    // ----- Start of unmanaged code area for package Iot_ingestion_managerYaml
+                                
   @SuppressWarnings(
     Array(
       "org.wartremover.warts.While",
@@ -99,18 +114,18 @@ package iot_ingestion_manager.yaml {
       "org.wartremover.warts.AsInstanceOf"
     )
   )
-  // ----- End of unmanaged code area for package Iot_ingestion_managerYaml
-  class Iot_ingestion_managerYaml @Inject() (
-                                              // ----- Start of unmanaged code area for injections Iot_ingestion_managerYaml
+    // ----- End of unmanaged code area for package Iot_ingestion_managerYaml
+    class Iot_ingestion_managerYaml @Inject() (
+        // ----- Start of unmanaged code area for injections Iot_ingestion_managerYaml
                                               val environment: Environment,
                                               val configuration: Configuration,
                                               val playSessionStore: PlaySessionStore,
-                                              // ----- End of unmanaged code area for injections Iot_ingestion_managerYaml
-                                              val messagesApi: MessagesApi,
-                                              lifecycle: ApplicationLifecycle,
-                                              config: ConfigurationProvider
-                                            ) extends Iot_ingestion_managerYamlBase {
-    // ----- Start of unmanaged code area for constructor Iot_ingestion_managerYaml
+        // ----- End of unmanaged code area for injections Iot_ingestion_managerYaml
+        val messagesApi: MessagesApi,
+        lifecycle: ApplicationLifecycle,
+        config: ConfigurationProvider
+    ) extends Iot_ingestion_managerYamlBase {
+        // ----- Start of unmanaged code area for constructor Iot_ingestion_managerYaml
 
     implicit private val alogger: ALogger = Logger.of(this.getClass.getCanonicalName)
 
@@ -217,26 +232,24 @@ package iot_ingestion_manager.yaml {
 
     private def logFailedStorableEvents(rdd: DStream[StorableEvent], time: org.apache.spark.streaming.Time): Unit = {
 
-      val subset = rdd.foreachRDD { rdd =>
-        rdd.take(10).map(x => x.toString).mkString("\n")
-        val s =
-          s"""
-          |Printing a sub-sampling of rdd:
-          |----------------------------------------------
-          |Time: $time
-          |----------------------------------------------
-          |$subset""".stripMargin
+      rdd.foreachRDD { rdd =>
+        val subset = rdd.take(10).mkString("\n")
+        val string =s"""Printing a sub-sampling of rdd:
+             ----------------------------------------------
+             Time: $time
+             ----------------------------------------------
+            $subset""".mkString
 
-        logger.error(s)
+        logger.error(string)
       }
     }
 
 
 
-    // ----- End of unmanaged code area for constructor Iot_ingestion_managerYaml
-    val start = startAction {  _ =>
-      // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.start
-      alogger.info("Begin operation 'start'")
+        // ----- End of unmanaged code area for constructor Iot_ingestion_managerYaml
+        val start = startAction {  _ =>  
+            // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.start
+            alogger.info("Begin operation 'start'")
       HadoopDoAsAction(current_request_for_startAction) {
         synchronized {
           jobThread = Some(thread {
@@ -381,11 +394,11 @@ package iot_ingestion_manager.yaml {
           Start200("Ok")
         }
       }
-      // ----- End of unmanaged code area for action  Iot_ingestion_managerYaml.start
-    }
-    val stop = stopAction {  _ =>
-      // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.stop
-      alogger.info("Begin operation 'stop'")
+            // ----- End of unmanaged code area for action  Iot_ingestion_managerYaml.start
+        }
+        val stop = stopAction {  _ =>  
+            // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.stop
+            alogger.info("Begin operation 'stop'")
       HadoopDoAsAction(current_request_for_startAction) {
         synchronized {
           sparkSession match {
@@ -401,11 +414,11 @@ package iot_ingestion_manager.yaml {
           Stop200("Ok")
         }
       }
-      // ----- End of unmanaged code area for action  Iot_ingestion_managerYaml.stop
-    }
-    val status = statusAction {  _ =>
-      // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.status
-      synchronized {
+            // ----- End of unmanaged code area for action  Iot_ingestion_managerYaml.stop
+        }
+        val status = statusAction {  _ =>  
+            // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.status
+            synchronized {
         sparkSession match {
           case Failure(_) =>
             Status200("STOPPED")
@@ -416,8 +429,8 @@ package iot_ingestion_manager.yaml {
               Status200("STOPPING")
         }
       }
-      // ----- End of unmanaged code area for action  Iot_ingestion_managerYaml.status
+            // ----- End of unmanaged code area for action  Iot_ingestion_managerYaml.status
+        }
+    
     }
-
-  }
 }

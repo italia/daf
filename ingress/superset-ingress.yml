@@ -5,9 +5,9 @@ metadata:
 spec:
   tls:
   - hosts:
-    - daf-superset.teamdigitale.governo.it
+    - daf-superset.teamdigitale.it
   rules:
-  - host: daf-superset.teamdigitale.governo.it
+  - host: daf-superset.teamdigitale.it
     http:
       paths:
       - path: /

@@ -53,14 +53,18 @@ libraryDependencies ++= Seq(
   "it.gov.daf" %% "common" % version.value,
   "org.mongodb" %% "casbah" % "3.1.1", //,
   "ch.lightshed" %% "courier" % "0.1.4",
+  "com.github.cb372" %% "scalacache-guava" % "0.9.4",
   specs2 % Test
 )
+
+//Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns),
+
 
 resolvers ++= Seq(
   "zalando-bintray" at "https://dl.bintray.com/zalando/maven",
   "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
   "jeffmay" at "https://dl.bintray.com/jeffmay/maven",
-  Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns),
+  Resolver.url("sbt-plugins", url("http://dl.bintray.com/gruggiero/sbt-plugins"))(Resolver.ivyStylePatterns),
   "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos/",
   "lightshed-maven" at "http://dl.bintray.com/content/lightshed/maven",
   "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/"

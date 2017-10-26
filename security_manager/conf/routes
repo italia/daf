@@ -6,7 +6,7 @@ GET         /security-manager/swagger.json controllers.Swagger.swaggerSpec(name=
 
 GET         /security-manager               controllers.Assets.versioned(path="/public/swagger-ui", file: Asset = "index.html")
 
-GET         /                              controllers.Assets.versioned(path="/public/swagger-ui", file: Asset = "index.html")
+#GET         /                              controllers.Assets.versioned(path="/public/swagger-ui", file: Asset = "index.html")
 
 GET         /index.html                    controllers.Assets.versioned(path="/public/swagger-ui", file: Asset = "index.html")
 
@@ -22,4 +22,14 @@ GET         /api/*file                     controllers.Assets.versioned(path="/p
 GET         /security-manager/docs/swagger-ui/*file controllers.Assets.at(path:String="/public/lib/swagger-ui", file:String)
 
 ### NoDocs ###
-GET         /security-manager/*file                 controllers.Assets.versioned(path="/public", file: Asset)
+GET         /security-manager/*file         controllers.Assets.versioned(path="/public", file: Asset)
+
+
+# Temporary Ckan API outside swagger file
+GET         /sso-manager/secured/register                               controllers.SSOController.register
+GET         /sso-manager/secured/retriveCookie/:appName                 controllers.SSOController.retriveCookie(appName:String)
+GET         /sso-manager/secured/login/:appName                         controllers.SSOController.login(appName:String)
+GET         /sso-manager/secured/test                                   controllers.SSOController.test
+
+GET         /sso-manager/internal/register                              controllers.SSOController.registerInternal(username:String,password:String)
+GET         /sso-manager/internal/retriveCookie/:appName                controllers.SSOController.retriveCookieInternal(username:String,appName:String)

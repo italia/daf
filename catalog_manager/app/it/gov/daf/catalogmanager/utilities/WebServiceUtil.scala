@@ -36,7 +36,7 @@ object WebServiceUtil {
 
   val environment = Environment(new File("."), this.getClass.getClassLoader, Mode.Prod)
 
-  Authentication(Configuration.load(Environment.simple()),null)
+  //Authentication(Configuration.load(Environment.simple()),null)
 
   val parser = new WSConfigParser(configuration, environment)
   val config = new AhcWSClientConfig(wsClientConfig = parser.parse())
@@ -63,22 +63,26 @@ object WebServiceUtil {
   }
 
 
-  def readCredentialFromRequest( request:Request[Any] ) :Credentials ={
+  def readCredentialFromRequest( request:Request[Any] ) :(Option[String],Option[String]) ={
+
 
     val auth = request.headers.get("authorization")
     val authType = auth.get.split(" ")(0)
 
     if( authType.equalsIgnoreCase("basic") ){
 
+      // LDAP profiles are only created  during BA
+      println("profiles:"+Authentication.getProfiles(request))
+      val user:Option[String] = Option( Authentication.getProfiles(request).head.getId )
+      println("userId:"+user)
+
       val userAndPass = new String(Base64.decodeBase64(auth.get.split(" ").drop(1).head.getBytes)).split(":")
-      Credentials( Option(userAndPass(0)), Option(userAndPass(1)) )
+      ( user, Option(userAndPass.drop(1).mkString(":")))
 
     }else if( authType.equalsIgnoreCase("bearer") ) {
-
       val user:Option[String] = Option( Authentication.getClaims(request).get.get("sub").get.toString )
       println("JWT user:"+user)
-      Credentials(user , None)
-
+      (user , None)
     }else
       throw new Exception("Authorization header not found")
 

@@ -28,7 +28,7 @@ info:
     name: Creative Commons 4.0 International
     url: http://creativecommons.org/licenses/by/4.0/
 #host: catalog-manager.default.svc.cluster.local:9000
-host : localhost:9000
+host : localhost:9002
 # will be prefixed to all paths
 basePath: /catalog-manager/v1
 # array of all schemes that your API supports
@@ -63,6 +63,21 @@ paths:
         List of MetaCatalog stored
       tags:
         - DatasetCatalog
+      parameters:
+        - name: page
+          in: query
+          description: number of the page
+          required: false
+          type: integer
+          format: int32
+        - name: limit
+          in: query
+          description: maximum number of results to return
+          required: false
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 500
       operationId: datasetcatalogs
       responses:
         200:
@@ -500,6 +515,10 @@ paths:
       - name: rows
         in: query
         description: The number of matching rows to return
+        type: integer
+      - name: start
+        in: query
+        description: the offset in the complete result for where the set of returned datasets should begin
         type: integer
       responses:
         200:
@@ -1105,7 +1124,6 @@ definitions:
       param:
         type: string
         description: Other parameters to be passed in JSON format. It will be None by default.
-
   GeoRef:
     type: object
     required:

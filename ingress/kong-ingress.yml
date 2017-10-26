@@ -5,9 +5,9 @@ metadata:
 spec:
   tls:
   - hosts:
-    - daf.teamdigitale.governo.it
+    - api.daf.teamdigitale.it
   rules:
-  - host: daf.teamdigitale.governo.it
+  - host: api.daf.teamdigitale.it
     http:
       paths:
       - path: /

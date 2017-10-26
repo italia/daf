@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: supersetd-ingress
+spec:
+  tls:
+  - hosts:
+    - bi.daf.teamdigitale.it
+  rules:
+  - host: bi.daf.teamdigitale.it
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: supersetd
+          servicePort: 8088

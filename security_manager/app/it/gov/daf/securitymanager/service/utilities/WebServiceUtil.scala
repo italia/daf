@@ -61,20 +61,23 @@ object WebServiceUtil {
 
   def readCredentialFromRequest( request:Request[Any] ) :(Option[String],Option[String]) ={
 
+
     val auth = request.headers.get("authorization")
     val authType = auth.get.split(" ")(0)
 
     if( authType.equalsIgnoreCase("basic") ){
 
+      println("profiles:"+Authentication.getProfiles(request))
+      val user:Option[String] = Option( Authentication.getProfiles(request).head.getId )
+      println("userId:"+user)
+
       val userAndPass = new String(Base64.decodeBase64(auth.get.split(" ").drop(1).head.getBytes)).split(":")
-      ( Option(userAndPass(0)), Option(userAndPass(1)) )
+      ( user, Option(userAndPass.drop(1).mkString(":")))
 
     }else if( authType.equalsIgnoreCase("bearer") ) {
-
       val user:Option[String] = Option( Authentication.getClaims(request).get.get("sub").get.toString )
       println("JWT user:"+user)
       (user , None)
-
     }else
       throw new Exception("Authorization header not found")
 

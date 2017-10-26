@@ -20,7 +20,7 @@ import java.security.InvalidParameterException
 import java.time.Duration
 
 import com.google.inject.{AbstractModule, Singleton}
-import org.ldaptive.auth.{Authenticator, FormatDnResolver, PooledBindAuthenticationHandler}
+import org.ldaptive.auth.{Authenticator, FormatDnResolver,SearchDnResolver, BindAuthenticationHandler}
 import org.ldaptive.pool._
 import org.ldaptive.ssl.SslConfig
 import org.ldaptive.{BindConnectionInitializer, ConnectionConfig, Credential, DefaultConnectionFactory}
@@ -40,15 +40,21 @@ import play.api.{Configuration, Environment}
   Array(
     "org.wartremover.warts.NonUnitStatements",
     "org.wartremover.warts.Overloading",
-    "org.wartremover.warts.Throw"
+    "org.wartremover.warts.Throw",
+    "org.wartremover.warts.Null"
   )
 )
 @Singleton
 class SecurityModule(environment: Environment, configuration: Configuration) extends AbstractModule {
 
   private def getLdapAuthenticator = {
+    /*
     val dnResolver = new FormatDnResolver
-    dnResolver.setFormat(configuration.getString("pac4j.ldap.user_dn_pattern").getOrElse(""))
+    //dnResolver.setFormat(configuration.getString("pac4j.ldap.user_dn_pattern").getOrElse(""))
+    dnResolver.setFormat("uid=%s,cn=users,cn=accounts,dc=example,dc=test")
+    */
+
+    println("--> v.1.2")
     val connectionConfig = new ConnectionConfig
     connectionConfig.setConnectTimeout(Duration.ofMillis(configuration.getLong("pac4j.ldap.connect_timeout").getOrElse(500)))
     connectionConfig.setResponseTimeout(Duration.ofMillis(configuration.getLong("pac4j.ldap.response_timeout").getOrElse(1000)))
@@ -64,6 +70,8 @@ class SecurityModule(environment: Environment, configuration: Configuration) ext
     val sslConfig = new SslConfig()
     sslConfig.setTrustManagers() //TODO no more certificate validation, shall we keep it in this way?
     connectionConfig.setSslConfig(sslConfig)
+
+
     val connectionFactory = new DefaultConnectionFactory
     connectionFactory.setConnectionConfig(connectionConfig)
     val poolConfig = new PoolConfig
@@ -83,15 +91,21 @@ class SecurityModule(environment: Environment, configuration: Configuration) ext
     connectionPool.initialize()
     val pooledConnectionFactory = new PooledConnectionFactory
     pooledConnectionFactory.setConnectionPool(connectionPool)
-    val handler = new PooledBindAuthenticationHandler
-    handler.setConnectionFactory(pooledConnectionFactory)
+
+    val handler = new BindAuthenticationHandler( new DefaultConnectionFactory(connectionConfig) )
+
+    val dnResolver = new SearchDnResolver(pooledConnectionFactory);
+    dnResolver.setBaseDn( configuration.getString("pac4j.ldap.base_user_dn").getOrElse("xxxx") )
+    val usernameAttribute = configuration.getString("pac4j.ldap.login_attribute").getOrElse("xxxx")
+    dnResolver.setUserFilter(s"($usernameAttribute={user})");
+
     val ldaptiveAuthenticator = new Authenticator
     ldaptiveAuthenticator.setDnResolver(dnResolver)
     ldaptiveAuthenticator.setAuthenticationHandler(handler)
     // pac4j:
     val authenticator = new LdapProfileService(connectionFactory, ldaptiveAuthenticator, "dummy")
     authenticator.setAttributes("")
-    authenticator.setUsernameAttribute(configuration.getString("pac4j.ldap.username_attribute").getOrElse("uid"))
+    authenticator.setUsernameAttribute(configuration.getString("pac4j.ldap.username_attribute").getOrElse("xxxx"))
     authenticator
   }
 

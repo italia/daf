@@ -263,11 +263,11 @@ class CkanRepositoryProd extends CkanRepository{
       .andThen { case _ => system.terminate() }
   }
 
-  def searchDatasets( input: (MetadataCat, MetadataCat, ResourceSize), callingUserid :MetadataCat ) : Future[JsResult[Seq[Dataset]]]={
+  def searchDatasets( input: (MetadataCat, MetadataCat, ResourceSize, ResourceSize), callingUserid :MetadataCat ) : Future[JsResult[Seq[Dataset]]]={
 
     val wsClient = AhcWSClient()
 
-    val params = Map(("q",input._1),("sort",input._2),("rows",input._3))
+    val params = Map(("q",input._1),("sort",input._2),("rows",input._3), ("start",(input._4)))
 
     val queryString = WebServiceUtil.buildEncodedQueryString(params)
 

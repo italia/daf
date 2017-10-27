@@ -28,6 +28,7 @@ GET         /security-manager/*file         controllers.Assets.versioned(path="/
 # Temporary Ckan API outside swagger file
 GET         /sso-manager/secured/register                               controllers.SSOController.register
 GET         /sso-manager/secured/retriveCookie/:appName                 controllers.SSOController.retriveCookie(appName:String)
+GET         /sso-manager/secured/retriveCachedCookie/:appName           controllers.SSOController.retriveCachedCookie(appName:String)
 GET         /sso-manager/secured/login/:appName                         controllers.SSOController.login(appName:String)
 GET         /sso-manager/secured/test                                   controllers.SSOController.test
 

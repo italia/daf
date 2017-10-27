@@ -17,12 +17,16 @@ object RegistrationService {
   private val tokenGenerator = new BearerTokenGenerator
 
 
-  def requestRegistration(user:IpaUser):Future[Either[String,MailService]] = {
+  def requestRegistration(userIn:IpaUser):Future[Either[String,MailService]] = {
+
+    val user = setUid(userIn)
 
     if (user.userpassword.isEmpty || user.userpassword.get.length < 8)
       Future{Left("Password minimum length is 8 characters")}
     else if( !user.userpassword.get.matches("^[a-zA-Z0-9%@#   &,;:_'/\\\\<\\\\(\\\\[\\\\{\\\\\\\\\\\\^\\\\-\\\\=\\\\$\\\\!\\\\|\\\\]\\\\}\\\\)\u200C\u200B\\\\?\\\\*\\\\+\\\\.\\\\>]*$") )
       Future{Left("Invalid chars in password")}
+    else if( !user.uid.matches("^[a-zA-Z0-9_\\\\-]*$") )
+      Future{Left("Invalid chars in username")}
     else{
       MongoService.findUserByUid(user.uid) match {
         case Right(o) => Future{Left("Username already requested")}
@@ -30,6 +34,14 @@ object RegistrationService {
       }
     }
 
+  }
+
+
+  private def setUid(user: IpaUser): IpaUser = {
+
+    println("uid-->"+user.uid)
+    if (user.uid == null || user.uid.isEmpty ) user.copy(uid = user.mail.replaceAll("[@]", "_").replaceAll("[.]", "-"))
+    else user
   }
 
   private def checkUserNregister(user:IpaUser):Future[Either[String,MailService]] = {

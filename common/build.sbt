@@ -20,7 +20,7 @@ import sbt.Keys.resolvers
 organization := "it.gov.daf"
 name := "common"
 
-version := "1.1-SNAPSHOT"
+version := "1.0-SNAPSHOT"
 
 scalacOptions ++= Seq(
   "-deprecation",

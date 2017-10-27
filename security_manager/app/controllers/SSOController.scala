@@ -11,6 +11,8 @@ import play.api.inject.ConfigurationProvider
 import play.api.libs.ws.WSClient
 import play.api.mvc.{Action, Controller, Cookie}
 
+import scala.concurrent.Future
+
 
 class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider) extends Controller {
 
@@ -55,6 +57,35 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider) exten
 
   }
 
+
+  // serve token JWT o BA
+  def retriveCachedCookie(appName:String) = Action.async { implicit request =>
+
+    val username = WebServiceUtil.readCredentialFromRequest(request)._1.get
+
+    val cachedCookie = cacheWrapper.getCookie(appName, username)
+
+    if (!cachedCookie.isEmpty) {
+
+      val json =s"""{"result":"${StringEscapeUtils.escapeJson(cachedCookie.get)}"}"""
+      Future{Ok(json)}
+
+    }else {
+
+      val loginInfo = new LoginInfo(
+        username,
+        cacheWrapper.getPwd(username).get,
+        appName)
+
+
+      LoginClientLocal.instance.login(loginInfo, ws).map { cookie =>
+        cacheWrapper.putCookie(appName,username,cookie)
+        val json =s"""{"result":"${StringEscapeUtils.escapeJson(cookie)}"}"""
+        Ok(json)
+      }
+    }
+
+  }
 
   // serve token JWT o BA
   def login(appName:String) = Action.async { implicit request =>

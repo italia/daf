@@ -56,6 +56,8 @@ val playLibraries = Seq(
   "io.swagger" %% "swagger-play2" % "1.5.3",
   "com.typesafe.play" %% "play-cache" % playVersion,
   "com.typesafe.play" %% "filters-helpers" % playVersion,
+  "com.typesafe.play" %% "play-ws" % playVersion,
+  "com.github.cb372" %% "scalacache-guava" % "0.9.4",
   "org.pac4j" % "play-pac4j" % playPac4jVersion,
   "org.pac4j" % "pac4j-http" % pac4jVersion,
   "org.pac4j" % "pac4j-jwt" % pac4jVersion exclude("commons-io", "commons-io"),

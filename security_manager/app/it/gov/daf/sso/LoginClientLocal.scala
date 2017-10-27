@@ -1,20 +1,16 @@
 package it.gov.daf.sso
 
 import java.net.URLEncoder
-
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
+import it.gov.daf.common.sso.common.{LoginClient, LoginInfo}
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
-import it.gov.daf.sso.common.{LoginClient, LoginInfo}
-import org.apache.commons.lang3.StringEscapeUtils
 import play.api.libs.json.Json
 import play.api.libs.ws.{WSClient, WSResponse}
-
 import scala.concurrent.Future
 
 
-class LoginClientLocal extends LoginClient {
-
+final case class LoginClientLocal() extends LoginClient {
 
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()
@@ -69,7 +65,6 @@ class LoginClientLocal extends LoginClient {
         "Upgrade-Insecure-Requests" -> "1"
       ).withFollowRedirects(false)
 
-    //url.followRedirects = Option(true)
     //println(">>>>"+url.headers)
 
     val wsResponse = url.post(login)
@@ -166,7 +161,6 @@ class LoginClientLocal extends LoginClient {
     println("login superset")
 
     wsResponse map { response =>
-      //println(response.cookie("session"))
       val setCookie = response.header("Set-Cookie").getOrElse(throw new Exception("Set-Cookie header not found"))
       println("SET COOKIE(superset): " + setCookie)
       val cookie = setCookie.split(";")(0)
@@ -187,7 +181,6 @@ class LoginClientLocal extends LoginClient {
 
 
     println("login metabase")
-    //println("---->"+data.toString())
 
     val responseWs: Future[WSResponse] = wsClient.url(METABASE_URL + "/api/session").withHeaders("Content-Type" -> "application/json").post(data)
     responseWs.map { response =>
@@ -198,6 +191,24 @@ class LoginClientLocal extends LoginClient {
     }
 
   }
+
+
+/*
+  override def equals(that: Any): Boolean = {
+
+    println("----")
+    println(that)
+    println(this)
+    println(that.getClass.getClassLoader)
+    println(this.getClass.getClassLoader)
+    println( that.isInstanceOf[LoginClientLocal] )
+    println("----")
+
+    that match {
+      case t: LoginClientLocal => true
+      case _ => false
+    }
+  }*/
 
 
 }

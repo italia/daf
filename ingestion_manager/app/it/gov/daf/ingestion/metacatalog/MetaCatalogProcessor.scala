@@ -1,7 +1,10 @@
 package it.gov.daf.ingestion.metacatalog
 
+import play.api.libs.json._
 import it.gov.daf.catalogmanager._
+import it.gov.daf.catalogmanager.json._
 import org.slf4j.{Logger, LoggerFactory}
+import org.apache.commons.lang.StringEscapeUtils
 
 //Get Logical_uri, process MetadataCatalog and get the required info
 class MetaCatalogProcessor(metaCatalog: MetaCatalog) {
@@ -36,6 +39,12 @@ class MetaCatalogProcessor(metaCatalog: MetaCatalog) {
     }
   }
 
+  def dataschema(): Avro ={
+
+    metaCatalog.dataschema.avro
+
+  }
+
   def dsType(): String = {
     metaCatalog.operational.dataset_type
   }
@@ -53,12 +62,79 @@ class MetaCatalogProcessor(metaCatalog: MetaCatalog) {
 
   /*
 
+  Methods to return default values based on MetaCatalog available info
+
+   */
+
+  def sourceSftpPathDefault(sftpName: String): String = {
+
+    val sftpDefaultPrefix = ""
+    val theme = "tema"
+    val subtheme = "sottotema"
+
+    sftpDefaultPrefix + "/" + groupOwn + "/" + theme + "/" + subtheme
+  }
+
+
+
+
+  /*
+
   Chiamate per ritornare info specifiche per NiFi
 
    */
 
+  def inputSrcNifi(): String = {
 
+    StringEscapeUtils.escapeJava(Json.toJson(inputSrc()).toString)
 
+  }
+
+  def storageNifi(): String = {
+
+    StringEscapeUtils.escapeJava(Json.toJson(storage()).toString)
+
+  }
+
+  def dataschemaNifi(): String = {
+
+    StringEscapeUtils.escapeJava(Json.toJson(dataschema()).toString)
+
+  }
+
+  def dataset_typeNifi(): String = {
+    val datasetType: String = dsType()
+    val isStd: Boolean = metaCatalog.operational.is_std
+
+    if (isStd) {
+      "standard"
+    } else {
+      if (dsType.contains("opendata")) {
+        "opendata"
+      } else {
+        "ordinary"
+      }
+    }
+  }
+
+  def fileFormatNifi(): String ={
+    val inputSftp = metaCatalog.operational.input_src.sftp
+
+    inputSftp match {
+      case Some(s) =>
+        val sftps: Seq[SourceSftp] = s.filter(x=>x.name.equals("sftp_daf"))
+        if (sftps.length>0) {
+          sftps(0).param.getOrElse("")
+        } else {
+          ""
+        }
+    }
+
+  }
+
+  def ingPipelineNifi(): String = {
+    ingPipeline.mkString(",")
+  }
 
 
 

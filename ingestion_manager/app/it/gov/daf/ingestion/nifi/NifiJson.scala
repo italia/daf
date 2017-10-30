@@ -11,6 +11,9 @@ object NifiJson {
                    inputDir: String,
                    recurseSubdir: String = "true",
                    inputDirLocation: String = "Local",
+                   user: String = "",
+                   pass: String = "",
+                   token: String = "",
                    //fileFilter: String = "[\\S]+(\\.csv)(?!.read)",
                    fileFilter: String = "[\\\\S]+(\\\\.csv)(?!.read)",
                    pathFilter: String = "null",
@@ -43,6 +46,9 @@ object NifiJson {
                    |          "Input Directory":"$inputDir",
                    |           "Recurse Subdirectories":"$recurseSubdir",
                    |           "Input Directory Location":"$inputDirLocation",
+                   |           "user": "$user",
+                   |           "pass": "$pass",
+                   |           "token": "$token",
                    |           "File Filter":"$fileFilter",
                    |           "Path Filter":$pathFilter,
                    |           "Minimum File Age":"$minFileAge",
@@ -64,6 +70,7 @@ object NifiJson {
 
   def updateAttrProc(clientId: String,
                      name: String,
+                     inputSrc: String,
                      storage: String,
                      dataschema: String,
                      dataset_type: String,
@@ -109,11 +116,11 @@ object NifiJson {
         |         "autoTerminatedRelationships":[
         |         ],
         |         "properties":{
-        |            "savings":$storage,
-        |            "trasformations":$transfPipeline,
-        |            "format":"$format",
-        |			       "separator":"$sep",
-        |            "metadati":$dataschema,
+        |            "inputSrc": "$inputSrc",
+        |            "savings":"$storage",
+        |            "trasformations":"$transfPipeline",
+        |            "fmt":"$format",
+        |            "metadati":"$dataschema",
         |            "dataset_type":"$dataset_type"
         |         }
         |    },

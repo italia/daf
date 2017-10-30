@@ -906,7 +906,8 @@ definitions:
         $ref: '#/definitions/StorageInfo'
       dataset_type:
         type: string
-        description: It tells whether the dataset is at rest ('batch') or realtime stream ('stream').
+        description: It tells whether the dataset is at rest ('batch') or realtime stream ('stream') and, orthogonally, if it is of type 'opendata' (from  national catalogue), in which case it will have a prefix '_opendata'.
+
   GroupAccess:
     type: object
     description: Type associated with group_access

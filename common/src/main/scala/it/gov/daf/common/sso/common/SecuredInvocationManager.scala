@@ -52,7 +52,8 @@ class SecuredInvocationManager(_loginClient:LoginClient) {
 
         getCacheWrapper.putCookie(loginInfo.appName,loginInfo.user,cookie)
 
-        serviceFetch(cookie, wsClient).map({ response =>
+        val cookieString = cookie.name+"="+cookie.value
+        serviceFetch(cookieString, wsClient).map({ response =>
           println("RESPONSE1 ("+loginInfo+"):"+response.body)
           response
         }).andThen { case _ => wsClient.close() }
@@ -60,12 +61,15 @@ class SecuredInvocationManager(_loginClient:LoginClient) {
 
       }
 
-    else
+    else {
 
-      serviceFetch( cookieOpt.get, wsClient).map{ response =>
-        println("RESPONSE2 ("+loginInfo+"):"+response.body)
+      val cookieString = cookieOpt.get.name+"="+cookieOpt.get.value
+      serviceFetch(cookieString, wsClient).map { response =>
+        println("RESPONSE2 (" + loginInfo + "):" + response.body)
         response
       }
+
+    }
 
   }
 

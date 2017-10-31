@@ -1,12 +1,15 @@
 package it.gov.daf.sso
 
 import java.net.URLEncoder
+
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import it.gov.daf.common.sso.common.{LoginClient, LoginInfo}
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import play.api.libs.json.Json
-import play.api.libs.ws.{WSClient, WSResponse}
+import play.api.libs.ws.{WSClient, WSResponse,WSCookie}
+import play.api.mvc.Cookie
+
 import scala.concurrent.Future
 
 
@@ -24,11 +27,11 @@ final case class LoginClientLocal() extends LoginClient {
   private val SUPERSET_URL = ConfigReader.supersetUrl
   private val METABASE_URL = ConfigReader.metabaseUrl
   private val JUPYTER_URL = ConfigReader.jupyterUrl
+  private val GRAFANA_URL = ConfigReader.grafanaUrl
   private val IPA_APP_ULR = IPA_URL + "/ipa"
   private val IPA_LOGIN_ULR = IPA_URL + "/ipa/session/login_password"
 
-
-  def login(loginInfo: LoginInfo, wsClient: WSClient): Future[String] = {
+  def login(loginInfo: LoginInfo, wsClient: WSClient): Future[Cookie] = {
 
     loginInfo.appName match {
       case LoginClientLocal.CKAN => loginCkan(loginInfo.user, loginInfo.password, wsClient)
@@ -36,13 +39,28 @@ final case class LoginClientLocal() extends LoginClient {
       case LoginClientLocal.SUPERSET => loginSuperset(loginInfo.user, loginInfo.password, wsClient)
       case LoginClientLocal.METABASE => loginMetabase(loginInfo.user, loginInfo.password, wsClient)
       case LoginClientLocal.JUPYTER => loginJupyter(loginInfo.user, loginInfo.password, wsClient)
+      case LoginClientLocal.GRAFANA => loginGrafana(loginInfo.user, loginInfo.password, wsClient)
+      case _ => throw new Exception("Unexpeted exception: application name not found")
+    }
+
+  }
+
+  def loginFE(loginInfo: LoginInfo, wsClient: WSClient): Future[Seq[Cookie]] = {
+
+    loginInfo.appName match {
+      case LoginClientLocal.CKAN => loginCkan(loginInfo.user, loginInfo.password, wsClient).map(Seq(_))
+      case LoginClientLocal.FREE_IPA => loginIPA(loginInfo.user, loginInfo.password, wsClient).map(Seq(_))
+      case LoginClientLocal.SUPERSET => loginSuperset(loginInfo.user, loginInfo.password, wsClient).map(Seq(_))
+      case LoginClientLocal.METABASE => loginMetabase(loginInfo.user, loginInfo.password, wsClient).map(Seq(_))
+      case LoginClientLocal.JUPYTER => loginJupyter(loginInfo.user, loginInfo.password, wsClient).map(Seq(_))
+      case LoginClientLocal.GRAFANA => loginGrafanaFE(loginInfo.user, loginInfo.password, wsClient)
       case _ => throw new Exception("Unexpeted exception: application name not found")
     }
 
   }
 
 
-  private def loginCkan(userName: String, pwd: String, wsClient: WSClient): Future[String] = {
+  private def loginCkan(userName: String, pwd: String, wsClient: WSClient): Future[Cookie] = {
 
     val login = s"login=$userName&password=${URLEncoder.encode(pwd,"UTF-8")}"
 
@@ -71,24 +89,11 @@ final case class LoginClientLocal() extends LoginClient {
 
     println("login ckan2")
 
-    wsResponse.map { response =>
-
-      println("STATUS-->" + response.status)
-      println("BODY-->"+response.body)
-      println("HEADERS-->" + response.allHeaders)
-
-      val setCookie = response.header("Set-cookie").getOrElse(throw new Exception("Set-Cookie header not found"))
-      println("(CKAN) SET COOKIE: " + setCookie)
-      val cookie = setCookie.split(";")(0)
-      println("(CKAN) COOKIE: " + cookie)
-
-      cookie
-
-    }
+    wsResponse.map(getCookies(_).head)
 
   }
 
-  private def loginJupyter(userName: String, pwd: String, wsClient: WSClient): Future[String] = {
+  private def loginJupyter(userName: String, pwd: String, wsClient: WSClient): Future[Cookie] = {
 
     val login = s"username=$userName&password=${URLEncoder.encode(pwd,"UTF-8")}"
 
@@ -108,24 +113,11 @@ final case class LoginClientLocal() extends LoginClient {
 
     println("login jupyter")
 
-    wsResponse.map { response =>
-
-      println("STATUS-->" + response.status)
-      println("BODY-->"+response.body)
-      println("HEADERS-->" + response.allHeaders)
-
-      val setCookie = response.header("Set-cookie").getOrElse(throw new Exception("Set-Cookie header not found"))
-      println("(JUPYTER) SET COOKIE: " + setCookie)
-      val cookie = setCookie.split(";")(0)
-      println("(JUPYTER) COOKIE: " + cookie)
-
-      cookie
-
-    }
+    wsResponse.map(getCookies(_).head)
 
   }
 
-  private def loginIPA(userName: String, pwd: String, wsClient: WSClient): Future[String] = {
+  private def loginIPA(userName: String, pwd: String, wsClient: WSClient): Future[Cookie] = {
 
     val login = s"user=$userName&password=${URLEncoder.encode(pwd,"UTF-8")}"
 
@@ -136,20 +128,12 @@ final case class LoginClientLocal() extends LoginClient {
 
     println("login IPA")
 
-    wsResponse map { response =>
-
-      val setCookie = response.header("Set-Cookie").getOrElse(throw new Exception("Set-Cookie header not found"))
-      println("SET COOKIE(ipa): " + setCookie)
-      val cookie = setCookie.split(";")(0)
-      println("COOKIE(ipa): " + cookie)
-      cookie
-
-    }
+    wsResponse.map(getCookies(_).head)
 
   }
 
 
-  private def loginSuperset(userName: String, pwd: String, wsClient: WSClient): Future[String] = {
+  private def loginSuperset(userName: String, pwd: String, wsClient: WSClient): Future[Cookie] = {
 
     val data = Json.obj(
       "username" -> userName,
@@ -160,19 +144,12 @@ final case class LoginClientLocal() extends LoginClient {
 
     println("login superset")
 
-    wsResponse map { response =>
-      val setCookie = response.header("Set-Cookie").getOrElse(throw new Exception("Set-Cookie header not found"))
-      println("SET COOKIE(superset): " + setCookie)
-      val cookie = setCookie.split(";")(0)
-      println("COOKIE(superset): " + cookie)
-      cookie
-
-    }
+    wsResponse.map(getCookies(_).head)
 
   }
 
 
-  private def loginMetabase(userName: String, pwd: String, wsClient: WSClient): Future[String] = {
+  private def loginMetabase(userName: String, pwd: String, wsClient: WSClient): Future[Cookie] = {
 
     val data = Json.obj(
       "username" -> userName,
@@ -185,30 +162,56 @@ final case class LoginClientLocal() extends LoginClient {
     val responseWs: Future[WSResponse] = wsClient.url(METABASE_URL + "/api/session").withHeaders("Content-Type" -> "application/json").post(data)
     responseWs.map { response =>
 
-      val cookie = "metabase.SESSION_ID="+(response.json \ "id").as[String]
+      val cookie = (response.json \ "id").as[String]
       println("COOKIE(metabase): " + cookie)
-      cookie
+      Cookie("metabase.SESSION_ID",cookie)
     }
 
   }
 
 
-/*
-  override def equals(that: Any): Boolean = {
+  private def loginGrafanaFE(userName: String, pwd: String, wsClient: WSClient): Future[Seq[Cookie]] = {
 
-    println("----")
-    println(that)
-    println(this)
-    println(that.getClass.getClassLoader)
-    println(this.getClass.getClassLoader)
-    println( that.isInstanceOf[LoginClientLocal] )
-    println("----")
+    val data = Json.obj(
+      "user" -> userName,
+      "password" -> pwd
+    )
 
-    that match {
-      case t: LoginClientLocal => true
-      case _ => false
+    val wsResponse: Future[WSResponse] = wsClient.url(GRAFANA_URL + "/login/").withHeaders("Content-Type" -> "application/json").post(data)
+
+    println("login grafana")
+
+    wsResponse.map(getCookies(_))
+
+  }
+
+  private def loginGrafana(userName: String, pwd: String, wsClient: WSClient): Future[Cookie] = {
+
+    loginGrafanaFE(userName, pwd, wsClient).map(_.find(_.name!="grafana_sess").get )
+
+  }
+
+
+
+  private def getCookies(response:WSResponse):Seq[Cookie]={
+
+    response.header("Set-Cookie").getOrElse(throw new Exception("Set-Cookie header not found"))
+
+    //Cookie(name: String, value: String, maxAge: Option[Int] = None, path: String = "/", domain: Option[String] = None, secure: Boolean = false, httpOnly: Boolean = true)
+    println("cookies-->"+response.cookies)
+
+    response.cookies.map{ wscookie =>
+
+      Cookie( wscookie.name.get,
+              wscookie.value.getOrElse(""),
+              wscookie.maxAge.map(_.toInt),
+              wscookie.path,
+              Option(wscookie.domain),
+              wscookie.secure)
+
     }
-  }*/
+
+  }
 
 
 }
@@ -221,6 +224,7 @@ object LoginClientLocal {
   val SUPERSET = "superset"
   val METABASE = "metabase"
   val JUPYTER = "jupyter"
+  val GRAFANA = "grafana"
 
   private var _instance:LoginClientLocal=null
 

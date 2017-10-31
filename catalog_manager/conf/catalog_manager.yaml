@@ -859,10 +859,18 @@ definitions:
       - read_type
       - input_src
       - dataset_type
+      - theme
+      - subtheme
     properties:
       #id:
       #  type: integer
       #  format: int32
+      theme:
+        type: string
+        description: DAF Theme for the dataset
+      subtheme:
+        type: string
+        description: DAF SubTheme for the dataset
       logical_uri:
         type: string
         description: Unique resource identifier of the dataset. It is calculated automatically and assigned once for all

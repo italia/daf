@@ -19,6 +19,8 @@ package it.gov.daf.common.sso.client
 
 import it.gov.daf.common.sso.common.{LoginClient, LoginInfo}
 import play.api.libs.ws.WSClient
+import play.api.mvc.Cookie
+
 import scala.concurrent.Future
 
 
@@ -26,7 +28,7 @@ final case class LoginClientRemote(secManagerHost:String) extends LoginClient{
 
   //val secManagerHost:String = _secManagerHost
 
-  def login(loginInfo:LoginInfo, client: WSClient):Future[String] = {
+  def login(loginInfo:LoginInfo, client: WSClient):Future[Cookie] = {
 
     if(client != null )
       SsoServiceClient.retriveCookieInternal(secManagerHost,loginInfo.user,loginInfo.appName,client)
@@ -35,24 +37,6 @@ final case class LoginClientRemote(secManagerHost:String) extends LoginClient{
 
   }
 
-  /*
-  def canEqual(a: Any):Boolean = a match {
-    case l: LoginClientRemote => true
-    case _ => false
-  }
-
-  override def equals(that: Any): Boolean = {
-    println("---")
-    println(that)
-    println(this)
-    that match {
-      case that: LoginClientRemote => that.canEqual(this) && this.hashCode == that.hashCode
-      case _ => false
-    }
-  }
-  override def hashCode: Int = {
-    if (secManagerHost == null) 0 else secManagerHost.hashCode
-  }*/
 
 }
 

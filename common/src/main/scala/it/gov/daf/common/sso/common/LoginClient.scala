@@ -17,12 +17,13 @@
 package it.gov.daf.common.sso.common
 
 import play.api.libs.ws.WSClient
+import play.api.mvc.Cookie
 
 import scala.concurrent.Future
 
 
 abstract class LoginClient {
 
-  def login(loginInfo:LoginInfo, wsClient: WSClient):Future[String]
+  def login(loginInfo:LoginInfo, wsClient: WSClient):Future[Cookie]
 
 }

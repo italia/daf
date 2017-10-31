@@ -19,8 +19,10 @@ package it.gov.daf.common.sso.client{
   import akka.actor.ActorSystem
   import akka.stream.ActorMaterializer
   import it.gov.daf.common.utils.WebServiceUtil
+  import play.api.libs.json._
   import play.api.libs.ws.WSClient
   import play.api.libs.ws.ahc.AhcWSClient
+  import play.api.mvc.Cookie
 
   import scala.concurrent.Future
 
@@ -39,6 +41,8 @@ package it.gov.daf.common.sso.client{
     private implicit val system = ActorSystem()
     private implicit val materializer = ActorMaterializer()
 
+    private implicit val cookieReads = Json.reads[Cookie]
+
 
     def registerInternal(host:String, username:String, password:String):Future[String]= {
 
@@ -50,7 +54,7 @@ package it.gov.daf.common.sso.client{
     }
 
 
-    def retriveCookieInternal(host:String, username:String,appName:String):Future[String] =  {
+    def retriveCookieInternal(host:String, username:String,appName:String):Future[Cookie] =  {
 
       val wsClient = AhcWSClient()
       retriveCookieInternal(host,username,appName,wsClient)
@@ -77,7 +81,7 @@ package it.gov.daf.common.sso.client{
     }
 
 
-    def retriveCookieInternal(host:String, username:String,appName:String,wsClient:WSClient):Future[String] =  {
+    def retriveCookieInternal(host:String, username:String,appName:String,wsClient:WSClient):Future[Cookie] =  {
 
       val userParam = WebServiceUtil.buildEncodedQueryString( Map("username"->username) )
       val url =  host+"/sso-manager/internal/retriveCookie/"+appName+userParam
@@ -87,7 +91,13 @@ package it.gov.daf.common.sso.client{
         if(response.status != 200)
           throw new Exception("Internal user cookie retrive failed (http status code"+response.status+")")
 
-        response.body
+        val json = Json.parse(response.body)
+        val cookieFromJson: JsResult[Cookie] = Json.fromJson[Cookie](json)
+
+        cookieFromJson match {
+          case JsSuccess(cookie: Cookie, path: JsPath) => cookie
+          case e: JsError => throw new Exception("Malformed response:"+response.body)
+        }
 
       }
 

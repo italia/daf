@@ -6,7 +6,7 @@ object NifiJson {
 
 
 
-  def listenerProc(clientId: String,
+  def listFileProc(clientId: String,
                    name: String,
                    inputDir: String,
                    recurseSubdir: String = "true",
@@ -46,9 +46,6 @@ object NifiJson {
                    |          "Input Directory":"$inputDir",
                    |           "Recurse Subdirectories":"$recurseSubdir",
                    |           "Input Directory Location":"$inputDirLocation",
-                   |           "user": "$user",
-                   |           "pass": "$pass",
-                   |           "token": "$token",
                    |           "File Filter":"$fileFilter",
                    |           "Path Filter":$pathFilter,
                    |           "Minimum File Age":"$minFileAge",
@@ -68,6 +65,75 @@ object NifiJson {
     json
   }
 
+  def listSftpProc(clientId: String,
+                   name: String,
+                   hostname: String,
+                   port: String = "22",
+                   user: String,
+                   pass: String = "",
+                   privateKeyPath: String = "",
+                   privateKeyPassphrase: String = "",
+                   remotePath: String = "",
+                   distribuedCacheService: String = "",
+                   recursiveSearch: String = "",
+                   fileFilterRegex: String = "[\\\\S]+(\\\\.csv)(?!.read)",
+                   pathFilterRegex: String = "",
+                   ignoreDottedFile: String = "true",
+                   strictHostKeyCheck: String = "false",
+                   hostKeyFile: String = "",
+                   connectionTimeout: String = "30 sec",
+                   dataTimeout: String = "30 sec",
+                   sendKeepAliveOntimeout: String = "true",
+                   position_x: String = "-2895.8654596332703",
+                   position_y: String = "-1434.8490999040378"
+                  ): JsValue = {
+
+    val json =
+      Json.parse(s"""
+                    |{
+                    |  "revision":{
+                    |     "clientId":"$clientId",
+                    |      "version":0
+                    |   },
+                    |   "component":{
+                    |     "type":"org.apache.nifi.processors.standard.ListSFTP",
+                    |      "bundle":{
+                    |        "group":"org.apache.nifi",
+                    |         "artifact":"nifi-standard-nar",
+                    |         "version":"1.3.0"
+                    |      },
+                    |      "name":"$name",
+                    |      "config":{
+                    |       "properties":{
+                    |          "Hostname":"$hostname",
+                    |           "Port":"$port",
+                    |           "Username":"$user",
+                    |           "Password":"$pass",
+                    |           "Private Key Path":"$privateKeyPath",
+                    |           "Private Key Passphrase":"$privateKeyPassphrase",
+                    |           "Remote Path":"$remotePath",
+                    |           "Distributed Chache Service":"$distribuedCacheService",
+                    |           "Search Recursively":"$recursiveSearch",
+                    |           "File Filter Regex":"$fileFilterRegex",
+                    |           "Path Filter Regex":"$pathFilterRegex",
+                    |           "Ignore Dotted Files": "$ignoreDottedFile",
+                    |           "Strict Host Key checking": "$strictHostKeyCheck",
+                    |           "Host Key File": "$hostKeyFile",
+                    |           "Connection timeout": "$connectionTimeout",
+                    |           "Data timeout": "$dataTimeout",
+                    |           "Send Keep Alive On Timeout": "$sendKeepAliveOntimeout"
+                    |          }
+                    |    },
+                    |      "position":{
+                    |        "x":$position_x,
+                    |         "y":$position_y
+                    |      }
+                    |   }
+                    |}
+                 """.stripMargin)
+    json
+  }
+
   def updateAttrProc(clientId: String,
                      name: String,
                      inputSrc: String,
@@ -76,6 +142,7 @@ object NifiJson {
                      dataset_type: String,
                      transfPipeline: String,
                      format: String,
+                     inputType: String = "Local",
                      sep: String = ",",
                      execNode: String = "ALL",
                      penaltyDuration: String = "30 sec",
@@ -117,6 +184,7 @@ object NifiJson {
         |         ],
         |         "properties":{
         |            "inputSrc": "$inputSrc",
+        |            "inputType": "$inputType",
         |            "savings":"$storage",
         |            "trasformations":"$transfPipeline",
         |            "fmt":"$format",

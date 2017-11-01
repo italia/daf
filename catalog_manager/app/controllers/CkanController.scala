@@ -9,13 +9,14 @@ import javax.inject._
 
 import play.api.mvc._
 import play.api.libs.ws._
+
 import scala.concurrent.Future
 import play.api.libs.json._
 import play.api.inject.ConfigurationProvider
 import it.gov.daf.catalogmanager.service.CkanRegistry
-import it.gov.daf.catalogmanager.utilities.WebServiceUtil
-import it.gov.daf.sso.common.{LoginInfo, Payload, SecuredInvocationManager}
-import it.gov.daf.sso.client.LoginClientRemote
+import it.gov.daf.common.sso.client.LoginClientRemote
+import it.gov.daf.common.sso.common.{LoginInfo, SecuredInvocationManager}
+import it.gov.daf.common.utils.WebServiceUtil
 import play.api.libs.ws.ahc.AhcWSClient
 
 
@@ -31,11 +32,11 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
   private val ENV:String = config.get.getString("app.type").get
 
-  private val AUTH_TOKEN:String = config.get.getString("app.ckan.auth.token").get
-
   private val USER_ID_HEADER:String = config.get.getString("app.userid.header").get
 
-  private val secInvokManager = SecuredInvocationManager.instance(LoginClientRemote.instance())
+  private val SEC_MANAGER_HOST:String = config.get.getString("security.manager.host").get
+
+  private val secInvokManager = SecuredInvocationManager.init( LoginClientRemote.init(SEC_MANAGER_HOST) )
 
   private def getOrgs(orgId :String): Future[List[String]] = {
     val orgs : Future[WSResponse] = ws.url(LOCAL_URL + "/ckan/organizations/" + orgId).get()
@@ -64,6 +65,7 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
     datasetFuture
   }
 
+
   def getOrganizationDataset(organizationId :String) = Action.async { implicit request =>
     def isNull(v: JsValue) = v match {
       case JsNull => true
@@ -77,30 +79,6 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
     }
   }
 
-
-
-  private def serviceWrappedCall( userId: String, fx:String  => Future[WSResponse] ) = {
-
-    val url = CKAN_URL + "/api/3/action/user_show?id=" + userId
-    println("user_show URL " + url)
-    val resp = ws.url(url).withHeaders("Authorization" -> AUTH_TOKEN).get
-
-
-    resp flatMap { response =>
-
-      val userApiKey = ((response.json \ "result") \ "apikey").getOrElse( JsString("xxxx")).as[String]
-
-      println("USER:"+userId)
-      println("API KEY:"+userApiKey)
-
-      fx( userApiKey ) map { response =>
-        println("RESPONSE FROM CKAN:"+response.json)
-        Ok(response.json)
-      }
-
-    }
-
-  }
 
   def createDataset = Action.async { implicit request =>
 

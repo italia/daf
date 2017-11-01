@@ -1,18 +1,22 @@
 import CommonBuild._
+import Versions._
 import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
 import de.heikoseeberger.sbtheader.license.Apache2_0
 import de.zalando.play.generator.sbt.ApiFirstPlayScalaCodeGenerator.autoImport.playScalaAutogenerateTests
 import play.sbt.routes.RoutesKeys.routesGenerator
 import sbt.Keys.resolvers
+import uk.gov.hmrc.gitstamp.GitStampPlugin._
 
 organization in ThisBuild := "it.gov.daf"
 
 name := "daf-catalog-manager"
 
-version in ThisBuild := "1.1-SNAPSHOT"
-
 
 val playVersion = "2.5.14"
+
+Seq(gitStampSettings: _*)
+
+version in ThisBuild := sys.env.get("CATALOG_MANAGER_VERSION").getOrElse("1.0-SNAPSHOT")
 
 lazy val client = (project in file("client")).
   settings(Seq(
@@ -45,10 +49,10 @@ libraryDependencies ++= Seq(
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.0" % Test,
   "org.mongodb" %% "casbah" % "3.1.1", //,
   "net.caoticode.dirwatcher" %% "dir-watcher" % "0.1.0",
-  "it.gov.daf" %% "common" % "1.0-SNAPSHOT",
+  "it.gov.daf" %% "common" % "1.0.1-SNAPSHOT",
   "me.lessis" %% "base64" % "0.2.0",
-  "ch.lightshed" %% "courier" % "0.1.4",
-  "com.github.cb372" %% "scalacache-guava" % "0.9.4"
+  "ch.lightshed" %% "courier" % "0.1.4"
+  //"com.github.cb372" %% "scalacache-guava" % "0.9.4"
   //"com.unboundid" % "unboundid-ldapsdk" % "4.0.0"
   //"it.teamdigitale" %% "ingestion-module" % "0.1.0" exclude("org.apache.avro", "avro")
 )
@@ -116,4 +120,3 @@ playScalaAutogenerateTests := false
 //wartremoverErrors ++= Warts.allBut(Wart.Nothing, Wart.PublicInference, Wart.Any, Wart.Equals)
 
 //wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value / "target" / "scala-2.11" / "routes").toSeq
-

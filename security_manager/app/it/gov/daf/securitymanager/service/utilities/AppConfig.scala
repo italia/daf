@@ -28,6 +28,9 @@ private class AppConfig @Inject()(playConfig: Configuration) {
   val smtpTestMail:Option[String] = playConfig.getString("smtp.testMail")
   val supersetUrl :Option[String] = playConfig.getString("superset.url")
   val metabaseUrl :Option[String] = playConfig.getString("metabase.url")
+  val jupyterUrl :Option[String] = playConfig.getString("jupyter.url")
+  val grafanaUrl :Option[String] = playConfig.getString("grafana.url")
+
   val tokenExpiration :Option[Long] = playConfig.getLong("token.expiration")
   val cookieExpiration :Option[Long] = playConfig.getLong("cookie.expiration")
 
@@ -57,6 +60,9 @@ object ConfigReader {
   def smtpSender:String = config.smtpSender.getOrElse("xxx")
   def supersetUrl:String = config.supersetUrl.getOrElse("xxx")
   def metabaseUrl:String = config.metabaseUrl.getOrElse("xxx")
+  def jupyterUrl:String = config.jupyterUrl.getOrElse("xxx")
+  def grafanaUrl:String = config.grafanaUrl.getOrElse("xxx")
+
   def tokenExpiration:Long = config.tokenExpiration.getOrElse(60L*8L)// 8h by default
   def cookieExpiration:Long = config.cookieExpiration.getOrElse(30L)// 30 min by default
 }

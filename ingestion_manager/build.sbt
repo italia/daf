@@ -1,15 +1,19 @@
 import CommonBuild._
+import Versions._
 import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
 import de.heikoseeberger.sbtheader.license.Apache2_0
 import de.zalando.play.generator.sbt.ApiFirstPlayScalaCodeGenerator.autoImport.playScalaAutogenerateTests
 import play.sbt.routes.RoutesKeys.routesGenerator
 import sbt.Keys.resolvers
+import uk.gov.hmrc.gitstamp.GitStampPlugin._
 
 organization in ThisBuild := "it.gov.daf"
 name := "daf-ingestion-manager"
-version := "1.0-SNAPSHOT"
 
-val playVersion = "2.5.14"
+
+Seq(gitStampSettings: _*)
+
+version in ThisBuild := sys.env.get("INGESTION_MANAGER_VERSION").getOrElse("1.0-SNAPSHOT")
 
 lazy val client = (project in file("client")).
   settings(Seq(
@@ -24,11 +28,19 @@ lazy val client = (project in file("client")).
     )
   )).enablePlugins(SwaggerCodegenPlugin)
 
+
+
+lazy val spark = "org.apache.spark"
+
 lazy val root = (project in file(".")).enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser)
-  .dependsOn(client).aggregate(client)
 
 scalaVersion in ThisBuild := "2.11.8"
 
+def dependencyToProvide(scope: String = "compile") = Seq(
+  spark %% "spark-core" % sparkVersion % scope exclude("com.fasterxml.jackson.core", "jackson-databind"),
+  spark %% "spark-sql" % sparkVersion % scope exclude("com.fasterxml.jackson.core", "jackson-databind"),
+  spark %% "spark-streaming" % sparkVersion % scope exclude("com.fasterxml.jackson.core", "jackson-databind")
+)
 
 
 libraryDependencies ++= Seq(
@@ -36,7 +48,8 @@ libraryDependencies ++= Seq(
   cache,
   ws,
   filters,
-  "org.webjars" % "swagger-ui" % "3.0.10", //excludeAll( ExclusionRule(organization = "com.fasterxml.jackson.core") ),
+  "org.webjars" % "swagger-ui" % swaggerUiVersion, //excludeAll( ExclusionRule(organization = "com.fasterxml.jackson.core") ),
+  "it.gov.daf" %% "daf-catalog-manager-client" % dafCatalogVersion,
 //  "org.json4s" %% "json4s-jackson" % "3.5.2"  exclude("com.fasterxml.jackson.core", "jackson-databind"),
   specs2 % Test,
   "org.scalacheck" %% "scalacheck" % "1.13.5" % Test,
@@ -111,4 +124,8 @@ wartremoverErrors ++= Warts.allBut(Wart.Nothing,
   Wart.OptionPartial)
 
 //wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value / "target" / "scala-2.11" / "routes").toSeq
+
 wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value).toSeq
+
+//wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value).toSeq
+

@@ -2,8 +2,9 @@ package it.gov.daf.sso
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import it.gov.daf.securitymanager.service.utilities.{ConfigReader, WebServiceUtil}
-import it.gov.daf.sso.common.{LoginInfo, SecuredInvocationManager}
+import it.gov.daf.common.sso.common.{LoginInfo, SecuredInvocationManager}
+import it.gov.daf.common.utils.WebServiceUtil
+import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import org.apache.commons.lang3.StringEscapeUtils
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
@@ -21,11 +22,9 @@ object ApiClientIPA {
   implicit val materializer = ActorMaterializer()
   private val loginInfo = new LoginInfo(ConfigReader.ipaUser, ConfigReader.ipaUserPwd, LoginClientLocal.FREE_IPA)
   private val loginClient = LoginClientLocal.instance()
-  private val secInvokeManager = SecuredInvocationManager.instance(loginClient)
-
+  private val secInvokeManager = SecuredInvocationManager.init(loginClient)
 
   def createUser(user: IpaUser):Future[Either[Error,Success]]= {
-
 
     val jsonUser: JsValue = Json.parse(
       s"""{

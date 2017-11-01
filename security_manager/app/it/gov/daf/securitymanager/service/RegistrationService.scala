@@ -26,7 +26,10 @@ object RegistrationService {
     else if( !user.userpassword.get.matches("^[a-zA-Z0-9%@#   &,;:_'/\\\\<\\\\(\\\\[\\\\{\\\\\\\\\\\\^\\\\-\\\\=\\\\$\\\\!\\\\|\\\\]\\\\}\\\\)\u200C\u200B\\\\?\\\\*\\\\+\\\\.\\\\>]*$") )
       Future{Left("Invalid chars in password")}
     else if( !user.uid.matches("^[a-zA-Z0-9_\\\\-]*$") )
-      Future{Left("Invalid chars in username")}
+      if( userIn.uid == null || userIn.uid.isEmpty )
+        Future{Left("Invalid chars in mail")}
+      else
+        Future{Left("Invalid chars in username")}
     else{
       MongoService.findUserByUid(user.uid) match {
         case Right(o) => Future{Left("Username already requested")}

@@ -32,8 +32,6 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
   private val ENV:String = config.get.getString("app.type").get
 
-  private val AUTH_TOKEN:String = config.get.getString("app.ckan.auth.token").get
-
   private val USER_ID_HEADER:String = config.get.getString("app.userid.header").get
 
   private val SEC_MANAGER_HOST:String = config.get.getString("security.manager.host").get
@@ -67,6 +65,7 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
     datasetFuture
   }
 
+
   def getOrganizationDataset(organizationId :String) = Action.async { implicit request =>
     def isNull(v: JsValue) = v match {
       case JsNull => true
@@ -80,30 +79,6 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
     }
   }
 
-
-
-  private def serviceWrappedCall( userId: String, fx:String  => Future[WSResponse] ) = {
-
-    val url = CKAN_URL + "/api/3/action/user_show?id=" + userId
-    println("user_show URL " + url)
-    val resp = ws.url(url).withHeaders("Authorization" -> AUTH_TOKEN).get
-
-
-    resp flatMap { response =>
-
-      val userApiKey = ((response.json \ "result") \ "apikey").getOrElse( JsString("xxxx")).as[String]
-
-      println("USER:"+userId)
-      println("API KEY:"+userApiKey)
-
-      fx( userApiKey ) map { response =>
-        println("RESPONSE FROM CKAN:"+response.json)
-        Ok(response.json)
-      }
-
-    }
-
-  }
 
   def createDataset = Action.async { implicit request =>
 

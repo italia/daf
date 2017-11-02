@@ -36,11 +36,7 @@ import it.gov.daf.common.utils.WebServiceUtil
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-<<<<<<< HEAD
 
-=======
-                                                                                                                                                                                                                    
->>>>>>> ee434d22587e61eb5ea2ca39b35ebfd0245c29f6
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml

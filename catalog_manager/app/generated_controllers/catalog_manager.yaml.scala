@@ -35,7 +35,7 @@ import it.gov.daf.common.utils.WebServiceUtil
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-
+    
     
 
     // ----- End of unmanaged code area for package Catalog_managerYaml

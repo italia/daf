@@ -59,6 +59,8 @@ class MetaCatalogProcessor(metaCatalog: MetaCatalog) {
 
   def groupOwn(): String = metaCatalog.operational.group_own
 
+  //def opsTheme(): String = meta
+
 
   /*
 

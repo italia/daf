@@ -36,8 +36,10 @@ import play.api.Configuration
  */
 
 package catalog_manager.yaml {
+
+    import it.gov.daf.catalogmanager.service.VocServiceRegistry
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-        
+                    
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -231,6 +233,12 @@ package catalog_manager.yaml {
                 case Left(error) => GetckanuserorganizationList401(Error(error,None,None))
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.getckanuserorganizationList
+        }
+        val voc_themesgetall = voc_themesgetallAction {  _ =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.voc_themesgetall
+            val themeList: Seq[List[String]] = VocServiceRegistry.vocRepository.listThemeAll()
+            Voc_themesgetall200(themeList)
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.voc_themesgetall
         }
         val createckanorganization = createckanorganizationAction { (organization: Organization) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.createckanorganization

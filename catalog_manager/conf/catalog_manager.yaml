@@ -691,6 +691,30 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  "/voc/themes/getall/":
+    get:
+      summary: Get the list of all DAF themes
+      description: Get the list of all DAF themes
+      tags:
+        - Themes
+      operationId: voc_themesgetall
+      produces:
+        - application/json
+      responses:
+        200:
+          description: A Catalog
+          schema:
+            type: array
+            items:
+              type: string
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
 definitions:
   MetaCatalog:
     type: object

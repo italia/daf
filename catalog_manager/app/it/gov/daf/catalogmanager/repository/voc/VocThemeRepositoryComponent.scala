@@ -5,11 +5,16 @@ import catalog_manager.yaml._
 trait VocThemeRepository {
   import play.api.libs.functional.syntax._
 
-  def listThemeAll() :Seq[List[String]]
-  def listSubthemeAll(): Seq[List[String]]
-  def listSubtheme(themeId: String): Seq[List[String]]
-  def daf2dcatapitTheme(dafThemeId: String): Seq[String]
-  def daf2dcatapitSubtheme(dafThemeId: String, dafSubthemeId: String): Seq[List[String]]
+  def listThemeAll() :Seq[KeyValue]
+  def listSubthemeAll(): Seq[VocKeyValueSubtheme]
+  def listSubtheme(themeId: String): Seq[KeyValue]
+  def daf2dcatTheme(dafThemeId: String): Seq[KeyValue]
+  def daf2dcatSubtheme(dafThemeId: String, dafSubthemeId: String): Seq[VocKeyValueSubtheme]
+  def listDcatThemeAll(): Seq[KeyValue]
+  def listDcatSubthemeAll(): Seq[VocKeyValueSubtheme]
+  def listDcatSubtheme(dcatapitThemeId: String): Seq[KeyValue]
+  def dcat2DafTheme(dcatapitThemeId: String): Seq[KeyValue]
+  def dcat2DafSubtheme(dcatapitThemeId: String, dcatapitSubthemeId: String): Seq[VocKeyValueSubtheme]
 //  def createTheme(metaCatalog: MetaCatalog,callingUserid :MetadataCat) :Success
 }
 

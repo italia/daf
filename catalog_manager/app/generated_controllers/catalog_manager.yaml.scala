@@ -29,6 +29,7 @@ import play.api.http.Writeable
 import it.gov.daf.common.authentication.Authentication
 import org.pac4j.play.store.PlaySessionStore
 import play.api.Configuration
+import it.gov.daf.catalogmanager.service.VocServiceRegistry
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -36,10 +37,8 @@ import play.api.Configuration
  */
 
 package catalog_manager.yaml {
-
-    import it.gov.daf.catalogmanager.service.VocServiceRegistry
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                    
+                                                                                                                                            
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -119,6 +118,12 @@ package catalog_manager.yaml {
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.getckandatasetList
         }
+        val voc_subthemesgetall = voc_subthemesgetallAction {  _ =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.voc_subthemesgetall
+            val subthemeList: Seq[VocKeyValueSubtheme] = VocServiceRegistry.vocRepository.listSubthemeAll()
+            Voc_subthemesgetall200(subthemeList)
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.voc_subthemesgetall
+        }
         val datasetcatalogs = datasetcatalogsAction { input: (MetadataRequired, Dataset_catalogsGetLimit) =>
             val (page, limit) = input
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.datasetcatalogs
@@ -132,6 +137,19 @@ package catalog_manager.yaml {
             }
             // Datasetcatalogs200(catalogs)
             // ----- End of unmanaged code area for action  Catalog_managerYaml.datasetcatalogs
+        }
+        val voc_subthemesgetbyid = voc_subthemesgetbyidAction { (themeid: String) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.voc_subthemesgetbyid
+            val subthemeList: Seq[KeyValue] = VocServiceRegistry.vocRepository.listSubtheme(themeid)
+            Voc_subthemesgetbyid200(subthemeList)
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.voc_subthemesgetbyid
+        }
+        val voc_dcat2dafsubtheme = voc_dcat2dafsubthemeAction { input: (String, String) =>
+            val (themeid, subthemeid) = input
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.voc_dcat2dafsubtheme
+            val themeList: Seq[VocKeyValueSubtheme] = VocServiceRegistry.vocRepository.dcat2DafSubtheme(input._1, input._2)
+            Voc_dcat2dafsubtheme200(themeList)
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.voc_dcat2dafsubtheme
         }
         val standardsuri = standardsuriAction {  _ =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.standardsuri
@@ -188,6 +206,12 @@ package catalog_manager.yaml {
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.verifycredentials
         }
+        val voc_dcatthemegetall = voc_dcatthemegetallAction {  _ =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.voc_dcatthemegetall
+            val themeList: Seq[KeyValue] = VocServiceRegistry.vocRepository.listDcatThemeAll()
+            Voc_dcatthemegetall200(themeList)
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.voc_dcatthemegetall
+        }
         val createckandataset = createckandatasetAction { (dataset: Dataset) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.createckandataset
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
@@ -236,9 +260,22 @@ package catalog_manager.yaml {
         }
         val voc_themesgetall = voc_themesgetallAction {  _ =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.voc_themesgetall
-            val themeList: Seq[List[String]] = VocServiceRegistry.vocRepository.listThemeAll()
+            val themeList: Seq[KeyValue] = VocServiceRegistry.vocRepository.listThemeAll()
             Voc_themesgetall200(themeList)
             // ----- End of unmanaged code area for action  Catalog_managerYaml.voc_themesgetall
+        }
+        val voc_dcatsubthemesgetall = voc_dcatsubthemesgetallAction {  _ =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.voc_dcatsubthemesgetall
+            val themeList: Seq[VocKeyValueSubtheme] = VocServiceRegistry.vocRepository.listSubthemeAll()
+            Voc_dcatsubthemesgetall200(themeList)
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.voc_dcatsubthemesgetall
+        }
+        val voc_daf2dcatsubtheme = voc_daf2dcatsubthemeAction { input: (String, String) =>
+            val (themeid, subthemeid) = input
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.voc_daf2dcatsubtheme
+            val subthemeList: Seq[VocKeyValueSubtheme] = VocServiceRegistry.vocRepository.daf2dcatSubtheme(input._1, input._2)
+            Voc_daf2dcatsubtheme200(subthemeList)
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.voc_daf2dcatsubtheme
         }
         val createckanorganization = createckanorganizationAction { (organization: Organization) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.createckanorganization
@@ -306,6 +343,12 @@ package catalog_manager.yaml {
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.getckandatasetbyid
         }
+        val voc_dcat2Daftheme = voc_dcat2DafthemeAction { (themeid: String) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.voc_dcat2Daftheme
+            val themeList: Seq[KeyValue] = VocServiceRegistry.vocRepository.dcat2DafTheme(themeid)
+            Voc_dcat2Daftheme200(themeList)
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.voc_dcat2Daftheme
+        }
         val patchckanorganization = patchckanorganizationAction { input: (String, Organization) =>
             val (org_id, organization) = input
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.patchckanorganization
@@ -348,6 +391,17 @@ package catalog_manager.yaml {
             //Datasetcatalogbyid200(catalog.toString)
             // ----- End of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbyid
         }
+        val voc_daf2dcattheme = voc_daf2dcatthemeAction { (themeid: String) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.voc_daf2dcattheme
+            NotImplementedYet
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.voc_daf2dcattheme
+        }
+        val voc_dcatsubthemesgetbyid = voc_dcatsubthemesgetbyidAction { (themeid: String) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.voc_dcatsubthemesgetbyid
+            val themeList: Seq[KeyValue] = VocServiceRegistry.vocRepository.listDcatSubtheme(themeid)
+            Voc_dcatsubthemesgetbyid200(themeList)
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.voc_dcatsubthemesgetbyid
+        }
         val getckanorganizationList = getckanorganizationListAction {  _ =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.getckanorganizationList
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
@@ -373,6 +427,41 @@ package catalog_manager.yaml {
                 case Left(err) => CreateIPAuser500(err)
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.createIPAuser
+     */
+
+    
+     // Dead code for absent methodCatalog_managerYaml.voc_dcatap2dafsubtheme
+     /*
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.voc_dcatap2dafsubtheme
+            val themeList: Seq[VocKeyValueSubtheme] = VocServiceRegistry.vocRepository.dcatapit2DafSubtheme(input._1, input._2)
+            Voc_dcatap2dafsubtheme200(themeList)
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.voc_dcatap2dafsubtheme
+     */
+
+    
+     // Dead code for absent methodCatalog_managerYaml.voc_dcatapitthemegetall
+     /*
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.voc_dcatapitthemegetall
+            NotImplementedYet
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.voc_dcatapitthemegetall
+     */
+
+    
+     // Dead code for absent methodCatalog_managerYaml.voc_daf2dcataptheme
+     /*
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.voc_daf2dcataptheme
+            val subthemeList: Seq[KeyValue] = VocServiceRegistry.vocRepository.daf2dcatapitTheme(themeid)
+            Voc_daf2dcataptheme200(subthemeList)
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.voc_daf2dcataptheme
+     */
+
+    
+     // Dead code for absent methodCatalog_managerYaml.voc_dcatap2Daftheme
+     /*
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.voc_dcatap2Daftheme
+            val themeList: Seq[KeyValue] = VocServiceRegistry.vocRepository.dcatapit2DafTheme(themeid)
+            Voc_dcatap2Daftheme200(themeList)
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.voc_dcatap2Daftheme
      */
 
     
@@ -416,6 +505,15 @@ package catalog_manager.yaml {
                 case Left(msg) => Registrationrequest500(Error(None, Option(msg), None))
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.registrationrequest
+     */
+
+    
+     // Dead code for absent methodCatalog_managerYaml.voc_daf2dcatapsubtheme
+     /*
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.voc_daf2dcatapsubtheme
+            val subthemeList: Seq[VocKeyValueSubtheme] = VocServiceRegistry.vocRepository.daf2dcatapitSubtheme(input._1, input._2)
+            Voc_daf2dcatapsubtheme200(subthemeList)
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.voc_daf2dcatapsubtheme
      */
 
     

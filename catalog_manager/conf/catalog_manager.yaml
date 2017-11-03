@@ -706,7 +706,274 @@ paths:
           schema:
             type: array
             items:
-              type: string
+              $ref: '#/definitions/KeyValue'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/subthemes/getall/":
+    get:
+      summary: Get the list of all DAF subthemes
+      description: Get the list of all DAF subthemes
+      tags:
+        - Subthemes
+      operationId: voc_subthemesgetall
+      produces:
+        - application/json
+      responses:
+        200:
+          description: A Catalog
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/VocKeyValueSubtheme'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/subthemes/getbyid/{themeid}":
+    get:
+      summary: Get the list of all DAF subthemes
+      description: Get the list of all DAF subthemes
+      tags:
+        - Subthemes
+      operationId: voc_subthemesgetbyid
+      parameters:
+        - name: themeid
+          in: path
+          description: DAF Theme Id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        200:
+          description: A Catalog
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/KeyValue'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/themes/dcat2daf/{themeid}":
+    get:
+      summary: Get a DAF Theme associated to a given DCATAPIT theme
+      description: Get a DAF Theme associated to a given DCATAPIT theme
+      tags:
+        - DAF
+        - Theme
+      operationId: voc_dcat2Daftheme
+      parameters:
+        - name: themeid
+          in: path
+          description: DCATAPIT Theme Id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        200:
+          description: List of Themes (id, value)
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/KeyValue'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/subthemes/dcat2daf/{themeid}/{subthemeid}":
+    get:
+      summary: Get a DAF Subtheme associated to a given DCATAPIT theme
+      description: Get a DAF Subtheme associated to a given DCATAPIT theme
+      tags:
+        - DAF
+        - Subtheme
+      operationId: voc_dcat2dafsubtheme
+      parameters:
+        - name: themeid
+          in: path
+          description: DCATAPIT Theme Id
+          required: true
+          type: string
+        - name: subthemeid
+          in: path
+          description: DCATAPIT SubTheme Id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        200:
+          description: List of Themes (id, value)
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/VocKeyValueSubtheme'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/dcatthemes/getall":
+    get:
+      summary: Get DCATAPIT Themes
+      description: Get DCATAPIT Themes
+      tags:
+        - DCATAPIT
+        - Theme
+      operationId: voc_dcatthemegetall
+      produces:
+        - application/json
+      responses:
+        200:
+          description: List of Themes (id, value)
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/KeyValue'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/dcatsubthemes/getall/":
+    get:
+      summary: Get the list of all DCATAPIT subthemes
+      description: Get the list of all DCATAPIT subthemes
+      tags:
+        - Subthemes
+      operationId: voc_dcatsubthemesgetall
+      produces:
+        - application/json
+      responses:
+        200:
+          description: A Catalog
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/VocKeyValueSubtheme'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/dcatsubthemes/getbyid/{themeid}":
+    get:
+      summary: Get the list of all DCATAPIT subthemes
+      description: Get the list of all DCATAPIT subthemes
+      tags:
+        - Subthemes
+      operationId: voc_dcatsubthemesgetbyid
+      parameters:
+        - name: themeid
+          in: path
+          description: DAF Theme Id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        200:
+          description: A Catalog
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/KeyValue'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/dcatthemes/daf2dcat/{themeid}":
+    get:
+      summary: Get a DCATAPIT Theme associated to a given DAF theme
+      description: Get a DCATAPIT Theme associated to a given DAF theme
+      tags:
+        - DCATAPIT
+        - Theme
+      operationId: voc_daf2dcattheme
+      parameters:
+        - name: themeid
+          in: path
+          description: DAF Theme Id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        200:
+          description: List of Themes (id, value)
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/KeyValue'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/dcatsubthemes/daf2dcat/{themeid}/{subthemeid}":
+    get:
+      summary: Get a DCATAPIT Subtheme associated to a given DAF theme
+      description: Get a DCATAPIT Subtheme associated to a given DAF theme
+      tags:
+        - DCATAPIT
+        - Subtheme
+      operationId: voc_daf2dcatsubtheme
+      parameters:
+        - name: themeid
+          in: path
+          description: DAF Theme Id
+          required: true
+          type: string
+        - name: subthemeid
+          in: path
+          description: DAF SubTheme Id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        200:
+          description: List of Themes (id, value)
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/VocKeyValueSubtheme'
         401:
           description: Error Message
           schema:
@@ -716,6 +983,35 @@ paths:
           schema:
             $ref: '#/definitions/Error'
 definitions:
+  KeyValue:
+    type: object
+    required:
+      - key
+      - value
+    description: Generic Key/Value pair object
+    properties:
+      key:
+        type: string
+      value:
+        type: string
+
+  VocKeyValueSubtheme:
+      type: object
+      required:
+        - key
+        - value
+        - keyTheme
+      description: Generic Key/Value pair object
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+        keyTheme:
+          type: string
+        valueTheme:
+          type: string
+
   MetaCatalog:
     type: object
     required:

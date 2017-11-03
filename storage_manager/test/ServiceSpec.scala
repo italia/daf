@@ -24,6 +24,7 @@ import org.apache.avro.SchemaBuilder
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.hadoop.hdfs.{HdfsConfiguration, MiniDFSCluster}
 import org.apache.hadoop.test.PathUtils
+import org.apache.spark.opentsdb.OpenTSDBContext
 import org.apache.spark.sql.{SaveMode, SparkSession}
 import org.specs2.mutable.Specification
 import org.specs2.specification.BeforeAfterAll
@@ -140,6 +141,15 @@ class ServiceSpec extends Specification with BeforeAfterAll {
       WsTestClient.withClient { implicit client =>
         val uri = "dataset:hdfs:/opendata/test.avro"
         val response: WSResponse = Await.result[WSResponse](client.url(s"http://localhost:$port/storage-manager/v1/physical-datasets?uri=$uri&format=avro&limit=$limit").
+          withAuth("david", "david", WSAuthScheme.BASIC).
+          execute, Duration.Inf)
+        response.body must be equalTo doc
+      }
+
+
+      WsTestClient.withClient { implicit client =>
+        val uri = "dataset:opentsdb:/speed/test.avro"
+        val response: WSResponse = Await.result[WSResponse](client.url(s"http://localhost:$port/storage-manager/v1/physical-datasets?uri=$uri&format=opentsdb&limit=$limit").
           withAuth("david", "david", WSAuthScheme.BASIC).
           execute, Duration.Inf)
         response.body must be equalTo doc

@@ -17,6 +17,7 @@
 import Versions._
 import com.typesafe.sbt.packager.docker.Cmd
 import sbt.Keys.resolvers
+import sbt.Resolver
 
 name := "daf-storage-manager"
 
@@ -61,6 +62,22 @@ val sparkLibraries = Seq(
   "com.databricks" %% "spark-avro" % "3.2.0" % Compile
 )
 
+val dbClients = Seq(
+  "org.apache.kudu" %% "kudu-spark2" % s"$kuduVersion-$clouderaVersion",
+  hadoopExcludes("org.apache.spark.opentsdb" %% "spark-opentsdb" % sparkOpenTSDBVersion)
+)
+
+val hbaseLibraries = Seq(
+  hadoopExcludes("org.apache.hbase" % "hbase-common" % s"$hbaseVersion-$clouderaVersion" % Test),
+  hadoopExcludes("org.apache.hbase" % "hbase-common" % s"$hbaseVersion-$clouderaVersion" % Test classifier "tests" extra "type" -> "test-jar"),
+  hadoopExcludes("org.apache.hbase" % "hbase-server" % s"$hbaseVersion-$clouderaVersion" % Test),
+  hadoopExcludes("org.apache.hbase" % "hbase-server" % s"$hbaseVersion-$clouderaVersion" % Test classifier "tests" extra "type" -> "test-jar"),
+ // hadoopExcludes("org.apache.hbase" % "hbase-hadoop-compact" % s"$hbaseVersion-$clouderaVersion" % Test classifier "tests" extra "type" -> "test-jar"),
+ // hadoopExcludes("org.apache.hbase" % "hbase-hadoop-compact" % s"$hbaseVersion-$clouderaVersion" % Test),
+ // hadoopExcludes("org.apache.hbase" % "hbase-hadoop2-compact" % s"$hbaseVersion-$clouderaVersion" % Test classifier "tests" extra "type" -> "test-jar"),
+  hadoopExcludes("org.apache.hbase" % "hbase-hadoop2-compact" % s"$hbaseVersion-$clouderaVersion" % Test)
+)
+
 val hadoopLibraries = Seq(
   hadoopExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % Compile),
   hadoopExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % Test classifier "tests"),
@@ -71,8 +88,11 @@ val hadoopLibraries = Seq(
   hadoopExcludes("org.apache.hadoop" % "hadoop-minicluster" % hadoopVersion % Test),
   hadoopExcludes("org.apache.hadoop" % "hadoop-common" % hadoopVersion % Test classifier "tests" extra "type" -> "test-jar"),
   hadoopExcludes("org.apache.hadoop" % "hadoop-mapreduce-client-jobclient" % hadoopVersion % Test classifier "tests"),
+
+
   "com.github.pathikrit" %% "better-files" % betterFilesVersion % Test
 )
+
 
 libraryDependencies ++= Seq(
   cache,
@@ -82,12 +102,13 @@ libraryDependencies ++= Seq(
   "io.swagger" %% "swagger-play2" % "1.5.3",
   "com.typesafe.play" %% "play-json" % playVersion,
   "it.gov.daf" %% "common" % version.value
-) ++ hadoopLibraries ++ sparkLibraries
+) ++ hadoopLibraries ++ sparkLibraries ++ hbaseLibraries ++ dbClients
 
 resolvers ++= Seq(
-  Resolver.sonatypeRepo("releases"),
-  "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos/",
-  "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/"
+  "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos",
+  "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/",
+   Resolver.sonatypeRepo("releases")
+  //"cloudera2" at "https://repository.cloudera.com/content/repositories/releases/"
 )
 
 licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt"))

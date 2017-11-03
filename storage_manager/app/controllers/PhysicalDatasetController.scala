@@ -24,6 +24,7 @@ import akka.stream.scaladsl.{Source, StreamConverters}
 import akka.util.ByteString
 import com.databricks.spark.avro.SchemaConverters
 import com.google.inject.Inject
+import com.typesafe.config.ConfigFactory
 import io.swagger.annotations.{Api, ApiOperation, ApiParam, Authorization}
 import it.gov.daf.common.authentication.Authentication
 import org.apache.avro.SchemaBuilder
@@ -36,6 +37,10 @@ import play.api.Configuration
 import play.api.libs.json.Json
 import play.api.mvc._
 import play.mvc.Http
+import org.apache.kudu.spark.kudu._
+import org.apache.spark.opentsdb.OpenTSDBContext
+import play.Logger
+import play.Logger.ALogger
 
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
@@ -54,6 +59,7 @@ import scala.util.{Failure, Success, Try}
 @Api("physical-dataset")
 class PhysicalDatasetController @Inject()(configuration: Configuration, val playSessionStore: PlaySessionStore) extends Controller {
 
+
   private val defaultLimit = configuration.getInt("max_number_of_rows").getOrElse(throw new Exception("it shouldn't happen"))
 
   private val defaultChunkSize = configuration.getInt("chunk_size").getOrElse(throw new Exception("it shouldn't happen"))
@@ -62,6 +68,32 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
   sparkConfig.set("spark.driver.memory", configuration.getString("spark_driver_memory").getOrElse("128M"))
 
   private val sparkSession = SparkSession.builder().master("local").config(sparkConfig).getOrCreate()
+
+  implicit private val alogger: ALogger = Logger.of(this.getClass.getCanonicalName)
+
+  lazy val keytab: Option[String] = configuration.getString("opentsdb.context.keytab")
+  alogger.info(s"OpenTSDBContext Keytab: $keytab")
+
+  lazy val principal: Option[String] = configuration.getString("opentsdb.context.principal")
+  alogger.info(s"OpenTSDBContext Principal: $principal")
+
+  lazy val keytabLocalTempDir: Option[String] = configuration.getString("opentsdb.context.keytablocaltempdir")
+  alogger.info(s"OpenTSDBContext Keytab Local Temp Dir: $keytabLocalTempDir")
+
+  lazy val saltwidth: Option[Int] = configuration.getInt("opentsdb.context.saltwidth")
+  alogger.info(s"OpenTSDBContext SaltWidth: $saltwidth")
+
+  lazy val saltbucket: Option[Int] = configuration.getInt("opentsdb.context.saltbucket")
+  alogger.info(s"OpenTSDBContext SaltBucket: $saltbucket")
+
+  lazy val openTSDBContext: OpenTSDBContext = new OpenTSDBContext(sparkSession)
+  keytabLocalTempDir.foreach(openTSDBContext.keytabLocalTempDir = _)
+  keytab.foreach(openTSDBContext.keytab = _)
+  principal.foreach(openTSDBContext.principal = _)
+
+  saltwidth.foreach(OpenTSDBContext.saltWidth = _)
+  saltbucket.foreach(OpenTSDBContext.saltBuckets = _)
+
 
   private val fileSystem: FileSystem = {
     val conf = new org.apache.hadoop.conf.Configuration()
@@ -117,6 +149,7 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
                  @ApiParam(value = "the dataset's format", required = true) format: String,
                  @ApiParam(value = "max number of rows/chunks to return", required = false) limit: Option[Int],
                  @ApiParam(value = "chunk size", required = false) chunk_size: Option[Int]): Action[AnyContent] =
+    //TODO the storage manager should know the input database format
     Action {
       CheckedAction(exceptionManager orElse hadoopExceptionManager) {
         HadoopDoAsAction {
@@ -128,7 +161,7 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
               case "avro" => "com.databricks.spark.avro"
               case format: String => format
             }
-            locationScheme match {
+            val res: Result = locationScheme match {
               case "hdfs" if actualFormat == "text" =>
                 val location = locationURI.getSchemeSpecificPart
                 val rdd = sparkSession.sparkContext.textFile(location)
@@ -151,9 +184,41 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
                   }).mkString(",")
                 }]"
                 Ok(doc).as(JSON)
+              case "kudu" =>
+                //TODO te table name is encoded in the uri
+                val table = "Events"
+                val master = configuration.getString("kudu.master").getOrElse("NO_kudu.master")
+                val df = sparkSession
+                  .sqlContext
+                  .read
+                  .options(Map("kudu.master" -> master, "kudu.table" -> table)).kudu
+                val doc = s"[${
+                  df.take(limit.getOrElse(defaultLimit)).map(row => {
+                    Utility.rowToJson(df.schema)(row)
+                  }).mkString(",")
+                }]"
+                Ok(doc).as(JSON)
+              case "opentsdb" =>
+
+                //TODO te table name is encoded in the uri
+                val metric = "speed"
+                val tags: Map[String, String] = Map()
+                val interval: Option[(Long, Long)] = None
+
+                val df = openTSDBContext.loadDataFrame(metric, tags, interval)
+                val doc = s"[${
+                  df.take(limit.getOrElse(defaultLimit)).map(row => {
+                    Utility.rowToJson(df.schema)(row)
+                  }).mkString(",")
+                }]"
+                Ok(doc).as(JSON)
+
+
               case scheme =>
                 throw new NotImplementedError(s"storage scheme: $scheme not supported")
             }
+
+            res
         }
       }
     }
@@ -194,3 +259,4 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
     }
 
 }
+

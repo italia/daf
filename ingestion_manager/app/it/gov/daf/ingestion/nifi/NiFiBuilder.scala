@@ -29,7 +29,8 @@ class NiFiBuilder @Inject() (ws: WSClient,
   val metaCatalogProc = new MetaCatalogProcessor(metaCatalog)
 
   val nifiUrl = ConfigFactory.load().getString("WebServices.nifiUrl")
-  val nifiFunnelId = ConfigFactory.load().getString("WebServices.nifiFunnelId")
+  val nifiFunnelId = ConfigFactory.load().getString("ingmgr.niFi.funnelId")
+  val nifiGroupId = ConfigFactory.load().getString("ingmgr.niFi.groupId")
 
   val dsName = metaCatalog.dcatapit.name
   val inputSrc: InputSrc = metaCatalog.operational.input_src
@@ -185,8 +186,8 @@ class NiFiBuilder @Inject() (ws: WSClient,
       )
     }
 
-    val request: WSRequest = ws.url(nifiUrl+"process-groups/6f7b46a2-aa15-139f-3083-addf34976b6e/processors")
-    println("procListenerSftp - URL: " + nifiUrl+"process-groups/6f7b46a2-aa15-139f-3083-addf34976b6e/processors")
+    val request: WSRequest = ws.url(nifiUrl+"process-groups/"+ nifiGroupId +"/processors")
+    println("procListenerSftp - URL: " + nifiUrl+"process-groups/"+ nifiGroupId +"/processors")
     println("procListenerSftp - json: " + json)
     val futureResponse: Future[WSResponse] = request.post(json)
 
@@ -228,8 +229,8 @@ class NiFiBuilder @Inject() (ws: WSClient,
       inputDirLocation = "test"
     )
 
-    val request: WSRequest = ws.url(nifiUrl+"process-groups/6f7b46a2-aa15-139f-3083-addf34976b6e/processors")
-    println(nifiUrl+"process-groups/6f7b46a2-aa15-139f-3083-addf34976b6e/processors")
+    val request: WSRequest = ws.url(nifiUrl+"process-groups/"+ nifiGroupId + "/processors")
+    println(nifiUrl+"process-groups/"+ nifiGroupId + "/processors")
     val futureResponse: Future[WSResponse] = request.post(json)
 
 
@@ -269,8 +270,8 @@ class NiFiBuilder @Inject() (ws: WSClient,
       inputDirLocation = "test"
     )
 
-    val request: WSRequest = ws.url(nifiUrl+"process-groups/6f7b46a2-aa15-139f-3083-addf34976b6e/processors")
-    println(nifiUrl+"process-groups/6f7b46a2-aa15-139f-3083-addf34976b6e/processors")
+    val request: WSRequest = ws.url(nifiUrl+"process-groups/" + nifiGroupId + "/processors")
+    println(nifiUrl+"process-groups/" + nifiGroupId + "/processors")
     val futureResponse: Future[WSResponse] = request.post(json)
 
 
@@ -307,8 +308,8 @@ class NiFiBuilder @Inject() (ws: WSClient,
       format = metaCatalogProc.fileFormatNifi()
     )
 
-    val request: WSRequest = ws.url(nifiUrl+"process-groups/6f7b46a2-aa15-139f-3083-addf34976b6e/processors")
-    println("processorUpdateAttr - url: " + nifiUrl+"process-groups/6f7b46a2-aa15-139f-3083-addf34976b6e/processors")
+    val request: WSRequest = ws.url(nifiUrl+"process-groups/"+ nifiGroupId + "/processors")
+    println("processorUpdateAttr - url: " + nifiUrl+"process-groups/"+ nifiGroupId + "/processors")
     val futureResponse: Future[WSResponse] = request.post(json)
 
     futureResponse
@@ -319,15 +320,15 @@ class NiFiBuilder @Inject() (ws: WSClient,
       clientId = metaCatalogProc.dsName + "_connListAttr_" + uniqueVal,
       name = metaCatalogProc.dsName + "_connListAttr_" + uniqueVal,
       sourceId = idListener,
-      sourceGroupId = "6f7b46a2-aa15-139f-3083-addf34976b6e",
+      sourceGroupId = nifiGroupId,
       sourceType = "PROCESSOR",
       destId = idUpdateAttr,
-      destGroupId = "6f7b46a2-aa15-139f-3083-addf34976b6e",
+      destGroupId = nifiGroupId,
       destType = "PROCESSOR"
     )
 
-    val request: WSRequest = ws.url(nifiUrl+"process-groups/6f7b46a2-aa15-139f-3083-addf34976b6e/connections")
-    println("connListAttr - url: " + nifiUrl+"process-groups/6f7b46a2-aa15-139f-3083-addf34976b6e/connections")
+    val request: WSRequest = ws.url(nifiUrl+"process-groups/" + nifiGroupId +"/connections")
+    println("connListAttr - url: " + nifiUrl+"process-groups/" + nifiGroupId + "/connections")
     val futureResponse: Future[WSResponse] = request.post(json)
 
     futureResponse
@@ -338,15 +339,15 @@ class NiFiBuilder @Inject() (ws: WSClient,
       clientId = metaCatalogProc.dsName + "_updateAttr",
       name = metaCatalogProc.dsName + "_updateAttr",
       sourceId = idUpdateAttr,
-      sourceGroupId = "6f7b46a2-aa15-139f-3083-addf34976b6e",
+      sourceGroupId = nifiGroupId,
       sourceType = "PROCESSOR",
       destId = idFunnel,
-      destGroupId = "6f7b46a2-aa15-139f-3083-addf34976b6e",
+      destGroupId = nifiGroupId,
       destType = "PROCESSOR"
     )
 
-    val request: WSRequest = ws.url(nifiUrl+"process-groups/6f7b46a2-aa15-139f-3083-addf34976b6e/connections")
-    println("connFunnel - url: " + nifiUrl+"process-groups/6f7b46a2-aa15-139f-3083-addf34976b6e/connections")
+    val request: WSRequest = ws.url(nifiUrl+"process-groups/" + nifiGroupId + "/connections")
+    println("connFunnel - url: " + nifiUrl+"process-groups/" + nifiGroupId + "/connections")
     val futureResponse: Future[WSResponse] = request.post(json)
 
     futureResponse

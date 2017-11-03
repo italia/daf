@@ -1,5 +1,6 @@
 package it.gov.daf.ingestion.metacatalog
 
+import com.typesafe.config.ConfigFactory
 import play.api.libs.json._
 import it.gov.daf.catalogmanager._
 import it.gov.daf.catalogmanager.json._
@@ -9,6 +10,7 @@ import org.apache.commons.lang.StringEscapeUtils
 //Get Logical_uri, process MetadataCatalog and get the required info
 class MetaCatalogProcessor(metaCatalog: MetaCatalog) {
   val logger: Logger = LoggerFactory.getLogger(this.getClass)
+  val sftpDefPrefix = ConfigFactory.load().getString("ingmgr.sftpdef.prefixdir")
 
 
   /*
@@ -70,9 +72,9 @@ class MetaCatalogProcessor(metaCatalog: MetaCatalog) {
 
   def sourceSftpPathDefault(sftpName: String): String = {
 
-    val sftpDefaultPrefix = ""
-    val theme = "tema"
-    val subtheme = "sottotema"
+    val sftpDefaultPrefix = sftpDefPrefix
+    val theme = metaCatalog.operational.theme
+    val subtheme = metaCatalog.operational.subtheme
 
     sftpDefaultPrefix + "/" + groupOwn + "/" + theme + "/" + subtheme
   }

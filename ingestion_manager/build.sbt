@@ -109,5 +109,5 @@ wartremoverErrors ++= Warts.allBut(Wart.Nothing,
   Wart.DefaultArguments,
   Wart.OptionPartial)
 
-//wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value / "target" / "scala-2.11" / "routes").toSeq
 wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value).toSeq
+wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value / "target" / "scala-2.11" / "routes").toSeq

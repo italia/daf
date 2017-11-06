@@ -12,7 +12,6 @@ class MetaCatalogProcessor(metaCatalog: MetaCatalog) {
   val logger: Logger = LoggerFactory.getLogger(this.getClass)
   val sftpDefPrefix = ConfigFactory.load().getString("ingmgr.sftpdef.prefixdir")
 
-
   /*
   Basic call to catalog manager
    */
@@ -41,7 +40,7 @@ class MetaCatalogProcessor(metaCatalog: MetaCatalog) {
     }
   }
 
-  def dataschema(): Avro ={
+  def dataschema(): Avro = {
 
     metaCatalog.dataschema.avro
 
@@ -61,26 +60,15 @@ class MetaCatalogProcessor(metaCatalog: MetaCatalog) {
 
   def groupOwn(): String = metaCatalog.operational.group_own
 
-  //def opsTheme(): String = meta
-
-
-  /*
-
-  Methods to return default values based on MetaCatalog available info
-
-   */
-
-  def sourceSftpPathDefault(sftpName: String): String = {
-
+  /**
+    * Methods to return default values based on MetaCatalog available info
+    */
+  def sourceSftpPathDefault(): String = {
     val sftpDefaultPrefix = sftpDefPrefix
     val theme = metaCatalog.operational.theme
     val subtheme = metaCatalog.operational.subtheme
-
-    sftpDefaultPrefix + "/" + groupOwn + "/" + theme + "/" + subtheme
+    s"$sftpDefaultPrefix/${groupOwn()}/$theme/$subtheme/${dsName()}"
   }
-
-
-
 
   /*
 
@@ -121,13 +109,13 @@ class MetaCatalogProcessor(metaCatalog: MetaCatalog) {
     }
   }
 
-  def fileFormatNifi(): String ={
+  def fileFormatNifi(): String = {
     val inputSftp = metaCatalog.operational.input_src.sftp
 
     inputSftp match {
       case Some(s) =>
-        val sftps: Seq[SourceSftp] = s.filter(x=>x.name.equals("sftp_daf"))
-        if (sftps.length>0) {
+        val sftps: Seq[SourceSftp] = s.filter(x => x.name.equals("sftp_daf"))
+        if (sftps.length > 0) {
           sftps(0).param.getOrElse("")
         } else {
           ""
@@ -139,7 +127,5 @@ class MetaCatalogProcessor(metaCatalog: MetaCatalog) {
   def ingPipelineNifi(): String = {
     ingPipeline.mkString(",")
   }
-
-
 
 }

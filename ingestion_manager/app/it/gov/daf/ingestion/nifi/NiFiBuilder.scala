@@ -5,11 +5,11 @@ import javax.inject.Inject
 import com.typesafe.config.ConfigFactory
 import it.gov.daf.catalogmanager._
 import it.gov.daf.ingestion.metacatalog.MetaCatalogProcessor
-import play.api.libs.json._
+import play.api.libs.json.{JsValue, _}
 import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
-
 import org.slf4j.{Logger, LoggerFactory}
 
+import scala.collection.immutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
@@ -20,74 +20,77 @@ import scala.util.{Failure, Success, Try}
   Array(
     "org.wartremover.warts.ToString"
   )
-)
-class NiFiBuilder @Inject() (ws: WSClient,
-                             metaCatalog: MetaCatalog) {
-
+) //FIXME when is @Inject used?
+class NiFiBuilder @Inject() (ws: WSClient) {
   val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
-  val metaCatalogProc = new MetaCatalogProcessor(metaCatalog)
-
-  val nifiUrl = ConfigFactory.load().getString("WebServices.nifiUrl")
-  val nifiFunnelId = ConfigFactory.load().getString("ingmgr.niFi.funnelId")
-  val nifiGroupId = ConfigFactory.load().getString("ingmgr.niFi.groupId")
-
-  val dsName = metaCatalog.dcatapit.name
-  val inputSrc: InputSrc = metaCatalog.operational.input_src
-  val storage: Option[StorageInfo] = metaCatalog.operational.storage_info
-  val ingPipeline: Option[List[String]] = metaCatalog.operational.ingestion_pipeline
-  val dsType: String = metaCatalog.operational.dataset_type
-  val groupAccess: Option[List[GroupAccess]] = metaCatalog.operational.group_access
+  val nifiUrl: String = ConfigFactory.load().getString("WebServices.nifiUrl")
+  val nifiFunnelId: String = ConfigFactory.load().getString("ingmgr.niFi.funnelId")
+  val nifiGroupId: String = ConfigFactory.load().getString("ingmgr.niFi.groupId")
 
 
-  def processorBuilder(): NiFiProcessStatus = {
-    val inputSrc: InputSrc = metaCatalogProc.inputSrc()
 
-    var sftpCount: Int = 0
-    val inputSftpList: List[(String, Boolean)] = inputSrc.sftp match {
-      case Some(s) =>
-        println("procListeners - Sftp: " + s.toString)
-        sftpCount += 1
-        s.map(x => (x.toString -> activateFlow(procListenerSftp(x, sftpCount.toString))))
-      case None => List()
-    }
-
-    var srvPullCount: Int = 0
-    val inputSrvPullList: List[(String, Boolean)] = inputSrc.srv_pull match {
-      case Some(s) =>
-        println("procListeners - SrvPull: " + s.toString)
-        srvPullCount += 1
-        s.map(x => (x.toString -> activateFlow(procListenerSrvPull(x, srvPullCount.toString))))
-      case None => List()
-    }
-
-    var srvPushCount: Int = 0
-    val inputSrvPushList: List[(String, Boolean)] = inputSrc.srv_push match {
-      case Some(s) =>
-        println("procListeners - SrvPush: " + s.toString)
-        srvPushCount += 1
-        s.map(x => (x.toString -> activateFlow(procListenerSrvPush(x, srvPushCount.toString))))
-      case None => List()
-    }
-
-    var dafDsCount: Int = 0
-    val inputDafDsList: List[(String, Boolean)] = inputSrc.daf_dataset match {
-      case Some(s) =>
-        println("procListeners - DafDs: " + s.toString)
-        dafDsCount += 1
-        //s.map(x => procListenerDafDs())
-        List()
-      case None => List()
-    }
-
-    val outputList: List[(String, Boolean)] = (inputSftpList ++ inputSrvPullList ++ inputSrvPushList).toList
-    val status = if (outputList.map(x=> x._2).reduceLeft((x,y) => x || y)) "OK" else "ERRORS"
-    NiFiProcessStatus(status, NiFiInfo(metaCatalogProc.dsName, outputList))
+  private def createConnection(src: Any, dst: Any) = {
 
   }
 
-  def activateFlow(procListInfo: (Future[WSResponse], Map[String,String])): Boolean = {
-    val (listenerFuture: Future[WSResponse], params: Map[String,String]) = (procListInfo._1, procListInfo._2)
+  private def startProcessor(processors: List[Any]) = {
+
+  }
+
+  def createProcessors(metaCatalog: MetaCatalog): NiFiProcessStatus = {
+    val metaCatalogProc = new MetaCatalogProcessor(metaCatalog)
+
+    val inputSrc: InputSrc = metaCatalogProc.inputSrc()
+
+    val sftpDefinitions: immutable.Seq[Try[(JsValue, Map[String, String])]] = inputSrc.sftp
+      .getOrElse(List.empty)
+      .map(x => defineSftpProcessor(metaCatalogProc, x))
+
+
+//    var srvPullCount: Int = 0
+//    val inputSrvPullList: List[(String, Boolean)] = inputSrc.srv_pull match {
+//      case Some(s) =>
+//        println("procListeners - SrvPull: " + s.toString)
+//        srvPullCount += 1
+//        s.map(x => (x.toString -> activateFlow(procListenerSrvPull(x, srvPullCount.toString))))
+//      case None => List()
+//    }
+//
+//    var srvPushCount: Int = 0
+//    val inputSrvPushList: List[(String, Boolean)] = inputSrc.srv_push match {
+//      case Some(s) =>
+//        println("procListeners - SrvPush: " + s.toString)
+//        srvPushCount += 1
+//        s.map(x => (x.toString -> activateFlow(procListenerSrvPush(x, srvPushCount.toString))))
+//      case None => List()
+//    }
+//
+//    var dafDsCount: Int = 0
+//    val inputDafDsList: List[(String, Boolean)] = inputSrc.daf_dataset match {
+//      case Some(s) =>
+//        println("procListeners - DafDs: " + s.toString)
+//        dafDsCount += 1
+//        //s.map(x => procListenerDafDs())
+//        List()
+//      case None => List()
+//    }
+
+
+    //    val outputList: List[(String, Boolean)] = (inputSftpList ++ inputSrvPullList ++ inputSrvPushList).toList
+    //    val status = if (outputList.map(x => x._2).reduceLeft((x, y) => x || y)) "OK" else "ERRORS"
+    //    NiFiProcessStatus(status, NiFiInfo(metaCatalogProc.dsName, outputList))
+
+    //create processors
+    //link processors
+    //connect to the funnel
+    //play the processors
+
+    ???
+  }
+
+  def activateFlow(procListInfo: (Future[WSResponse], Map[String, String])): Boolean = {
+    val (listenerFuture: Future[WSResponse], params: Map[String, String]) = (procListInfo._1, procListInfo._2)
     var idListener: String = ""
     var idUpdateAttr: String = ""
 
@@ -114,18 +117,22 @@ class NiFiBuilder @Inject() (ws: WSClient,
 
       resPlayListener <- {
         println("resConnFunnel -> " + resConnFunnel.toString)
-        playProc((resListener.json \ "id").as[String],
+        playProc(
+          (resListener.json \ "id").as[String],
           "RUNNING",
-          (resListener.json \"revision" \ "clientId").as[String],
-          (resListener.json \"revision" \ "version").as[Int].toString)
+          (resListener.json \ "revision" \ "clientId").as[String],
+          (resListener.json \ "revision" \ "version").as[Int].toString
+        )
       }
 
       resPlayUpdateAttr <- {
         println("resPlayListener -> " + resPlayListener.toString)
-        playProc((resUpdateAttr.json \ "id").as[String],
+        playProc(
+          (resUpdateAttr.json \ "id").as[String],
           "RUNNING",
-          (resUpdateAttr.json \"revision" \ "clientId").as[String],
-          (resUpdateAttr.json \"revision" \ "version").as[Int].toString)
+          (resUpdateAttr.json \ "revision" \ "clientId").as[String],
+          (resUpdateAttr.json \ "revision" \ "version").as[Int].toString
+        )
       }
 
     } yield (resPlayUpdateAttr)
@@ -147,109 +154,121 @@ class NiFiBuilder @Inject() (ws: WSClient,
 
   }
 
-  def procListenerSftp(sftp: SourceSftp, uniqueVal: String): (Future[WSResponse], Map[String,String]) = {
-
-    val (inputDir: String, inputDirLocation: String, user: String, pass: String, inputType: String) = sftp match {
-      case SourceSftp(name, Some(url), Some(user), Some(pass), _) => (url, "?", user, pass, "sftp")
-      case SourceSftp("sftp_daf", None, _, _, _) => (metaCatalogProc.sourceSftpPathDefault("sftp_daf"), "Local", "", "", "local")
-      case SourceSftp(name, None, _, _, _) =>
-        logger.warn("procListenerSftp: setting default sftp with no default sftp name \t SourceSftp: " + sftp.toString + " \t sftp_name: " + name)
-        (metaCatalogProc.sourceSftpPathDefault("sftp_daf"), "Local", "", "", "local")
-      case _ =>
-        logger.warn("procListenerSftp: something went wrong with sftp configuration \t SourceSftp: " + sftp.toString)
-        (metaCatalogProc.sourceSftpPathDefault("sftp_daf"), "Local", "", "", "local")
-    }
-
-    //val uniqueVal = scala.util.Random.alphanumeric.take(5).mkString
-
-    //1. Create the Listener Processor
-    val json: JsValue = inputType match {
-      case "Local" => NifiJson.listFileProc(
-        clientId = metaCatalogProc.dsName + "_sftp_" + uniqueVal,
-        name = metaCatalogProc.dsName + "_sftp_" + uniqueVal,
-        inputDir = inputDir,
-        inputDirLocation = inputDirLocation
-      )
-
-      case "sftp" => NifiJson.listSftpProc(
-        clientId = metaCatalogProc.dsName + "_sftp_" + uniqueVal,
-        name = metaCatalogProc.dsName + "_sftp_" + uniqueVal,
-        hostname = inputDir,
-        user = user,
-        pass = pass
-      )
-      case _ => NifiJson.listFileProc(
-        clientId = metaCatalogProc.dsName + "_sftp_" + uniqueVal,
-        name = metaCatalogProc.dsName + "_sftp_" + uniqueVal,
-        inputDir = inputDir,
-        inputDirLocation = inputDirLocation
-      )
-    }
-
-    val request: WSRequest = ws.url(nifiUrl+"process-groups/"+ nifiGroupId +"/processors")
-    println("procListenerSftp - URL: " + nifiUrl+"process-groups/"+ nifiGroupId +"/processors")
-    println("procListenerSftp - json: " + json)
-    val futureResponse: Future[WSResponse] = request.post(json)
-
-
-    //2. prepare the parameters to be sent to UpdateAttr Processor
-    val params: Map[String,String] = Map(
-      "inputType" -> inputType,
-      "inputDir" -> inputDir,
-      "inputDirLocation" -> inputDirLocation,
-      "clientId" -> (metaCatalogProc.dsName + "_sftpUpdate_" + uniqueVal),
-      "name" -> (metaCatalogProc.dsName + "_sftpUpdate_" + uniqueVal),
-      "user" -> user,
-      "pass" -> pass,
-      "uniqueVal" -> uniqueVal
-    )
-
-
-    (futureResponse, params)
+  private[this] var counter = 0
+  private def incCounter() = {
+    counter += 1
+    counter
   }
 
-  def procListenerSrvPull(srvInfo: SourceSrvPull, uniqueVal: String): (Future[WSResponse], Map[String,String]) = {
+  /**
+    *
+    * @param metaCatalogProc
+    * @param src
+    * @return a JValue and Map[String,String] containing the Json definition and the parameters for a processor
+    */
+  private def defineSftpProcessor(metaCatalogProc: MetaCatalogProcessor, src: SourceSftp): Try[(JsValue, Map[String, String])] = {
+    val uniqueVal = incCounter()
+    val name = metaCatalogProc.dsName + "_sftp_" + uniqueVal
 
-    val (inputDir: String, user: String, pass: String, token: String) = srvInfo match {
-      case SourceSrvPull(name, url, Some(user), Some(pass), Some(token), _) => (url, user, pass, token)
-      case SourceSrvPull(name, url, Some(user), Some(pass), None, _) => (url, user, pass, "")
-      case SourceSrvPull(name, url, None, None, token, _) => (url, "", "", token)
-      case _ =>
-        logger.warn("procListenerSrvPull: something went wrong with Srv configuration \t SourceSrvPull: " + srvInfo.toString)
-        ("error", "error", "error", "error")
+    src match {
+      case SourceSftp("sftp_daf", None, None, None, _) =>
+        //internal DAF path
+        val processor = NifiHelper.listFileProcessor(
+          name = name,
+          inputDir = metaCatalogProc.sourceSftpPathDefault()
+        )
+
+        val params: Map[String, String] = Map(
+          "inputType" -> "local",
+          "inputDir" -> metaCatalogProc.sourceSftpPathDefault(),
+          "inputDirLocation" -> "Local",
+          "clientId" -> name,
+          "name" -> name,
+          "user" -> "",
+          "pass" -> "",
+          "uniqueVal" -> uniqueVal.toString
+        )
+        Success(processor -> params)
+
+      case SourceSftp(ext, Some(remoteUrl), Some(user), Some(pwd), _) =>
+        //external sftp
+        //FIXME
+        val inputPathLocation = "?"
+
+        val processor = NifiHelper.listSftpProcessor(
+          name = name,
+          hostname = inputPathLocation,
+          user = user,
+          pass = pwd
+        )
+
+        val params: Map[String, String] = Map(
+          "inputType" -> "sftp",
+          "inputDir" -> metaCatalogProc.sourceSftpPathDefault(),
+          "inputDirLocation" -> inputPathLocation,
+          "clientId" -> name,
+          "name" -> name,
+          "user" -> user,
+          "pass" -> pwd,
+          "uniqueVal" -> uniqueVal.toString
+        )
+        Success(processor -> params)
+
+      case other =>
+      //error
+        Failure(new IllegalArgumentException(s"invalid value $other"))
     }
-
-    //1. Create the Listener Processor
-
-    //TODO Change here for the correct processor for this type
-    val json = NifiJson.listFileProc(
-      clientId = metaCatalogProc.dsName + "_srvPull_" + uniqueVal,
-      name = metaCatalogProc.dsName + "_srvPull_" + uniqueVal,
-      inputDir = "test",
-      inputDirLocation = "test"
-    )
-
-    val request: WSRequest = ws.url(nifiUrl+"process-groups/"+ nifiGroupId + "/processors")
-    println(nifiUrl+"process-groups/"+ nifiGroupId + "/processors")
-    val futureResponse: Future[WSResponse] = request.post(json)
-
-
-    //2. prepare the parameters to be sent to UpdateAttr Processor
-    //TODO Change here for the correct processor for this type
-    val params: Map[String,String] = Map(
-      "inputDir" -> inputDir,
-      "clientId" -> (metaCatalogProc.dsName + "_srvPullUpdate_" + uniqueVal),
-      "name" -> (metaCatalogProc.dsName + "_srvPullUpdate_" + uniqueVal),
-      "user" -> user,
-      "pass" -> pass,
-      "uniqueVal" -> uniqueVal
-    )
-
-    (futureResponse, params)
-
   }
 
-  def procListenerSrvPush(srvInfo: SourceSrvPush, uniqueVal: String): (Future[WSResponse], Map[String,String]) = {
+  private def createProcessor(json: JsValue, attributes: Map[String, String]): Future[(JsValue, Map[String, String], WSResponse)] = {
+    val request: WSRequest = ws.url(nifiUrl + "process-groups/" + nifiGroupId + "/processors")
+    logger.debug(s"posting processor $json to ${request.url}")
+    request.post(json)
+      .map(response => (json, attributes, response))
+  }
+
+
+  def procListenerSrvPull(srvInfo: SourceSrvPull, uniqueVal: String): (Future[WSResponse], Map[String, String]) = {
+
+//    val (inputDir: String, user: String, pass: String, token: String) = srvInfo match {
+//      case SourceSrvPull(name, url, Some(user), Some(pass), Some(token), _) => (url, user, pass, token)
+//      case SourceSrvPull(name, url, Some(user), Some(pass), None, _) => (url, user, pass, "")
+//      case SourceSrvPull(name, url, None, None, token, _) => (url, "", "", token)
+//      case _ =>
+//        logger.warn("procListenerSrvPull: something went wrong with Srv configuration \t SourceSrvPull: " + srvInfo.toString)
+//        ("error", "error", "error", "error")
+//    }
+//
+//    //1. Create the Listener Processor
+//
+//    //TODO Change here for the correct processor for this type
+//    val json = NifiHelper.listFileProcessor(
+//      clientId = metaCatalogProc.dsName + "_srvPull_" + uniqueVal,
+//      name = metaCatalogProc.dsName + "_srvPull_" + uniqueVal,
+//      inputDir = "test",
+//      inputDirLocation = "test"
+//    )
+//
+//    val request: WSRequest = ws.url(nifiUrl + "process-groups/" + nifiGroupId + "/processors")
+//    println(nifiUrl + "process-groups/" + nifiGroupId + "/processors")
+//    val futureResponse: Future[WSResponse] = request.post(json)
+//
+//    //2. prepare the parameters to be sent to UpdateAttr Processor
+//    //TODO Change here for the correct processor for this type
+//    val params: Map[String, String] = Map(
+//      "inputDir" -> inputDir,
+//      "clientId" -> (metaCatalogProc.dsName + "_srvPullUpdate_" + uniqueVal),
+//      "name" -> (metaCatalogProc.dsName + "_srvPullUpdate_" + uniqueVal),
+//      "user" -> user,
+//      "pass" -> pass,
+//      "uniqueVal" -> uniqueVal
+//    )
+//
+//    (futureResponse, params)
+???
+  }
+
+  def procListenerSrvPush(srvInfo: SourceSrvPush, uniqueVal: String): (Future[WSResponse], Map[String, String]) = {
 
     val (inputDir: String, user: String, pass: String, token: String) = srvInfo match {
       case SourceSrvPush(name, url, Some(user), Some(pass), Some(token), _) => (url, user, pass, token)
@@ -261,33 +280,68 @@ class NiFiBuilder @Inject() (ws: WSClient,
     }
 
     //1. Create the Listener Processor
+//    val (inputDir: String, user: String, pass: String, token: String) = srvInfo match {
+//      case SourceSrvPull(name, url, Some(user), Some(pass), Some(token), _) => (url, user, pass, token)
+//      case SourceSrvPull(name, url, Some(user), Some(pass), None, _) => (url, user, pass, "")
+//      case SourceSrvPull(name, url, None, None, token, _) => (url, "", "", token)
+//      case _ =>
+//        logger.warn("procListenerSrvPull: something went wrong with Srv configuration \t SourceSrvPull: " + srvInfo.toString)
+//        ("error", "error", "error", "error")
+//    }
+//
+//    //1. Create the Listener Processor
+//
+//    //TODO Change here for the correct processor for this type
+//    val json = NifiHelper.listFileProcessor(
+//      clientId = metaCatalogProc.dsName + "_srvPull_" + uniqueVal,
+//      name = metaCatalogProc.dsName + "_srvPull_" + uniqueVal,
+//      inputDir = "test",
+//      inputDirLocation = "test"
+//    )
+//
+//    val request: WSRequest = ws.url(nifiUrl + "process-groups/" + nifiGroupId + "/processors")
+//    println(nifiUrl + "process-groups/" + nifiGroupId + "/processors")
+//    val futureResponse: Future[WSResponse] = request.post(json)
+//
+//    //2. prepare the parameters to be sent to UpdateAttr Processor
+//    //TODO Change here for the correct processor for this type
+//    val params: Map[String, String] = Map(
+//      "inputDir" -> inputDir,
+//      "clientId" -> (metaCatalogProc.dsName + "_srvPullUpdate_" + uniqueVal),
+//      "name" -> (metaCatalogProc.dsName + "_srvPullUpdate_" + uniqueVal),
+//      "user" -> user,
+//      "pass" -> pass,
+//      "uniqueVal" -> uniqueVal
+//    )
+//
+//    (futureResponse, params)
 
-    //TODO Change here for the correct processor for this type
-    val json = NifiJson.listFileProc(
-      clientId = metaCatalogProc.dsName + "_srvPush_" + uniqueVal,
-      name = metaCatalogProc.dsName + "_srvPush_" + uniqueVal,
-      inputDir = "test",
-      inputDirLocation = "test"
-    )
+//    //TODO Change here for the correct processor for this type
+//    val json = NifiHelper.listFileProcessor(
+//      clientId = metaCatalogProc.dsName + "_srvPush_" + uniqueVal,
+//      name = metaCatalogProc.dsName + "_srvPush_" + uniqueVal,
+//      inputDir = "test",
+//      inputDirLocation = "test"
+//    )
+//
+//    val request: WSRequest = ws.url(nifiUrl + "process-groups/" + nifiGroupId + "/processors")
+//    println(nifiUrl + "process-groups/" + nifiGroupId + "/processors")
+//    val futureResponse: Future[WSResponse] = request.post(json)
+//
+//    //2. prepare the parameters to be sent to UpdateAttr Processor
+//    //TODO Change here for the correct processor for this type
+//    val params: Map[String, String] = Map(
+//      "inputDir" -> inputDir,
+//      "clientId" -> (metaCatalogProc.dsName + "_srvPushUpdate_" + uniqueVal),
+//      "name" -> (metaCatalogProc.dsName + "_srvPushUpdate_" + uniqueVal),
+//      "user" -> user,
+//      "pass" -> pass,
+//      "uniqueVal" -> uniqueVal
+//    )
+//
+//    (futureResponse, params)
 
-    val request: WSRequest = ws.url(nifiUrl+"process-groups/" + nifiGroupId + "/processors")
-    println(nifiUrl+"process-groups/" + nifiGroupId + "/processors")
-    val futureResponse: Future[WSResponse] = request.post(json)
-
-
-    //2. prepare the parameters to be sent to UpdateAttr Processor
-    //TODO Change here for the correct processor for this type
-    val params: Map[String,String] = Map(
-      "inputDir" -> inputDir,
-      "clientId" -> (metaCatalogProc.dsName + "_srvPushUpdate_" + uniqueVal),
-      "name" -> (metaCatalogProc.dsName + "_srvPushUpdate_" + uniqueVal),
-      "user" -> user,
-      "pass" -> pass,
-      "uniqueVal" -> uniqueVal
-    )
-
-    (futureResponse, params)
-
+    ???
   }
 
   //TODO - to be implemented
@@ -295,95 +349,110 @@ class NiFiBuilder @Inject() (ws: WSClient,
     List()
   }
 
-  def processorUpdateAttr(param: Map[String,String]): Future[WSResponse] = {
-    val uniqueVal = param.getOrElse("uniqueVal", "")
-    val json: JsValue = NifiJson.updateAttrProc(
-      clientId = metaCatalogProc.dsName + "_updateAttr_" + uniqueVal,
-      name = metaCatalogProc.dsName + "_updateAttr_" + uniqueVal,
-      inputSrc = metaCatalogProc.inputSrcNifi(),
-      storage = metaCatalogProc.storageNifi(),
-      dataschema = metaCatalogProc.dataschemaNifi(),
-      dataset_type = metaCatalogProc.dataset_typeNifi(),
-      transfPipeline= metaCatalogProc.ingPipelineNifi(),
-      format = metaCatalogProc.fileFormatNifi()
-    )
-
-    val request: WSRequest = ws.url(nifiUrl+"process-groups/"+ nifiGroupId + "/processors")
-    println("processorUpdateAttr - url: " + nifiUrl+"process-groups/"+ nifiGroupId + "/processors")
-    val futureResponse: Future[WSResponse] = request.post(json)
-
-    futureResponse
+  def processorUpdateAttr(param: Map[String, String]): Future[WSResponse] = {
+//    val uniqueVal = param.getOrElse("uniqueVal", "")
+//    val json: JsValue = NifiHelper.updateAttrProcessor(
+//      clientId = metaCatalogProc.dsName + "_updateAttr_" + uniqueVal,
+//      name = metaCatalogProc.dsName + "_updateAttr_" + uniqueVal,
+//      inputSrc = metaCatalogProc.inputSrcNifi(),
+//      storage = metaCatalogProc.storageNifi(),
+//      dataschema = metaCatalogProc.dataschemaNifi(),
+//      dataset_type = metaCatalogProc.dataset_typeNifi(),
+//      transfPipeline = metaCatalogProc.ingPipelineNifi(),
+//      format = metaCatalogProc.fileFormatNifi()
+//    )
+//
+//    val request: WSRequest = ws.url(nifiUrl + "process-groups/" + nifiGroupId + "/processors")
+//    println("processorUpdateAttr - url: " + nifiUrl + "process-groups/" + nifiGroupId + "/processors")
+//    val futureResponse: Future[WSResponse] = request.post(json)
+//
+//    futureResponse
+    ???
   }
 
+  /**
+    * create the connection between two processors
+    * @param idListener
+    * @param idUpdateAttr
+    * @param uniqueVal
+    * @return
+    */
   def connListAttr(idListener: String, idUpdateAttr: String, uniqueVal: String = ""): Future[WSResponse] = {
-    val json: JsValue = NifiJson.listAttrConn(
-      clientId = metaCatalogProc.dsName + "_connListAttr_" + uniqueVal,
-      name = metaCatalogProc.dsName + "_connListAttr_" + uniqueVal,
-      sourceId = idListener,
-      sourceGroupId = nifiGroupId,
-      sourceType = "PROCESSOR",
-      destId = idUpdateAttr,
-      destGroupId = nifiGroupId,
-      destType = "PROCESSOR"
-    )
-
-    val request: WSRequest = ws.url(nifiUrl+"process-groups/" + nifiGroupId +"/connections")
-    println("connListAttr - url: " + nifiUrl+"process-groups/" + nifiGroupId + "/connections")
-    val futureResponse: Future[WSResponse] = request.post(json)
-
-    futureResponse
+//    val json: JsValue = NifiHelper.defineConnection(
+//      clientId = metaCatalogProc.dsName + "_connListAttr_" + uniqueVal,
+//      name = metaCatalogProc.dsName + "_connListAttr_" + uniqueVal,
+//      sourceId = idListener,
+//      sourceGroupId = nifiGroupId,
+//      sourceType = "PROCESSOR",
+//      destId = idUpdateAttr,
+//      destGroupId = nifiGroupId,
+//      destType = "PROCESSOR"
+//    )
+//
+//    val request: WSRequest = ws.url(nifiUrl + "process-groups/" + nifiGroupId + "/connections")
+//    println("connListAttr - url: " + nifiUrl + "process-groups/" + nifiGroupId + "/connections")
+//    val futureResponse: Future[WSResponse] = request.post(json)
+//
+//    futureResponse
+    ???
   }
 
+  /**
+    * connect a processor to the funnel
+    * @param idUpdateAttr
+    * @param idFunnel
+    * @return
+    */
   def connFunnel(idUpdateAttr: String, idFunnel: String): Future[WSResponse] = {
-    val json: JsValue = NifiJson.listAttrConn(
-      clientId = metaCatalogProc.dsName + "_updateAttr",
-      name = metaCatalogProc.dsName + "_updateAttr",
-      sourceId = idUpdateAttr,
-      sourceGroupId = nifiGroupId,
-      sourceType = "PROCESSOR",
-      destId = idFunnel,
-      destGroupId = nifiGroupId,
-      destType = "PROCESSOR"
-    )
-
-    val request: WSRequest = ws.url(nifiUrl+"process-groups/" + nifiGroupId + "/connections")
-    println("connFunnel - url: " + nifiUrl+"process-groups/" + nifiGroupId + "/connections")
-    val futureResponse: Future[WSResponse] = request.post(json)
-
-    futureResponse
+//    val json: JsValue = NifiHelper.defineConnection(
+//      clientId = metaCatalogProc.dsName + "_updateAttr",
+//      name = metaCatalogProc.dsName + "_updateAttr",
+//      sourceId = idUpdateAttr,
+//      sourceGroupId = nifiGroupId,
+//      sourceType = "PROCESSOR",
+//      destId = idFunnel,
+//      destGroupId = nifiGroupId,
+//      destType = "PROCESSOR"
+//    )
+//
+//    val request: WSRequest = ws.url(nifiUrl + "process-groups/" + nifiGroupId + "/connections")
+//    println("connFunnel - url: " + nifiUrl + "process-groups/" + nifiGroupId + "/connections")
+//    val futureResponse: Future[WSResponse] = request.post(json)
+//
+//    futureResponse
+    ???
   }
 
-  def playProc(componentId: String,
-               componentState: String,
-               clientId: String,
-               version: String): Future[WSResponse] = {
+  def playProc(
+    componentId: String,
+    componentState: String,
+    clientId: String,
+    version: String
+  ): Future[WSResponse] = {
 
-    val json: JsValue = NifiJson.playProc(
+    val json: JsValue = NifiHelper.playProcessor(
       clientId = clientId + "_play",
       componentId = componentId,
       componentState = componentState,
       version = version
     )
 
-    println("playProc - Url: " + nifiUrl+"processors/" + componentId)
+    println("playProc - Url: " + nifiUrl + "processors/" + componentId)
     println("playProc - json: " + json.toString)
 
-    val request: WSRequest = ws.url(nifiUrl+"processors/" + componentId)
+    val request: WSRequest = ws.url(nifiUrl + "processors/" + componentId)
 
     val futureResponse: Future[WSResponse] = request.put(json)
 
     futureResponse
   }
 
-//  PUT http://edge1:9090/nifi-api/processors/6f7b46a2-aa15-139f-3083-addf34976b6e
+  //  PUT http://edge1:9090/nifi-api/processors/6f7b46a2-aa15-139f-3083-addf34976b6e
 
 }
 
 final case class NiFiInfo(dsName: String, procList: List[(String, Boolean)])
 final case class NiFiProcessStatus(status: String, niFiInfo: NiFiInfo)
-
-
-
 
 /*
 **************

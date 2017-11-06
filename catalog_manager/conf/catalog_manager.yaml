@@ -691,7 +691,327 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  "/voc/themes/getall/":
+    get:
+      summary: Get the list of all DAF themes
+      description: Get the list of all DAF themes
+      tags:
+        - Themes
+      operationId: voc_themesgetall
+      produces:
+        - application/json
+      responses:
+        200:
+          description: A Catalog
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/KeyValue'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/subthemes/getall/":
+    get:
+      summary: Get the list of all DAF subthemes
+      description: Get the list of all DAF subthemes
+      tags:
+        - Subthemes
+      operationId: voc_subthemesgetall
+      produces:
+        - application/json
+      responses:
+        200:
+          description: A Catalog
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/VocKeyValueSubtheme'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/subthemes/getbyid/{themeid}":
+    get:
+      summary: Get the list of all DAF subthemes
+      description: Get the list of all DAF subthemes
+      tags:
+        - Subthemes
+      operationId: voc_subthemesgetbyid
+      parameters:
+        - name: themeid
+          in: path
+          description: DAF Theme Id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        200:
+          description: A Catalog
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/KeyValue'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/themes/dcat2daf/{themeid}":
+    get:
+      summary: Get a DAF Theme associated to a given DCATAPIT theme
+      description: Get a DAF Theme associated to a given DCATAPIT theme
+      tags:
+        - DAF
+        - Theme
+      operationId: voc_dcat2Daftheme
+      parameters:
+        - name: themeid
+          in: path
+          description: DCATAPIT Theme Id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        200:
+          description: List of Themes (id, value)
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/KeyValue'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/subthemes/dcat2daf/{themeid}/{subthemeid}":
+    get:
+      summary: Get a DAF Subtheme associated to a given DCATAPIT theme
+      description: Get a DAF Subtheme associated to a given DCATAPIT theme
+      tags:
+        - DAF
+        - Subtheme
+      operationId: voc_dcat2dafsubtheme
+      parameters:
+        - name: themeid
+          in: path
+          description: DCATAPIT Theme Id
+          required: true
+          type: string
+        - name: subthemeid
+          in: path
+          description: DCATAPIT SubTheme Id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        200:
+          description: List of Themes (id, value)
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/VocKeyValueSubtheme'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/dcatthemes/getall":
+    get:
+      summary: Get DCATAPIT Themes
+      description: Get DCATAPIT Themes
+      tags:
+        - DCATAPIT
+        - Theme
+      operationId: voc_dcatthemegetall
+      produces:
+        - application/json
+      responses:
+        200:
+          description: List of Themes (id, value)
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/KeyValue'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/dcatsubthemes/getall/":
+    get:
+      summary: Get the list of all DCATAPIT subthemes
+      description: Get the list of all DCATAPIT subthemes
+      tags:
+        - Subthemes
+      operationId: voc_dcatsubthemesgetall
+      produces:
+        - application/json
+      responses:
+        200:
+          description: A Catalog
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/VocKeyValueSubtheme'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/dcatsubthemes/getbyid/{themeid}":
+    get:
+      summary: Get the list of all DCATAPIT subthemes
+      description: Get the list of all DCATAPIT subthemes
+      tags:
+        - Subthemes
+      operationId: voc_dcatsubthemesgetbyid
+      parameters:
+        - name: themeid
+          in: path
+          description: DAF Theme Id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        200:
+          description: A Catalog
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/KeyValue'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/dcatthemes/daf2dcat/{themeid}":
+    get:
+      summary: Get a DCATAPIT Theme associated to a given DAF theme
+      description: Get a DCATAPIT Theme associated to a given DAF theme
+      tags:
+        - DCATAPIT
+        - Theme
+      operationId: voc_daf2dcattheme
+      parameters:
+        - name: themeid
+          in: path
+          description: DAF Theme Id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        200:
+          description: List of Themes (id, value)
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/KeyValue'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/dcatsubthemes/daf2dcat/{themeid}/{subthemeid}":
+    get:
+      summary: Get a DCATAPIT Subtheme associated to a given DAF theme
+      description: Get a DCATAPIT Subtheme associated to a given DAF theme
+      tags:
+        - DCATAPIT
+        - Subtheme
+      operationId: voc_daf2dcatsubtheme
+      parameters:
+        - name: themeid
+          in: path
+          description: DAF Theme Id
+          required: true
+          type: string
+        - name: subthemeid
+          in: path
+          description: DAF SubTheme Id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        200:
+          description: List of Themes (id, value)
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/VocKeyValueSubtheme'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
 definitions:
+  KeyValue:
+    type: object
+    required:
+      - key
+      - value
+    description: Generic Key/Value pair object
+    properties:
+      key:
+        type: string
+      value:
+        type: string
+
+  VocKeyValueSubtheme:
+      type: object
+      required:
+        - key
+        - value
+        - keyTheme
+      description: Generic Key/Value pair object
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+        keyTheme:
+          type: string
+        valueTheme:
+          type: string
+
   MetaCatalog:
     type: object
     required:
@@ -738,7 +1058,7 @@ definitions:
         name:
           type: string
           description: Name of the dataset
-        alliases:
+        aliases:
           type: string
           description: Alises for dataset
         #alliases:
@@ -777,7 +1097,6 @@ definitions:
         description: JSON object containing metadata information for the field
   Metadata:
     required:
-
     type: object
     #  - metadata_format
     #  - required
@@ -860,10 +1179,18 @@ definitions:
       - read_type
       - input_src
       - dataset_type
+      - theme
+      - subtheme
     properties:
       #id:
       #  type: integer
       #  format: int32
+      theme:
+        type: string
+        description: DAF Theme for the dataset
+      subtheme:
+        type: string
+        description: DAF SubTheme for the dataset
       logical_uri:
         type: string
         description: Unique resource identifier of the dataset. It is calculated automatically and assigned once for all
@@ -879,23 +1206,20 @@ definitions:
         description: Group of ownership to which the dataset belongs. It is set to 'open' by default.
       group_access:
         type: array
-        #type: string
         description: Groups that have rights to access the datasets. It contains the name and the role associated to the group
         items:
           $ref: '#/definitions/GroupAccess'
       std_schema:
-        #type: object
+        type: object
         description:
         $ref: '#/definitions/StdSchema'
-        #type: string
       read_type:
         description: It tells whether the dataset is an append of snapshot ('last_update') or a time series ('time_series') and tells the program how to return the data.
         type: string
       georef:
-        #type: string
         type: array
         items:
-         $ref: '#/definitions/GeoRef'
+          $ref: '#/definitions/GeoRef'
       input_src:
         description: Input sources for data to be ingested into the dataset.
         $ref: '#/definitions/InputSrc'
@@ -906,10 +1230,12 @@ definitions:
           type: string
       storage_info:
         description: Information on the storage to be used to save the dataset.
+        type: object
         $ref: '#/definitions/StorageInfo'
       dataset_type:
         type: string
-        description: It tells whether the dataset is at rest ('batch') or realtime stream ('stream').
+        description: It tells whether the dataset is at rest ('batch') or realtime stream ('stream') and, orthogonally, if it is of type 'opendata' (from  national catalogue), in which case it will have a prefix '_opendata'.
+
   GroupAccess:
     type: object
     description: Type associated with group_access
@@ -1050,7 +1376,7 @@ definitions:
         $ref: '#/definitions/StorageTextdb'
       mongo:
         type: object
-        description: Mongodb
+        description: MongoDB storage
         $ref: '#/definitions/StorageMongo'
   StorageHdfs:
     type: object
@@ -1206,63 +1532,6 @@ definitions:
       message:
         type: string
       fields:
-        type: string
-  DcatApIt:
-    type: object
-    required:
-      - dct_identifier
-      - dct_title
-      - dct_theme
-      #- dct_rightsHolder
-    properties:
-      dct_identifier:
-        type: string
-      dct_title:
-        $ref: '#/definitions/DcatApItLang'
-      dct_description:
-        $ref: '#/definitions/DcatApItLang'
-      dct_theme:
-        $ref: '#/definitions/DcatApItTypeLang'
-      dct_rightsHolder:
-         $ref: '#/definitions/DcatApItTypeLang'
-      dct_accrualPeriodicity:
-        $ref: '#/definitions/DcatApItTypeLang'
-      dct_subject:
-        type: array
-        items:
-          $ref: '#/definitions/DcatApItTypeLang'
-      dct_language:
-        $ref: '#/definitions/DcatApItType'
-      dcat_keyword:
-        type: array
-        items:
-          type: string
-      dcat_spatial:
-        type: string
-      dcat_landingPage:
-        type: string
-  DcatApItLang:
-    type: object
-    properties:
-      it:
-        type: string
-      value:
-        type: string
-  DcatApItType:
-    type: object
-    properties:
-      id:
-        type: string
-      value:
-        type: string
-  DcatApItTypeLang:
-    type: object
-    properties:
-      id:
-        type: string
-      value:
-        type: string
-      it:
         type: string
   Dataset:
     #type: Object
@@ -1571,4 +1840,3 @@ definitions:
         type: string
       password:
         type: string
-

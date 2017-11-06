@@ -11,6 +11,7 @@ organization in ThisBuild := "it.gov.daf"
 
 name := "daf-catalog-manager"
 
+version in ThisBuild := "1.1-SNAPSHOT"
 
 val playVersion = "2.5.14"
 

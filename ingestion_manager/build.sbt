@@ -62,7 +62,7 @@ libraryDependencies ++= Seq(
   "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.9.0",
   "it.gov.daf" %% "common" % "1.0-SNAPSHOT",
   //"it.gov.daf" %% "daf-catalog-manager-client" % "1.0.0-SNAPSHOT"
-  "it.gov.daf" %% "daf-catalog-manager-client" % "1.0.1-SNAPSHOT"
+  "it.gov.daf" %% "daf-catalog-manager-client" % "1.1-SNAPSHOT"
   )
 
 playScalaCustomTemplateLocation := Some(baseDirectory.value / "templates")

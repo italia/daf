@@ -44,43 +44,90 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala, AutomateHeaderPl
 
 scalaVersion := "2.11.8"
 
-val hadoopExcludes =
-  (moduleId: ModuleID) => moduleId.
-    exclude("org.slf4j", "slf4j-log4j12").
-    exclude("org.slf4j", "slf4j-api")
-
 val sparkExcludes =
   (moduleId: ModuleID) => moduleId.
+    exclude("org.apache.hadoop", "hadoop-client").
+    exclude("org.apache.hadoop", "hadoop-yarn-client").
+    exclude("org.apache.hadoop", "hadoop-yarn-api").
+    exclude("org.apache.hadoop", "hadoop-yarn-common").
+    exclude("org.apache.hadoop", "hadoop-yarn-server-common").
+    exclude("org.apache.hadoop", "hadoop-yarn-server-web-proxy").
+    exclude("org.apache.zookeeper", "zookeeper").
+    exclude("commons-collections", "commons-collections").
+    exclude("commons-beanutils", "commons-beanutils").
+    exclude("org.slf4j", "slf4j-log4j12")
+
+val hbaseExcludes =
+  (moduleID: ModuleID) => moduleID.
+    exclude("org.apache.thrift", "thrift").
+    exclude("org.jruby", "jruby-complete").
     exclude("org.slf4j", "slf4j-log4j12").
+    exclude("org.mortbay.jetty", "jsp-2.1").
+    exclude("org.mortbay.jetty", "jsp-api-2.1").
+    exclude("org.mortbay.jetty", "servlet-api-2.5").
+    exclude("com.sun.jersey", "jersey-core").
+    exclude("com.sun.jersey", "jersey-json").
+    exclude("com.sun.jersey", "jersey-server").
+    exclude("org.mortbay.jetty", "jetty").
+    exclude("org.mortbay.jetty", "jetty-util").
+    exclude("tomcat", "jasper-runtime").
+    exclude("tomcat", "jasper-compiler").
+    exclude("org.jboss.netty", "netty").
+    exclude("io.netty", "netty").
+    exclude("commons-logging", "commons-logging").
+    exclude("org.apache.xmlgraphics", "batik-ext").
+    exclude("commons-collections", "commons-collections").
+    exclude("xom", "xom").
+    exclude("commons-beanutils", "commons-beanutils")
+
+val hadoopExcludes =
+  (moduleId: ModuleID) => moduleId.
     exclude("org.slf4j", "slf4j-api").
-    exclude("org.slf4j", "jcl-over-sl4j").
-    exclude("org.slf4j", "jul-to-sl4j")
+    exclude("org.slf4j", "slf4j-log4j12").
+    exclude("org.mortbay.jetty", "jetty").
+    exclude("org.mortbay.jetty", "jetty-util").
+    exclude("org.mortbay.jetty", "jetty-sslengine").
+    exclude("javax.servlet", "servlet-api")
+
+val hadoopHBaseExcludes =
+  (moduleId: ModuleID) => moduleId.
+    exclude("org.slf4j", "slf4j-log4j12").
+    exclude("javax.servlet", "servlet-api").
+    excludeAll(ExclusionRule(organization = "javax.servlet"))
+
 
 val sparkLibraries = Seq(
   sparkExcludes("org.apache.spark" %% "spark-core" % sparkVersion % Compile),
   sparkExcludes("org.apache.spark" %% "spark-sql" % sparkVersion % Compile),
+  sparkExcludes("org.apache.spark" %% "spark-yarn" % sparkVersion % Compile),
   "com.databricks" %% "spark-avro" % "3.2.0" % Compile
 )
 
 val dbClients = Seq(
   "org.apache.kudu" %% "kudu-spark2" % s"$kuduVersion-$clouderaVersion",
-  hadoopExcludes("org.apache.spark.opentsdb" %% "spark-opentsdb" % sparkOpenTSDBVersion)
+  "org.apache.spark.opentsdb" %% "spark-opentsdb" % sparkOpenTSDBVersion % "compile" exclude("org.slf4j", "slf4j-log4j12"),
+  sparkExcludes("org.apache.spark" %% "spark-streaming" % sparkVersion % Compile)
 )
 
 val hbaseLibraries = Seq(
-  hadoopExcludes("org.apache.hbase" % "hbase-common" % s"$hbaseVersion-$clouderaVersion" % Test),
-  hadoopExcludes("org.apache.hbase" % "hbase-common" % s"$hbaseVersion-$clouderaVersion" % Test classifier "tests" extra "type" -> "test-jar"),
-  hadoopExcludes("org.apache.hbase" % "hbase-server" % s"$hbaseVersion-$clouderaVersion" % Test),
-  hadoopExcludes("org.apache.hbase" % "hbase-server" % s"$hbaseVersion-$clouderaVersion" % Test classifier "tests" extra "type" -> "test-jar"),
- // hadoopExcludes("org.apache.hbase" % "hbase-hadoop-compact" % s"$hbaseVersion-$clouderaVersion" % Test classifier "tests" extra "type" -> "test-jar"),
- // hadoopExcludes("org.apache.hbase" % "hbase-hadoop-compact" % s"$hbaseVersion-$clouderaVersion" % Test),
- // hadoopExcludes("org.apache.hbase" % "hbase-hadoop2-compact" % s"$hbaseVersion-$clouderaVersion" % Test classifier "tests" extra "type" -> "test-jar"),
-  hadoopExcludes("org.apache.hbase" % "hbase-hadoop2-compact" % s"$hbaseVersion-$clouderaVersion" % Test)
+  hbaseExcludes("org.apache.hbase" % "hbase-client" % hbaseVersion % Compile),
+  hbaseExcludes("org.apache.hbase" % "hbase-common" % hbaseVersion % Compile),
+  hbaseExcludes("org.apache.hbase" % "hbase-server" % hbaseVersion % Compile),
+  hadoopHBaseExcludes("org.apache.hbase" % "hbase-common" % hbaseVersion % "test" classifier "tests"),
+  hadoopHBaseExcludes("org.apache.hbase" % "hbase-server" % s"$hbaseVersion-$clouderaVersion" % "test"),
+  //hadoopHBaseExcludes("org.apache.hbase" % "hbase-server" % s"$hbaseVersion-$clouderaVersion" % Test classifier "tests" extra "type" -> "test-jar"),
+  "org.apache.hbase" % "hbase-server" % s"$hbaseVersion-$clouderaVersion" % "test" classifier "tests",
+  hbaseExcludes("org.apache.hbase" % "hbase-hadoop-compat" % s"$hbaseVersion-$clouderaVersion"  % "compile"),
+  hbaseExcludes("org.apache.hbase" % "hbase-hadoop2-compat" % s"$hbaseVersion-$clouderaVersion"  % "compile"),
+  hadoopHBaseExcludes("org.apache.hbase" % "hbase-hadoop-compat" % s"$hbaseVersion-$clouderaVersion" % Test classifier "tests" extra "type" -> "test-jar"),
+  hadoopHBaseExcludes("org.apache.hbase" % "hbase-hadoop-compat" % s"$hbaseVersion-$clouderaVersion" % Test),
+  hadoopHBaseExcludes("org.apache.hbase" % "hbase-hadoop2-compat" % s"$hbaseVersion-$clouderaVersion" % Test classifier "tests" extra "type" -> "test-jar"),
+  hadoopHBaseExcludes("org.apache.hbase" % "hbase-hadoop2-compat" % s"$hbaseVersion-$clouderaVersion" % Test)
 )
 
 val hadoopLibraries = Seq(
   hadoopExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % Compile),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % Test classifier "tests"),
+  hadoopExcludes("org.apache.hadoop" % "hadoop-yarn-server-web-proxy" % hadoopVersion % "compile"),
   hadoopExcludes("org.apache.hadoop" % "hadoop-hdfs" % hadoopVersion % Test classifier "tests"),
   hadoopExcludes("org.apache.hadoop" % "hadoop-hdfs" % hadoopVersion % Test classifier "tests" extra "type" -> "test-jar"),
   hadoopExcludes("org.apache.hadoop" % "hadoop-hdfs" % hadoopVersion % Test extra "type" -> "test-jar"),
@@ -88,7 +135,6 @@ val hadoopLibraries = Seq(
   hadoopExcludes("org.apache.hadoop" % "hadoop-minicluster" % hadoopVersion % Test),
   hadoopExcludes("org.apache.hadoop" % "hadoop-common" % hadoopVersion % Test classifier "tests" extra "type" -> "test-jar"),
   hadoopExcludes("org.apache.hadoop" % "hadoop-mapreduce-client-jobclient" % hadoopVersion % Test classifier "tests"),
-
 
   "com.github.pathikrit" %% "better-files" % betterFilesVersion % Test
 )
@@ -105,10 +151,9 @@ libraryDependencies ++= Seq(
 ) ++ hadoopLibraries ++ sparkLibraries ++ hbaseLibraries ++ dbClients
 
 resolvers ++= Seq(
-  "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos",
+  "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos/",
   "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/",
    Resolver.sonatypeRepo("releases")
-  //"cloudera2" at "https://repository.cloudera.com/content/repositories/releases/"
 )
 
 licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt"))

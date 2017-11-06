@@ -59,7 +59,6 @@ import scala.util.{Failure, Success, Try}
 @Api("physical-dataset")
 class PhysicalDatasetController @Inject()(configuration: Configuration, val playSessionStore: PlaySessionStore) extends Controller {
 
-
   private val defaultLimit = configuration.getInt("max_number_of_rows").getOrElse(throw new Exception("it shouldn't happen"))
 
   private val defaultChunkSize = configuration.getInt("chunk_size").getOrElse(throw new Exception("it shouldn't happen"))
@@ -212,7 +211,6 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
                   }).mkString(",")
                 }]"
                 Ok(doc).as(JSON)
-
 
               case scheme =>
                 throw new NotImplementedError(s"storage scheme: $scheme not supported")

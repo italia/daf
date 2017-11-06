@@ -2,8 +2,9 @@ object Versions {
 
   val hadoopVersion = "2.6.0-cdh5.12.0"
 
-  val sparkVersion = "2.1.0.cloudera1"
-  //val sparkVersion = "2.2.0.cloudera1"
+  val sparkVersion = "2.2.0.cloudera1"
+
+  val openTSDBVersion = "2.3.0"
 
   val playVersion = "2.5.14"
 

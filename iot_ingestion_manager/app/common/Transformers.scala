@@ -98,52 +98,34 @@ object Transformers {
             value <- Try(valueString.toDouble)
           } yield (metric, value)
 
-          metricTry.map {
+          val res = metricTry.map {
             case (m, v) =>
-            val tags = ("source", a.source) :: attributes
+            val tags = ("source", convertString(a.source)) :: attributes
               .getOrElse("tags", ",")
               .split(",").toList
               .flatMap { s =>
                 val strim = s.trim
-                attributes.get(strim).map((convertString(strim), _))
+                attributes.get(strim).map(x => (convertString(strim), convertString(x)))
               }
-            DataPoint[Double](m, a.ts, v, tags.toMap)
+
+              DataPoint[Double](m, a.ts, v, tags.toMap)
+
           }
 
-        case _ => Failure(new RuntimeException("The event instance is not a Metric Event"))
+          //used just for logging scope
+          res recoverWith {
+            case e: Throwable =>
+              alogger.error(s"Exception during the conversion of: $a \n due the following error: ${e.getMessage}")
+              new Failure(e)
+          }
+
+        case _ =>
+
+          Failure(new RuntimeException("The event instance is not a Metric Event"))
       }
 
     }
   }
 
- /* object eventToDatapoint extends transform[Event, DataPoint[Double]] {
-    def apply(a: Event): Try[DataPoint[Double]] = {
-
-      val eventType = EventType(a.event_type_id)
-      eventType match {
-        case EventType.Metric =>
-
-          val metricTry = for {
-            metric <- a.attributes.get("metric").asTry(new RuntimeException("no metric name in attributes field"))
-            valueString <- a.attributes.get("value").asTry(new RuntimeException("no metric value in attributes field"))
-            value <- Try(valueString.toDouble)
-          } yield (metric, value)
-
-          metricTry.map { case (m, v) =>
-            val tags = ("source", a.source) :: a.attributes
-              .getOrElse("tags", ",")
-              .split(",").toList
-              .flatMap { s =>
-                val strim = s.trim
-                a.attributes.get(strim).map((convertString(strim), _))
-              }
-            DataPoint[Double](m, a.ts, v, tags.toMap)
-          }
-
-        case _ => Failure(new RuntimeException("The event instance is not a Metric Event"))
-      }
-
-    }
-  }*/
 
 }

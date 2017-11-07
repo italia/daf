@@ -1,0 +1,23 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+GET         /security-manager/swagger.json controllers.Swagger.swaggerSpec(name="security_manager.yaml")
+
+GET         /                              controllers.Assets.versioned(path="/public/swagger", file: Asset = "index.html")
+
+GET         /index.html                    controllers.Assets.versioned(path="/public/swagger", file: Asset = "index.html")
+
+GET         /o2c.html                      controllers.Assets.versioned(path="/public/swagger", file: Asset = "o2c.html")
+
+GET         /favicon.ico                   controllers.Assets.versioned(path="/public/swagger/images", file: Asset = "favicon.ico")
+
+GET         /api/*file                     controllers.Assets.versioned(path="/public/swagger", file: Asset)
+
+->          /iot-manager/v1                iot_manager.yaml.Routes
+
+### NoDocs ###
+GET         /iot-manager/docs/swagger-ui/*file controllers.Assets.at(path:String="/public/lib/swagger-ui", file:String)
+
+### NoDocs ###
+GET         /iot-manager/*file                 controllers.Assets.versioned(path="/public", file: Asset)

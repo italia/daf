@@ -1,4 +1,6 @@
-resolvers += Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns)
+resolvers +=  Resolver.url("sbt-plugins", url("http://dl.bintray.com/gruggiero/sbt-plugins"))(Resolver.ivyStylePatterns)
+
+//  Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns)
 
 resolvers += "zalando-bintray"  at "https://dl.bintray.com/zalando/maven"
 
@@ -10,7 +12,7 @@ addSbtPlugin("uk.gov.hmrc" % "sbt-git-stamp" % "5.3.0")
 
 addSbtPlugin("com.typesafe.play" % "sbt-plugin"  % "2.5.14")
 
-addSbtPlugin("de.zalando" % "sbt-api-first-hand" % "0.2.3")
+addSbtPlugin("de.zalando" % "sbt-api-first-hand" % "0.2.4-daf")
 
 addSbtPlugin("eu.unicredit" % "sbt-swagger-codegen" % "0.0.10" excludeAll(
   ExclusionRule(organization = "com.fasterxml.jackson.core"),

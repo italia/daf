@@ -1,0 +1,58 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: haproxy-deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: haproxy
+    spec:
+      containers:
+      - name: haproxy
+        image: library/haproxy:1.7
+        imagePullPolicy: Always
+        lifecycle:
+          postStart:
+            exec:
+             command: ["/bin/sh", "-c", "cat /etc/extra_hosts >> /etc/hosts"]
+        ports:
+        - name: admin
+          containerPort: 9090
+        - name: jdbc
+          containerPort: 32000
+        securityContext:
+          privileged: true
+          runAsUser: 0
+        volumeMounts:
+        - name: glusterfsvol
+          mountPath: /usr/local/etc/haproxy/haproxy.cfg
+          subPath: haproxy/conf/haproxy.cfg
+          readOnly: true
+        - name: glusterfsvol
+          mountPath: /opt/docker/conf/daf.keytab
+          subPath: storage-manager/conf/daf.keytab
+          readOnly: true
+        - name: hosts
+          mountPath: /etc/extra_hosts
+        - name: krb5conf
+          mountPath: /etc/krb5.conf
+        - name: hadoopconf
+          mountPath: /etc/hadoop/conf
+          readOnly: true
+      imagePullSecrets:
+      - name: regsecret
+      volumes:
+      - name: glusterfsvol
+        persistentVolumeClaim:
+          claimName: gluster-claim
+      - name: hosts
+        hostPath:
+          path: /etc/hosts
+      - name: krb5conf
+        hostPath:
+          path: /etc/krb5.conf
+      - name: hadoopconf
+        hostPath:
+          path: /etc/hadoop/conf

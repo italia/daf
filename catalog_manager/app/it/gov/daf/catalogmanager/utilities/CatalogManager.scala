@@ -19,116 +19,95 @@ object CatalogManager {
 
 
   // NOT WORKING YET
-  def toWrite(metaCatalog :MetaCatalog, standardMeta :Option[MetaCatalog]) :MetaCatalog = {
+  def toWrite(metaCatalog :MetaCatalog, standardMeta :Option[MetaCatalog]): Option[MetaCatalog] = {
     val msg: String = metaCatalog match {
-      case MetaCatalog(Some(dataSchema), Some(operational), _) =>
+      case MetaCatalog(dataSchema, operational, _) =>
         if(operational.std_schema.isDefined ) {
-          val stdUri = operational.std_schema.get.std_uri.get
-          val res: Try[(Boolean, MetaCatalog)] = Try(writeOrdinaryWithStandard(metaCatalog, standardMeta.get))
-          res match {
-            case Success((true, meta)) =>
-              val random = scala.util.Random
-              val id = random.nextInt(1000).toString
-              val data = Json.obj(id -> Json.toJson(meta))
+          val stdUri = operational.std_schema.get.std_uri
+          val res: Option[MetaCatalog] = writeOrdinaryWithStandard(metaCatalog, standardMeta.get)
+          res.map{catalog =>
+            val random = scala.util.Random
+            val id = random.nextInt(1000).toString
+            val data = Json.obj(id -> Json.toJson(catalog))
+            val msg = "Catalog Added"
+            msg
 
-              val msg = "Catalog Added"
-              msg
-            case _ =>
-              println("Error");
-              val msg = "Error"
-              msg
-          }
+          }.getOrElse("Errore Errore vattacculc")
+
+
         } else {
           val random = scala.util.Random
           val id = random.nextInt(1000).toString
-          val res: Try[(Boolean, MetaCatalog)]= Try(writeOrdinary(metaCatalog))
-          val msg = res match {
-            case Success((true, meta)) =>
-              val random = scala.util.Random
-              val id = random.nextInt(1000).toString
-              val data = Json.obj(id -> Json.toJson(meta))
-             // fw.write(Json.stringify(data) + "\n")
-             // fw.close()
-              val msg = "Catalog Added"
-              msg
-            case _ =>
-              println("Error");
-              val msg = "Error"
-              msg
-          }
-          msg
+          val res: Option[MetaCatalog]= writeOrdinary(metaCatalog)
+          res.map{catalog =>
+            val random = scala.util.Random
+            val id = random.nextInt(1000).toString
+            val data = Json.obj(id -> Json.toJson(catalog))
+            // fw.write(Json.stringify(data) + "\n")
+            // fw.close()
+            val msg = "Catalog Added"
+            msg
+          }.getOrElse("Errore")
         }
     }
-    MetaCatalog(None,None,None)
+
+    None
   }
 
-  def writeOrdinaryWithStandard(metaCatalogOrdinary: MetaCatalog, metaCatalogStandard: MetaCatalog ): (Boolean, MetaCatalog) = {
+  def writeOrdinaryWithStandard(metaCatalogOrdinary: MetaCatalog, metaCatalogStandard: MetaCatalog): Option[MetaCatalog] = {
 
     val checkSchema: Try[Boolean] = CoherenceChecker.checkCoherenceSchemas(metaCatalogOrdinary, metaCatalogStandard)
 
     checkSchema match {
       case Success(value) =>
-        Logger.info(s"Storing schema having url ${metaCatalogOrdinary.operational.get.logical_uri}.")
+        Logger.info(s"Storing schema having url ${metaCatalogOrdinary.operational.logical_uri}.")
 
         val toSave: Try[MetaCatalog] = for {
-          uriDataset <- UriDataset.convertToUriDataset(metaCatalogOrdinary)
+          uriDataset <- Try(UriDataset.convertToUriDataset((metaCatalogOrdinary)))
           logicalUri <- Try(uriDataset.getUri())
           physicalUri <- Try(uriDataset.getUrl())
-          operational <- Try(metaCatalogOrdinary.operational.get.copy(logical_uri = Some(logicalUri), physical_uri = Some(physicalUri)))
-          newSchema <- Try(metaCatalogOrdinary.copy( operational = Some(operational)))
+          operational <- Try(metaCatalogOrdinary.operational.copy(logical_uri = logicalUri, physical_uri = Some(physicalUri)))
+          newSchema <- Try(metaCatalogOrdinary.copy( operational = operational))
         } yield newSchema
 
         toSave match {
           case Success(save) =>
             //savoAsFile(save)
-            (true, save)
+            Some(save)
           case Failure(ex) =>
             println(ex.getMessage)
-            (false, MetaCatalog(None,None,None))
+            None
         }
 
       case Failure(ex)  =>
-        Logger.error(s"Unable to write the schema with uri ${metaCatalogOrdinary.operational.get.logical_uri}. ERROR message: \t ${ex.getMessage} ${ex.getStackTrace.mkString("\n\t")}")
-        (false, MetaCatalog(None,None,None))
+        Logger.error(s"Unable to write the schema with uri ${metaCatalogOrdinary.operational.logical_uri}. ERROR message: \t ${ex.getMessage} ${ex.getStackTrace.mkString("\n\t")}")
+        None
     }
   }
 
-  def writeOrdinary(metaCatalogOrdinary: MetaCatalog) : (Boolean, MetaCatalog) = {
-    val toSave: Try[MetaCatalog] = for {
-      uriDataset <- UriDataset.convertToUriDataset(metaCatalogOrdinary)
-      logicalUri <- Try(uriDataset.getUri())
-      physicalUri <- Try(uriDataset.getUrl())
-      operational <- Try(metaCatalogOrdinary.operational.get.copy(logical_uri = Some(logicalUri), physical_uri = Some(physicalUri)))
-      newSchema <- Try(metaCatalogOrdinary.copy( operational = Some(operational)))
+  def writeOrdinary(metaCatalogOrdinary: MetaCatalog): Option[MetaCatalog] = {
+    val toSave: Option[MetaCatalog] = for {
+      uriDataset <- Option(UriDataset.convertToUriDataset(metaCatalogOrdinary))
+      logicalUri <- Option(uriDataset.getUri())
+      physicalUri <- Option(uriDataset.getUrl())
+      operational <- Option(metaCatalogOrdinary.operational.copy(logical_uri = logicalUri, physical_uri = Some(physicalUri)))
+      newSchema <- Option(metaCatalogOrdinary.copy( operational = operational))
     } yield newSchema
-
-    toSave match {
-      case Success(save) =>
-        //savoAsFile(save)
-        (true, save)
-      case Failure(ex) =>
-        println(ex.getMessage)
-        (false, MetaCatalog(None,None,None))
-  }
+    //savoAsFile(save)
+    toSave
   }
 
-  def writeStandard(metaCatalogOrdinary: MetaCatalog) : (Boolean, MetaCatalog) = {
-    val toSave: Try[MetaCatalog] = for {
-      uriDataset <- UriDataset.convertToUriDataset(metaCatalogOrdinary)
-      logicalUri <- Try(uriDataset.getUri())
-      physicalUri <- Try(uriDataset.getUrl())
-      operational <- Try(metaCatalogOrdinary.operational.get.copy(logical_uri = Some(logicalUri), physical_uri = Some(physicalUri)))
-      newSchema <- Try(metaCatalogOrdinary.copy( operational = Some(operational)))
+  def writeStandard(metaCatalogOrdinary: MetaCatalog) : Option[MetaCatalog] = {
+    val toSave: Option[MetaCatalog] = for {
+      uriDataset <- Option(UriDataset.convertToUriDataset(metaCatalogOrdinary))
+      logicalUri <- Option(uriDataset.getUri())
+      physicalUri <- Option(uriDataset.getUrl())
+      operational <- Option(metaCatalogOrdinary.operational.copy(logical_uri = logicalUri, physical_uri = Some(physicalUri)))
+      newSchema <- Option(metaCatalogOrdinary.copy( operational = operational))
     } yield newSchema
 
-    toSave match {
-      case Success(save) =>
-        //savoAsFile(save)
-        (true, save)
-      case Failure(ex) =>
-        println(ex.getMessage)
-        (false, MetaCatalog(None,None,None))
-    }
+    //savoAsFile(save)
+    toSave
   }
 
 }

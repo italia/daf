@@ -72,6 +72,34 @@ import org.apache.kudu.ColumnSchema
 import org.apache.kudu.client.CreateTableOptions
 import org.apache.kudu.ColumnSchema
 import org.apache.kudu.client.CreateTableOptions
+<<<<<<< HEAD
+=======
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
+import org.apache.spark.opentsdb.DataPoint
+import org.apache.spark.rdd.RDD
+import org.apache.spark.streaming.dstream.DStream
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
+>>>>>>> ee434d22587e61eb5ea2ca39b35ebfd0245c29f6
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -80,7 +108,11 @@ import org.apache.kudu.client.CreateTableOptions
 
 package iot_ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Iot_ingestion_managerYaml
+<<<<<<< HEAD
                                                     
+=======
+                                
+>>>>>>> ee434d22587e61eb5ea2ca39b35ebfd0245c29f6
   @SuppressWarnings(
     Array(
       "org.wartremover.warts.While",
@@ -92,9 +124,9 @@ package iot_ingestion_manager.yaml {
     // ----- End of unmanaged code area for package Iot_ingestion_managerYaml
     class Iot_ingestion_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Iot_ingestion_managerYaml
-                                             val environment: Environment,
-                                             val configuration: Configuration,
-                                             val playSessionStore: PlaySessionStore,
+                                              val environment: Environment,
+                                              val configuration: Configuration,
+                                              val playSessionStore: PlaySessionStore,
         // ----- End of unmanaged code area for injections Iot_ingestion_managerYaml
         val messagesApi: MessagesApi,
         lifecycle: ApplicationLifecycle,
@@ -203,6 +235,24 @@ package iot_ingestion_manager.yaml {
       }
     }
 
+
+
+    private def logFailedStorableEvents(rdd: DStream[StorableEvent], time: org.apache.spark.streaming.Time): Unit = {
+
+      rdd.foreachRDD { rdd =>
+        val subset = rdd.take(10).mkString("\n")
+        val string =s"""Printing a sub-sampling of rdd:
+             ----------------------------------------------
+             Time: $time
+             ----------------------------------------------
+            $subset""".mkString
+
+        logger.error(string)
+      }
+    }
+
+
+
         // ----- End of unmanaged code area for constructor Iot_ingestion_managerYaml
         val start = startAction {  _ =>  
             // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.start
@@ -310,15 +360,17 @@ package iot_ingestion_manager.yaml {
 
                             stream.print(10)
 
-                            val dataPoints = stream.
+                            val storableEvents = stream.
                               applyTransform(eventToStorableEvent). //Transform the avro event to StorableEvent (the event format for Kudu)
                               transform ( //then each stream rdd is stored into kudu, the returned rdd contains only non repeated events (idempotency)
                               source =>
                                 convertDataFrameToRDD[StorableEvent](kuduContext.insertAndReturn(convertRDDtoDataFrame[StorableEvent](source), kuduEventsTableName))
-                            ).
-                              applyTransform(storableEventToDatapoint) //Transform the StorableEvent to DataPoint (for OpenTSDB)
+                            )
 
-                            openTSDBContext.foreach(_.streamWrite(dataPoints))
+                            val datapoints: DStream[Try[DataPoint[Double]]] = storableEvents.map(event => storableEventToDatapoint(event)) //Transform the StorableEvent to DataPoint (for OpenTSDB)
+
+                            val successedDP = datapoints.flatMap(x => x.toOption)
+                            openTSDBContext.foreach(_.streamWrite(successedDP))
 
                             alogger.info("Stream created")
                         }
@@ -374,16 +426,16 @@ package iot_ingestion_manager.yaml {
         val status = statusAction {  _ =>  
             // ----- Start of unmanaged code area for action  Iot_ingestion_managerYaml.status
             synchronized {
-            sparkSession match {
-              case Failure(_) =>
-                Status200("STOPPED")
-              case Success(_) =>
-                if (!stopFlag)
-                  Status200("STARTED")
-                else
-                  Status200("STOPPING")
-            }
-          }
+        sparkSession match {
+          case Failure(_) =>
+            Status200("STOPPED")
+          case Success(_) =>
+            if (!stopFlag)
+              Status200("STARTED")
+            else
+              Status200("STOPPING")
+        }
+      }
             // ----- End of unmanaged code area for action  Iot_ingestion_managerYaml.status
         }
     

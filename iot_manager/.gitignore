@@ -1,0 +1,5 @@
+target
+.idea
+logs
+.swagger-codegen-ignore
+client/project

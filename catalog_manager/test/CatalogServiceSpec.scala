@@ -30,8 +30,8 @@ trait TestEnvironment extends
   //mock[CatalogService]
 
 
-  catalogRepository.getCatalogs("anything") returns MetaCatalog(None,None,None)
-  catalogRepository.listCatalogs() returns Seq(MetaCatalog(None,None,None))
+  catalogRepository.catalog("anything") returns None
+  //catalogRepository.listCatalogs() returns Seq()
 }
 
 
@@ -40,14 +40,15 @@ class CatalogServiceSpec extends Specification with TestEnvironment {
 
   "A CatalogService" should  {
     "catalogService.getCatalogs() return MetaCatalog" in {
-      val catalog :MetaCatalog = catalogService.getCatalogs("anything")
+      val catalog: Option[MetaCatalog] = catalogService.catalog("anything")
       println(catalog)
-      catalog must be equalTo  MetaCatalog(None,None,None)
+      catalog must be equalTo  None
     }
+    /*
     "catalogService.listCatalogs return a list of MetaCatalog" in {
-      val catalog = catalogService.listCatalogs()(0)
-      catalog must be equalTo MetaCatalog(None,None,None)
+      //val catalog = catalogService.listCatalogs
+      //catalog must be equalTo Seq()
     }
-
+*/
   }
 }

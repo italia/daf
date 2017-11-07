@@ -6,7 +6,7 @@ GET         /security-manager/swagger.json controllers.Swagger.swaggerSpec(name=
 
 GET         /security-manager               controllers.Assets.versioned(path="/public/swagger-ui", file: Asset = "index.html")
 
-GET         /                              controllers.Assets.versioned(path="/public/swagger-ui", file: Asset = "index.html")
+#GET         /                              controllers.Assets.versioned(path="/public/swagger-ui", file: Asset = "index.html")
 
 GET         /index.html                    controllers.Assets.versioned(path="/public/swagger-ui", file: Asset = "index.html")
 
@@ -28,6 +28,7 @@ GET         /security-manager/*file         controllers.Assets.versioned(path="/
 # Temporary Ckan API outside swagger file
 GET         /sso-manager/secured/register                               controllers.SSOController.register
 GET         /sso-manager/secured/retriveCookie/:appName                 controllers.SSOController.retriveCookie(appName:String)
+GET         /sso-manager/secured/retriveCachedCookie/:appName           controllers.SSOController.retriveCachedCookie(appName:String)
 GET         /sso-manager/secured/login/:appName                         controllers.SSOController.login(appName:String)
 GET         /sso-manager/secured/test                                   controllers.SSOController.test
 

@@ -50,7 +50,9 @@ object MailService{
     .as(SMTP_LOGIN, SMTP_PWD)
     .startTtls(true)()
 
-  //private val SENDER = "a.cherici@gmail.com"
+
+  private val SENDER = ConfigReader.smtpSender
+
   private val SUBJECT = "Registration to DAF"
   private val CONTENT = "Click on this link to complete registration:\n"
 

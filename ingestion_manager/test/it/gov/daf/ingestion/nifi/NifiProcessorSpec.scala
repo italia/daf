@@ -21,5 +21,7 @@ class NifiProcessorSpec extends FlatSpec with Matchers {
 
     println(metaCatalog)
 
+
+
   }
 }

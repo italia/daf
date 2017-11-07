@@ -13,7 +13,7 @@ name := "daf-ingestion-manager"
 
 Seq(gitStampSettings: _*)
 
-version in ThisBuild := sys.env.get("INGESTION_MANAGER_VERSION").getOrElse("1.0-SNAPSHOT")
+version in ThisBuild := sys.env.getOrElse("INGESTION_MANAGER_VERSION", "1.0-SNAPSHOT")
 
 lazy val client = (project in file("client")).
   settings(Seq(
@@ -59,7 +59,7 @@ libraryDependencies ++= Seq(
   "org.apache.logging.log4j" % "log4j-api" % "2.9.0",
   "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.9.0",
   "it.gov.daf" %% "common" % "1.0-SNAPSHOT",
-  "it.gov.daf" %% "daf-catalog-manager-client" % "1.1.0-SNAPSHOT",
+  "it.gov.daf" %% "daf-catalog-manager-client" % "1.0-SNAPSHOT"
   )
 
 playScalaCustomTemplateLocation := Some(baseDirectory.value / "templates")

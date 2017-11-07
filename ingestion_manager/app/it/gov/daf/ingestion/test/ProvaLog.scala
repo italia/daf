@@ -1,18 +1,8 @@
 package it.gov.daf.ingestion.test
 
-import javax.inject.Inject
-
-import org.slf4j.{Logger, LoggerFactory}
-import play.api.libs.ws._
-import play.api.libs.ws.ahc.AhcWSClient
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import it.gov.daf.ingestion.nifi.NiFiBuilder
 import play.api.libs.ws.ahc.AhcWSClient
-
-import scala.concurrent.Future
-import scala.util.{Failure, Success}
-import scala.concurrent.ExecutionContext.Implicits.global
 
 
 object ProvaLog extends App {

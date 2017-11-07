@@ -9,7 +9,6 @@ object NifiHelper {
 
   /**
    *
-   * @param clientId
    * @param name
    * @param inputDir
    * @param recurseSubdir
@@ -85,7 +84,6 @@ object NifiHelper {
 
   /**
    *
-   * @param clientId
    * @param name
    * @param hostname
    * @param port
@@ -329,12 +327,10 @@ object NifiHelper {
       """.stripMargin
     )
   }
-  //FIXME why 5?
-  def playProcessor(
+  def runProcessor(
     clientId: String,
     componentId: String,
-    componentState: String,
-    version: String = "5"
+    version: String
   ): JsValue = {
     Json.parse(
       s"""
@@ -345,7 +341,7 @@ object NifiHelper {
          |  },
          |  "component": {
          |    "id": "$componentId",
-         |    "state": "$componentState"
+         |    "state": "RUNNING"
          |  }
          |}
       """.stripMargin

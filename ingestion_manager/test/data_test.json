@@ -106,7 +106,6 @@
         "name": "hdfs_daf"
       }
     },
-    "std_schema": null,
     "is_std": false,
     "logical_uri": "daf://dataset/ord/raffaele/raffaele/theme/test_csv",
     "group_own": "raffaele",

@@ -18,7 +18,7 @@ kind: Deployment
 metadata:
   name: security-manager-deployment
 spec:
-  replicas: 3
+  replicas: 1
   template:
     metadata:
       labels:
@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
       - name: security-manager
-        image: 10.98.74.120:5000/daf-security-manager:1.0-SNAPSHOT
+        image: 10.98.74.120:5000/daf-security-manager:${SECURITY_MANAGER_VERSION}
         imagePullPolicy: Always
         lifecycle:
           postStart:

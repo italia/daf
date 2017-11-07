@@ -29,7 +29,7 @@ spec:
     spec:
       containers:
       - name: dataset-manager
-        image: 10.98.74.120:5000/daf-dataset-manager:1.0-SNAPSHOT
+        image: 10.98.74.120:5000/daf-dataset-manager:${DATASET_MANAGER_VERSION}
         imagePullPolicy: Always
         lifecycle:
           postStart:

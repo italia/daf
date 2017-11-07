@@ -1,11 +1,14 @@
 import CommonBuild._
 import Versions._
 import com.typesafe.sbt.packager.docker.Cmd
+import uk.gov.hmrc.gitstamp.GitStampPlugin._
 
 organization in ThisBuild := "it.gov.daf"
 name := "daf-iot-ingestion-manager"
 
-version in ThisBuild := "1.0-SNAPSHOT"
+Seq(gitStampSettings: _*)
+
+version in ThisBuild := sys.env.get("IOT_MANAGER_VERSION").getOrElse("1.0-SNAPSHOT")
 
 scalacOptions ++= Seq(
   "-deprecation",
@@ -179,7 +182,7 @@ libraryDependencies ++= Seq(
   ws,
   "io.swagger" % "swagger-core" % "1.5.8",
   "org.webjars" % "swagger-ui" % swaggerUiVersion,
-  "it.gov.daf" %% "common" % version.value,
+  "it.gov.daf" %% "common" % dafCommonVersion,
   specs2 % Test
 ) ++ applicationLibraries
 

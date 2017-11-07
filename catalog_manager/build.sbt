@@ -1,17 +1,23 @@
 import CommonBuild._
+import Versions._
 import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
 import de.heikoseeberger.sbtheader.license.Apache2_0
 import de.zalando.play.generator.sbt.ApiFirstPlayScalaCodeGenerator.autoImport.playScalaAutogenerateTests
 import play.sbt.routes.RoutesKeys.routesGenerator
 import sbt.Keys.resolvers
+import uk.gov.hmrc.gitstamp.GitStampPlugin._
 
 organization in ThisBuild := "it.gov.daf"
 
 name := "daf-catalog-manager"
 
-version in ThisBuild := "1.0-SNAPSHOT"
+version in ThisBuild := "1.1-SNAPSHOT"
 
 val playVersion = "2.5.14"
+
+Seq(gitStampSettings: _*)
+
+version in ThisBuild := sys.env.get("CATALOG_MANAGER_VERSION").getOrElse("1.0-SNAPSHOT")
 
 lazy val client = (project in file("client")).
   settings(Seq(
@@ -56,10 +62,11 @@ libraryDependencies ++= Seq(
 //
 
 resolvers ++= Seq(
-  "zalando-bintray" at "https://dl.bintray.com/zalando/maven",
+  Resolver.mavenLocal,
+  //"zalando-bintray" at "https://dl.bintray.com/zalando/maven",
   "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
   "jeffmay" at "https://dl.bintray.com/jeffmay/maven",
-  Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns),
+  Resolver.url("sbt-plugins", url("http://dl.bintray.com/gruggiero/sbt-plugins"))(Resolver.ivyStylePatterns),
   Resolver.mavenLocal,
   "lightshed-maven" at "http://dl.bintray.com/content/lightshed/maven",
   "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/"
@@ -114,4 +121,3 @@ playScalaAutogenerateTests := false
 //wartremoverErrors ++= Warts.allBut(Wart.Nothing, Wart.PublicInference, Wart.Any, Wart.Equals)
 
 //wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value / "target" / "scala-2.11" / "routes").toSeq
-

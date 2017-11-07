@@ -6,7 +6,7 @@ GET         /security-manager/swagger.json controllers.Swagger.swaggerSpec(name=
 
 GET         /security-manager               controllers.Assets.versioned(path="/public/swagger-ui", file: Asset = "index.html")
 
-GET         /                              controllers.Assets.versioned(path="/public/swagger-ui", file: Asset = "index.html")
+#GET         /                              controllers.Assets.versioned(path="/public/swagger-ui", file: Asset = "index.html")
 
 GET         /index.html                    controllers.Assets.versioned(path="/public/swagger-ui", file: Asset = "index.html")
 

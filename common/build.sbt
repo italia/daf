@@ -16,9 +16,15 @@
 
 import Versions._
 import sbt.Keys.resolvers
+import uk.gov.hmrc.gitstamp.GitStampPlugin._
 
 organization := "it.gov.daf"
+
 name := "common"
+
+Seq(gitStampSettings: _*)
+
+//version in ThisBuild := sys.env.get("COMMON_VERSION").getOrElse("1.0-SNAPSHOT")
 
 version := "1.0.1-SNAPSHOT"
 

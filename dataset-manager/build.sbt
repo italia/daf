@@ -1,11 +1,14 @@
 import CommonBuild._
 import Versions._
 import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
+import uk.gov.hmrc.gitstamp.GitStampPlugin._
 
 organization in ThisBuild := "it.gov.daf"
 name := "daf-dataset-manager"
 
-version in ThisBuild := "1.0-SNAPSHOT"
+Seq(gitStampSettings: _*)
+
+version in ThisBuild := sys.env.get("DATASET_MANAGER_VERSION").getOrElse("1.0-SNAPSHOT")
 
 scalacOptions ++= Seq(
   "-deprecation",

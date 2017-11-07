@@ -45,6 +45,7 @@ object ClientCaller {
 
 
   def callCatalogManager(auth: String, logicalUri: String): Future[String] = {
+
     implicit val system: ActorSystem = ActorSystem()
     implicit val materializer: ActorMaterializer = ActorMaterializer()
     val client: AhcWSClient = AhcWSClient()
@@ -67,7 +68,5 @@ object ClientCaller {
         .andThen { case _ => system.terminate() }
 
     }
-
-
 
 }

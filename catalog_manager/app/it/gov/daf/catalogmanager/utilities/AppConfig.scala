@@ -38,7 +38,7 @@ object ConfigReader {
   def password :String = config.password.getOrElse("")
   def userName :String = config.userName.getOrElse("")
   def localUrl :String = config.localUrl.getOrElse("http://localhost:9001")
-  def securityManHost :String = config.securityManHost.getOrElse("http://localhost:9002")
+  def securityManHost :String = config.securityManHost.getOrElse("http://localhost:9002/security-manager")
 
   def cookieExpiration:Long = config.cookieExpiration.getOrElse(30L)// 30 min by default
 

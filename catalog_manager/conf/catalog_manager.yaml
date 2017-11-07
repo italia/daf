@@ -27,8 +27,8 @@ info:
   license:
     name: Creative Commons 4.0 International
     url: http://creativecommons.org/licenses/by/4.0/
-host: catalog-manager.default.svc.cluster.local:9000
-#host : localhost:9000
+#host: catalog-manager.default.svc.cluster.local:9000
+host : localhost:9002
 # will be prefixed to all paths
 basePath: /catalog-manager/v1
 # array of all schemes that your API supports
@@ -691,9 +691,333 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  "/voc/themes/getall/":
+    get:
+      summary: Get the list of all DAF themes
+      description: Get the list of all DAF themes
+      tags:
+        - Themes
+      operationId: voc_themesgetall
+      produces:
+        - application/json
+      responses:
+        200:
+          description: A Catalog
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/KeyValue'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/subthemes/getall/":
+    get:
+      summary: Get the list of all DAF subthemes
+      description: Get the list of all DAF subthemes
+      tags:
+        - Subthemes
+      operationId: voc_subthemesgetall
+      produces:
+        - application/json
+      responses:
+        200:
+          description: A Catalog
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/VocKeyValueSubtheme'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/subthemes/getbyid/{themeid}":
+    get:
+      summary: Get the list of all DAF subthemes
+      description: Get the list of all DAF subthemes
+      tags:
+        - Subthemes
+      operationId: voc_subthemesgetbyid
+      parameters:
+        - name: themeid
+          in: path
+          description: DAF Theme Id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        200:
+          description: A Catalog
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/KeyValue'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/themes/dcat2daf/{themeid}":
+    get:
+      summary: Get a DAF Theme associated to a given DCATAPIT theme
+      description: Get a DAF Theme associated to a given DCATAPIT theme
+      tags:
+        - DAF
+        - Theme
+      operationId: voc_dcat2Daftheme
+      parameters:
+        - name: themeid
+          in: path
+          description: DCATAPIT Theme Id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        200:
+          description: List of Themes (id, value)
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/KeyValue'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/subthemes/dcat2daf/{themeid}/{subthemeid}":
+    get:
+      summary: Get a DAF Subtheme associated to a given DCATAPIT theme
+      description: Get a DAF Subtheme associated to a given DCATAPIT theme
+      tags:
+        - DAF
+        - Subtheme
+      operationId: voc_dcat2dafsubtheme
+      parameters:
+        - name: themeid
+          in: path
+          description: DCATAPIT Theme Id
+          required: true
+          type: string
+        - name: subthemeid
+          in: path
+          description: DCATAPIT SubTheme Id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        200:
+          description: List of Themes (id, value)
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/VocKeyValueSubtheme'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/dcatthemes/getall":
+    get:
+      summary: Get DCATAPIT Themes
+      description: Get DCATAPIT Themes
+      tags:
+        - DCATAPIT
+        - Theme
+      operationId: voc_dcatthemegetall
+      produces:
+        - application/json
+      responses:
+        200:
+          description: List of Themes (id, value)
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/KeyValue'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/dcatsubthemes/getall/":
+    get:
+      summary: Get the list of all DCATAPIT subthemes
+      description: Get the list of all DCATAPIT subthemes
+      tags:
+        - Subthemes
+      operationId: voc_dcatsubthemesgetall
+      produces:
+        - application/json
+      responses:
+        200:
+          description: A Catalog
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/VocKeyValueSubtheme'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/dcatsubthemes/getbyid/{themeid}":
+    get:
+      summary: Get the list of all DCATAPIT subthemes
+      description: Get the list of all DCATAPIT subthemes
+      tags:
+        - Subthemes
+      operationId: voc_dcatsubthemesgetbyid
+      parameters:
+        - name: themeid
+          in: path
+          description: DAF Theme Id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        200:
+          description: A Catalog
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/KeyValue'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/dcatthemes/daf2dcat/{themeid}":
+    get:
+      summary: Get a DCATAPIT Theme associated to a given DAF theme
+      description: Get a DCATAPIT Theme associated to a given DAF theme
+      tags:
+        - DCATAPIT
+        - Theme
+      operationId: voc_daf2dcattheme
+      parameters:
+        - name: themeid
+          in: path
+          description: DAF Theme Id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        200:
+          description: List of Themes (id, value)
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/KeyValue'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/dcatsubthemes/daf2dcat/{themeid}/{subthemeid}":
+    get:
+      summary: Get a DCATAPIT Subtheme associated to a given DAF theme
+      description: Get a DCATAPIT Subtheme associated to a given DAF theme
+      tags:
+        - DCATAPIT
+        - Subtheme
+      operationId: voc_daf2dcatsubtheme
+      parameters:
+        - name: themeid
+          in: path
+          description: DAF Theme Id
+          required: true
+          type: string
+        - name: subthemeid
+          in: path
+          description: DAF SubTheme Id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        200:
+          description: List of Themes (id, value)
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/VocKeyValueSubtheme'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
 definitions:
+  KeyValue:
+    type: object
+    required:
+      - key
+      - value
+    description: Generic Key/Value pair object
+    properties:
+      key:
+        type: string
+      value:
+        type: string
+
+  VocKeyValueSubtheme:
+      type: object
+      required:
+        - key
+        - value
+        - keyTheme
+      description: Generic Key/Value pair object
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+        keyTheme:
+          type: string
+        valueTheme:
+          type: string
+
   MetaCatalog:
     type: object
+    required:
+      - dataschema
+      - operational
+      - dcatapit
     properties:
       dataschema:
         type: object
@@ -709,6 +1033,9 @@ definitions:
         $ref: '#/definitions/Dataset'
   DatasetCatalog:
      type: object
+     required:
+      - avro
+      - flatschema
      properties:
       avro:
         $ref: '#/definitions/Avro'
@@ -731,7 +1058,7 @@ definitions:
         name:
           type: string
           description: Name of the dataset
-        alliases:
+        aliases:
           type: string
           description: Alises for dataset
         #alliases:
@@ -743,28 +1070,33 @@ definitions:
           items:
             $ref: '#/definitions/Field'
   Field:
-      required:
-        - name
-        - type
-       # - metadata
-      properties:
-        name:
-          type: string
-          description: Name of the field
-        type:
-         # $ref: '#/definitions/ActionAnyContent'
-          type: string
-          description: It can be a json object for complex type, or an array of string for primitive types (the latter may contains null in case the field can be nullable)
+    required:
+      - name
+      - type
+     # - metadata
+    properties:
+      name:
+        type: string
+        description: Name of the field
+      type:
+       # $ref: '#/definitions/ActionAnyContent'
+        type: string
+        description: It can be a json object for complex type, or an array of string for primitive types (the latter may contains null in case the field can be nullable)
   FlatSchema:
-      properties:
-        name:
-          type: string
-        type:
-          type: string
-        metadata:
-          $ref: '#/definitions/Metadata'
-          description: JSON object containing metadata information for the field
+    type: object
+    required:
+      - name
+      - type
+    properties:
+      name:
+        type: string
+      type:
+        type: string
+      metadata:
+        $ref: '#/definitions/Metadata'
+        description: JSON object containing metadata information for the field
   Metadata:
+    required:
     type: object
     #  - metadata_format
     #  - required
@@ -776,13 +1108,12 @@ definitions:
      #   type: string
       desc:
         type: string
-      #name:
-      #  type: string
       field_type:
         type: string
       #desc_lang:
       #  $ref: '#/definitions/Lang'
       cat:
+        description: Main tag in the tag list
         type: string
       tag:
        # type: array
@@ -801,12 +1132,14 @@ definitions:
   Lang:
     type: object
     properties:
-          eng:
-            type: string
-          ita:
-            type: string
+      eng:
+        type: string
+      ita:
+        type: string
   Semantic:
     type: object
+    required:
+      - id
     properties:
       id:
         type: string
@@ -840,14 +1173,29 @@ definitions:
    #     description: Uri of the simple predicate
   Operational:
     required:
+      - logical_uri
+      - is_std
+      - group_own
+      - read_type
+      - input_src
+      - dataset_type
+      - theme
+      - subtheme
     properties:
       #id:
       #  type: integer
       #  format: int32
+      theme:
+        type: string
+        description: DAF Theme for the dataset
+      subtheme:
+        type: string
+        description: DAF SubTheme for the dataset
       logical_uri:
         type: string
         description: Unique resource identifier of the dataset. It is calculated automatically and assigned once for all
       physical_uri:
+      #Not shure we should have this info here. This should be built programmatically
         type: string
         description: Physical uri. Physical storage path
       is_std:
@@ -856,27 +1204,260 @@ definitions:
       group_own:
         type: string
         description: Group of ownership to which the dataset belongs. It is set to 'open' by default.
+      group_access:
+        type: array
+        description: Groups that have rights to access the datasets. It contains the name and the role associated to the group
+        items:
+          $ref: '#/definitions/GroupAccess'
       std_schema:
+        type: object
+        description:
         $ref: '#/definitions/StdSchema'
       read_type:
+        description: It tells whether the dataset is an append of snapshot ('last_update') or a time series ('time_series') and tells the program how to return the data.
         type: string
       georef:
         type: array
         items:
-         $ref: '#/definitions/GeoRef'
+          $ref: '#/definitions/GeoRef'
       input_src:
+        description: Input sources for data to be ingested into the dataset.
         $ref: '#/definitions/InputSrc'
+      ingestion_pipeline:
+        type: array
+        description: List of ingestion pipeline to be applied, in order of declaration, to the data to be ingested.
+        items:
+          type: string
+      storage_info:
+        description: Information on the storage to be used to save the dataset.
+        type: object
+        $ref: '#/definitions/StorageInfo'
+      dataset_type:
+        type: string
+        description: It tells whether the dataset is at rest ('batch') or realtime stream ('stream') and, orthogonally, if it is of type 'opendata' (from  national catalogue), in which case it will have a prefix '_opendata'.
+
+  GroupAccess:
+    type: object
+    description: Type associated with group_access
+    required:
+      - name
+      - role
+    properties:
+      name:
+        type: string
+      role:
+        type: string
   InputSrc:
     type: object
     properties:
-      ing_type:
+      sftp:
+        type: array
+        description: SFTP object that specifies info to access data stored in SFTP source. This is the dafault entrypoint for batch data.
+        items:
+          $ref: '#/definitions/SourceSftp'
+      srv_pull:
+        type: array
+        items:
+          $ref: '#/definitions/SourceSrvPull'
+      srv_push:
+        type: array
+        items:
+          $ref: '#/definitions/SourceSrvPush'
+      daf_dataset:
+        type: array
+        items:
+          $ref: '#/definitions/SourceDafDataset'
+  SourceSftp:
+    type: object
+    description: Info for the ingestion source of type SFTP
+    required:
+      - name
+    properties:
+      name:
         type: string
-      src_type:
-        type: string
+        description: Name of the SFTP. Default will be 'sftp_daf' for the standard sftp
       url:
         type: string
+        description: Url of the sftp. It will be None if the sftp name is 'sftp_daf' that will automatically point to the standard sftp
+      username:
+        type: string
+        description: Username to use to access the SFTP. It will be None if the sftp name is 'sftp_daf'
+      password:
+        type: string
+        description: Password to use to access the SFTP. It will be None if the sftp name is 'sftp_daf'
+      param:
+        type: string
+        description: Other parameters to be passed in JSON format. It will be None by default.
+  SourceSrvPull:
+    type: object
+    description: Info for the ingestion source of type pulling a service, that is we make a call to the specified url
+    required:
+      - name
+      - url
+    properties:
+      name:
+        type: string
+        description: Name of the service to pull
+      url:
+        type: string
+        description: Url of the service to pull.
+      username:
+        type: string
+        description: Username to use to access the service.
+      password:
+        type: string
+        description: Password to use to access the service.
+      access_token:
+        type: string
+        description: Auth token to be passed to the service called.
+      param:
+        type: string
+        description: Other parameters to be passed in JSON format. It will be None by default.
+  SourceSrvPush:
+    type: object
+    description: Info for the ingestion source of type pushing a service, that is we expose a service that is continuously listening
+    required:
+      - name
+      - url
+    properties:
+      name:
+        type: string
+        description: Name of the service to push
+      url:
+        type: string
+        description: Url of the service to push.
+      username:
+        type: string
+        description: Username to use to access the service.
+      password:
+        type: string
+        description: Password to use to access the SFTP.
+      access_token:
+        type: string
+        description: Auth token to be passed to the service called.
+      param:
+        type: string
+        description: Other parameters to be passed in JSON format. It will be None by default.
+  SourceDafDataset:
+    type: object
+    description: It contains info to build the dataset based on already existing dataset in DAF.
+    required:
+      - dataset_uri
+    properties:
+      dataset_uri:
+        type: array
+        items:
+          type: string
+        description: List of uri of datasets to be used for the derived dataset.
+      sql:
+        type: string
+        description: Sql statement to create the derived dataset based on the ones indicated in 'dataset_uri'.
+      param:
+        type: string
+        description: Other parameters to be passed in JSON format. It will be None by default.
+  StorageInfo:
+    type: object
+    properties:
+      hdfs:
+        type: object
+        description: StorageHdfs object that contains info for the HDFS storage.
+        $ref: '#/definitions/StorageHdfs'
+      kudu:
+        type: object
+        description: StorageKudu objects info for the Kudu storage.
+        $ref: '#/definitions/StorageKudu'
+      hbase:
+        type: object
+        description: StorageHbase objects info for the Hbase storage.
+        $ref: '#/definitions/StorageHbase'
+      textdb:
+        type: object
+        description: SourceTextdb
+        $ref: '#/definitions/StorageTextdb'
+      mongo:
+        type: object
+        description: MongoDB storage
+        $ref: '#/definitions/StorageMongo'
+  StorageHdfs:
+    type: object
+    description: If compiled, will tell the ingestion manager to store the data into HDFS.
+    required:
+      - name
+    properties:
+      name:
+        type: string
+        description: It is the name of the HDFS storage configuration to use. It is 'hdfs_daf' by default, with which will follow the DAF path convention.
+      path:
+        type: string
+        description: It is the hdfs path where data will be stored. It is None if the default 'hdfs_daf' is used.
+      param:
+        type: string
+        description: Other parameters to be passed in JSON format. It will be None by default.
+  StorageKudu:
+    type: object
+    description: If compiled, will tell the ingestion manager to store the data into Kudu.
+    required:
+      - name
+    properties:
+      name:
+        type: string
+        description: It is the name of the Kudu storage configuration to use. It is 'kudu_daf' by default, with which will follow the DAF convention.
+      path:
+        type: string
+        description: It is the Kudu path where data will be stored. It is None if the default 'kudu_daf' is used.
+      param:
+        type: string
+        description: Other parameters to be passed in JSON format. It will be None by default.
+  StorageHbase:
+    type: object
+    description: If compiled, will tell the ingestion manager to store the data into Hbase.
+    required:
+      - name
+    properties:
+      name:
+        type: string
+        description: It is the name of the Kudu storage configuration to use. It is 'hbase_daf' by default, with which will follow the DAF convention.
+      path:
+        type: string
+        description: It is the Hbase path where data will be stored. It is None if the default 'hbase_daf' is used.
+      param:
+        type: string
+        description: Other parameters to be passed in JSON format. It will be None by default.
+  StorageTextdb:
+    type: object
+    description: If compiled, will tell the ingestion manager to store the data into Textdb.
+    required:
+      - name
+    properties:
+      name:
+        type: string
+        description: It is the name of the Textdb storage configuration to use. It is 'textdb_daf' by default, with which will follow the DAF convention.
+      path:
+        type: string
+        description: It is the Kudu path where data will be stored. It is None if the default 'textdb_daf' is used.
+      param:
+        type: string
+        description: Other parameters to be passed in JSON format. It will be None by default.
+  StorageMongo:
+    type: object
+    description: If compiled, will tell the ingestion manager to store the data into Kudu.
+    required:
+      - name
+    properties:
+      name:
+        type: string
+        description: It is the name of the MongoDB storage configuration to use. It is 'mongo_daf' by default, with which will follow the DAF convention.
+      path:
+        type: string
+        description: It is the MongoDB path where data will be stored. It is None if the default 'mongo_daf' is used.
+      param:
+        type: string
+        description: Other parameters to be passed in JSON format. It will be None by default.
   GeoRef:
     type: object
+    required:
+      - lat
+      - lon
     properties:
       lat:
         type: number
@@ -885,39 +1466,24 @@ definitions:
         type: number
         format: double
   StdSchema:
-   type: object
-   properties:
-    std_uri:
-      type: string
-    fields_conv:
-      type: array
-      items:
-        $ref: '#/definitions/ConversionField'
-  InputType:
-      type: object
-      properties:
-        ingestion_type:
-          type: string
-          #enum: ["push", "pull"]
-          description: It takes two values pull or push
-        origin:
-          type: string
-        src_type:
-          type: string
-          description: The format of the input resource
-        url:
-          type: string
-          description: Where the data input for the ingestion is located
-        frequency:
-          type: string
-          description: Frequency at which the update procedure needs to be updated
-        table:
-          type: string
+    type: object
+    required:
+      - std_uri
+      - fields_conv
+    properties:
+      std_uri:
+        type: string
+      fields_conv:
+        type: array
+        items:
+          $ref: '#/definitions/ConversionField'
   ConversionSchema:
     type: object
+    required:
+      - fields_conv
     properties:
       fields_conv:
-        description: Array containing the conversion from the incoming schema to the vip standard one
+        description: Array containing the conversion from the incoming schema to the standard one
         type: array
         items:
           $ref: '#/definitions/ConversionField'
@@ -947,6 +1513,9 @@ definitions:
         type: string
         description: Field name of the custom field
   Error:
+    type: object
+    required:
+      - message
     properties:
       code:
         type: integer
@@ -957,65 +1526,12 @@ definitions:
         type: string
   Success:
     type: object
+    required:
+      - message
     properties:
       message:
         type: string
       fields:
-        type: string
-  DcatApIt:
-    type: object
-    #required:
-    # - dct_theme
-    # - dct_rightsHolder
-    properties:
-      dct_identifier:
-        type: string
-      dct_title:
-        $ref: '#/definitions/DcatApItLang'
-      dct_description:
-        $ref: '#/definitions/DcatApItLang'
-      dct_theme:
-        $ref: '#/definitions/DcatApItTypeLang'
-      dct_rightsHolder:
-         $ref: '#/definitions/DcatApItTypeLang'
-      dct_accrualPeriodicity:
-        $ref: '#/definitions/DcatApItTypeLang'
-      dct_subject:
-        type: array
-        items:
-          $ref: '#/definitions/DcatApItTypeLang'
-      dct_language:
-        $ref: '#/definitions/DcatApItType'
-      dcat_keyword:
-        type: array
-        items:
-          type: string
-      dcat_spatial:
-        type: string
-      dcat_landingPage:
-        type: string
-  DcatApItLang:
-    type: object
-    properties:
-      it:
-        type: string
-      value:
-        type: string
-  DcatApItType:
-    type: object
-    properties:
-      id:
-        type: string
-      value:
-        type: string
-  DcatApItTypeLang:
-    type: object
-    properties:
-      id:
-        type: string
-      value:
-        type: string
-      it:
         type: string
   Dataset:
     #type: Object

@@ -37,9 +37,8 @@ class CatalogRepositoryMongo extends  CatalogRepository{
     //val mongoClient = MongoClient(mongoHost, mongoPort)
     val db = mongoClient(source)
     val coll = db("catalog_test")
-    page.getOrElse(1)
     val results = coll.find()
-        .skip(page.getOrElse(1))
+        .skip(page.getOrElse(0))
         .limit(limit.getOrElse(200))
         .toList
     mongoClient.close
@@ -51,31 +50,31 @@ class CatalogRepositoryMongo extends  CatalogRepository{
       case e: JsError => Seq()
     }
     metaCatalog
-   // Seq(MetaCatalog(None,None,None))
+    // Seq(MetaCatalog(None,None,None))
   }
 
 
-  def getCatalogs(logicalUri :String) :MetaCatalog = {
+  def catalog(logicalUri :String): Option[MetaCatalog] = {
     //val objectId : ObjectId = new ObjectId(catalogId)
     val query = MongoDBObject("operational.logical_uri" -> logicalUri)
-   // val mongoClient = MongoClient(mongoHost, mongoPort)
+    // val mongoClient = MongoClient(mongoHost, mongoPort)
     val mongoClient = MongoClient(server, List(credentials))
     val db = mongoClient(source)
     val coll = db("catalog_test")
     val result = coll.findOne(query)
     mongoClient.close
-    val metaCatalog: MetaCatalog = result match {
+    val metaCatalog: Option[MetaCatalog] = result match {
       case Some(x) => {
         val jsonString = com.mongodb.util.JSON.serialize(x)
         val json = Json.parse(jsonString) //.as[List[JsObject]]
         val metaCatalogJs = json.validate[MetaCatalog]
         val metaCatalog = metaCatalogJs match {
-          case s: JsSuccess[MetaCatalog] => s.get
-          case _: JsError => MetaCatalog(None,None,None)
+          case s: JsSuccess[MetaCatalog] => Some(s.get)
+          case _: JsError => None
         }
         metaCatalog
       }
-      case None => MetaCatalog(None,None,None)
+      case _ => None
     }
     metaCatalog
   }
@@ -89,53 +88,52 @@ class CatalogRepositoryMongo extends  CatalogRepository{
     val db = mongoClient(source)
     val coll = db("catalog_test")
 
-    // After Test refactor TODO
-    val dcatapit: Dataset = metaCatalog.dcatapit.get
+    val dcatapit: Dataset = metaCatalog.dcatapit
     val datasetJs : JsValue = ResponseWrites.DatasetWrites.writes(dcatapit)
 
     val result: Future[String] = CkanRegistry.ckanRepository.createDataset(datasetJs,callingUserid)
 
-    val msg: String = metaCatalog match {
-      case MetaCatalog(Some(dataSchema), Some(operational), _) =>
-        if(operational.std_schema.get.std_uri.isDefined ) {
-          val stdUri = operational.std_schema.get.std_uri.get
-          val res: Try[(Boolean, MetaCatalog)] = Try(getCatalogs(stdUri))
-            .map(CatalogManager.writeOrdinaryWithStandard(metaCatalog, _))
-          res match {
-            case scala.util.Success((true, meta)) =>
-              val json: JsValue = MetaCatalogWrites.writes(meta)
-              val obj = com.mongodb.util.JSON.parse(json.toString()).asInstanceOf[DBObject]
-              val inserted = coll.insert(obj)
-              mongoClient.close()
-              val msg = meta.operational.get.logical_uri.get
-              msg
-            case _ =>
-              println("Error");
-              val msg = "Error"
-              msg
-          }
-        } else {
-          val random = scala.util.Random
-          val id = random.nextInt(1000).toString
-          val res: Try[(Boolean, MetaCatalog)]= Try(CatalogManager.writeOrdinary(metaCatalog))
-          val msg = res match {
-            case scala.util.Success((true, meta)) =>
-              val json: JsValue = MetaCatalogWrites.writes(meta)
-              val obj = com.mongodb.util.JSON.parse(json.toString()).asInstanceOf[DBObject]
-              val inserted = coll.insert(obj)
-              val msg = meta.operational.get.logical_uri.get
-              msg
-            case _ =>
-              println("Error");
-              val msg = "Error"
-              msg
-          }
+    val msg = if(metaCatalog.operational.std_schema.isDefined) {
+      val stdUri = metaCatalog.operational.std_schema.get.std_uri
+      //TODO Review logic
+      val stdCatalot: MetaCatalog = catalog(stdUri).get
+      val res: Option[MetaCatalog] = CatalogManager.writeOrdinaryWithStandard(metaCatalog, stdCatalot)
+
+      val message = res match {
+        case Some(meta) =>
+          val json: JsValue = MetaCatalogWrites.writes(meta)
+          val obj = com.mongodb.util.JSON.parse(json.toString()).asInstanceOf[DBObject]
+          val inserted = coll.insert(obj)
+          mongoClient.close()
+          val msg = meta.operational.logical_uri
           msg
-        }
-      case _ => println(""); val msg = "Error"; msg
+        case _ =>
+          println("Error");
+          val msg = "Error"
+          msg
+      }
+      message
+    } else {
+      val random = scala.util.Random
+      val id = random.nextInt(1000).toString
+      val res: Option[MetaCatalog]= (CatalogManager.writeOrdinary(metaCatalog))
+      val message = res match {
+        case Some(meta) =>
+          val json: JsValue = MetaCatalogWrites.writes(meta)
+          val obj = com.mongodb.util.JSON.parse(json.toString()).asInstanceOf[DBObject]
+          val inserted = coll.insert(obj)
+          val msg = meta.operational.logical_uri
+          msg
+        case _ =>
+          println("Error");
+          val msg = "Error"
+          msg
+      }
+      message
     }
 
-    Success(Some(msg),Some(msg))
+    //Success(Option("ciao"),Some("ciao"))
+    Success(msg, Some(msg))
   }
 
 

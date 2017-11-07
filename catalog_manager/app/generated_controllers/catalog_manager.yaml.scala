@@ -26,10 +26,8 @@ import scala.concurrent.Future
 import it.gov.daf.common.authentication.Authentication
 import org.pac4j.play.store.PlaySessionStore
 import play.api.Configuration
-
 import it.gov.daf.common.utils.WebServiceUtil
 import it.gov.daf.catalogmanager.service.VocServiceRegistry
-
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -38,7 +36,7 @@ import it.gov.daf.catalogmanager.service.VocServiceRegistry
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-
+    
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml

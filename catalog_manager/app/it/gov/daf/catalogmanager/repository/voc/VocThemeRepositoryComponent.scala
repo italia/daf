@@ -26,6 +26,6 @@ trait VocThemeRepositoryComponent {
 object VocThemeRepository{
   def apply(config: String): VocThemeRepository = config match {
     case "dev" => new VocThemeRepositoryFile
-    //case "prod" => new VocRepositoryMongo
+    case "prod" => new VocThemeRepositoryFile
   }
 }

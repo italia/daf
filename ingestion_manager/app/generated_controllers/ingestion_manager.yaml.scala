@@ -31,7 +31,7 @@ import scala.concurrent.Future
 
 package ingestion_manager.yaml {
 
-  import io.swagger.config.ConfigFactory
+  import com.typesafe.config.Config
   import it.gov.daf.ingestion.nifi.NifiProcessor
   import it.gov.daf.ingestion.nifi.NifiProcessor.NiFiProcessStatus
   // ----- Start of unmanaged code area for package Ingestion_managerYaml
@@ -56,7 +56,7 @@ package ingestion_manager.yaml {
     val addNewDataset = addNewDatasetAction { (ds_logical_uri: String) =>
       // ----- Start of unmanaged code area for action  Ingestion_managerYaml.addNewDataset
       //FIXME take out these resources and close them
-      implicit val config = com.typesafe.config.ConfigFactory.load()
+      implicit val config: Config = com.typesafe.config.ConfigFactory.load()
       implicit val system: ActorSystem = ActorSystem()
       implicit val materializer: ActorMaterializer = ActorMaterializer()
       implicit val wsClient: AhcWSClient = AhcWSClient()

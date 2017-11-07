@@ -1,0 +1,148 @@
+# Copyright 2017 TEAM PER LA TRASFORMAZIONE DIGITALE
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Questo e' la descrizione delle API all'interno del DAF
+# Le API sono pubbliche
+
+swagger: '2.0'
+info:
+  title: Ingestion Manager API
+  description: Catalog Manager API
+  version: "BETA"
+  termsOfService: http://termofservice
+  contact:
+    name: team digitale
+    url: https://teamdigitale.governo.it
+  license:
+    name: Creative Commons 4.0 International
+    url: http://creativecommons.org/licenses/by/4.0/
+host : localhost:9001
+# will be prefixed to all paths
+basePath: /ingestion-manager/v1
+# array of all schemes that your API supports
+schemes:
+  - http
+produces:
+  - application/json
+paths:
+  "/test":
+    get:
+      summary: Ingestion Catalog
+      description: |
+        Test Ingestion
+      tags:
+        - Test Ingestion
+      operationId: testingestion
+      responses:
+        200:
+          description: Successfull
+          schema:
+            $ref: '#/definitions/Successfull'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/add-newdataset/{uri}":
+    get:
+      summary: Start the ingestion of a new dataset
+      description: Setup the ingestion procedures for a new dataset. It will call NiFi to set up a new pipeline
+      operationId: addNewDataset
+      parameters:
+        - name: uri
+          in: path
+          description: uri (unique identifier) of the dataset, that has been already created from the Catalog Manager
+          required: true
+          type: string
+      responses:
+        200:
+          description: A JSON Object that returns the result of the ingestion setup of a new dataset.
+          schema:
+            type: string
+        default:
+            description: Unexpected error
+            type: string
+          #schema:
+            #type: string
+            #$ref: '#/definitions/IngestionReport'
+  "/add-datasets/{uri}":
+     post:
+       tags:
+       - Ingestion
+       summary: Add dataset, as append
+       operationId: addDataset
+       consumes:
+          - multipart/form-data
+       parameters:
+       - in: formData
+         name: upfile
+         type: file
+         required: true
+         description: The file to upload
+       - name: uri
+         in: path
+         description: uri of the dataset into the catalog manager
+         required: true
+         type: string
+       responses:
+         200:
+           description: successful operation
+           schema:
+             $ref: '#/definitions/Successfull'
+         default:
+           description: Unexpected error
+           schema:
+             $ref: '#/definitions/Error'
+  "/add-newdataset/{uri}":
+    get:
+      summary: Start the ingestion of a new dataset
+      description: Setup the ingestion procedures for a new dataset. It will call NiFi to set up a new pipeline
+      operationId: addNewDataset
+      parameters:
+        - name: uri
+          in: path
+          description: uri (unique identifier) of the dataset, that has been already created from the Catalog Manager
+          required: true
+          type: string
+      responses:
+        200:
+          description: A JSON Object that returns the result of the ingestion setup of a new dataset.
+          schema:
+            type: string
+        default:
+            description: Unexpected error
+            type: string
+definitions:
+  Error:
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+      fields:
+        type: string
+  Successfull:
+    type: object
+    properties:
+      message:
+        type: string
+  IngestionReport:
+    type: object
+    properties:
+      status:
+        type: string
+        description: The status of the ingestion operation
+      message:
+        type: string
+        description: The message information describing the ingestion operation performed

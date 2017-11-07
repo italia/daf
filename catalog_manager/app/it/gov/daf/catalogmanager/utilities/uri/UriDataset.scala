@@ -13,12 +13,13 @@ case class UriDataset(
                        groupOwn: String = "NO_groupOwn",
                        owner: String = "NO_owner",
                        theme: String = "NO_theme",
+                       subtheme :String = "NO_theme",
                        nameDs: String = "NO_nameDs") {
 
   val config = ConfigFactory.load()
 
   def getUri(): String = {
-    domain + "://" + "dataset/" + typeDs + "/" + groupOwn + "/" + owner + "/" + theme + "/" + nameDs
+    domain + "://" + "dataset/" + typeDs + "/" + groupOwn + "/" + owner + "/" + theme + "/" + subtheme + "/" + nameDs
   }
 
 
@@ -27,9 +28,9 @@ case class UriDataset(
     val basePath = config.getString("Inj-properties.hdfsBasePath")
     val baseDataPath = config.getString("Inj-properties.dataBasePath")
     typeDs match {
-      case DatasetType.STANDARD => basePath + baseDataPath + "/" + typeDs + "/" + theme + "/" + groupOwn + "/" + nameDs
-      case DatasetType.ORDINARY => basePath + baseDataPath + "/" + typeDs + "/" + owner + "/" + theme + "/" + groupOwn + "/" + nameDs
-      case DatasetType.RAW => basePath + baseDataPath + "/" + typeDs + "/" + owner + "/" + theme + "/" + groupOwn + "/" + nameDs
+      case DatasetType.STANDARD => basePath + baseDataPath + "/" + typeDs + "/" + theme + "/" + subtheme + "/" + groupOwn + "/" + nameDs
+      case DatasetType.ORDINARY => basePath + baseDataPath + "/" + typeDs + "/" + owner + "/" + theme + "/" + subtheme + "/" + groupOwn + "/" + nameDs
+      case DatasetType.RAW => basePath + baseDataPath + "/" + typeDs + "/" + owner + "/" + theme + "/" + subtheme + "/" + groupOwn + "/" + nameDs
       case _ => "-1"
     }
   }
@@ -47,7 +48,8 @@ object UriDataset  {
         groupOwn = uriParts(2),
         owner = uriParts(3),
         theme = uriParts(4),
-        nameDs = uriParts(5))
+        subtheme = uriParts(5),
+        nameDs = uriParts(6))
     } match {
       case Success(s) => s
       case Failure(err) =>
@@ -57,22 +59,22 @@ object UriDataset  {
 
   }
 
-  def convertToUriDataset(optionalSchema :MetaCatalog) = Try {
-    (optionalSchema.operational, optionalSchema.dcatapit) match {
-      case (Some(operational), Some(dcatapit)) =>
-        val typeDs = if (operational.is_std.get)
-          DatasetType.STANDARD
-        else
-          DatasetType.ORDINARY
-        new UriDataset(
-          domain = "daf",
-          typeDs = typeDs,
-          groupOwn = operational.group_own.getOrElse("ERROR"),
-          owner = dcatapit.owner_org.getOrElse(throw new Exception("no theme")), //.value.get,
-          theme  = dcatapit.theme.getOrElse(throw new Exception("no theme")), //.value.get,
-          nameDs = optionalSchema.dataschema.get.avro.get.name
-        )
-    }
+  def convertToUriDataset(schema: MetaCatalog): UriDataset =  {
+
+      val typeDs = if (schema.operational.is_std)
+        DatasetType.STANDARD
+      else
+        DatasetType.ORDINARY
+      new UriDataset(
+        domain = "daf",
+        typeDs = typeDs,
+        groupOwn = schema.operational.group_own,
+        owner = schema.dcatapit.owner_org.get,
+        theme  = schema.operational.theme,
+        subtheme = schema.operational.subtheme,
+        nameDs = schema.dataschema.avro.name
+      )
+
   }
 
 }

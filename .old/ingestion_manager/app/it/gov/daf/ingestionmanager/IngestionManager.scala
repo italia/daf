@@ -80,6 +80,8 @@ class IngestionManager {
 
 
   def write(schema: MetaCatalog, file: File, sep: String = ",", isHeaderDefined: Boolean = true): Try[Boolean] =  Try{
+  /*
+
 
     val dbAvroSchema = schema.dataschema.flatMap(_.avro)
     val isStd_implementSchema = schema.operational.map(x => (x.is_std.getOrElse(false), x.std_schema.isDefined))
@@ -89,8 +91,6 @@ class IngestionManager {
       rh <- dct.holder_name
     //  r <- rh
     } yield rh
-
-
 
     implicit val formats = DefaultFormats
 
@@ -115,5 +115,7 @@ class IngestionManager {
         Logger.error(s"Dataset reading failed due a Conversion Exception ${ex.getMessage} \n${ex.getStackTrace.mkString("\n\t")}")
         false
     }
+    */
+    true
   }
 }

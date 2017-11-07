@@ -35,11 +35,7 @@ import it.gov.daf.common.utils.WebServiceUtil
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-    <<<<<<< HEAD
-    
-=======
-                                                                    
->>>>>>> ee434d22587e61eb5ea2ca39b35ebfd0245c29f6
+
 
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (

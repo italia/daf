@@ -16,7 +16,7 @@
 
 import java.io.IOException
 import java.net.ServerSocket
-
+import ServiceSpec.confPath
 import net.opentsdb.core.TSDB
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.{HBaseConfiguration, HBaseTestingUtility, TableName}
@@ -36,22 +36,35 @@ import org.apache.hadoop.hdfs.MiniDFSCluster
 import org.apache.hadoop.test.PathUtils
 import play.api.libs.ws.{WSAuthScheme, WSResponse}
 import better.files._
+import org.omg.CORBA.TIMEOUT
+import play.Logger
+
 import scala.collection.convert.decorateAsScala._
 import scala.collection.convert.decorateAsJava._
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import scala.util.{Failure, Try}
+import scala.util.{Failure, Success, Try}
 
-@SuppressWarnings(Array("org.wartremover.warts.Var", "org.wartremover.warts.Null"))
-class OpentsdbSpec extends Specification with BeforeAfterAll{
+@SuppressWarnings(
+  Array(
+    "org.wartremover.warts.NonUnitStatements",
+    "org.wartremover.warts.Throw",
+    "org.wartremover.warts.Null",
+    "org.wartremover.warts.Var",
+    "org.wartremover.warts.AsInstanceOf",
+    "org.wartremover.warts.TraversableOps",
+    "org.wartremover.warts.StringPlusAny",
+    "org.wartremover.warts.While"
+  )
+)class OpentsdbSpec extends Specification with BeforeAfterAll{
 
   import OpentsdbSpec._
 
-  private val hbaseUtil = new HBaseTestingUtility()
+  var hbaseUtil: HBaseTestingUtility = new HBaseTestingUtility()
 
-  var openTSDBContext: OpenTSDBContext = _
+  //var openTSDBContext: OpenTSDBContext = _
 
-  implicit var sparkSession: SparkSession = _
+  //implicit var sparkSession: SparkSession = _
 
   var hbaseAsyncClient: HBaseClient = _
 
@@ -59,49 +72,83 @@ class OpentsdbSpec extends Specification with BeforeAfterAll{
 
   var baseConf: Configuration = _
 
+  //private var zkUtils: Try[ZkUtils] = Failure[ZkUtils](new Exception(""))
+
   override def beforeAll(): Unit = {
     OpenTSDBContext.saltWidth = 1
     OpenTSDBContext.saltBuckets = 2
     OpenTSDBContext.preloadUidCache = true
-    hbaseUtil.startMiniCluster(4)
+
+    baseConf = hbaseUtil.getConfiguration
+
+
+
+    println("Starting the HBase minicluster")
+    hbaseUtil.getConfiguration.set("test.hbase.zookeeper.property.clientPort", "2181")
+    hbaseUtil.startMiniZKCluster()
+    hbaseUtil.startMiniCluster(1)
+    println("Started the HBase minicluster")
 
     val conf = new SparkConf().
       setAppName("spark-opentsdb-local-test").
       setMaster("local[4]").
       set("spark.io.compression.codec", "lzf")
 
-    baseConf = hbaseUtil.getConfiguration
 
+
+    val confFile: File = confPath / "hbase-site.xml"
+    for {os <- confFile.newOutputStream.autoClosed} baseConf.writeXml(os)
+    System.setProperty("hadoop.home.dir", "/")
     val quorum = baseConf.get("hbase.zookeeper.quorum")
     val port = baseConf.get("hbase.zookeeper.property.clientPort")
+    //baseConf.set("zookeeper.znode.parent", "/hbase-unsecure")
 
-    sparkSession = SparkSession.builder().config(conf).getOrCreate()
+//    zkUtils = for {
+//      zkUtils <- makeZkUtils(zkPort)
+//    } yield zkUtils
+//    zkUtils.foreach(_ => Logger.info("Created the zkUtils"))
+//    if (zkUtils.isFailure)
+//      Logger.info(s"Problem: Cannot create the zkUtils: ${zkUtils.failed.map(_.getMessage)}")
 
-    HBaseConfiguration.merge(sparkSession.sparkContext.hadoopConfiguration, baseConf)
+    println(s"PROVAAAA $quorum $port")
+
+    //sparkSession = SparkSession.builder().config(conf).getOrCreate()
+
+    //HBaseConfiguration.merge(sparkSession.sparkContext.hadoopConfiguration, baseConf)
 
     //streamingContext = new StreamingContext(sparkSession.sparkContext, Milliseconds(200))
-    openTSDBContext = new OpenTSDBContext(sparkSession, TestOpenTSDBConfigurator(baseConf))
+    //openTSDBContext = new OpenTSDBContext(sparkSession, TestOpenTSDBConfigurator(baseConf))
     hbaseUtil.createTable(TableName.valueOf("tsdb-uid"), Array("id", "name"))
     hbaseUtil.createTable(TableName.valueOf("tsdb"), Array("t"))
     hbaseUtil.createTable(TableName.valueOf("tsdb-tree"), Array("t"))
     hbaseUtil.createTable(TableName.valueOf("tsdb-meta"), Array("name"))
+
     hbaseAsyncClient = new HBaseClient(s"$quorum:$port", "/hbase")
     val config = new Config(false)
     config.overrideConfig("tsd.storage.hbase.data_table", "tsdb")
     config.overrideConfig("tsd.storage.hbase.uid_table", "tsdb-uid")
     config.overrideConfig("tsd.core.auto_create_metrics", "true")
-//    if (openTSDBContext.saltWidth > 0) {
-//      config.overrideConfig("tsd.storage.salt.width", openTSDBContext.saltWidth.toString)
-//      config.overrideConfig("tsd.storage.salt.buckets", openTSDBContext.saltBuckets.toString)
-//    }
     config.overrideConfig("batchSize", "10")
     config.disableCompactions()
     tsdb = new TSDB(hbaseAsyncClient, config)
+    Logger.info("Created the hbase client and the opentsdb object")
 
     Range(1,100).foreach(n => tsdb.addPoint("speed",System.currentTimeMillis(), n.toDouble, Map("tag" -> "value").asJava))
-
-
+    Logger.info("Added data points into hbase")
+    println("FINE")
   }
+
+
+//  private def makeZkUtils(zkPort: String): Try[ZkUtils] = Try {
+//    val zkConnect = s"localhost:$zkPort"
+//    val zkClient = new ZkClient(zkConnect, Integer.MAX_VALUE, TIMEOUT, new ZkSerializer {
+//      def serialize(data: Object): Array[Byte] = data.asInstanceOf[String].getBytes("UTF-8")
+//
+//      def deserialize(bytes: Array[Byte]): Object = new String(bytes, "UTF-8")
+//    })
+//    ZkUtils.apply(zkClient, isZkSecurityEnabled = false)
+//  }
+
 
   override def afterAll(): Unit = {
     //streamingContext.stop(false)
@@ -113,8 +160,19 @@ class OpentsdbSpec extends Specification with BeforeAfterAll{
     hbaseUtil.deleteTable("tsdb-tree")
     hbaseUtil.deleteTable("tsdb-meta")
     hbaseUtil.shutdownMiniCluster()
+    hbaseUtil.shutdownMiniZKCluster()
   }
 
+
+//  private def makeZkUtils(zkPort: String): Try[ZkUtils] = Try {
+//    val zkConnect = s"localhost:$zkPort"
+//    val zkClient = new ZkClient(zkConnect, Integer.MAX_VALUE, TIMEOUT, new ZkSerializer {
+//      def serialize(data: Object): Array[Byte] = data.asInstanceOf[String].getBytes("UTF-8")
+//
+//      def deserialize(bytes: Array[Byte]): Object = new String(bytes, "UTF-8")
+//    })
+//    ZkUtils.apply(zkClient, isZkSecurityEnabled = false)
+//  }
 
   def getAvailablePort: Int = {
     try {
@@ -144,6 +202,8 @@ class OpentsdbSpec extends Specification with BeforeAfterAll{
             url(s"http://localhost:$port/storage-manager/v1/physical-datasets?uri=$uri&format=opentsdb&limit=10").
             withAuth("david", "david", WSAuthScheme.BASIC).
             execute, Duration.Inf)
+          println(response.status)
+          println(response.body)
           response.body must beEqualTo("")
         }
 
@@ -152,22 +212,22 @@ class OpentsdbSpec extends Specification with BeforeAfterAll{
   }
 }
 
-class TestOpenTSDBConfigurator(mapConf: Map[String, String]) extends OpenTSDBConfigurator with Serializable {
-
-  lazy val configuration: Configuration = mapConf.foldLeft(new Configuration(false)) { (conf, pair) =>
-    conf.set(pair._1, pair._2)
-    conf
-  }
-
-}
-
-object TestOpenTSDBConfigurator {
-
-  def apply(conf: Configuration): TestOpenTSDBConfigurator = new TestOpenTSDBConfigurator(
-    conf.iterator().asScala.toList.map { entry => entry.getKey -> entry.getValue }.toMap[String, String]
-  )
-
-}
+//class TestOpenTSDBConfigurator(mapConf: Map[String, String]) extends OpenTSDBConfigurator with Serializable {
+//
+//  lazy val configuration: Configuration = mapConf.foldLeft(new Configuration(false)) { (conf, pair) =>
+//    conf.set(pair._1, pair._2)
+//    conf
+//  }
+//
+//}
+//
+//object TestOpenTSDBConfigurator {
+//
+//  def apply(conf: Configuration): TestOpenTSDBConfigurator = new TestOpenTSDBConfigurator(
+//    conf.iterator().asScala.toList.map { entry => entry.getKey -> entry.getValue }.toMap[String, String]
+//  )
+//
+//}
 
 @SuppressWarnings(Array("org.wartremover.warts.Var", "org.wartremover.warts.Null"))
 object OpentsdbSpec {

@@ -17,7 +17,7 @@
 package controllers
 
 import java.lang.reflect.UndeclaredThrowableException
-import java.net.URI
+import java.net.{URI, URLClassLoader}
 import java.security.PrivilegedExceptionAction
 
 import akka.stream.scaladsl.{Source, StreamConverters}
@@ -30,7 +30,7 @@ import it.gov.daf.common.authentication.Authentication
 import org.apache.avro.SchemaBuilder
 import org.apache.hadoop.fs._
 import org.apache.hadoop.security.{AccessControlException, UserGroupInformation}
-import org.apache.spark.SparkConf
+import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.{AnalysisException, SparkSession}
 import org.pac4j.play.store.PlaySessionStore
 import play.api.Configuration
@@ -42,6 +42,7 @@ import org.apache.spark.opentsdb.OpenTSDBContext
 import play.Logger
 import play.Logger.ALogger
 
+import scala.annotation.tailrec
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
@@ -67,29 +68,29 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
   sparkConfig.set("spark.driver.memory", configuration.getString("spark_driver_memory").getOrElse("128M"))
 
   private val sparkSession = SparkSession.builder().master("local").config(sparkConfig).getOrCreate()
+  addClassPathJars(sparkSession.sparkContext, getClass.getClassLoader)
 
   implicit private val alogger: ALogger = Logger.of(this.getClass.getCanonicalName)
 
-  lazy val keytab: Option[String] = configuration.getString("opentsdb.context.keytab")
+  val keytab: Option[String] = configuration.getString("opentsdb.context.keytab")
   alogger.info(s"OpenTSDBContext Keytab: $keytab")
 
-  lazy val principal: Option[String] = configuration.getString("opentsdb.context.principal")
+  val principal: Option[String] = configuration.getString("opentsdb.context.principal")
   alogger.info(s"OpenTSDBContext Principal: $principal")
 
-  lazy val keytabLocalTempDir: Option[String] = configuration.getString("opentsdb.context.keytablocaltempdir")
+  val keytabLocalTempDir: Option[String] = configuration.getString("opentsdb.context.keytablocaltempdir")
   alogger.info(s"OpenTSDBContext Keytab Local Temp Dir: $keytabLocalTempDir")
 
-  lazy val saltwidth: Option[Int] = configuration.getInt("opentsdb.context.saltwidth")
+  val saltwidth: Option[Int] = configuration.getInt("opentsdb.context.saltwidth")
   alogger.info(s"OpenTSDBContext SaltWidth: $saltwidth")
 
-  lazy val saltbucket: Option[Int] = configuration.getInt("opentsdb.context.saltbucket")
+  val saltbucket: Option[Int] = configuration.getInt("opentsdb.context.saltbucket")
   alogger.info(s"OpenTSDBContext SaltBucket: $saltbucket")
 
-  lazy val openTSDBContext: OpenTSDBContext = new OpenTSDBContext(sparkSession)
+  val openTSDBContext: OpenTSDBContext = new OpenTSDBContext(sparkSession)
   keytabLocalTempDir.foreach(openTSDBContext.keytabLocalTempDir = _)
   keytab.foreach(openTSDBContext.keytab = _)
   principal.foreach(openTSDBContext.principal = _)
-
   saltwidth.foreach(OpenTSDBContext.saltWidth = _)
   saltbucket.foreach(OpenTSDBContext.saltBuckets = _)
 
@@ -97,6 +98,22 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
   private val fileSystem: FileSystem = {
     val conf = new org.apache.hadoop.conf.Configuration()
     FileSystem.get(conf)
+  }
+
+  @tailrec
+  private def addClassPathJars(sparkContext: SparkContext, classLoader: ClassLoader): Unit = {
+    classLoader match {
+      case urlClassLoader: URLClassLoader =>
+        urlClassLoader.getURLs.foreach { classPathUrl =>
+          if (classPathUrl.toExternalForm.endsWith(".jar") && !classPathUrl.toExternalForm.contains("test-interface")) {
+            sparkContext.addJar(classPathUrl.toExternalForm)
+          }
+        }
+      case _ =>
+    }
+    if (classLoader.getParent != null) {
+      addClassPathJars(sparkContext, classLoader.getParent)
+    }
   }
 
   UserGroupInformation.loginUserFromSubject(null)
@@ -198,7 +215,6 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
                 }]"
                 Ok(doc).as(JSON)
               case "opentsdb" =>
-
                 //TODO te table name is encoded in the uri
                 val metric = "speed"
                 val tags: Map[String, String] = Map()

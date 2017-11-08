@@ -16,7 +16,7 @@ addSbtPlugin("de.zalando" % "sbt-api-first-hand" % "0.2.3")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.1.5")
 
-addSbtPlugin("org.wartremover" % "sbt-wartremover" % "2.0.3")
+//addSbtPlugin("org.wartremover" % "sbt-wartremover" % "2.0.3")
 
 addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.3.0")
 

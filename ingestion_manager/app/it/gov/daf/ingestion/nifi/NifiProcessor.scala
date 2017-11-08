@@ -8,6 +8,7 @@ import play.api.libs.json.{JsLookupResult, JsValue}
 import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.language.implicitConversions
 
 object NifiProcessor {
 
@@ -43,7 +44,7 @@ class NifiProcessor(
 
   private val catalogWrapper = new MetaCatalogProcessor(metaCatalog)
 
-  private[this] var counter = 0
+  private[this] var counter = 1
   private def incCounter() = {
     counter += 1
     counter
@@ -69,15 +70,18 @@ class NifiProcessor(
 
     //FIXME please
     Future.sequence(result)
-      .map(_ =>
+      .map(_.flatten)
+      .map(listWs =>
+
         NiFiProcessStatus(
           "OK but change me",
           NiFiInfo("boh", List.empty)
-        ))
+        )
+      )
   }
 
-  def createFlow(sftp: SourceSftp): Future[(WSResponse, WSResponse)] = {
-    implicit def unwrap(v: JsLookupResult): String = v.get.toString()
+  def createFlow(sftp: SourceSftp): Future[List[WSResponse]] = {
+    implicit def unwrap(v: JsLookupResult): String = v.get.toString().tail.dropRight(1)
 
     for {
       //create the input and extract fields
@@ -90,16 +94,22 @@ class NifiProcessor(
       attributeId = attributeWs.json \ "id"
 
       //create connections
-      _ <- createConnection(inputId, attributeId, uniqueVal, "updateAttr")
-      _ <- createConnection(attributeId, nifiFunnelId, uniqueVal, "funnel")
+      updateAttrConn <- createConnection(inputId, attributeId, uniqueVal, "updateAttr")
+      funnelConn <- createConnection(attributeId, nifiFunnelId, uniqueVal, "funnel")
 
       startedInput <- starProcessor(inputWs)
       startedAttribute <- starProcessor(attributeWs)
-    } yield (startedInput, startedAttribute)
+    } yield{
+
+      println(startedInput)
+      println(startedAttribute)
+
+      List(inputWs, attributeWs, updateAttrConn, funnelConn, startedInput, startedAttribute)
+    }
   }
 
   def starProcessor(response: WSResponse) = {
-    implicit def unwrap(v: JsLookupResult): String = v.get.toString()
+    implicit def unwrap(v: JsLookupResult): String = v.get.toString().tail.dropRight(1)
 
     val componentId: String = response.json \ "component" \ "id"
 
@@ -183,7 +193,7 @@ class NifiProcessor(
     }
   }
 
-  private def createAttributeProcessor(params: Map[String, String]): Future[(JsValue, Map[String, String], WSResponse)] = {
+   def createAttributeProcessor(params: Map[String, String]): Future[(JsValue, Map[String, String], WSResponse)] = {
     val json = NifiHelper.updateAttrProcessor(
       clientId = catalogWrapper.dsName + "_updateAttr_" + params.get("uniqueVal"),
       name = catalogWrapper.dsName + "_updateAttr_" + params.get("uniqueVal"),
@@ -201,7 +211,7 @@ class NifiProcessor(
       .map(res => (json, params, res))
   }
 
-  private def createConnection(
+   def createConnection(
     inputId: String,
     attributeId: String,
     uniqueVal: String,

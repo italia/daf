@@ -312,16 +312,12 @@ object NifiHelper {
          |         "groupId":"$destGroupId",
          |         "type":"$destType"
          |      },
-         |      "selectedRelationships":[
-         |         "$selectedRel"
-         |      ],
+         |      "selectedRelationships":["$selectedRel"],
          |      "flowFileExpiration":"$flowFileExpiration",
          |      "backPressureDataSizeThreshold":"$backPressureDataSizeThreshold",
          |      "backPressureObjectThreshold":"$backPressureObjectThreshold",
-         |      "bends":[
-         |      ],
-         |      "prioritizers":[
-         |      ]
+         |      "bends":[],
+         |      "prioritizers":[]
          |   }
          |}
       """.stripMargin
@@ -330,14 +326,14 @@ object NifiHelper {
   def runProcessor(
     clientId: String,
     componentId: String,
-    version: String
+    version: String = "0"
   ): JsValue = {
     Json.parse(
       s"""
          |{
          |  "revision": {
          |    "clientId": "$clientId",
-         |    "version": $version
+         |    "version": "$version"
          |  },
          |  "component": {
          |    "id": "$componentId",

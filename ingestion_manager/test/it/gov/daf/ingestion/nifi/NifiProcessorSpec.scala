@@ -25,10 +25,11 @@ class NifiProcessorSpec extends AsyncFlatSpec with Matchers {
 
     metaCatalog.isSuccess shouldBe true
 
-    implicit val config: Config = com.typesafe.config.ConfigFactory.load()
     implicit val system: ActorSystem = ActorSystem()
     implicit val materializer: ActorMaterializer = ActorMaterializer()
     implicit val wsClient: AhcWSClient = AhcWSClient()
+
+    implicit val config: Config = com.typesafe.config.ConfigFactory.load()
     implicit val ec = system.dispatcher
 
     def closeAll(): Unit ={

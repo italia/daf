@@ -48,11 +48,7 @@ libraryDependencies ++= Seq(
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.0" % Test,
   "org.mongodb" %% "casbah" % "3.1.1", //,
   "net.caoticode.dirwatcher" %% "dir-watcher" % "0.1.0",
-<<<<<<< HEAD
-  "it.gov.daf" %% "common" % "1.0.1-SNAPSHOT",
-=======
   "it.gov.daf" %% "common" % Versions.dafCommonVersion,
->>>>>>> 1.0-alpha
   "me.lessis" %% "base64" % "0.2.0",
   "ch.lightshed" %% "courier" % "0.1.4"
   //"com.github.cb372" %% "scalacache-guava" % "0.9.4"

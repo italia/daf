@@ -53,7 +53,7 @@ libraryDependencies ++= Seq(
   cache,
   ws,
   "org.webjars" % "swagger-ui" % swaggerUiVersion,
-  "it.gov.daf" %% "common" % "1.0.1-SNAPSHOT",
+  "it.gov.daf" %% "common" % Versions.dafCommonVersion,
   "org.mongodb" %% "casbah" % "3.1.1",
   "ch.lightshed" %% "courier" % "0.1.4",
   //"com.github.cb372" %% "scalacache-guava" % "0.9.4",

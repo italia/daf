@@ -56,7 +56,7 @@ libraryDependencies ++= Seq(
   "org.apache.logging.log4j" % "log4j-core" % "2.9.0",
   "org.apache.logging.log4j" % "log4j-api" % "2.9.0",
   "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.9.0",
-  "it.gov.daf" %% "common" % "1.0-SNAPSHOT",
+  "it.gov.daf" %% "common" % "1.0-SNAPSHOT" excludeAll(ExclusionRule(organization = "org.apache.hadoop.common")),
   "it.gov.daf" %% "daf-catalog-manager-client" % "1.0-SNAPSHOT",
   "org.scalatest" %% "scalatest" % "3.0.4" % Test,
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.0" % Test,

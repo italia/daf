@@ -8,7 +8,9 @@ import scala.util.Try
 class NifiHelperSpec extends FlatSpec with Matchers with PropertyChecks {
 
 
+
   "A NifiHelper " should "create a valid connection" in {
+
       val result = Try(NifiHelper.defineConnection(
         clientId = "1",
         name = "1",

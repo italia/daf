@@ -4,12 +4,15 @@ package it.gov.daf.ingestion.nifi
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import com.typesafe.config.Config
+import it.gov.daf.catalogmanager.MetaCatalog
 import it.gov.daf.catalogmanager.json._
-import it.gov.daf.catalogmanager.{Dataset, MetaCatalog, Operational}
-import org.scalatest.{AsyncFlatSpec, FlatSpec, Matchers}
+import it.gov.daf.ingestion.metacatalog.MetaCatalogProcessor
+import org.scalatest.{AsyncFlatSpec, Matchers}
 import play.api.libs.json._
+import play.api.libs.ws.WSResponse
 import play.api.libs.ws.ahc.AhcWSClient
 
+import scala.concurrent.Future
 import scala.io.Source
 
 class NifiProcessorSpec extends AsyncFlatSpec with Matchers {
@@ -32,20 +35,25 @@ class NifiProcessorSpec extends AsyncFlatSpec with Matchers {
     implicit val config: Config = com.typesafe.config.ConfigFactory.load()
     implicit val ec = system.dispatcher
 
-    def closeAll(): Unit ={
+    def closeAll(): Unit = {
       system.terminate()
       materializer.shutdown()
       wsClient.close()
     }
 
-    val fResult = NifiProcessor(metaCatalog.get).createDataFlow()
-
-    fResult.map{ response =>
+    var fResult = NifiProcessor(metaCatalog.get).createDataFlow()
+//    fResult = NifiProcessor(metaCatalog.get).createDataFlow()
+//    fResult = NifiProcessor(metaCatalog.get).createDataFlow()
+//    fResult = NifiProcessor(metaCatalog.get).createDataFlow()
+//    fResult = NifiProcessor(metaCatalog.get).createDataFlow()
+//    fResult = NifiProcessor(metaCatalog.get).createDataFlow()
+//    fResult = NifiProcessor(metaCatalog.get).createDataFlow()
+//    fResult = NifiProcessor(metaCatalog.get).createDataFlow()
+    fResult.map { response =>
       println(response)
       closeAll()
       true shouldBe true
     }
-
   }
 
 

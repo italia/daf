@@ -97,8 +97,8 @@
         }
       ]
     },
-    "theme": "theme",
-    "subtheme": "subtheme",
+    "theme": "test",
+    "subtheme": "daf-test2",
     "read_type": "update",
     "dataset_type": "batch",
     "storage_info": {
@@ -108,14 +108,14 @@
     },
     "is_std": false,
     "logical_uri": "daf://dataset/ord/raffaele/raffaele/theme/test_csv",
-    "group_own": "raffaele",
+    "group_own": "davide",
     "ingestion_pipeline": [
       "pipeline1",
       "pipeline2"
     ]
   },
   "dcatapit": {
-    "name": "test_csv",
+    "name": "tema",
     "notes": "NiFi Test Csv File",
     "organization": {
       "name": "raffaele"

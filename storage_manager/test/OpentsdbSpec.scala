@@ -16,10 +16,11 @@
 
 import java.io.IOException
 import java.net.ServerSocket
+
 import ServiceSpec.confPath
 import net.opentsdb.core.TSDB
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.hbase.{HBaseConfiguration, HBaseTestingUtility, TableName}
+import org.apache.hadoop.hbase.{CellUtil, HBaseConfiguration, HBaseTestingUtility, TableName}
 import org.apache.spark.SparkConf
 import org.apache.spark.opentsdb.{OpenTSDBConfigurator, OpenTSDBContext}
 import org.apache.spark.sql.SparkSession
@@ -36,8 +37,11 @@ import org.apache.hadoop.hdfs.MiniDFSCluster
 import org.apache.hadoop.test.PathUtils
 import play.api.libs.ws.{WSAuthScheme, WSResponse}
 import better.files._
+import org.apache.hadoop.hbase.client._
+import org.apache.hadoop.hbase.util.Bytes
 import org.omg.CORBA.TIMEOUT
 import play.Logger
+import shaded.org.hbase.async
 
 import scala.collection.convert.decorateAsScala._
 import scala.collection.convert.decorateAsJava._
@@ -62,17 +66,12 @@ import scala.util.{Failure, Success, Try}
 
   var hbaseUtil: HBaseTestingUtility = new HBaseTestingUtility()
 
-  //var openTSDBContext: OpenTSDBContext = _
-
-  //implicit var sparkSession: SparkSession = _
-
   var hbaseAsyncClient: HBaseClient = _
 
   var tsdb: TSDB = _
 
   var baseConf: Configuration = _
 
-  //private var zkUtils: Try[ZkUtils] = Failure[ZkUtils](new Exception(""))
 
   override def beforeAll(): Unit = {
     OpenTSDBContext.saltWidth = 1
@@ -82,11 +81,9 @@ import scala.util.{Failure, Success, Try}
     baseConf = hbaseUtil.getConfiguration
 
 
-
     println("Starting the HBase minicluster")
-    hbaseUtil.getConfiguration.set("test.hbase.zookeeper.property.clientPort", "2181")
-    hbaseUtil.startMiniZKCluster()
-    hbaseUtil.startMiniCluster(1)
+    //hbaseUtil.getConfiguration.set("test.hbase.zookeeper.property.clientPort", "2181")
+    hbaseUtil.startMiniCluster(4)
     println("Started the HBase minicluster")
 
     val conf = new SparkConf().
@@ -95,59 +92,38 @@ import scala.util.{Failure, Success, Try}
       set("spark.io.compression.codec", "lzf")
 
 
-
     val confFile: File = confPath / "hbase-site.xml"
     for {os <- confFile.newOutputStream.autoClosed} baseConf.writeXml(os)
-    System.setProperty("hadoop.home.dir", "/")
+
     val quorum = baseConf.get("hbase.zookeeper.quorum")
     val port = baseConf.get("hbase.zookeeper.property.clientPort")
-    //baseConf.set("zookeeper.znode.parent", "/hbase-unsecure")
 
-//    zkUtils = for {
-//      zkUtils <- makeZkUtils(zkPort)
-//    } yield zkUtils
-//    zkUtils.foreach(_ => Logger.info("Created the zkUtils"))
-//    if (zkUtils.isFailure)
-//      Logger.info(s"Problem: Cannot create the zkUtils: ${zkUtils.failed.map(_.getMessage)}")
-
-    println(s"PROVAAAA $quorum $port")
-
-    //sparkSession = SparkSession.builder().config(conf).getOrCreate()
-
-    //HBaseConfiguration.merge(sparkSession.sparkContext.hadoopConfiguration, baseConf)
-
-    //streamingContext = new StreamingContext(sparkSession.sparkContext, Milliseconds(200))
-    //openTSDBContext = new OpenTSDBContext(sparkSession, TestOpenTSDBConfigurator(baseConf))
     hbaseUtil.createTable(TableName.valueOf("tsdb-uid"), Array("id", "name"))
     hbaseUtil.createTable(TableName.valueOf("tsdb"), Array("t"))
     hbaseUtil.createTable(TableName.valueOf("tsdb-tree"), Array("t"))
     hbaseUtil.createTable(TableName.valueOf("tsdb-meta"), Array("name"))
 
     hbaseAsyncClient = new HBaseClient(s"$quorum:$port", "/hbase")
+
     val config = new Config(false)
     config.overrideConfig("tsd.storage.hbase.data_table", "tsdb")
     config.overrideConfig("tsd.storage.hbase.uid_table", "tsdb-uid")
     config.overrideConfig("tsd.core.auto_create_metrics", "true")
     config.overrideConfig("batchSize", "10")
     config.disableCompactions()
+
+
     tsdb = new TSDB(hbaseAsyncClient, config)
     Logger.info("Created the hbase client and the opentsdb object")
 
-    Range(1,100).foreach(n => tsdb.addPoint("speed",System.currentTimeMillis(), n.toDouble, Map("tag" -> "value").asJava))
+    Range(1,100).foreach(n => tsdb.addPoint("speed",System.currentTimeMillis(), n.toDouble, Map("pippotag" -> "pippovalue").asJava).joinUninterruptibly())
+
     Logger.info("Added data points into hbase")
-    println("FINE")
+
+    //uncomment if you want be sure that data are stored
+    //scanHbase()
+
   }
-
-
-//  private def makeZkUtils(zkPort: String): Try[ZkUtils] = Try {
-//    val zkConnect = s"localhost:$zkPort"
-//    val zkClient = new ZkClient(zkConnect, Integer.MAX_VALUE, TIMEOUT, new ZkSerializer {
-//      def serialize(data: Object): Array[Byte] = data.asInstanceOf[String].getBytes("UTF-8")
-//
-//      def deserialize(bytes: Array[Byte]): Object = new String(bytes, "UTF-8")
-//    })
-//    ZkUtils.apply(zkClient, isZkSecurityEnabled = false)
-//  }
 
 
   override def afterAll(): Unit = {
@@ -160,19 +136,34 @@ import scala.util.{Failure, Success, Try}
     hbaseUtil.deleteTable("tsdb-tree")
     hbaseUtil.deleteTable("tsdb-meta")
     hbaseUtil.shutdownMiniCluster()
-    hbaseUtil.shutdownMiniZKCluster()
+    //hbaseUtil.shutdownMiniZKCluster()
   }
 
 
-//  private def makeZkUtils(zkPort: String): Try[ZkUtils] = Try {
-//    val zkConnect = s"localhost:$zkPort"
-//    val zkClient = new ZkClient(zkConnect, Integer.MAX_VALUE, TIMEOUT, new ZkSerializer {
-//      def serialize(data: Object): Array[Byte] = data.asInstanceOf[String].getBytes("UTF-8")
-//
-//      def deserialize(bytes: Array[Byte]): Object = new String(bytes, "UTF-8")
-//    })
-//    ZkUtils.apply(zkClient, isZkSecurityEnabled = false)
-//  }
+  def scanHbase(): Unit = {
+    val connection = hbaseUtil.getConnection
+    val table: Table = connection.getTable(TableName.valueOf(Bytes.toBytes("tsdb-uid")))
+    val scan: ResultScanner = table.getScanner(new Scan())
+    scan.asScala.foreach(result => {
+      println("Found row: " + result)
+      printRow(result)
+
+    })
+  }
+
+  private def printRow(result: Result): Unit = {
+    val cells = result.rawCells()
+
+    print( Bytes.toString(result.getRow) + " : " )
+    cells.foreach{ cell =>
+      val col_name = Bytes.toString(CellUtil.cloneQualifier(cell))
+      val col_value = Bytes.toString(CellUtil.cloneValue(cell))
+      val col_timestamp = cell.getTimestamp
+      print("(%s,%s,%s) ".format(col_name, col_value, col_timestamp))
+
+    }
+    println()
+  }
 
   def getAvailablePort: Int = {
     try {
@@ -212,22 +203,6 @@ import scala.util.{Failure, Success, Try}
   }
 }
 
-//class TestOpenTSDBConfigurator(mapConf: Map[String, String]) extends OpenTSDBConfigurator with Serializable {
-//
-//  lazy val configuration: Configuration = mapConf.foldLeft(new Configuration(false)) { (conf, pair) =>
-//    conf.set(pair._1, pair._2)
-//    conf
-//  }
-//
-//}
-//
-//object TestOpenTSDBConfigurator {
-//
-//  def apply(conf: Configuration): TestOpenTSDBConfigurator = new TestOpenTSDBConfigurator(
-//    conf.iterator().asScala.toList.map { entry => entry.getKey -> entry.getValue }.toMap[String, String]
-//  )
-//
-//}
 
 @SuppressWarnings(Array("org.wartremover.warts.Var", "org.wartremover.warts.Null"))
 object OpentsdbSpec {

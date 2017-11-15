@@ -7,7 +7,7 @@ metadata:
 spec:
   type: NodePort
   ports:
-  - port: 9000
+  - port: 9900
     protocol: TCP
     name: http
   - port: 5005
@@ -21,7 +21,7 @@ kind: Deployment
 metadata:
   name: storage-manager-deployment
 spec:
-  replicas: 3
+  replicas: 1
   template:
     metadata:
       labels:
@@ -37,7 +37,7 @@ spec:
              command: ["/bin/sh", "-c", "cat /etc/extra_hosts >> /etc/hosts"]
         ports:
         - name: client
-          containerPort: 9000
+          containerPort: 9900
         - name: debugger
           containerPort: 5005
         securityContext:
@@ -63,6 +63,9 @@ spec:
         - name: hadoopconf
           mountPath: /etc/hadoop/conf
           readOnly: true
+        - name: hbaseconf
+          mountPath: /etc/hbase/conf
+          readOnly: true
       imagePullSecrets:
       - name: regsecret
       volumes:
@@ -78,3 +81,6 @@ spec:
       - name: hadoopconf
         hostPath:
           path: /etc/hadoop/conf
+      - name: hbaseconf
+        hostPath:
+          path: /etc/hbase/conf

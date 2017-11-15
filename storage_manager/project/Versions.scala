@@ -12,11 +12,10 @@ object Versions {
 
   val betterFilesVersion = "2.17.1"
 
-  val kuduVersion = "1.4.0"
+  val kuduVersion = "1.4.0-cdh5.12.0"
 
   val sparkOpenTSDBVersion = "2.0"
 
-  val hbaseVersion = "1.2.0"
+  val hbaseVersion = "1.2.0-cdh5.12.0"
 
-  val clouderaVersion = "cdh5.12.0"
 }

@@ -68,9 +68,12 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
   sparkConfig.set("spark.driver.memory", configuration.getString("spark_driver_memory").getOrElse("128M"))
 
   private val sparkSession = SparkSession.builder().master("local").config(sparkConfig).getOrCreate()
+  //add all spark jars
   addClassPathJars(sparkSession.sparkContext, getClass.getClassLoader)
 
   implicit private val alogger: ALogger = Logger.of(this.getClass.getCanonicalName)
+
+  System.setProperty("sun.security.krb5.debug", "true")
 
   val keytab: Option[String] = configuration.getString("opentsdb.context.keytab")
   alogger.info(s"OpenTSDBContext Keytab: $keytab")
@@ -173,17 +176,22 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
             val datasetURI = new URI(uri)
             val locationURI = new URI(datasetURI.getSchemeSpecificPart)
             val locationScheme = locationURI.getScheme
+            alogger.info(s"$datasetURI\t$locationScheme\t$locationURI")
+
+            alogger.info(s" Request for $locationScheme")
             val actualFormat = format match {
               case "avro" => "com.databricks.spark.avro"
               case format: String => format
             }
             val res: Result = locationScheme match {
               case "hdfs" if actualFormat == "text" =>
+                alogger.info(s"In HDFS with format $actualFormat")
                 val location = locationURI.getSchemeSpecificPart
                 val rdd = sparkSession.sparkContext.textFile(location)
                 val doc = rdd.take(limit.getOrElse(defaultLimit)).mkString("\n")
                 Ok(doc).as("text/plain")
               case "hdfs" if actualFormat == "raw" =>
+                alogger.info(s"In HDFS with format $actualFormat")
                 val location = locationURI.getSchemeSpecificPart
                 val path = new Path(location)
                 if (fileSystem.isDirectory(path))
@@ -192,6 +200,7 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
                 val dataContent: Source[ByteString, _] = StreamConverters.fromInputStream(() => data, chunk_size.getOrElse(defaultChunkSize))
                 Ok.chunked(dataContent.take(limit.getOrElse(defaultLimit).asInstanceOf[Long])).as("application/octet-stream")
               case "hdfs" =>
+                alogger.info(s"In HDFS with format $actualFormat")
                 val location = locationURI.getSchemeSpecificPart
                 val df = sparkSession.read.format(actualFormat).load(location)
                 val doc = s"[${
@@ -202,6 +211,8 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
                 Ok(doc).as(JSON)
               case "kudu" =>
                 //TODO te table name is encoded in the uri
+                alogger.info(s"In KUDU")
+                println("You are in OPENTSDB")
                 val table = "Events"
                 val master = configuration.getString("kudu.master").getOrElse("NO_kudu.master")
                 val df = sparkSession
@@ -215,20 +226,34 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
                 }]"
                 Ok(doc).as(JSON)
               case "opentsdb" =>
+                alogger.info("You are in OPENTSDB")
                 //TODO te table name is encoded in the uri
+                Logger.info(s"In OPENTSDB")
                 val metric = "speed"
                 val tags: Map[String, String] = Map()
-                val interval: Option[(Long, Long)] = None
+                val interval: Option[(Long, Long)] = Some((1510499181, 1510585560))
 
-                val df = openTSDBContext.loadDataFrame(metric, tags, interval)
-                val doc = s"[${
-                  df.take(limit.getOrElse(defaultLimit)).map(row => {
-                    Utility.rowToJson(df.schema)(row)
-                  }).mkString(",")
-                }]"
-                Ok(doc).as(JSON)
+
+                //val ts = Try(openTSDBContext.load(metric, tags, interval)).map(_.collect)
+                //val result = ts.collect()
+
+                Try(openTSDBContext.loadDataFrame(metric, tags, interval)) match {
+                  case Success(df) =>
+                    alogger.info(s" Total size ${df.count()}")
+                    val doc = s"[${
+                      df.take(limit.getOrElse(defaultLimit)).map(row => {
+                        Utility.rowToJson(df.schema)(row)
+                      }).mkString(",")
+                    }]"
+                    Ok(doc).as(JSON)
+                  case Failure(ex) =>
+                    println(s"${ex.getMessage} \n ${ex.getStackTrace}")
+                    Ok(ex.getMessage).as(JSON)
+                }
+
 
               case scheme =>
+                alogger.info(s"Storage scheme $format not supported")
                 throw new NotImplementedError(s"storage scheme: $scheme not supported")
             }
 

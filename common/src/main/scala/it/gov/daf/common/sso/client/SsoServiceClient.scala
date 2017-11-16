@@ -1,3 +1,6 @@
+import akka.actor.ActorSystem
+import play.api.libs.ws.WSClient
+
 /*
  * Copyright 2017 TEAM PER LA TRASFORMAZIONE DIGITALE
  *

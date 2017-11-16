@@ -33,15 +33,15 @@ lazy val spark = "org.apache.spark"
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser)
-  .disablePlugins(PlayLogback)
+
 
 scalaVersion in ThisBuild := "2.11.8"
 
-def dependencyToProvide(scope: String = "compile") = Seq(
-  spark %% "spark-core" % sparkVersion % scope exclude("com.fasterxml.jackson.core", "jackson-databind"),
-  spark %% "spark-sql" % sparkVersion % scope exclude("com.fasterxml.jackson.core", "jackson-databind"),
-  spark %% "spark-streaming" % sparkVersion % scope exclude("com.fasterxml.jackson.core", "jackson-databind")
-)
+//def dependencyToProvide(scope: String = "compile") = Seq(
+//  spark %% "spark-core" % sparkVersion % scope exclude("com.fasterxml.jackson.core", "jackson-databind"),
+//  spark %% "spark-sql" % sparkVersion % scope exclude("com.fasterxml.jackson.core", "jackson-databind"),
+//  spark %% "spark-streaming" % sparkVersion % scope exclude("com.fasterxml.jackson.core", "jackson-databind")
+//)
 
 
 libraryDependencies ++= Seq(
@@ -56,13 +56,15 @@ libraryDependencies ++= Seq(
   "org.apache.logging.log4j" % "log4j-core" % "2.9.0",
   "org.apache.logging.log4j" % "log4j-api" % "2.9.0",
   "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.9.0",
-  "it.gov.daf" %% "common" % "1.0-SNAPSHOT",
+  "it.gov.daf" %% "common" % "1.0.1-SNAPSHOT",
   "it.gov.daf" %% "daf-catalog-manager-client" % "1.0-SNAPSHOT",
   "org.scalatest" %% "scalatest" % "3.0.4" % Test,
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.0" % Test,
   "org.scalacheck" %% "scalacheck" % "1.13.5" % Test,
   "org.specs2" %% "specs2-scalacheck" % "3.8.9" % Test
 )
+
+dependencyOverrides += "com.google.guava" % "guava" % "12.0.1" % "compile"
 
 playScalaCustomTemplateLocation := Some(baseDirectory.value / "templates")
 

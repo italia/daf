@@ -29,7 +29,7 @@ import scalacache.guava._
     "org.wartremover.warts.PublicInference"
   )
 )
-class CacheWrapper(_cookieTtlMin:Long, _credentialTtlMin:Long) {
+class CacheWrapper(_cookieTtlMin: Long, _credentialTtlMin: Long) {
 
   val cookieTtlMin = _cookieTtlMin
   val credentialTtlMin = _credentialTtlMin
@@ -40,16 +40,15 @@ class CacheWrapper(_cookieTtlMin:Long, _credentialTtlMin:Long) {
   //private def delete(key:String) = remove(key)
   //private def put(key:String,value:String,d:Duration) = sync.cachingWithTTL(key)(d){value}
 
-  def getCookie(appName:String,userName:String):Option[Cookie] = sync.get(appName+"-"+userName)
-  def getCookies(appName:String,userName:String):Option[Seq[Cookie]] = sync.get(appName+"-"+userName+"multi")
-  def getPwd(user:String):Option[String] = sync.get(user)
-  def putCookie(appName:String,userName:String,cookie:Cookie) = sync.cachingWithTTL(appName+"-"+userName)(cookieTtlMin.minutes){cookie}
-  def putCookies(appName:String,userName:String,cookies:Seq[Cookie]) = sync.cachingWithTTL(appName+"-"+userName+"multi")(cookieTtlMin.minutes){cookies}
-  def putCredentials(user:String,pwd:String) = sync.cachingWithTTL(user)(credentialTtlMin.minutes){pwd}  //TTL must be equal to jwt expiration
-  def deleteCookie(appName:String,userName:String)= remove(appName+"-"+userName)
-  def deleteCookies(appName:String,userName:String)= remove(appName+"-"+userName+"multi")
-  def deleteCredentials(user:String) = remove(user)
-
+  def getCookie(appName: String, userName: String): Option[Cookie] = sync.get(appName + "-" + userName)
+  def getCookies(appName: String, userName: String): Option[Seq[Cookie]] = sync.get(appName + "-" + userName + "multi")
+  def getPwd(user: String): Option[String] = sync.get(user)
+  def putCookie(appName: String, userName: String, cookie: Cookie) = sync.cachingWithTTL(appName + "-" + userName)(cookieTtlMin.minutes) { cookie }
+  def putCookies(appName: String, userName: String, cookies: Seq[Cookie]) = sync.cachingWithTTL(appName + "-" + userName + "multi")(cookieTtlMin.minutes) { cookies }
+  def putCredentials(user: String, pwd: String) = sync.cachingWithTTL(user)(credentialTtlMin.minutes) { pwd } //TTL must be equal to jwt expiration
+  def deleteCookie(appName: String, userName: String) = remove(appName + "-" + userName)
+  def deleteCookies(appName: String, userName: String) = remove(appName + "-" + userName + "multi")
+  def deleteCredentials(user: String) = remove(user)
 
 }
 
@@ -60,27 +59,27 @@ class CacheWrapper(_cookieTtlMin:Long, _credentialTtlMin:Long) {
     "org.wartremover.warts.Null"
   )
 )
-object CacheWrapper{
+object CacheWrapper {
 
-  private var _instance : CacheWrapper = null
+  private var _instance: CacheWrapper = null
 
-  def init(cookieTtlMin:Long, credentialTtlMin:Long) :CacheWrapper= {
+  def init(cookieTtlMin: Long, credentialTtlMin: Long): CacheWrapper = {
     if (_instance == null) {
       _instance = new CacheWrapper(cookieTtlMin, credentialTtlMin)
       _instance
-    }else if(cookieTtlMin == _instance.cookieTtlMin && credentialTtlMin == _instance.credentialTtlMin )
+    } else if (cookieTtlMin == _instance.cookieTtlMin && credentialTtlMin == _instance.credentialTtlMin)
       _instance
     else
       throw new Exception("CacheWrapper is already initailized with different parameters")
   }
 
-  def instance:CacheWrapper={
-    if(_instance==null)
+  def instance: CacheWrapper = {
+    if (_instance == null)
       throw new Exception("CacheWrapper not initailized")
     else
       _instance
   }
 
-  def isInitialized:Boolean = (_instance!=null)
+  def isInitialized: Boolean = (_instance != null)
 
 }

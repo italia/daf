@@ -3,9 +3,9 @@
   */
 import javax.inject.Inject
 
-import it.gov.daf.common.filters.authentication.SecurityFilter
+import it.gov.daf.play.filters.DafSecurityFilter
 import play.api.http.DefaultHttpFilters
 import play.filters.cors.CORSFilter
-
-class Filters @Inject() (corsFilter: CORSFilter, securityFilter :SecurityFilter)
+//TODO check if it used!
+class Filters @Inject() (corsFilter: CORSFilter, securityFilter :DafSecurityFilter)
   extends DefaultHttpFilters(corsFilter, securityFilter)

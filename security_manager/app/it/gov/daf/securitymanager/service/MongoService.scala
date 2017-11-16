@@ -1,10 +1,12 @@
 package it.gov.daf.securitymanager.service
 
 import java.util.Calendar
+import javax.inject.Inject
 
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.{BasicDBObject, ServerAddress}
 import com.mongodb.casbah.{MongoClient, MongoCredential}
+import controllers.SSOController
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import play.api.libs.json.{JsValue, Json}
 import security_manager.yaml.IpaUser

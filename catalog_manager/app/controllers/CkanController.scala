@@ -1,48 +1,48 @@
 package controllers.ckan
 
 /**
-  * Created by ale on 04/04/17.
-  */
-
+ * Created by ale on 04/04/17.
+ */
 
 import javax.inject._
 
-import play.api.mvc._
+import it.gov.daf.catalogmanager.Utils
+import it.gov.daf.play.security.protocol._
+import it.gov.daf.play.security.{CookieCache, ExternalServiceProxy, SingleSignOnClient}
+import play.api.inject.ConfigurationProvider
+import play.api.libs.json._
 import play.api.libs.ws._
+import play.api.mvc._
 
 import scala.concurrent.Future
-import play.api.libs.json._
-import play.api.inject.ConfigurationProvider
-import it.gov.daf.catalogmanager.service.CkanRegistry
-import it.gov.daf.common.sso.client.LoginClientRemote
-import it.gov.daf.common.sso.common.{LoginInfo, SecuredInvocationManager}
-import it.gov.daf.common.utils.WebServiceUtil
-import play.api.libs.ws.ahc.AhcWSClient
-
-
+import scala.concurrent.duration._
 
 @Singleton
 class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) extends Controller {
 
   import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-  private val CKAN_URL :String = config.get.getString("app.ckan.url").get
+  private val ckanUrl: String = config.get.getString("app.ckan.url").get
 
-  private val LOCAL_URL :String = config.get.getString("app.local.url").get
+  private val localUrl: String = config.get.getString("app.local.url").get
 
-  private val ENV:String = config.get.getString("app.type").get
+  private val userIdHeader: String = config.get.getString("app.userid.header").get
 
-  private val USER_ID_HEADER:String = config.get.getString("app.userid.header").get
+  private val securityManagerHost: String = config.get.getString("security.manager.host").get
 
-  private val SEC_MANAGER_HOST:String = config.get.getString("security.manager.host").get
+  private val externalServiceProxy = new ExternalServiceProxy(
+    ws = ws,
+    //FIXME should it be a configuration
+    cache = CookieCache(24.hours),
+    //Change the thread pool if needed
+    ssoClient = SingleSignOnClient(securityManagerHost)(ws, play.api.libs.concurrent.Execution.defaultContext)
+  )
 
-  private val secInvokManager = SecuredInvocationManager.init( LoginClientRemote.init(SEC_MANAGER_HOST) )
-
-  private def getOrgs(orgId :String): Future[List[String]] = {
-    val orgs : Future[WSResponse] = ws.url(LOCAL_URL + "/ckan/organizations/" + orgId).get()
-    orgs.map( item => {
-      val messages  = (item.json \ "result" \\ "message").map(_.as[String]).toList
-      val datasetIds :List[String]= messages.filterNot(_.isEmpty) map { message =>
+  private def getOrgs(orgId: String): Future[List[String]] = {
+    val orgs: Future[WSResponse] = ws.url(localUrl + "/ckan/organizations/" + orgId).get()
+    orgs.map(item => {
+      val messages = (item.json \ "result" \\ "message").map(_.as[String]).toList
+      val datasetIds: List[String] = messages.filterNot(_.isEmpty) map { message =>
         println(message)
         val datasetId = message.split("object")(1).trim
         println(datasetId)
@@ -52,21 +52,20 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
     })
   }
 
-  private def getOrgDatasets(datasetIds : List[String]): Future[Seq[JsValue]] = {
+  private def getOrgDatasets(datasetIds: List[String]): Future[Seq[JsValue]] = {
     val datasetResponses: Seq[Future[JsValue]] = datasetIds.map(datasetId => {
-      val response = ws.url(LOCAL_URL + "/ckan/dataset/" + datasetId).get
+      val response = ws.url(localUrl + "/ckan/dataset/" + datasetId).get
       println(datasetId)
       response map { x =>
         println(x.json.toString)
         (x.json \ "result").getOrElse(JsNull)
       }
     })
-    val datasetFuture :Future[Seq[JsValue]] = Future.sequence(datasetResponses)
+    val datasetFuture: Future[Seq[JsValue]] = Future.sequence(datasetResponses)
     datasetFuture
   }
 
-
-  def getOrganizationDataset(organizationId :String) = Action.async { implicit request =>
+  def getOrganizationDataset(organizationId: String) = Action.async { implicit request =>
     def isNull(v: JsValue) = v match {
       case JsNull => true
       case _ => false
@@ -79,107 +78,88 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
     }
   }
 
+  private implicit def cookieString(cookie: Cookie): String =
+    s"${cookie.name}=${cookie.value}"
+
+  private def parseRequest(request: Request[AnyContent]): Option[(JsValue, CkanCredentials)] =
+    request.body.asJson.zip(request.headers.get(userIdHeader))
+      .headOption
+      .map { case (json, user) => json -> CkanCredentials(user) }
+
+  private def parseResponse(response: Option[Future[WSResponse]]): Future[Result] =
+    response match {
+      case None => Future.successful(InternalServerError("Invalid Body or missing Cookie"))
+      case Some(resp) => resp.map(r => Ok(r.body))
+    }
 
   def createDataset = Action.async { implicit request =>
-
-
     //curl -H "Content-Type: application/json" -X POST -d @data.json http://localhost:9001/ckan/createDataset
-
-
     //val AUTH_TOKEN:String = config.get.getString("app.ckan.auth.token").get
-
-    val json:JsValue = request.body.asJson.get
-
-    if(ENV == "dev"){
-      CkanRegistry.ckanService.createDataset(json,Option(""))
-
-      val isOk = Future.successful(JsString("operazione effettuata correttamente"))
-      isOk map { x =>
-        Ok(x)
+    val response = parseRequest(request)
+      .map {
+        case (json, user) =>
+          externalServiceProxy.callService(user) { cookie =>
+            ws.url(s"$ckanUrl/api/3/action/package_create")
+              //check https://stackoverflow.com/questions/18101324/play-framework-ws-set-cookie
+              .withHeaders("Cookie" -> cookie).post(json)
+          }
       }
-    }else{
-
-      val user = request.headers.get(USER_ID_HEADER).getOrElse("")
-
-      def callCreateDataset(cookie: String,wSClient: AhcWSClient ):Future[WSResponse] = {
-        ws.url(CKAN_URL + "/api/3/action/package_create").withHeaders("Cookie" -> cookie).post(json)
-      }
-
-      secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callCreateDataset)map { Ok(_) }
-
-    }
+    parseResponse(response)
   }
 
-
-  def updateDataset(datasetId :String)= Action.async { implicit request =>
-
+  def updateDataset(datasetId: String) = Action.async { implicit request =>
     //curl -H "Content-Type: application/json" -X PUT -d @datavv.json http://localhost:9001/ckan/updateDataset/id=81b643bd-007e-44cb-b724-0a02018db6d9
-
-    val user = request.headers.get(USER_ID_HEADER).getOrElse("")
-    val json:JsValue = request.body.asJson.get
-
-    def callUpdateDataset(cookie: String, wSClient: AhcWSClient):Future[WSResponse] ={
-      ws.url(CKAN_URL + "/api/3/action/package_update?id=" + datasetId).withHeaders("Cookie" -> cookie).post(json)
+    val response = parseRequest(request).map {
+      case (json, user) =>
+        externalServiceProxy.callService(user) { cookie =>
+          ws.url(s"$ckanUrl/api/3/action/package_update?id=$datasetId")
+            .withHeaders("Cookie" -> cookie).post(json)
+        }
     }
-
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callUpdateDataset)map { Ok(_) }
-
+    parseResponse(response)
   }
 
-
-
-  def deleteDataset(datasetId :String) = Action.async { implicit request =>
-
-    val user = request.headers.get(USER_ID_HEADER).getOrElse("")
-
-    def callDeleteDataset( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] ={
-
-      val url = CKAN_URL + "/api/3/action/package_delete"
-      val body = s"""{\"id\":\"$datasetId\"}"""
-      ws.url(url).withHeaders("Cookie" -> cookie).post(body)
-
-    }
-
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callDeleteDataset)map { Ok(_) }
-
+  def deleteDataset(datasetId: String) = Action.async { implicit request =>
+    val response = request.headers.get(userIdHeader)
+      .map { user =>
+        val b = Json.obj("id" -> datasetId)
+        val body = s"""{\"id\":\"$datasetId\"}"""
+        externalServiceProxy.callService(CkanCredentials(user)) { cookie =>
+          ws.url(s"$ckanUrl/api/3/action/package_delete")
+            .withHeaders("Cookie" -> cookie).post(body)
+        }
+      }
+    parseResponse(response)
   }
 
-
-
-  def purgeDataset(datasetId :String) = Action.async { implicit request =>
+  def purgeDataset(datasetId: String) = Action.async { implicit request =>
 
     //curl -H "Content-Type: application/json" -X DELETE http://localhost:9001/ckan/purgeDataset/mydataset
-
-    val user = request.headers.get(USER_ID_HEADER).getOrElse("")
-
-    def callPurgeDataset( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] ={
-      val url = CKAN_URL + "/api/3/action/dataset_purge"
-      val body = s"""{\"id\":\"$datasetId\"}"""
-      ws.url(url).withHeaders("Cookie" -> cookie).post(body)
-    }
-
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callPurgeDataset)map { Ok(_) }
+    val response = request.headers.get(userIdHeader)
+      .map { user =>
+        val b = Json.obj("id" -> datasetId)
+        val body = s"""{\"id\":\"$datasetId\"}"""
+        externalServiceProxy.callService(CkanCredentials(user)) { cookie =>
+          ws.url(s"$ckanUrl/api/3/action/dataset_purge")
+            .withHeaders("Cookie" -> cookie).post(body)
+        }
+      }
+    parseResponse(response)
   }
-
 
   def createOrganization = Action.async { implicit request =>
-
-
     //curl -H "Content-Type: application/json" -X POST -d @org.json http://localhost:9001/ckan/createOrganization dove org.json contiene
-
     //val AUTH_TOKEN:String = config.get.getString("app.ckan.auth.token").get
-
-    val json:JsValue = request.body.asJson.get
-    val user = request.headers.get(USER_ID_HEADER).getOrElse("")
-
-    def callCreateOrganization( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] = {
-      ws.url(CKAN_URL + "/api/3/action/organization_create").withHeaders("Cookie" -> cookie).post(json)
-    }
-
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callCreateOrganization)map { Ok(_) }
-
+    val response = parseRequest(request)
+      .map {
+        case (json, user) =>
+          externalServiceProxy.callService(user) { cookie =>
+            ws.url(s"$ckanUrl/api/3/action/organization_create")
+              .withHeaders("Cookie" -> cookie).post(json)
+          }
+      }
+    parseResponse(response)
   }
-
 
   def createUser = Action.async { implicit request =>
 
@@ -196,241 +176,191 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
     }
     * */
 
-    val user = request.headers.get(USER_ID_HEADER).getOrElse("")
-    val json:JsValue = request.body.asJson.get
-
-    def callCreateUser( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] ={
-      ws.url(CKAN_URL + "/api/3/action/user_create").withHeaders("Cookie" -> cookie).post(json)
-    }
-
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callCreateUser)map { Ok(_) }
-
+    val response = parseRequest(request)
+      .map {
+        case (json, user) =>
+          externalServiceProxy.callService(user) { cookie =>
+            ws.url(s"$ckanUrl/api/3/action/user_create")
+              .withHeaders("Cookie" -> cookie).post(json)
+          }
+      }
+    parseResponse(response)
   }
 
-
-  def getUser(userId :String) = Action.async { implicit request =>
-
-    val user = request.headers.get(USER_ID_HEADER).getOrElse("")
-
-    def callGetUser( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] ={
-      val url = CKAN_URL + "/api/3/action/user_show?id=" + userId
-      ws.url(url).withHeaders("Cookie" -> cookie).get
-    }
-
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callGetUser)map { Ok(_) }
-
+  def getUser(userId: String) = Action.async { implicit request =>
+    val response = request.headers.get(userIdHeader)
+      .map { user =>
+        externalServiceProxy.callService(CkanCredentials(user)) { cookie =>
+          ws.url(s"$ckanUrl/api/3/action/user_show?id=$userId")
+            .withHeaders("Cookie" -> cookie).get
+        }
+      }
+    parseResponse(response)
   }
 
-
-  def getUserOrganizations( userId :String, permission:Option[String] ) = Action.async { implicit request =>
+  def getUserOrganizations(userId: String, permission: Option[String]) = Action.async { implicit request =>
 
     //CKAN versione 2.6.2 non prende l'id utente passato. Per la ricerca prende l'utente corrispondente all'API key
     //TODO aggiornare quindi l'interfaccia del servizio o la versione CKAN
 
-    val user = request.headers.get(USER_ID_HEADER).getOrElse("")
-
-    def callGetUserOrganizations( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] ={
-      val url = CKAN_URL + "/api/3/action/organization_list_for_user?id="+userId
-      println("organization_list_for_user URL " + url)
-      ws.url(url).withHeaders("Cookie" -> cookie).get
-    }
-
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callGetUserOrganizations)map { Ok(_) }
-
+    val response = request.headers.get(userIdHeader)
+      .map { user =>
+        externalServiceProxy.callService(CkanCredentials(user)) { cookie =>
+          ws.url(s"$ckanUrl/api/3/action/organization_list_for_user?id=$userId")
+            .withHeaders("Cookie" -> cookie).get
+        }
+      }
+    parseResponse(response)
   }
 
-
-  def getOrganization(orgId :String) = Action.async { implicit request =>
-
-    val user = request.headers.get(USER_ID_HEADER).getOrElse("")
-
-    def callGetOrganization( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] ={
-      val url = CKAN_URL + "/api/3/action/organization_show?id=" + orgId
-      ws.url(url).withHeaders("Cookie" -> cookie).get
-    }
-
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callGetOrganization)map { Ok(_) }
-
+  def getOrganization(orgId: String) = Action.async { implicit request =>
+    val response = request.headers.get(userIdHeader)
+      .map { user =>
+        externalServiceProxy.callService(CkanCredentials(user)) { cookie =>
+          ws.url(s"$ckanUrl/api/3/action/organization_show?id=$orgId")
+            .withHeaders("Cookie" -> cookie).get
+        }
+      }
+    parseResponse(response)
   }
 
-
-  def updateOrganization(orgId :String)= Action.async { implicit request =>
-
+  def updateOrganization(orgId: String) = Action.async { implicit request =>
     // curl -H "Content-Type: application/json" -X PUT -d @org.json http://localhost:9001/ckan/updateOrganization/id=232cad97-ecf2-447d-9656-63899023887t
-
-    val user = request.headers.get(USER_ID_HEADER).getOrElse("")
-    val json:JsValue = request.body.asJson.get
-
-    def callUpdateOrganization( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] = {
-      val url = CKAN_URL + "/api/3/action/organization_update?id=" + orgId
-      ws.url(url).withHeaders("Cookie" -> cookie).post(json)
-    }
-
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callUpdateOrganization)map { Ok(_) }
-
+    val response = parseRequest(request)
+      .map {
+        case (json, user) =>
+          externalServiceProxy.callService(user) { cookie =>
+            ws.url(s"$ckanUrl/api/3/action/organization_update?id=$orgId")
+              .withHeaders("Cookie" -> cookie).post(json)
+          }
+      }
+    parseResponse(response)
   }
 
-  def patchOrganization(orgId :String)= Action.async { implicit request =>
-
+  def patchOrganization(orgId: String) = Action.async { implicit request =>
     // curl -H "Content-Type: application/json" -X PUT -d @org.json http://localhost:9001/ckan/updateOrganization/id=232cad97-ecf2-447d-9656-63899023887t
-
-    val user = request.headers.get(USER_ID_HEADER).getOrElse("")
-    val json:JsValue = request.body.asJson.get
-
-    def callPatchOrganization( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] = {
-      val url = CKAN_URL + "/api/3/action/organization_patch?id=" + orgId
-      ws.url(url).withHeaders("Cookie" -> cookie).post(json)
-    }
-
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callPatchOrganization)map { Ok(_) }
-
+    val response = parseRequest(request)
+      .map {
+        case (json, user) =>
+          externalServiceProxy.callService(user) { cookie =>
+            ws.url(s"$ckanUrl/api/3/action/organization_patch?id=$orgId")
+              .withHeaders("Cookie" -> cookie).post(json)
+          }
+      }
+    parseResponse(response)
   }
 
-
-  def deleteOrganization(orgId :String) = Action.async { implicit request =>
-
-
+  def deleteOrganization(orgId: String) = Action.async { implicit request =>
     //curl -H "Content-Type: application/json" -X DELETE http://localhost:9001/ckan/deleteOrganization/apt-altopiano-di-pine-e-valle-di-cembra2
-
-    val user = request.headers.get(USER_ID_HEADER).getOrElse("")
-
-    def callDeleteOrganization( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] = {
-      val url = CKAN_URL + "/api/3/action/organization_delete"
-      val body = s"""{\"id\":\"$orgId\"}"""
-      ws.url(url).withHeaders("Cookie" -> cookie).post(body)
-    }
-
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callDeleteOrganization)map { Ok(_) }
+    val response = request.headers.get(userIdHeader)
+      .map { user =>
+        externalServiceProxy.callService(CkanCredentials(user)) { cookie =>
+          val body = s"""{\"id\":\"$orgId\"}"""
+          ws.url(s"$ckanUrl/api/3/action/organization_delete")
+            .withHeaders("Cookie" -> cookie).post(body)
+        }
+      }
+    parseResponse(response)
   }
 
-
-  def purgeOrganization(orgId :String) = Action.async { implicit request =>
-
-    //curl -H "Content-Type: application/json" -X DELETE http://localhost:9001/ckan/purgeOrganization/apt-altopiano-di-pine-e-valle-di-cembra2
-
-    val user = request.headers.get(USER_ID_HEADER).getOrElse("")
-
-    def callPurgeOrganization( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] = {
-      val url = CKAN_URL + "/api/3/action/organization_purge"
-      val body = s"""{\"id\":\"$orgId\"}"""
-      ws.url(url).withHeaders("Cookie" -> cookie).post(body)
-    }
-
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callPurgeOrganization)map { Ok(_) }
+  def purgeOrganization(orgId: String) = Action.async { implicit request =>
+    val response = request.headers.get(userIdHeader)
+      .map { user =>
+        externalServiceProxy.callService(CkanCredentials(user)) { cookie =>
+          val body = s"""{\"id\":\"$orgId\"}"""
+          ws.url(s"$ckanUrl/api/3/action/organization_purge")
+            .withHeaders("Cookie" -> cookie).post(body)
+        }
+      }
+    parseResponse(response)
   }
-
 
   def getDatasetList = Action.async { implicit request =>
-
-    val user = request.headers.get(USER_ID_HEADER).getOrElse("")
-
-    def callGetDatasetList( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] = {
-      ws.url(CKAN_URL + "/api/3/action/package_list").withHeaders("Cookie" -> cookie).get
-    }
-
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callGetDatasetList)map { Ok(_) }
+    val response = request.headers.get(userIdHeader)
+      .map { user =>
+        externalServiceProxy.callService(CkanCredentials(user)) { cookie =>
+          ws.url(s"$ckanUrl/api/3/action/package_list")
+            .withHeaders("Cookie" -> cookie).get
+        }
+      }
+    parseResponse(response)
   }
 
-
-  def getDatasetListWithResources(limit:Option[Int], offset:Option[Int]) = Action.async { implicit request =>
-
+  def getDatasetListWithResources(limit: Option[Int], offset: Option[Int]) = Action.async { implicit request =>
     // curl -X GET "http://localhost:9001/ckan/datasetsWithResources?limit=1&offset=1"
+    val response = request.headers.get(userIdHeader)
+      .map { user =>
+        val params = Map(("limit", limit), ("offset", offset))
+        val queryString = Utils.buildEncodedQueryString(params)
 
-    val user = request.headers.get(USER_ID_HEADER).getOrElse("")
-
-    val params= Map( ("limit",limit), ("offset",offset) )
-    val queryString = WebServiceUtil.buildEncodedQueryString(params)
-
-    def callDatasetListWithResources( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] = {
-      val url = CKAN_URL + s"/api/3/action/current_package_list_with_resources$queryString"
-      ws.url(url).withHeaders("Cookie" -> cookie).get
-    }
-
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callDatasetListWithResources)map { Ok(_) }
+        externalServiceProxy.callService(CkanCredentials(user)) { cookie =>
+          ws.url(s"$ckanUrl/api/3/action/current_package_list_with_resources$queryString")
+            .withHeaders("Cookie" -> cookie).get
+        }
+      }
+    parseResponse(response)
   }
-
 
   def getOrganizationList = Action.async { implicit request =>
+    val response = request.headers.get(userIdHeader)
+      .map { user =>
 
-    val user = request.headers.get(USER_ID_HEADER).getOrElse("")
-
-    def callGetOrganizationList( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] = {
-      ws.url(CKAN_URL + "/api/3/action/organization_list").withHeaders("Cookie" -> cookie).get
-    }
-
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callGetOrganizationList)map { Ok(_) }
-
-  }
-
-
-  def searchDataset(q:Option[String], sort:Option[String], rows:Option[Int], start:Option[Int]) = Action.async { implicit request =>
-
-    val user = request.headers.get(USER_ID_HEADER).getOrElse("")
-
-    val params= Map( ("q",q), ("sort",sort), ("rows",rows), ("start",start) )
-    val queryString = WebServiceUtil.buildEncodedQueryString(params)
-
-    def callSearchDataset( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] = {
-      val url = CKAN_URL + s"/api/3/action/package_search$queryString"
-      ws.url(url).withHeaders("Cookie" -> cookie).get
-    }
-
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callSearchDataset)map { Ok(_) }
-
-  }
-
-  def autocompleteDataset(q:Option[String], limit:Option[Int]) = Action.async { implicit request =>
-
-    val user = request.headers.get(USER_ID_HEADER).getOrElse("")
-
-    val params= Map( ("q",q), ("limit",limit) )
-    val queryString = WebServiceUtil.buildEncodedQueryString(params)
-
-    def autocompleteDataset( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] = {
-      val url = CKAN_URL + s"/api/3/action/package_autocomplete$queryString"
-      ws.url(url).withHeaders("Cookie" -> cookie).get
-    }
-
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), autocompleteDataset)map { Ok(_) }
-
-  }
-
-
-  def getOganizationRevisionList(organizationId :String) = Action.async { implicit request =>
-
-    val user = request.headers.get(USER_ID_HEADER).getOrElse("")
-
-    def callGetOganizationRevisionList( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] = {
-      val url = CKAN_URL + "/api/3/action/organization_revision_list?id=" + organizationId
-      ws.url(url).withHeaders("Cookie" -> cookie).get
-    }
-
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callGetOganizationRevisionList)map { Ok(_) }
-  }
-
-
-  def getDataset(datasetId :String) = Action.async { implicit request =>
-
-    if(ENV == "dev"){
-      val dataset = CkanRegistry.ckanService.dataset(datasetId,Option(""))
-
-      val isOk = Future.successful(dataset)
-      isOk map { x =>
-        Ok(x)
+        externalServiceProxy.callService(CkanCredentials(user)) { cookie =>
+          ws.url(s"$ckanUrl/api/3/action/organization_list")
+            .withHeaders("Cookie" -> cookie).get
+        }
       }
+    parseResponse(response)
+  }
 
-    }else{
+  def searchDataset(q: Option[String], sort: Option[String], rows: Option[Int], start: Option[Int]) = Action.async { implicit request =>
+    val response = request.headers.get(userIdHeader)
+      .map { user =>
+        val params = Map(("q", q), ("sort", sort), ("rows", rows), ("start", start))
+        val queryString = Utils.buildEncodedQueryString(params)
 
-      val user = request.headers.get(USER_ID_HEADER).getOrElse("")
-
-      def callGetDataset( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] = {
-        val url = CKAN_URL + "/api/3/action/package_show?id=" + datasetId
-        ws.url(url).withHeaders("Cookie" -> cookie).get
+        externalServiceProxy.callService(CkanCredentials(user)) { cookie =>
+          ws.url(s"$ckanUrl/api/3/action/package_search$queryString")
+            .withHeaders("Cookie" -> cookie).get
+        }
       }
+    parseResponse(response)
+  }
 
-      secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callGetDataset)map { Ok(_) }
-    }
+  def autocompleteDataset(q: Option[String], limit: Option[Int]) = Action.async { implicit request =>
+    val response = request.headers.get(userIdHeader)
+      .map { user =>
+        val params = Map(("q", q), ("limit", limit))
+        val queryString = Utils.buildEncodedQueryString(params)
 
+        externalServiceProxy.callService(CkanCredentials(user)) { cookie =>
+          ws.url(s"$ckanUrl/api/3/action/package_autocomplete$queryString")
+            .withHeaders("Cookie" -> cookie).get
+        }
+      }
+    parseResponse(response)
+  }
+
+  def getOganizationRevisionList(organizationId: String) = Action.async { implicit request =>
+    val response = request.headers.get(userIdHeader)
+      .map { user =>
+        externalServiceProxy.callService(CkanCredentials(user)) { cookie =>
+          ws.url(s"$ckanUrl/api/3/action/organization_revision_list?id=$organizationId")
+            .withHeaders("Cookie" -> cookie).get
+        }
+      }
+    parseResponse(response)
+  }
+
+  def getDataset(datasetId: String) = Action.async { implicit request =>
+    val response = request.headers.get(userIdHeader)
+      .map { user =>
+        externalServiceProxy.callService(CkanCredentials(user)) { cookie =>
+          ws.url(s"$ckanUrl/api/3/action/package_show?id=$datasetId")
+            .withHeaders("Cookie" -> cookie).get
+        }
+      }
+    parseResponse(response)
   }
 
 }

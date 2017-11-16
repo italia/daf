@@ -17,7 +17,7 @@ val playVersion = "2.5.14"
 
 Seq(gitStampSettings: _*)
 
-version in ThisBuild := sys.env.get("CATALOG_MANAGER_VERSION").getOrElse("1.0-SNAPSHOT")
+version in ThisBuild := sys.env.getOrElse("CATALOG_MANAGER_VERSION", "1.0-SNAPSHOT")
 
 lazy val client = (project in file("client")).
   settings(Seq(
@@ -48,9 +48,10 @@ libraryDependencies ++= Seq(
  // "org.specs2" %% "specs2-scalacheck" % "3.8.9" % Test,
   "me.jeffmay" %% "play-json-tests" % "1.5.0" % Test,
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.0" % Test,
-  "org.mongodb" %% "casbah" % "3.1.1", //,
+  "org.mongodb" %% "casbah" % "3.1.1",
   "net.caoticode.dirwatcher" %% "dir-watcher" % "0.1.0",
-  "it.gov.daf" %% "common" % "1.0.1-SNAPSHOT",
+//  "it.gov.daf" %% "common" % "1.0.1-SNAPSHOT",
+  "it.gov.daf" %% "daf-play-common" % "0.1-SNAPSHOT",
   "me.lessis" %% "base64" % "0.2.0",
   "ch.lightshed" %% "courier" % "0.1.4"
   //"com.github.cb372" %% "scalacache-guava" % "0.9.4"

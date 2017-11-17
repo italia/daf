@@ -25,7 +25,9 @@ import play.api.libs.ws.ahc.AhcWSClient
 import scala.concurrent.Future
 import com.typesafe.config.Config
 import it.gov.daf.ingestion.nifi.NifiProcessor
-import it.gov.daf.ingestion.nifi.NifiProcessor.NiFiProcessStatus
+import it.gov.daf.ingestion.nifi.NifiProcessor.NifiResult
+import play.api.libs.ws.WSClient
+import scala.concurrent.ExecutionContext
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -34,11 +36,14 @@ import it.gov.daf.ingestion.nifi.NifiProcessor.NiFiProcessStatus
 
 package ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Ingestion_managerYaml
-                                        
+        
     // ----- End of unmanaged code area for package Ingestion_managerYaml
     class Ingestion_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Ingestion_managerYaml
-
+    implicit
+    val system: ActorSystem,
+    implicit val ec: ExecutionContext,
+    implicit val ws: WSClient,
         // ----- End of unmanaged code area for injections Ingestion_managerYaml
         val messagesApi: MessagesApi,
         lifecycle: ApplicationLifecycle,
@@ -56,27 +61,25 @@ package ingestion_manager.yaml {
             // ----- Start of unmanaged code area for action  Ingestion_managerYaml.addNewDataset
             //FIXME take out these resources and close them
       implicit val config: Config = com.typesafe.config.ConfigFactory.load()
-      implicit val system: ActorSystem = ActorSystem()
       implicit val materializer: ActorMaterializer = ActorMaterializer()
-      implicit val wsClient: AhcWSClient = AhcWSClient()
-      implicit val ec = system.dispatcher
-      val clientCaller = new ClientCaller(wsClient)
+      val clientCaller = new ClientCaller(ws)
 
       val auth = currentRequest
         .headers
         .get("authorization")
         .getOrElse("")
 
-      val fResult: Future[NiFiProcessStatus] =
+      val fResults =
         clientCaller.clientCatalogMgrMetaCatalog(auth, ds_logical_uri)
           .flatMap(mc => NifiProcessor(mc).createDataFlow())
 
-      fResult
-        .flatMap(r => AddNewDataset200(IngestionReport("Status: OK", Some(r.toString))))
+      fResults
+        .flatMap(r =>
+          AddNewDataset200(IngestionReport("200", Some(r.toString))))
         .recoverWith {
           case ex: Throwable =>
             ex.printStackTrace()
-            AddNewDataset200(IngestionReport(s"Status: ${ex.getLocalizedMessage}", Some("NiFi Info")))
+            AddNewDataset200(IngestionReport("400", Some(ex.getLocalizedMessage)))
         }
             // ----- End of unmanaged code area for action  Ingestion_managerYaml.addNewDataset
         }

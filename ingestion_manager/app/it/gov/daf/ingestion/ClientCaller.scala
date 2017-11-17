@@ -1,14 +1,13 @@
 package it.gov.daf.ingestion
 
 import java.net.URLEncoder
-import java.nio.charset.Charset
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import com.typesafe.config.ConfigFactory
 import it.gov.daf.catalogmanager.MetaCatalog
 import it.gov.daf.catalogmanager.client.Catalog_managerClient
-import play.api.libs.ws.ahc.AhcWSClient
+import play.api.libs.ws.WSClient
 
 import scala.concurrent.Future
 
@@ -18,7 +17,7 @@ import scala.concurrent.Future
 
 //This object needs to be created once per service called, and renamed accordingly
 
-class ClientCaller(private val wsClient: AhcWSClient)
+class ClientCaller(private val wsClient: WSClient)
                   (implicit actorSystem: ActorSystem, mat: ActorMaterializer) {
 
   type ServerType = Any

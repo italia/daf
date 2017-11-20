@@ -107,7 +107,7 @@
       }
     },
     "is_std": false,
-    "logical_uri": "daf://dataset/ord/raffaele/raffaele/theme/test_csv",
+    "logical_uri": "daf://dataset/ord/raffaele/theme/subtheme/test_csv",
     "group_own": "davide",
     "ingestion_pipeline": [
       "pipeline1",

@@ -17,10 +17,13 @@
 package it.gov.daf.common.utils
 
 import java.net.URLEncoder
+
 import it.gov.daf.common.authentication.Authentication
 import org.apache.commons.net.util.Base64
 import play.api.libs.json._
 import play.api.mvc.Request
+
+import scala.util.Try
 
 
 /**
@@ -52,8 +55,7 @@ object WebServiceUtil {
     encoded.mkString("?", "&", "")
   }
 
-
-  def readCredentialFromRequest( request:Request[Any] ) :(Option[String],Option[String]) ={
+    def readCredentialFromRequest( request:Request[Any] ) :(Option[String],Option[String]) ={
 
 
     val auth = request.headers.get("authorization")
@@ -66,7 +68,8 @@ object WebServiceUtil {
       val user:Option[String] = Option( Authentication.getProfiles(request).head.getId )
       println("userId:"+user)
 
-      val userAndPass = new String(Base64.decodeBase64(auth.get.split(" ").drop(1).head.getBytes)).split(":")
+      val userAndPass = new String(Base64.decodeBase64(auth.get.split(" ").drop(1).head.getBytes))
+        .split(":")
       ( user, Option(userAndPass.drop(1).mkString(":")))
 
     }else if( authType.equalsIgnoreCase("bearer") ) {

@@ -16,27 +16,24 @@
 
 package it.gov.daf.common.sso.client
 
-
 import it.gov.daf.common.sso.common.{LoginClient, LoginInfo}
 import play.api.libs.ws.WSClient
 import play.api.mvc.Cookie
 
 import scala.concurrent.Future
 
-
-final case class LoginClientRemote(secManagerHost:String) extends LoginClient{
+final case class LoginClientRemote(secManagerHost: String) extends LoginClient {
 
   //val secManagerHost:String = _secManagerHost
 
-  def login(loginInfo:LoginInfo, client: WSClient):Future[Cookie] = {
+  def login(loginInfo: LoginInfo, client: WSClient): Future[Cookie] = {
 
-    if(client != null )
-      SsoServiceClient.retriveCookieInternal(secManagerHost,loginInfo.user,loginInfo.appName,client)
+    if (client != null)
+      SsoServiceClient.retriveCookieInternal(secManagerHost, loginInfo.user, loginInfo.appName, client)
     else
-      SsoServiceClient.retriveCookieInternal(secManagerHost,loginInfo.user,loginInfo.appName)
+      SsoServiceClient.retriveCookieInternal(secManagerHost, loginInfo.user, loginInfo.appName)
 
   }
-
 
 }
 
@@ -49,27 +46,23 @@ final case class LoginClientRemote(secManagerHost:String) extends LoginClient{
 )
 object LoginClientRemote {
 
-  private var _instance : LoginClientRemote = null
+  private var _instance: LoginClientRemote = null
 
-  def init(secManagerHost:String):LoginClientRemote = {
+  def init(secManagerHost: String): LoginClientRemote = {
     if (_instance == null) {
       _instance = new LoginClientRemote(secManagerHost)
       _instance
-    }
-    else if (secManagerHost == _instance.secManagerHost)
+    } else if (secManagerHost == _instance.secManagerHost)
       _instance
     else
       throw new Exception("LoginClientRemote is already initialized with different parameters")
   }
 
-  def instance():LoginClientRemote = {
-    if(_instance != null)
+  def instance(): LoginClientRemote = {
+    if (_instance != null)
       _instance
     else
       throw new Exception("LoginClientRemote not initialized")
   }
 
-
 }
-
-

@@ -21,7 +21,6 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider, cache
 
   implicit val cookieWrites = Json.writes[Cookie]
 
-  //val cacheWrapper = CacheWrapper.init(ConfigReader.cookieExpiration,ConfigReader.tokenExpiration) TODO da mettere nel modulo!
 
   //----------------SECURED API---------------------------------------
 

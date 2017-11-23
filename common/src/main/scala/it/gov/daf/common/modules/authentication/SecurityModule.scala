@@ -54,7 +54,7 @@ class SecurityModule(environment: Environment, configuration: Configuration) ext
     dnResolver.setFormat("uid=%s,cn=users,cn=accounts,dc=example,dc=test")
     */
 
-    println("Security Module v.1.0.2 snapshot")
+    println("Security Module v.1.0.2.1 snapshot")
     val connectionConfig = new ConnectionConfig
     connectionConfig.setConnectTimeout(Duration.ofMillis(configuration.getLong("pac4j.ldap.connect_timeout").getOrElse(500)))
     connectionConfig.setResponseTimeout(Duration.ofMillis(configuration.getLong("pac4j.ldap.response_timeout").getOrElse(1000)))
@@ -105,7 +105,7 @@ class SecurityModule(environment: Environment, configuration: Configuration) ext
     ldaptiveAuthenticator.setAuthenticationHandler(handler)
     // pac4j:
     val authenticator = new LdapProfileService(connectionFactory, ldaptiveAuthenticator, "dummy")
-    authenticator.setAttributes("")
+    authenticator.setAttributes("memberOf,userClass")
     authenticator.setUsernameAttribute(configuration.getString("pac4j.ldap.username_attribute").getOrElse("xxxx"))
     authenticator
   }

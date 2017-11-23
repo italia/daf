@@ -36,7 +36,7 @@ import it.gov.daf.common.utils.WebServiceUtil
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                                                                        
+                                                                                                                                                                                                                        
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -61,6 +61,14 @@ package security_manager.yaml {
       )
     ) */
         // ----- End of unmanaged code area for constructor Security_managerYaml
+        val createIPAgroup = createIPAgroupAction { (organization: Group) =>  
+            // ----- Start of unmanaged code area for action  Security_managerYaml.createIPAgroup
+            apiClientIPA.createGroup(organization) flatMap {
+              case Right(success) => CreateIPAgroup200(success)
+              case Left(err) => CreateIPAgroup500(err)
+            }
+            // ----- End of unmanaged code area for action  Security_managerYaml.createIPAgroup
+        }
         val registrationconfirm = registrationconfirmAction { (token: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.registrationconfirm
             registrationService.createUser(token) flatMap {
@@ -76,6 +84,15 @@ package security_manager.yaml {
               case Left(err) => CreateIPAuser500(err)
             }
             // ----- End of unmanaged code area for action  Security_managerYaml.createIPAuser
+        }
+        val addUserToIPAgroup = addUserToIPAgroupAction { input: (String, UserList) =>
+            val (org, users) = input
+            // ----- Start of unmanaged code area for action  Security_managerYaml.addUserToIPAgroup
+            apiClientIPA.addUsersToGroup(org,users) flatMap {
+              case Right(success) => AddUserToIPAgroup200(success)
+              case Left(err) => AddUserToIPAgroup500(err)
+            }
+            // ----- End of unmanaged code area for action  Security_managerYaml.addUserToIPAgroup
         }
         val token = tokenAction {  _ =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.token

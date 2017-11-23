@@ -34,11 +34,18 @@ private class AppConfig @Inject()(playConfig: Configuration) {
   val tokenExpiration :Option[Long] = playConfig.getLong("token.expiration")
   val cookieExpiration :Option[Long] = playConfig.getLong("cookie.expiration")
 
+  val defaultOrganization:Option[String] = playConfig.getString("default.organization")
+  val defaultRole:Option[String] = playConfig.getString("default.role")
+
 }
 
 
 object ConfigReader {
+
   private val config = new AppConfig(Configuration.load(Environment.simple()))
+
+  require(config.defaultOrganization.nonEmpty,"A default organization must be specified")
+
   //def userIdHeader: String = config.userIdHeader.getOrElse("userid")
   def getCkanHost: String = config.ckanHost.getOrElse("localhost")
   def getDbHost: String = config.dbHost.getOrElse("localhost")
@@ -65,5 +72,8 @@ object ConfigReader {
 
   def tokenExpiration:Long = config.tokenExpiration.getOrElse(60L*8L)// 8h by default
   def cookieExpiration:Long = config.cookieExpiration.getOrElse(30L)// 30 min by default
+
+  def defaultOrganization:String = config.defaultOrganization.get
+
 }
 

@@ -5,12 +5,13 @@ import akka.stream.ActorMaterializer
 import com.google.inject.{Inject, Provides, Singleton}
 import it.gov.daf.common.sso.common.{LoginInfo, SecuredInvocationManager}
 import it.gov.daf.common.utils.WebServiceUtil
+import it.gov.daf.securitymanager.service.Role
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import org.apache.commons.lang3.StringEscapeUtils
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
 import play.api.libs.ws.ahc.AhcWSClient
-import security_manager.yaml.{Error, IpaUser, Success}
+import security_manager.yaml.{Error, Group, IpaUser, Success, UserList}
 
 import scala.concurrent.Future
 
@@ -25,6 +26,8 @@ class ApiClientIPA @Inject()(loginClient:LoginClientLocal,secInvokeManager:Secur
 
 
   def createUser(user: IpaUser):Future[Either[Error,Success]]= {
+
+    val role = user.role.getOrElse(Role.Viewer.toString)
 
     val jsonUser: JsValue = Json.parse(
       s"""{
@@ -45,6 +48,7 @@ class ApiClientIPA @Inject()(loginClient:LoginClientLocal,secInvokeManager:Secur
                                              "noprivate":false,
                                              "random":false,
                                              "raw":false,
+                                             "userclass":"$role",
                                              "version": "2.213"
                                           }
                                        ],
@@ -68,6 +72,73 @@ class ApiClientIPA @Inject()(loginClient:LoginClientLocal,secInvokeManager:Secur
 
   }
 
+  def createGroup(group: Group):Future[Either[Error,Success]]= {
+
+
+    val jsonGroup: JsValue = Json.parse(
+      s"""{
+                                       "method":"group_add",
+                                       "params":[
+                                          [
+                                             "${group.cn}"
+                                          ],
+                                          {
+                                             "raw":false,
+                                             "version": "2.213"
+                                          }
+                                       ],
+                                       "id":0
+                                    }""")
+
+    println("createGroup: "+ jsonGroup.toString())
+
+    val serviceInvoke : (String,AhcWSClient)=> Future[WSResponse] = callIpaUrl(jsonGroup,_,_)
+    secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).map { json =>
+
+      val result = ((json \ "result") \"result")
+
+      if( result == "null" || result.isInstanceOf[JsUndefined] )
+        Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
+      else
+        Right(Success(Some("Group created"), Some("ok")))
+
+    }
+
+  }
+
+  def addUsersToGroup(group: String, userList: UserList):Future[Either[Error,Success]]= {
+
+    val jArrayStr = userList.users.get.mkString("\"","\",\"","\"")
+
+    val jsonAdd: JsValue = Json.parse(
+      s"""{
+                                       "method":"group_add_member",
+                                       "params":[
+                                          [
+                                             "$group"
+                                          ],
+                                          {
+                                             "user":[$jArrayStr],
+                                             "raw":false,
+                                             "version": "2.213"
+                                          }
+                                       ],
+                                       "id":0
+                                    }""")
+
+    println("addUsersToGroup: "+ jsonAdd.toString())
+
+    val serviceInvoke : (String,AhcWSClient)=> Future[WSResponse] = callIpaUrl(jsonAdd,_,_)
+    secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).map { json =>
+      val result = ((json \ "result") \"result")
+
+      if( result == "null" || result.isInstanceOf[JsUndefined] )
+        Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
+      else
+        Right(Success(Some("Users added"), Some("ok")))
+    }
+
+  }
 
   def showUser(userId: String):Future[Either[Error,IpaUser]]={
 
@@ -79,12 +150,13 @@ class ApiClientIPA @Inject()(loginClient:LoginClientLocal,secInvokeManager:Secur
                                                      "$userId"
                                                  ],
                                                  {
+                                                     "all": "true",
                                                      "version": "2.213"
                                                  }
                                              ]
                                          }""")
 
-    println(jsonRequest.toString())
+    println("showUser request: "+jsonRequest.toString())
 
     val serviceInvoke : (String,AhcWSClient)=> Future[WSResponse] = callIpaUrl(jsonRequest,_,_)
     secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).map { json =>
@@ -102,7 +174,9 @@ class ApiClientIPA @Inject()(loginClient:LoginClientLocal,secInvokeManager:Secur
             (result \ "givenname") (0).asOpt[String].getOrElse(""),
             (result \ "mail") (0).asOpt[String].getOrElse(""),
             (result \ "uid") (0).asOpt[String].getOrElse(""),
-            None
+            (result \ "userclass") (0).asOpt[String],
+            None,
+            (result \ "memberof_group").asOpt[Seq[String]]
           )
         )
 
@@ -119,12 +193,13 @@ class ApiClientIPA @Inject()(loginClient:LoginClientLocal,secInvokeManager:Secur
                                                  [""],
                                                  {
                                                     "mail": "$mail",
+                                                    "all": "true",
                                                     "version": "2.213"
                                                  }
                                              ]
                                          }""")
 
-    //println(jsonRequest.toString())
+    println("findUserByMail request: "+ jsonRequest.toString())
 
     val serviceInvoke : (String,AhcWSClient)=> Future[WSResponse] = callIpaUrl(jsonRequest,_,_)
     secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).map { json =>
@@ -145,7 +220,9 @@ class ApiClientIPA @Inject()(loginClient:LoginClientLocal,secInvokeManager:Secur
             (result \ "givenname") (0).asOpt[String].getOrElse(""),
             (result \ "mail") (0).asOpt[String].getOrElse(""),
             (result \ "uid") (0).asOpt[String].getOrElse(""),
-            None
+            (result \ "userclass") (0).asOpt[String],
+            None,
+            (result \ "memberof_group").asOpt[Seq[String]]
           )
         )
 

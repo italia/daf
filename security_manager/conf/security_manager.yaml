@@ -87,6 +87,60 @@ paths:
           description: Error Message
           schema:
             $ref: '#/definitions/Error'
+  "/ipa/organization":
+    post:
+      tags:
+        - IPA
+      description: Create an organization
+      operationId: createIPAgroup
+      produces:
+      - application/json
+      parameters:
+      - name: organization
+        in: body
+        description: Organization
+        required: true
+        schema:
+          $ref: '#/definitions/Group'
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+  "/ipa/organization/{org}":
+    put:
+      tags:
+        - IPA
+      description: Add users to an organization
+      operationId: addUserToIPAgroup
+      produces:
+      - application/json
+      parameters:
+      - name: org
+        in: path
+        description: Group uid
+        required: true
+        type: string
+      - name: users
+        in: body
+        description: List of users
+        required: true
+        schema:
+         $ref: '#/definitions/UserList'
+      responses:
+        200:
+          description: Success
+          schema:
+            #type: object
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
   "/ipa/registration/request":
     post:
       tags:
@@ -183,6 +237,29 @@ definitions:
         type: string
       userpassword:
         type: string
+      organizations:
+        type: array
+        items:
+          type: string
+      role:
+        type: string
+  Group:
+    type: object
+    required:
+      - cn
+    properties:
+      cn:
+        description: group uid
+        type: string
+  UserList:
+    type: object
+    required:
+      - uid
+    properties:
+      users:
+        type: array
+        items:
+          type: string
   Error:
     properties:
       code:

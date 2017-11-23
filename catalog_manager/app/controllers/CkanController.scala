@@ -22,7 +22,7 @@ import play.api.libs.ws.ahc.AhcWSClient
 
 
 @Singleton
-class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) extends Controller {
+class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider, secInvokManager:SecuredInvocationManager) extends Controller {
 
   import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
@@ -36,7 +36,7 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
   private val SEC_MANAGER_HOST:String = config.get.getString("security.manager.host").get
 
-  private val secInvokManager = SecuredInvocationManager.init( LoginClientRemote.init(SEC_MANAGER_HOST) )
+  //private val secInvokManager = SecuredInvocationManager.init( LoginClientRemote.init(SEC_MANAGER_HOST) )
 
   private def getOrgs(orgId :String): Future[List[String]] = {
     val orgs : Future[WSResponse] = ws.url(LOCAL_URL + "/ckan/organizations/" + orgId).get()

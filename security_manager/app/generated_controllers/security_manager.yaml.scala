@@ -36,12 +36,15 @@ import it.gov.daf.common.utils.WebServiceUtil
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-    
+                                                                                                                        
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
                                         val configuration: Configuration,
                                         val playSessionStore: PlaySessionStore,
+                                        cacheWrapper:CacheWrapper,
+                                        apiClientIPA:ApiClientIPA,
+                                        registrationService:RegistrationService,
         // ----- End of unmanaged code area for injections Security_managerYaml
         val messagesApi: MessagesApi,
         lifecycle: ApplicationLifecycle,
@@ -50,7 +53,6 @@ package security_manager.yaml {
         // ----- Start of unmanaged code area for constructor Security_managerYaml
 
       Authentication(configuration, playSessionStore)
-      CacheWrapper.init(ConfigReader.cookieExpiration,ConfigReader.tokenExpiration)
 
   /*  @SuppressWarnings(
       Array(
@@ -61,7 +63,7 @@ package security_manager.yaml {
         // ----- End of unmanaged code area for constructor Security_managerYaml
         val registrationconfirm = registrationconfirmAction { (token: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.registrationconfirm
-            RegistrationService.createUser(token) flatMap {
+            registrationService.createUser(token) flatMap {
               case Right(success) => Registrationconfirm200(success)
               case Left(err) => Registrationconfirm500(err)
             }
@@ -69,7 +71,7 @@ package security_manager.yaml {
         }
         val createIPAuser = createIPAuserAction { (user: IpaUser) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.createIPAuser
-            ApiClientIPA.createUser(user) flatMap {
+            apiClientIPA.createUser(user) flatMap {
               case Right(success) => CreateIPAuser200(success)
               case Left(err) => CreateIPAuser500(err)
             }
@@ -79,14 +81,14 @@ package security_manager.yaml {
             // ----- Start of unmanaged code area for action  Security_managerYaml.token
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
             //SsoServiceClient.registerInternal(credentials._1.get,credentials._2.get)
-            CacheWrapper.instance.putCredentials(credentials._1.get,credentials._2.get)
+            cacheWrapper.putCredentials(credentials._1.get,credentials._2.get)
 
             Token200(Authentication.getStringToken(currentRequest, ConfigReader.tokenExpiration).getOrElse(""))
             // ----- End of unmanaged code area for action  Security_managerYaml.token
         }
         val showipauser = showipauserAction { (mail: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.showipauser
-            ApiClientIPA.findUserByMail(mail) flatMap {
+            apiClientIPA.findUserByMail(mail) flatMap {
               case Right(success) => Showipauser200(success)
               case Left(err) => Showipauser500(err)
             }
@@ -94,7 +96,7 @@ package security_manager.yaml {
         }
         val registrationrequest = registrationrequestAction { (user: IpaUser) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.registrationrequest
-            val reg = RegistrationService.requestRegistration(user) flatMap {
+            val reg = registrationService.requestRegistration(user) flatMap {
               case Right(mailService) => mailService.sendMail()
               case Left(msg) => Future {Left(msg)}
             }

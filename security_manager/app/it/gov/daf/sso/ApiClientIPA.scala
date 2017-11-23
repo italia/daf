@@ -2,6 +2,7 @@ package it.gov.daf.sso
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
+import com.google.inject.{Inject, Provides, Singleton}
 import it.gov.daf.common.sso.common.{LoginInfo, SecuredInvocationManager}
 import it.gov.daf.common.utils.WebServiceUtil
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
@@ -13,16 +14,15 @@ import security_manager.yaml.{Error, IpaUser, Success}
 
 import scala.concurrent.Future
 
-
-object ApiClientIPA {
+@Singleton
+class ApiClientIPA @Inject()(loginClient:LoginClientLocal,secInvokeManager:SecuredInvocationManager){
 
   import scala.concurrent.ExecutionContext.Implicits._
 
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()
   private val loginInfo = new LoginInfo(ConfigReader.ipaUser, ConfigReader.ipaUserPwd, LoginClientLocal.FREE_IPA)
-  private val loginClient = LoginClientLocal.instance()
-  private val secInvokeManager = SecuredInvocationManager.init(loginClient)
+
 
   def createUser(user: IpaUser):Future[Either[Error,Success]]= {
 

@@ -17,6 +17,7 @@
 package it.gov.daf.common.sso.common
 
 import com.google.common.cache.CacheBuilder
+import com.google.inject.Singleton
 import play.api.mvc.Cookie
 
 import scala.concurrent.duration._
@@ -26,13 +27,18 @@ import scalacache.guava._
 @SuppressWarnings(
   Array(
     "org.wartremover.warts.Nothing",
-    "org.wartremover.warts.PublicInference"
+    "org.wartremover.warts.PublicInference",
+    "org.wartremover.warts.OptionPartial"
   )
 )
-class CacheWrapper(_cookieTtlMin:Long, _credentialTtlMin:Long) {
+@Singleton
+class CacheWrapper(cookieTtlMin:Option[Long], credentialTtlMin:Option[Long]) {
 
-  val cookieTtlMin = _cookieTtlMin
-  val credentialTtlMin = _credentialTtlMin
+  require(cookieTtlMin.nonEmpty , "CacheWrapper configuration error: cookies ttl must be set")
+  require(credentialTtlMin.nonEmpty, "CacheWrapper configuration error: credentials ttl must be set")
+
+  println(s"CacheWrapper initialized with cookieTtlMin:$cookieTtlMin and credentialTtlMin $credentialTtlMin")
+
   private val guavaCache = CacheBuilder.newBuilder().maximumSize(10000L).build[String, Object]
   private implicit val cache = ScalaCache(GuavaCache(guavaCache))
 
@@ -43,16 +49,16 @@ class CacheWrapper(_cookieTtlMin:Long, _credentialTtlMin:Long) {
   def getCookie(appName:String,userName:String):Option[Cookie] = sync.get(appName+"-"+userName)
   def getCookies(appName:String,userName:String):Option[Seq[Cookie]] = sync.get(appName+"-"+userName+"multi")
   def getPwd(user:String):Option[String] = sync.get(user)
-  def putCookie(appName:String,userName:String,cookie:Cookie) = sync.cachingWithTTL(appName+"-"+userName)(cookieTtlMin.minutes){cookie}
-  def putCookies(appName:String,userName:String,cookies:Seq[Cookie]) = sync.cachingWithTTL(appName+"-"+userName+"multi")(cookieTtlMin.minutes){cookies}
-  def putCredentials(user:String,pwd:String) = sync.cachingWithTTL(user)(credentialTtlMin.minutes){pwd}  //TTL must be equal to jwt expiration
+  def putCookie(appName:String,userName:String,cookie:Cookie) = sync.cachingWithTTL(appName+"-"+userName)(cookieTtlMin.get.minutes){cookie}
+  def putCookies(appName:String,userName:String,cookies:Seq[Cookie]) = sync.cachingWithTTL(appName+"-"+userName+"multi")(cookieTtlMin.get.minutes){cookies}
+  def putCredentials(user:String,pwd:String) = sync.cachingWithTTL(user)(credentialTtlMin.get.minutes){pwd}  //TTL must be equal to jwt expiration
   def deleteCookie(appName:String,userName:String)= remove(appName+"-"+userName)
   def deleteCookies(appName:String,userName:String)= remove(appName+"-"+userName+"multi")
   def deleteCredentials(user:String) = remove(user)
 
 
 }
-
+/*
 @SuppressWarnings(
   Array(
     "org.wartremover.warts.Throw",
@@ -83,4 +89,4 @@ object CacheWrapper{
 
   def isInitialized:Boolean = (_instance!=null)
 
-}
+}*/

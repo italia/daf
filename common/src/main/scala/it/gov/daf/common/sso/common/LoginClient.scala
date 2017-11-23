@@ -22,7 +22,7 @@ import play.api.mvc.Cookie
 import scala.concurrent.Future
 
 
-abstract class LoginClient {
+trait LoginClient {
 
   def login(loginInfo:LoginInfo, wsClient: WSClient):Future[Cookie]
 

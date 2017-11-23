@@ -1,5 +1,6 @@
 package it.gov.daf.securitymanager.service
 
+import com.google.inject.Inject
 import it.gov.daf.securitymanager.service.utilities.BearerTokenGenerator
 import it.gov.daf.sso.ApiClientIPA
 import play.api.libs.json.{JsError, JsSuccess, JsValue}
@@ -9,7 +10,7 @@ import security_manager.yaml.Error
 
 import scala.concurrent.Future
 
-object RegistrationService {
+class RegistrationService @Inject()(apiClientIPA:ApiClientIPA) {
 
   import security_manager.yaml.BodyReads._
   import scala.concurrent.ExecutionContext.Implicits._
@@ -49,7 +50,7 @@ object RegistrationService {
 
   private def checkUserNregister(user:IpaUser):Future[Either[String,MailService]] = {
 
-    ApiClientIPA.showUser(user.uid) flatMap { result =>
+    apiClientIPA.showUser(user.uid) flatMap { result =>
 
       result match{
         case Right(r) => Future { Left("Username already registered") }
@@ -62,7 +63,7 @@ object RegistrationService {
 
   private def checkMailNregister(user:IpaUser):Future[Either[String,MailService]] = {
 
-    ApiClientIPA.findUserByMail(user.mail) flatMap { result =>
+    apiClientIPA.findUserByMail(user.mail) flatMap { result =>
 
       result match{
         case Right(r) => Future { Left("Mail already registered") }
@@ -106,7 +107,7 @@ object RegistrationService {
 
   private def checkMailUidNcreateUser(user:IpaUser):Future[Either[Error,Success]] = {
 
-    ApiClientIPA.showUser(user.uid) flatMap { result =>
+    apiClientIPA.showUser(user.uid) flatMap { result =>
 
       result match{
         case Right(r) => Future {Left(Error(Option(1), Some("Username already registered"), None))}
@@ -119,11 +120,11 @@ object RegistrationService {
 
   private def checkMailNcreateUser(user:IpaUser):Future[Either[Error,Success]] = {
 
-    ApiClientIPA.findUserByMail(user.mail) flatMap { result =>
+    apiClientIPA.findUserByMail(user.mail) flatMap { result =>
 
       result match{
         case Right(r) => Future {Left(Error(Option(1), Some("Mail address already registered"), None))}
-        case Left(l) => ApiClientIPA.createUser(user)
+        case Left(l) => apiClientIPA.createUser(user)
       }
 
     }

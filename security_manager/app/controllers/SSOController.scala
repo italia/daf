@@ -8,20 +8,20 @@ import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import it.gov.daf.sso.LoginClientLocal
 import org.apache.commons.lang3.StringEscapeUtils
 import play.api.inject.ConfigurationProvider
-import play.api.libs.json.{JsArray, JsValue,Json}
+import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.libs.ws.WSClient
 import play.api.mvc.{Action, Controller, Cookie}
 
 import scala.concurrent.Future
 
 
-class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider) extends Controller {
+class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider, cacheWrapper:CacheWrapper, loginClientLocal:LoginClientLocal) extends Controller {
 
   import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
   implicit val cookieWrites = Json.writes[Cookie]
 
-  val cacheWrapper = CacheWrapper.init(ConfigReader.cookieExpiration,ConfigReader.tokenExpiration)
+  //val cacheWrapper = CacheWrapper.init(ConfigReader.cookieExpiration,ConfigReader.tokenExpiration) TODO da mettere nel modulo!
 
   //----------------SECURED API---------------------------------------
 
@@ -50,7 +50,7 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider) exten
                                   appName)
 
 
-    LoginClientLocal.instance.loginFE(loginInfo, ws).map{ cookies =>
+    loginClientLocal.loginFE(loginInfo, ws).map{ cookies =>
       //val json=s"""{"result":"${StringEscapeUtils.escapeJson(cookie)}"}"""
       Ok(Json.toJson(cookies.map(Json.toJson(_))))
     }
@@ -78,7 +78,7 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider) exten
         appName)
 
 
-      LoginClientLocal.instance.loginFE(loginInfo, ws).map { cookies =>
+      loginClientLocal.loginFE(loginInfo, ws).map { cookies =>
         cacheWrapper.putCookies(appName,username,cookies)
         //val json =s"""{"result":"${StringEscapeUtils.escapeJson(cookie)}"}"""
         Ok(Json.toJson(cookies.map(Json.toJson(_))))
@@ -97,7 +97,7 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider) exten
                                   cacheWrapper.getPwd(username).get,
                                   appName)
 
-    LoginClientLocal.instance.loginFE(loginInfo, ws).map{ cookies =>
+    loginClientLocal.loginFE(loginInfo, ws).map{ cookies =>
       //val cookieDetail = cookie.split("=")
       //val cookieWeb = Cookie( cookieDetail(0),cookieDetail(1), None, "/", None)
       Ok("Success").withCookies(cookies:_*)
@@ -138,7 +138,7 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider) exten
                                   cacheWrapper.getPwd(username).get,
                                   appName)
 
-    LoginClientLocal.instance.login(loginInfo, ws).map{ cookie => Ok(Json.toJson(cookie)) }
+    loginClientLocal.login(loginInfo, ws).map{ cookie => Ok(Json.toJson(cookie)) }
 
   }
 

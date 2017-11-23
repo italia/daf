@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package it.gov.daf.common.modules.authentication
+package it.gov.daf.play.modules
 
 import java.security.InvalidParameterException
 import java.time.Duration
 import javax.inject.Inject
 
 import com.google.inject.{AbstractModule, Singleton}
-import org.ldaptive.auth.{Authenticator, BindAuthenticationHandler, FormatDnResolver, SearchDnResolver}
+import org.ldaptive.auth.{Authenticator, BindAuthenticationHandler, SearchDnResolver}
 import org.ldaptive.pool._
 import org.ldaptive.ssl.SslConfig
 import org.ldaptive.{BindConnectionInitializer, ConnectionConfig, Credential, DefaultConnectionFactory}
@@ -46,7 +46,7 @@ import play.api.{Configuration, Environment}
   )
 )
 @Singleton
-class SecurityModule @Inject() (environment: Environment, configuration: Configuration) extends AbstractModule {
+class SecurityModule @Inject()(environment: Environment, configuration: Configuration) extends AbstractModule {
 
   private def getLdapAuthenticator = {
     /*
@@ -128,7 +128,7 @@ class SecurityModule @Inject() (environment: Environment, configuration: Configu
     val jwtAuthenticator = new JwtAuthenticator()
     jwtAuthenticator.addSignatureConfiguration(new SecretSignatureConfiguration(secret))
 
-    val parameterClient = new HeaderClient("Authorization", "Bearer ", jwtAuthenticator)
+    val parameterClient = new HeaderClient("Authorization", "Bearer", jwtAuthenticator)
 
     val config = new Config(new Clients(directBasicAuthClient, parameterClient))
 

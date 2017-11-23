@@ -31,7 +31,7 @@ import scala.concurrent.Future
     "org.wartremover.warts.StringPlusAny"
   )
 )
-class SecuredInvocationManager(_loginClient:LoginClient) {
+class SecuredInvocationManager(_loginClient: LoginClient) {
 
   import scala.concurrent.ExecutionContext.Implicits._
 

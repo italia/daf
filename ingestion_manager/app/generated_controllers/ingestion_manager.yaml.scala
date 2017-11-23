@@ -36,7 +36,11 @@ import scala.concurrent.ExecutionContext
 
 package ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Ingestion_managerYaml
-        
+<<<<<<< HEAD
+                
+=======
+                                                    
+>>>>>>> dev-ingestionmgr
     // ----- End of unmanaged code area for package Ingestion_managerYaml
     class Ingestion_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Ingestion_managerYaml

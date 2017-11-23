@@ -13,7 +13,6 @@ import net.caoticode.dirwatcher.FSListener
 import play.api.libs.ws.WSClient
 import play.api.libs.ws.ahc.AhcWSClient
 import play.api.mvc.MultipartFormData.FilePart
-import it.gov.daf.catalogmanager.listeners.IngestionUtils
 
 import scala.concurrent.Future
 

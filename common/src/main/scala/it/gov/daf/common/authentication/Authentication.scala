@@ -43,6 +43,7 @@ object Authentication extends Results {
   var playSessionStore: Option[PlaySessionStore] = None
   var secret: Option[String] = None
 
+
   def apply(configuration: Configuration, playSessionStore: PlaySessionStore): Unit = {
     this.configuration = Some(configuration)
     this.playSessionStore = Some(playSessionStore)

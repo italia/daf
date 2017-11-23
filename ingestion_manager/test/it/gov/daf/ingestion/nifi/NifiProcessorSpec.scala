@@ -19,7 +19,7 @@ class NifiProcessorSpec extends AsyncFlatSpec with Matchers {
 
   "A Nifi Processor " should "create a nifi pipeline for a correct meta catalog entry" in {
 
-    val in = this.getClass.getResourceAsStream("/data_test.json")
+    val in = this.getClass.getResourceAsStream("/failed_data.json")
     val sMetaCatalog = Source.fromInputStream(in).getLines().mkString(" ")
     in.close()
 

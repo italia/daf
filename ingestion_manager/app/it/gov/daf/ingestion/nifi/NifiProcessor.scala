@@ -104,7 +104,7 @@ class NifiProcessor(
       else {
         //TODO make sequential
         deleteFlow(List(inputWs, attributeWs))
-        throw new Throwable(s"Failed to process ${failed.map(_.body)}")
+        throw new Throwable(s"Failed to process ${failed.map(_.body).mkString("\n")}")
       }
     }
   }

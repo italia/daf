@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: microsrv-plain
+  name: ingestion-manager
   labels:
-    app: microsrv-plain
+    app: ingestion-manager
 spec:
   type: NodePort
   ports:
@@ -11,22 +11,22 @@ spec:
     protocol: TCP
     name: http
   selector:
-    app: microsrv-plain
+    app: ingestion-manager
 ---
 apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
-  name: microsrv-plain-deployment
+  name: ingestion-manager-deployment
 spec:
   replicas: 3
   template:
     metadata:
       labels:
-        app: microsrv-plain
+        app: ingestion-manager
     spec:
       containers:
-      - name: microsrv-plain
-        image: 10.98.74.120:5000/daf-microsrv-plain:1.0-SNAPSHOT
+      - name: ingestion-manager
+        image: 10.98.74.120:5000/daf-ingestion-manager:1.0-SNAPSHOT
         imagePullPolicy: Always
         lifecycle:
           postStart:

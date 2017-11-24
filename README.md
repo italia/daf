@@ -15,8 +15,8 @@ This part is experimental and can change in the future.
 
 Each time you start working on the DAF the desiderata is that:
 
-- For a new feature you have to create a branch with a meaningful name. The desiderata is something like feature_some_meaningful_name. It would be useful also to have a branch related to the feature
-- For a bug-fix you have to create a branch named bug_number_of_the_bug
+- For a new feature you have to create a branch with a meaningful name. The desiderata is something like `feature_some_meaningful_name`. It would be useful also to have a branch related to the feature
+- For a bug-fix you have to create a branch named `bug_number_of_the_bug`
 
 Whenever the work on the branch is finished it is need to:
 

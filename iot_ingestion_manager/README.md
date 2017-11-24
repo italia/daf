@@ -31,3 +31,6 @@ Therefore, you have to run the command *sbt compile* another time.
 
 > sbt compile publishLocal
 
+## Check if datapoints are stored in HBase
+
+>scan 'tsdb', { TIMERANGE => [1509121625000, 1509128825000], LIMIT => 10 }

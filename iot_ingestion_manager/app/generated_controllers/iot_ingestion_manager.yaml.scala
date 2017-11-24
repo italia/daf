@@ -45,39 +45,6 @@ import scala.annotation.tailrec
 import scala.collection.convert.decorateAsJava._
 import scala.language.postfixOps
 import scala.util.{Failure,Success,Try}
-import org.apache.kudu.ColumnSchema
-import org.apache.kudu.client.CreateTableOptions
-import org.apache.kudu.ColumnSchema
-import org.apache.kudu.client.CreateTableOptions
-import org.apache.kudu.ColumnSchema
-import org.apache.kudu.client.CreateTableOptions
-import org.apache.kudu.ColumnSchema
-import org.apache.kudu.client.CreateTableOptions
-import org.apache.kudu.ColumnSchema
-import org.apache.kudu.client.CreateTableOptions
-import org.apache.kudu.ColumnSchema
-import org.apache.kudu.client.CreateTableOptions
-import org.apache.kudu.ColumnSchema
-import org.apache.kudu.client.CreateTableOptions
-import org.apache.kudu.ColumnSchema
-import org.apache.kudu.client.CreateTableOptions
-import org.apache.kudu.ColumnSchema
-import org.apache.kudu.client.CreateTableOptions
-import org.apache.kudu.ColumnSchema
-import org.apache.kudu.client.CreateTableOptions
-import org.apache.spark.rdd.RDD
-import org.apache.kudu.ColumnSchema
-import org.apache.kudu.client.CreateTableOptions
-import org.apache.kudu.ColumnSchema
-import org.apache.kudu.client.CreateTableOptions
-import org.apache.kudu.ColumnSchema
-import org.apache.kudu.client.CreateTableOptions
-import org.apache.kudu.ColumnSchema
-import org.apache.kudu.client.CreateTableOptions
-import org.apache.kudu.ColumnSchema
-import org.apache.kudu.client.CreateTableOptions
-import org.apache.kudu.ColumnSchema
-import org.apache.kudu.client.CreateTableOptions
 import org.apache.spark.opentsdb.DataPoint
 import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.dstream.DStream
@@ -85,6 +52,7 @@ import org.apache.kudu.ColumnSchema
 import org.apache.kudu.client.CreateTableOptions
 import org.apache.kudu.ColumnSchema
 import org.apache.kudu.client.CreateTableOptions
+<<<<<<< HEAD
 import org.apache.kudu.ColumnSchema
 import org.apache.kudu.client.CreateTableOptions
 import org.apache.kudu.ColumnSchema
@@ -105,6 +73,8 @@ import org.apache.kudu.ColumnSchema
 import org.apache.kudu.client.CreateTableOptions
 import org.apache.kudu.ColumnSchema
 import org.apache.kudu.client.CreateTableOptions
+=======
+>>>>>>> storage_manager_extension
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -113,7 +83,12 @@ import org.apache.kudu.client.CreateTableOptions
 
 package iot_ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Iot_ingestion_managerYaml
+<<<<<<< HEAD
       @SuppressWarnings(
+=======
+                                    
+  @SuppressWarnings(
+>>>>>>> storage_manager_extension
     Array(
       "org.wartremover.warts.While",
       "org.wartremover.warts.Var",

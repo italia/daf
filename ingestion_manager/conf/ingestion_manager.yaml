@@ -36,46 +36,54 @@ schemes:
 produces:
   - application/json
 paths:
-  "/test":
+  "/add-new-dataset/{ds_logical_uri}":
     get:
-      summary: Test Endpoint
+      summary: Setup ingestion procs for a new dataset added in the catalog manager
       description: |
-        Test Endpoint
+        Setup ingestion procs for a new dataset added in the catalog manager. It calls NiFi API to manage the new pipeline.
       tags:
-        - Test Endpoint
-      operationId: testmicrosrv
+        - Ingestion, new dataset
+      operationId: addNewDataset
+      parameters:
+        - name: ds_logical_uri
+          in: path
+          description: logical uri of the dataset
+          required: true
+          type: string
       responses:
         200:
-          description: Successfull
+          description: IngestionReport
           schema:
-            $ref: '#/definitions/Successfull'
+            $ref: '#/definitions/IngestionReport'
         default:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  "/add-new-dataset/{ds_logical_uri}":
-      get:
-        summary: Setup ingestion procs for a new dataset added in the catalog manager
-        description: |
-          Setup ingestion procs for a new dataset added in the catalog manager. It calls NiFi API to manage the new pipeline.
-        tags:
-          - Ingestion, new dataset
-        operationId: addNewDataset
-        parameters:
-          - name: ds_logical_uri
-            in: path
-            description: logical uri of the dataset
-            required: true
-            type: string
-        responses:
-          200:
-            description: IngestionReport
-            schema:
-              $ref: '#/definitions/IngestionReport'
-          default:
-            description: Unexpected error
-            schema:
-              $ref: '#/definitions/Error'
+
+  "/get-pipelines/{pipeline_type}":
+    get:
+      summary: Get the list of available ingestion pipelines
+      description: Get the list of available ingestion pipelines
+      tags:
+        - Ingestion, pipelines
+      operationId: pipelineList
+      parameters:
+        - name: pipeline_type
+          in: path
+          description: id of the type of operation performed by the ingestion pipeline.
+          required: false
+          type: string
+      responses:
+        200:
+          description: List of Pipeline objects
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Pipeline"
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
 
 definitions:
   Error:
@@ -108,3 +116,19 @@ definitions:
         type: string
       password:
         type: string
+  Pipeline:
+    type: object
+    description: Object describing info on the Ingestion Pipeline
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      category:
+        type: string
+      description:
+        type: string
+      default_batch:
+        type: boolean
+      default_stream:
+        type: boolean

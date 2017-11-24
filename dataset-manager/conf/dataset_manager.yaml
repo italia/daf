@@ -54,6 +54,34 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /dataset/{datasetId}/schema:
+    get:
+      summary: Get the schema of a Dataset ingested via "logical uri"/id
+      description: |
+        Get the schema of a Dataset ingested via "logical uri"/id
+      operationId: getDatasetSchema
+      security:
+        - basicAuth: []
+      produces:
+        - application/json
+      parameters:
+        - name: datasetId
+          in: path
+          description: The logical uri of the dataset
+          required: true
+          type: string
+          format: string
+      tags:
+        - Datasets
+      responses:
+        200:
+          description: the first n records of the requested dataset
+          schema:
+            $ref: '#/definitions/Dataset'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   /dataset/{datasetId}/limit/{size}:
     get:
       summary: Get a Dataset ingested via logical uri/id
@@ -125,6 +153,17 @@ paths:
             $ref: '#/definitions/Error'
 
 definitions:
+  DatasetSchema:
+    type: object
+    properties:
+      name:
+        type: string
+      description:
+        type: string
+      columns:
+        type: array
+        items:
+          $ref: '#/definitions/Column'
   Query:
     type: object
     properties:
@@ -174,7 +213,7 @@ definitions:
     properties:
       name:
         type: string
-      datat_ype:
+      data_type:
         type: string
       description:
         type: string

@@ -56,8 +56,12 @@ libraryDependencies ++= Seq(
   cache,
   ws,
   "org.webjars" % "swagger-ui" % swaggerUiVersion,
-  "it.gov.daf" %% "common" % version.value,
-  specs2 % Test
+  "it.gov.daf" %% "common" % dafCommonVersion,
+  "it.gov.daf" %% "daf-catalog-manager" % "1.0.0-SNAPSHOT",
+//  "it.gov.daf" %% "daf-storage-manager" % "1.0.0-SNAPSHOT",
+  "org.scalactic" %% "scalactic" % "3.0.4" % "test",
+  "org.scalatest" %% "scalatest" % "3.0.4" % "test",
+  "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.0-M1" % "test"
 )
 
 

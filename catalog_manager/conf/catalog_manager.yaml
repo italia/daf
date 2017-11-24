@@ -1342,7 +1342,7 @@ definitions:
     type: object
     description: It contains info to build the dataset based on already existing dataset in DAF.
     required:
-      - dataset_uri
+      - dataset_uri.s
     properties:
       dataset_uri:
         type: array

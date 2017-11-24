@@ -27,7 +27,7 @@ import scala.math.BigInt
 
 package dataset_manager.yaml {
     // ----- Start of unmanaged code area for package Dataset_managerYaml
-                                                    
+                                                            
     // ----- End of unmanaged code area for package Dataset_managerYaml
     class Dataset_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Dataset_managerYaml
@@ -45,6 +45,11 @@ package dataset_manager.yaml {
             NotImplementedYet
             // ----- End of unmanaged code area for action  Dataset_managerYaml.getDataset
         }
+        val getDatasetSchema = getDatasetSchemaAction { (datasetId: String) =>  
+            // ----- Start of unmanaged code area for action  Dataset_managerYaml.getDatasetSchema
+            NotImplementedYet
+            // ----- End of unmanaged code area for action  Dataset_managerYaml.getDatasetSchema
+        }
         val getDatasetLimit = getDatasetLimitAction { input: (String, BigInt) =>
             val (datasetId, size) = input
             // ----- Start of unmanaged code area for action  Dataset_managerYaml.getDatasetLimit
@@ -57,5 +62,6 @@ package dataset_manager.yaml {
             NotImplementedYet
             // ----- End of unmanaged code area for action  Dataset_managerYaml.searchDataset
         }
+    
     }
 }

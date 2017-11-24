@@ -72,7 +72,7 @@ class ApiClientIPA @Inject()(loginClient:LoginClientLocal,secInvokeManager:Secur
 
   }
 
-  def createGroup(group: Group):Future[Either[Error,Success]]= {
+  def createGroup(group: String):Future[Either[Error,Success]]= {
 
 
     val jsonGroup: JsValue = Json.parse(
@@ -80,7 +80,7 @@ class ApiClientIPA @Inject()(loginClient:LoginClientLocal,secInvokeManager:Secur
                                        "method":"group_add",
                                        "params":[
                                           [
-                                             "${group.cn}"
+                                             "${group}"
                                           ],
                                           {
                                              "raw":false,

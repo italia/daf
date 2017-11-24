@@ -87,18 +87,18 @@ paths:
           description: Error Message
           schema:
             $ref: '#/definitions/Error'
-  "/ipa/organization":
+  "/ipa/group":
     post:
       tags:
         - IPA
-      description: Create an organization
+      description: Create an freeIPA group
       operationId: createIPAgroup
       produces:
       - application/json
       parameters:
-      - name: organization
+      - name: group
         in: body
-        description: Organization
+        description: freeIPA group
         required: true
         schema:
           $ref: '#/definitions/Group'
@@ -111,7 +111,7 @@ paths:
           description: Error Message
           schema:
             $ref: '#/definitions/Error'
-  "/ipa/organization/{org}":
+  "/ipa/group/{group}":
     put:
       tags:
         - IPA
@@ -120,7 +120,7 @@ paths:
       produces:
       - application/json
       parameters:
-      - name: org
+      - name: group
         in: path
         description: Group uid
         required: true
@@ -215,6 +215,30 @@ paths:
           description: Error Message
           schema:
             $ref: '#/definitions/Error'
+  "/daf/organization":
+    post:
+      tags:
+        - DAF
+      description: Create a DAF organization
+      operationId: createDAForganization
+      produces:
+      - application/json
+      parameters:
+      - name: organization
+        in: body
+        description: Organization
+        required: true
+        schema:
+          $ref: '#/definitions/DafOrg'
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
 definitions:
   IpaUser:
     type: object
@@ -249,7 +273,7 @@ definitions:
       - cn
     properties:
       cn:
-        description: group uid
+        description: group cn
         type: string
   UserList:
     type: object
@@ -260,6 +284,20 @@ definitions:
         type: array
         items:
           type: string
+  DafOrg:
+    type: object
+    required:
+      - groupCn
+    properties:
+      groupCn:
+        description: group cn
+        type: string
+      supSetConnectionName:
+        description: Superset DB connection name
+        type: string
+      supSetConnectionString:
+        description: Superset DB connection string
+        type: string
   Error:
     properties:
       code:

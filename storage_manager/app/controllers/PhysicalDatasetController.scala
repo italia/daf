@@ -98,6 +98,9 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
   saltbucket.foreach(OpenTSDBContext.saltBuckets = _)
 
 
+  //val controller = new PhysicalDatasetController()
+
+
   private val fileSystem: FileSystem = {
     val conf = new org.apache.hadoop.conf.Configuration()
     FileSystem.get(conf)

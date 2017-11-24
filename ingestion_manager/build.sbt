@@ -12,7 +12,7 @@ name := "daf-ingestion-manager"
 
 Seq(gitStampSettings: _*)
 
-version in ThisBuild := sys.env.getOrElse("INGESTION_MANAGER_VERSION", "1.0-SNAPSHOT")
+version in ThisBuild := sys.env.getOrElse("INGESTION_MANAGER_VERSION", "1.0.0-SNAPSHOT")
 
 lazy val client = (project in file("client")).
   settings(Seq(
@@ -53,8 +53,8 @@ libraryDependencies ++= Seq(
   "it.gov.daf" %% "daf-catalog-manager-client" % dafCatalogVersion,
   specs2 % Test,
   "me.lessis" %% "base64" % "0.2.0",
-  "it.gov.daf" %% "common" % "1.0-SNAPSHOT" excludeAll(ExclusionRule(organization = "org.apache.hadoop.common")),
-  "it.gov.daf" %% "daf-catalog-manager-client" % "1.0-SNAPSHOT",
+  "it.gov.daf" %% "common" % "1.0.0-SNAPSHOT" excludeAll(ExclusionRule(organization = "org.apache.hadoop.common")),
+  //"it.gov.daf" %% "daf-catalog-manager-client" % "1.0.0-SNAPSHOT",
   "org.scalatest" %% "scalatest" % "3.0.4" % Test,
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.0" % Test,
   "org.scalacheck" %% "scalacheck" % "1.13.5" % Test,

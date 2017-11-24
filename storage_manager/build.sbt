@@ -17,7 +17,8 @@
 import Versions._
 import com.typesafe.sbt.packager.docker.Cmd
 import sbt.Keys.resolvers
-
+import uk.gov.hmrc.gitstamp.GitStampPlugin._
+import sbt.Resolver
 
 name := "daf-storage-manager"
 

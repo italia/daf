@@ -52,7 +52,6 @@ import org.apache.kudu.ColumnSchema
 import org.apache.kudu.client.CreateTableOptions
 import org.apache.kudu.ColumnSchema
 import org.apache.kudu.client.CreateTableOptions
-<<<<<<< HEAD
 import org.apache.kudu.ColumnSchema
 import org.apache.kudu.client.CreateTableOptions
 import org.apache.kudu.ColumnSchema
@@ -73,8 +72,14 @@ import org.apache.kudu.ColumnSchema
 import org.apache.kudu.client.CreateTableOptions
 import org.apache.kudu.ColumnSchema
 import org.apache.kudu.client.CreateTableOptions
-=======
->>>>>>> storage_manager_extension
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
+import org.apache.kudu.ColumnSchema
+import org.apache.kudu.client.CreateTableOptions
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -83,12 +88,7 @@ import org.apache.kudu.client.CreateTableOptions
 
 package iot_ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Iot_ingestion_managerYaml
-<<<<<<< HEAD
-      @SuppressWarnings(
-=======
-                                    
-  @SuppressWarnings(
->>>>>>> storage_manager_extension
+              @SuppressWarnings(
     Array(
       "org.wartremover.warts.While",
       "org.wartremover.warts.Var",

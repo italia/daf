@@ -6,7 +6,7 @@ import uk.gov.hmrc.gitstamp.GitStampPlugin._
 organization in ThisBuild := "it.gov.daf"
 name := "daf-iot-ingestion-manager"
 
-Seq(gitStampSzettings: _*)
+Seq(gitStampSettings: _*)
 
 version in ThisBuild := sys.env.get("IOT_MANAGER_VERSION").getOrElse("1.0.0-SNAPSHOT")
 

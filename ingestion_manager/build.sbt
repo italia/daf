@@ -54,7 +54,6 @@ libraryDependencies ++= Seq(
   specs2 % Test,
   "me.lessis" %% "base64" % "0.2.0",
   "it.gov.daf" %% "common" % "1.0.0-SNAPSHOT" excludeAll(ExclusionRule(organization = "org.apache.hadoop.common")),
-  //"it.gov.daf" %% "daf-catalog-manager-client" % "1.0.0-SNAPSHOT",
   "org.scalatest" %% "scalatest" % "3.0.4" % Test,
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.0" % Test,
   "org.scalacheck" %% "scalacheck" % "1.13.5" % Test,

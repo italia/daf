@@ -18,6 +18,7 @@ import Versions._
 import com.typesafe.sbt.packager.docker.Cmd
 import sbt.Keys.resolvers
 import uk.gov.hmrc.gitstamp.GitStampPlugin._
+import sbt.Resolver
 
 name := "daf-storage-manager"
 
@@ -46,36 +47,99 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala, AutomateHeaderPl
 
 scalaVersion := "2.11.8"
 
-val hadoopExcludes =
-  (moduleId: ModuleID) => moduleId.
-    exclude("org.slf4j", "slf4j-log4j12").
-    exclude("org.slf4j", "slf4j-api")
-
 val sparkExcludes =
   (moduleId: ModuleID) => moduleId.
+    exclude("org.apache.hadoop", "hadoop-client").
+    exclude("org.apache.hadoop", "hadoop-yarn-client").
+    exclude("org.apache.hadoop", "hadoop-yarn-api").
+    exclude("org.apache.hadoop", "hadoop-yarn-common").
+    exclude("org.apache.hadoop", "hadoop-yarn-server-common").
+    exclude("org.apache.hadoop", "hadoop-yarn-server-web-proxy").
+    exclude("org.apache.zookeeper", "zookeeper").
+    exclude("commons-collections", "commons-collections").
+    exclude("commons-beanutils", "commons-beanutils").
+    exclude("org.slf4j", "slf4j-log4j12")
+
+val hbaseExcludes =
+  (moduleID: ModuleID) => moduleID.
+    exclude("org.apache.thrift", "thrift").
+    exclude("org.jruby", "jruby-complete").
     exclude("org.slf4j", "slf4j-log4j12").
+    exclude("org.mortbay.jetty", "jsp-2.1").
+    exclude("org.mortbay.jetty", "jsp-api-2.1").
+    exclude("org.mortbay.jetty", "servlet-api-2.5").
+    exclude("com.sun.jersey", "jersey-core").
+    exclude("com.sun.jersey", "jersey-json").
+    exclude("com.sun.jersey", "jersey-server").
+    exclude("org.mortbay.jetty", "jetty").
+    exclude("org.mortbay.jetty", "jetty-util").
+    exclude("tomcat", "jasper-runtime").
+    exclude("tomcat", "jasper-compiler").
+    exclude("org.jboss.netty", "netty").
+    exclude("io.netty", "netty").
+    exclude("commons-logging", "commons-logging").
+    exclude("org.apache.xmlgraphics", "batik-ext").
+    exclude("commons-collections", "commons-collections").
+    exclude("xom", "xom").
+    exclude("commons-beanutils", "commons-beanutils")
+
+val hadoopExcludes =
+  (moduleId: ModuleID) => moduleId.
     exclude("org.slf4j", "slf4j-api").
-    exclude("org.slf4j", "jcl-over-sl4j").
-    exclude("org.slf4j", "jul-to-sl4j")
+    exclude("org.slf4j", "slf4j-log4j12").
+    exclude("org.mortbay.jetty", "jetty").
+    exclude("org.mortbay.jetty", "jetty-util").
+    exclude("org.mortbay.jetty", "jetty-sslengine").
+    exclude("javax.servlet", "servlet-api")
 
-val sparkLibraries = Seq(
-  sparkExcludes("org.apache.spark" %% "spark-core" % sparkVersion % Compile),
-  sparkExcludes("org.apache.spark" %% "spark-sql" % sparkVersion % Compile),
-  "com.databricks" %% "spark-avro" % "3.2.0" % Compile
+val hadoopHBaseExcludes =
+  (moduleId: ModuleID) => moduleId.
+    exclude("org.slf4j", "slf4j-log4j12").
+    exclude("javax.servlet", "servlet-api").
+    excludeAll(ExclusionRule(organization = "javax.servlet"))
+
+
+val applicationLibraries = Seq(
+  "org.apache.spark.opentsdb" %% "spark-opentsdb" % sparkOpenTSDBVersion % "compile" exclude("org.slf4j", "slf4j-log4j12"),
+  "org.apache.kudu" % "kudu-client" % kuduVersion % "compile",
+  "org.apache.kudu" %% "kudu-spark2" % kuduVersion % "compile",
+  sparkExcludes("org.apache.spark" %% "spark-core" % sparkVersion % "compile"),
+  sparkExcludes("org.apache.spark" %% "spark-sql" % sparkVersion % "compile"),
+  sparkExcludes("org.apache.spark" %% "spark-yarn" % sparkVersion % "compile"),
+  sparkExcludes("org.apache.spark" %% "spark-mllib" % sparkVersion % "compile"),
+  sparkExcludes("org.apache.spark" %% "spark-streaming" % sparkVersion % "compile"),
+  sparkExcludes("org.apache.spark" %% "spark-streaming-kafka-0-10" % sparkVersion % "compile"),
+  hbaseExcludes("org.apache.hbase" % "hbase-client" % hbaseVersion % "compile"),
+  hbaseExcludes("org.apache.hbase" % "hbase-protocol" % hbaseVersion % "compile"),
+  hbaseExcludes("org.apache.hbase" % "hbase-hadoop-compat" % hbaseVersion % "compile"),
+  hbaseExcludes("org.apache.hbase" % "hbase-server" % hbaseVersion % "compile"),
+  hbaseExcludes("org.apache.hbase" % "hbase-common" % hbaseVersion % "compile"),
+  hadoopExcludes("org.apache.hadoop" % "hadoop-yarn-server-web-proxy" % hadoopVersion % "compile"),
+  hadoopExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % "compile"),
+  hadoopHBaseExcludes("org.apache.hbase" % "hbase-server" % hbaseVersion % "test" classifier "tests"),
+  hadoopHBaseExcludes("org.apache.hbase" % "hbase-common" % hbaseVersion % "test" classifier "tests"),
+  hadoopHBaseExcludes("org.apache.hbase" % "hbase-testing-util" % hbaseVersion % "test" classifier "tests"
+    exclude("org.apache.hadoop<", "hadoop-hdfs")
+    exclude("org.apache.hadoop", "hadoop-minicluster")
+    exclude("org.apache.hadoo", "hadoop-client")),
+  hadoopHBaseExcludes("org.apache.hbase" % "hbase-hadoop-compat" % hbaseVersion % "test" classifier "tests"),
+  hadoopHBaseExcludes("org.apache.hbase" % "hbase-hadoop-compat" % hbaseVersion % "test" classifier "tests" extra "type" -> "test-jar"),
+  hadoopHBaseExcludes("org.apache.hbase" % "hbase-hadoop2-compat" % hbaseVersion % "test" classifier "tests" extra "type" -> "test-jar"),
+  hadoopHBaseExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % "test" classifier "tests"),
+  hadoopHBaseExcludes("org.apache.hadoop" % "hadoop-hdfs" % hadoopVersion % "test" classifier "tests"),
+  hadoopHBaseExcludes("org.apache.hadoop" % "hadoop-hdfs" % hadoopVersion % "test" classifier "tests" extra "type" -> "test-jar"),
+  hadoopHBaseExcludes("org.apache.hadoop" % "hadoop-hdfs" % hadoopVersion % "test" extra "type" -> "test-jar"),
+  hadoopHBaseExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % "test" classifier "tests"),
+  hadoopHBaseExcludes("org.apache.hadoop" % "hadoop-minicluster" % hadoopVersion % "test"),
+  hadoopHBaseExcludes("org.apache.hadoop" % "hadoop-common" % hadoopVersion % "test" classifier "tests" extra "type" -> "test-jar"),
+  hadoopHBaseExcludes("org.apache.hadoop" % "hadoop-mapreduce-client-jobclient" % hadoopVersion % "test" classifier "tests"),
+  "com.github.pathikrit" %% "better-files" % betterFilesVersion % Test,
+  "org.apache.kudu" % "kudu-client" % kuduVersion % "test" classifier "tests",
+  "com.databricks" %% "spark-avro" % "4.0.0" % Compile
 )
 
-val hadoopLibraries = Seq(
-  hadoopExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % Compile),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % Test classifier "tests"),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-hdfs" % hadoopVersion % Test classifier "tests"),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-hdfs" % hadoopVersion % Test classifier "tests" extra "type" -> "test-jar"),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-hdfs" % hadoopVersion % Test extra "type" -> "test-jar"),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % Test classifier "tests"),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-minicluster" % hadoopVersion % Test),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-common" % hadoopVersion % Test classifier "tests" extra "type" -> "test-jar"),
-  hadoopExcludes("org.apache.hadoop" % "hadoop-mapreduce-client-jobclient" % hadoopVersion % Test classifier "tests"),
-  "com.github.pathikrit" %% "better-files" % betterFilesVersion % Test
-)
+dependencyOverrides += "com.google.guava" % "guava" % "12.0.1" % "compile"
+
 
 libraryDependencies ++= Seq(
   cache,
@@ -84,10 +148,11 @@ libraryDependencies ++= Seq(
   specs2 % Test,
   "io.swagger" %% "swagger-play2" % "1.5.3",
   "com.typesafe.play" %% "play-json" % playVersion,
-  "it.gov.daf" %% "common" % dafCommonVersion
-) ++ hadoopLibraries ++ sparkLibraries
+  "it.gov.daf" %% "common" % version.value
+) ++ applicationLibraries
 
 resolvers ++= Seq(
+  Resolver.mavenLocal,
   Resolver.sonatypeRepo("releases"),
   "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos/",
   "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/"

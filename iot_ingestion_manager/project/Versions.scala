@@ -1,7 +1,6 @@
 object Versions {
 
   val hadoopVersion = "2.6.0-cdh5.12.0"
-
   val hbaseVersion = "1.2.0-cdh5.12.0"
 
   val kuduVersion = "1.4.0-cdh5.12.0"

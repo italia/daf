@@ -23,7 +23,7 @@ name := "daf-storage-manager"
 
 Seq(gitStampSettings: _*)
 
-version in ThisBuild := sys.env.get("STORAGE_MANAGER_VERSION").getOrElse("1.0-SNAPSHOT")
+version in ThisBuild := sys.env.get("STORAGE_MANAGER_VERSION").getOrElse("1.0.0-SNAPSHOT")
 
 scalacOptions ++= Seq(
   "-deprecation",
@@ -84,7 +84,7 @@ libraryDependencies ++= Seq(
   specs2 % Test,
   "io.swagger" %% "swagger-play2" % "1.5.3",
   "com.typesafe.play" %% "play-json" % playVersion,
-  "it.gov.daf" %% "common" % version.value
+  "it.gov.daf" %% "common" % dafCommonVersion
 ) ++ hadoopLibraries ++ sparkLibraries
 
 resolvers ++= Seq(

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+rm -rf /tmp/opentsdb/*
+
 kinit -kt /etc/opentsdb/daf.keytab daf@PLATFORM.DAF.LOCAL
 
 export JVMARGS="-Djava.security.auth.login.config=/etc/opentsdb/jaas.conf"

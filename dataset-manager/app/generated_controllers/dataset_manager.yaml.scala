@@ -17,6 +17,8 @@ import scala.util._
 
 import javax.inject._
 
+import scala.math.BigInt
+
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -25,7 +27,7 @@ import javax.inject._
 
 package dataset_manager.yaml {
     // ----- Start of unmanaged code area for package Dataset_managerYaml
-                        
+                                                    
     // ----- End of unmanaged code area for package Dataset_managerYaml
     class Dataset_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Dataset_managerYaml
@@ -38,16 +40,22 @@ package dataset_manager.yaml {
         // ----- Start of unmanaged code area for constructor Dataset_managerYaml
 
         // ----- End of unmanaged code area for constructor Dataset_managerYaml
-        val token = tokenAction {  _ =>  
-            // ----- Start of unmanaged code area for action  Dataset_managerYaml.token
+        val getDataset = getDatasetAction { (datasetId: String) =>  
+            // ----- Start of unmanaged code area for action  Dataset_managerYaml.getDataset
             NotImplementedYet
-            // ----- End of unmanaged code area for action  Dataset_managerYaml.token
+            // ----- End of unmanaged code area for action  Dataset_managerYaml.getDataset
         }
-        val createIPAuser = createIPAuserAction { (user: UserIpa) =>  
-            // ----- Start of unmanaged code area for action  Dataset_managerYaml.createIPAuser
+        val getDatasetLimit = getDatasetLimitAction { input: (String, BigInt) =>
+            val (datasetId, size) = input
+            // ----- Start of unmanaged code area for action  Dataset_managerYaml.getDatasetLimit
             NotImplementedYet
-            // ----- End of unmanaged code area for action  Dataset_managerYaml.createIPAuser
+            // ----- End of unmanaged code area for action  Dataset_managerYaml.getDatasetLimit
         }
-    
+        val searchDataset = searchDatasetAction { input: (String, Query) =>
+            val (datasetId, query) = input
+            // ----- Start of unmanaged code area for action  Dataset_managerYaml.searchDataset
+            NotImplementedYet
+            // ----- End of unmanaged code area for action  Dataset_managerYaml.searchDataset
+        }
     }
 }

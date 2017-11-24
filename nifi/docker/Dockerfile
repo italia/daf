@@ -7,7 +7,7 @@ COPY hadoop hadoop
 COPY start.sh start.sh
 
 RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
+    DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends wget \
     default-jdk \
     vim \
     krb5-user \

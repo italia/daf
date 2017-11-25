@@ -288,9 +288,14 @@ definitions:
     type: object
     required:
       - groupCn
+      - defaultUserPwd
+      - supSetConnectionName
+      - supSetConnectionString
     properties:
       groupCn:
         description: group cn
+        type: string
+      defaultUserPwd:
         type: string
       supSetConnectionName:
         description: Superset DB connection name

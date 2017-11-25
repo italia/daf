@@ -28,6 +28,7 @@ import it.gov.daf.sso.ApiClientIPA
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import it.gov.daf.common.sso.common.CacheWrapper
 import it.gov.daf.common.utils.WebServiceUtil
+import it.gov.daf.securitymanager.service.IntegrationService
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -36,15 +37,16 @@ import it.gov.daf.common.utils.WebServiceUtil
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                                                                                                                                                                                            
+                                                                                                                                                                                                                                                                            
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
-                                        val configuration: Configuration,
-                                        val playSessionStore: PlaySessionStore,
-                                        cacheWrapper:CacheWrapper,
-                                        apiClientIPA:ApiClientIPA,
-                                        registrationService:RegistrationService,
+                                           val configuration: Configuration,
+                                           val playSessionStore: PlaySessionStore,
+                                           cacheWrapper:CacheWrapper,
+                                           apiClientIPA:ApiClientIPA,
+                                           registrationService:RegistrationService,
+                                           integrationService:IntegrationService,
         // ----- End of unmanaged code area for injections Security_managerYaml
         val messagesApi: MessagesApi,
         lifecycle: ApplicationLifecycle,
@@ -54,12 +56,6 @@ package security_manager.yaml {
 
       Authentication(configuration, playSessionStore)
 
-  /*  @SuppressWarnings(
-      Array(
-        "org.wartremover.warts.StringPlusAny",
-        "org.wartremover.warts.NonUnitStatements"
-      )
-    ) */
         // ----- End of unmanaged code area for constructor Security_managerYaml
         val registrationconfirm = registrationconfirmAction { (token: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.registrationconfirm
@@ -87,7 +83,10 @@ package security_manager.yaml {
         }
         val createDAForganization = createDAForganizationAction { (organization: DafOrg) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.createDAForganization
-            NotImplementedYet
+            integrationService.createDafOrganization(organization)flatMap {
+              case Right(success) => CreateDAForganization200(success)
+              case Left(err) => CreateDAForganization500(err)
+            }
             // ----- End of unmanaged code area for action  Security_managerYaml.createDAForganization
         }
         val token = tokenAction {  _ =>  

@@ -74,7 +74,6 @@ class ApiClientIPA @Inject()(loginClient:LoginClientLocal,secInvokeManager:Secur
 
   def createGroup(group: String):Future[Either[Error,Success]]= {
 
-
     val jsonGroup: JsValue = Json.parse(
       s"""{
                                        "method":"group_add",
@@ -100,7 +99,7 @@ class ApiClientIPA @Inject()(loginClient:LoginClientLocal,secInvokeManager:Secur
       if( result == "null" || result.isInstanceOf[JsUndefined] )
         Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
       else
-        Right(Success(Some("Group created"), Some("ok")))
+        Right( Success(Some("Group created"), Some("ok")) )
 
     }
 

@@ -24,6 +24,7 @@ scalacOptions ++= Seq(
   "-Xfuture"
 )
 
+
 //wartremoverErrors ++= Warts.allBut(Wart.Nothing, Wart.PublicInference, Wart.Any, Wart.Equals, Wart.Option2Iterable)
 //wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value / "target" / "scala-2.11" / "routes").toSeq
 //wartremoverExcluded ++= routes.in(Compile).value
@@ -56,11 +57,13 @@ libraryDependencies ++= Seq(
   "it.gov.daf" %% "common" % Versions.dafCommonVersion,
   "org.mongodb" %% "casbah" % "3.1.1",
   "ch.lightshed" %% "courier" % "0.1.4",
+  "org.typelevel" %% "cats-core" % "1.0.0-RC1",
   //"com.github.cb372" %% "scalacache-guava" % "0.9.4",
   specs2 % Test
 )
 
 //Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns),
+
 
 
 resolvers ++= Seq(

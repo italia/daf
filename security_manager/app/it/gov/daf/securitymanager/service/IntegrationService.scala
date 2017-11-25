@@ -1,6 +1,7 @@
 package it.gov.daf.securitymanager.service
 
-import com.google.inject.Inject
+import cats.data.EitherT
+import com.google.inject.{Inject, Singleton}
 import it.gov.daf.common.sso.common.{LoginInfo, SecuredInvocationManager}
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import it.gov.daf.sso.ApiClientIPA
@@ -10,20 +11,39 @@ import play.api.libs.ws.WSResponse
 import security_manager.yaml.{DafOrg, Error, IpaUser, Success}
 
 import scala.concurrent.Future
+import cats.implicits._
+import org.apache.commons.lang3.StringEscapeUtils
 
+@Singleton
 class IntegrationService @Inject()(apiClientIPA:ApiClientIPA,secInvokeManager:SecuredInvocationManager){
 
   import scala.concurrent.ExecutionContext.Implicits._
 
   private val loginInfoSuperset = new LoginInfo(ConfigReader.suspersetAdminUser,ConfigReader.suspersetAdminPwd,"superset")
 
-/* TODO
   def createDafOrganization(dafOrg:DafOrg):Future[Either[Error,Success]] = {
 
-    apiClientIPA.createGroup(dafOrg.groupCn).flatMap(
 
-    )
-  }*/
+    val defaultOrgIpaUser = new IpaUser(  dafOrg.groupCn,
+                                          "default org admin",
+                                          s"${dafOrg.groupCn}@default.it",
+                                          s"${dafOrg.groupCn}-default-admin",
+                                          Option(Role.Admin.toString),
+                                          Option(dafOrg.defaultUserPwd),
+                                          Option(Seq(dafOrg.groupCn)))
+
+
+    val result = for {
+      a <- EitherT( apiClientIPA.createGroup(dafOrg.groupCn) )
+      b <- EitherT( apiClientIPA.createUser(defaultOrgIpaUser) )
+      c <- EitherT( createSuspersetDatabase(dafOrg) )
+      orgAdminRoleId <- EitherT( findSupersetRoleId(ConfigReader.suspersetOrgAdminRole) )
+      dataOrgRoleId <- EitherT( findSupersetRoleId(s"datarole-${dafOrg.supSetConnectionName}") )
+      d <- EitherT( createSupersetUserWithRoles(defaultOrgIpaUser,orgAdminRoleId,dataOrgRoleId) )
+    } yield d
+
+    result.value
+  }
 
 
   private def createSuspersetDatabase(dafOrg:DafOrg): Future[Either[Error,Success]] = {
@@ -33,9 +53,9 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA,secInvokeManager:Se
 
       val jsonRequest: JsValue = Json.parse(s"""{
                                               "database_name": "${dafOrg.supSetConnectionName}",
-                                              "extra":"{\"metadata_params\": {},\"engine_params\": {}}",
+                                              "extra":"${StringEscapeUtils.escapeJson("""{"metadata_params": {},"engine_params": {}}""")}",
                                               "sqlalchemy_uri": "${dafOrg.supSetConnectionString}",
-                                              "impersonate_user": "true"
+                                              "impersonate_user": "false"
                                               }""")
 
       println("createSuspersetDatabase request: "+jsonRequest.toString())
@@ -87,7 +107,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA,secInvokeManager:Se
   }
 
 
-  private def createSupersetUserWithRole(ipaUser:IpaUser, roleId:Long ): Future[Either[Error,Success]] = {
+  private def createSupersetUserWithRoles(ipaUser:IpaUser, orgAdminRoleId:Long, dataOrgRoleId:Long ): Future[Either[Error,Success]] = {
 
 
     def serviceInvoke(sessionCookie: String, wSClient: AhcWSClient): Future[WSResponse] = {
@@ -98,7 +118,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA,secInvokeManager:Se
                                                 "first_name": "${ipaUser.givenname}",
                                                 "last_name": "${ipaUser.sn}",
                                                 "username": "${ipaUser.uid}",
-                                                "roles": ["${ConfigReader.suspersetOrgAdminRole}","$roleId"]
+                                                "roles": ["$orgAdminRoleId","$dataOrgRoleId"]
                                                 }""")
 
 

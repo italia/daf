@@ -37,7 +37,7 @@ import it.gov.daf.securitymanager.service.IntegrationService
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                                                                                                                                                                                                                            
+                                                                                                                                                                                                                                                                                                                                                        
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -88,6 +88,14 @@ package security_manager.yaml {
               case Left(err) => CreateDAForganization500(err)
             }
             // ----- End of unmanaged code area for action  Security_managerYaml.createDAForganization
+        }
+        val deleteDAForganization = deleteDAForganizationAction { (orgName: String) =>  
+            // ----- Start of unmanaged code area for action  Security_managerYaml.deleteDAForganization
+            integrationService.deleteDafOrganization(orgName)flatMap {
+            case Right(success) => DeleteDAForganization200(success)
+            case Left(err) => DeleteDAForganization500(err)
+          }
+            // ----- End of unmanaged code area for action  Security_managerYaml.deleteDAForganization
         }
         val token = tokenAction {  _ =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.token

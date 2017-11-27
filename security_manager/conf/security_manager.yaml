@@ -239,6 +239,30 @@ paths:
           description: Error Message
           schema:
             $ref: '#/definitions/Error'
+
+  "/daf/organization/{orgName}":
+    delete:
+      tags:
+        - DAF
+      description: delete DAF organization
+      operationId: deleteDAForganization
+      produces:
+      - application/json
+      parameters:
+      - name: orgName
+        in: path
+        description: group Cn
+        required: true
+        type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
 definitions:
   IpaUser:
     type: object
@@ -289,19 +313,15 @@ definitions:
     required:
       - groupCn
       - defaultUserPwd
-      - supSetConnectionName
-      - supSetConnectionString
+      - supSetConnectedDbName
     properties:
       groupCn:
         description: group cn
         type: string
       defaultUserPwd:
         type: string
-      supSetConnectionName:
-        description: Superset DB connection name
-        type: string
-      supSetConnectionString:
-        description: Superset DB connection string
+      supSetConnectedDbName:
+        description: Superset connected DB name
         type: string
   Error:
     properties:

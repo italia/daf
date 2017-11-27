@@ -1,6 +1,5 @@
-import CommonBuild._
 import Versions._
-import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
+import com.typesafe.sbt.packager.docker.Cmd
 
 resolvers ++= Seq(
   "zalando-bintray" at "https://dl.bintray.com/zalando/maven",
@@ -57,8 +56,7 @@ libraryDependencies ++= Seq(
   ws,
   "org.webjars" % "swagger-ui" % swaggerUiVersion,
   "it.gov.daf" %% "common" % dafCommonVersion,
-  "it.gov.daf" %% "daf-catalog-manager" % "1.0.0-SNAPSHOT",
-//  "it.gov.daf" %% "daf-storage-manager" % "1.0.0-SNAPSHOT",
+  "it.gov.daf" %% "daf-catalog-manager-client" % "1.0.0-SNAPSHOT",
   "org.scalactic" %% "scalactic" % "3.0.4" % "test",
   "org.scalatest" %% "scalatest" % "3.0.4" % "test",
   "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.0-M1" % "test"

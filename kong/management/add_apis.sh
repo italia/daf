@@ -18,6 +18,12 @@ curl -i -X POST \
  --data 'uris=/sso-manager' \
  --data 'upstream_url=http://security-manager.default.svc.cluster.local:9000/sso-manager'
 
+ curl -i -X POST \
+ --url http://kong-admin.default.svc.cluster.local:8001/apis/ \
+ --data 'name=daf-catalog-manager' \
+ --data 'uris=/catalog-manager' \
+ --data 'upstream_url=http://catalog-manager.default.svc.cluster.local:9000/catalog-manager'
+
 curl -i -X POST \
   --url http://kong-admin.default.svc.cluster.local:8001/apis/ \
   --data 'name=daf-datipubblici' \

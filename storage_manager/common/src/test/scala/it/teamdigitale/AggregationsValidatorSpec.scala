@@ -26,4 +26,5 @@ class AggregationsValidatorSpec  extends FlatSpec with Matchers {
     println(res)
     res shouldBe 'Failure
   }
+
 }

@@ -80,7 +80,7 @@ abstract class HDFSbase extends FlatSpec with Matchers with BeforeAndAfterAll {
     alogger.info(s"ConfPath ${confPath.toJava.getAbsolutePath}")
     val persons = (1 to 10).map(i => Person(s"Andy$i", Random.nextInt(85), Address("Via Ciccio Cappuccio")))
     val caseClassDS = persons.toDS()
-
+compile
     caseClassDS.write.format("parquet").mode(SaveMode.Overwrite).save(pathParquet)
     caseClassDS.write.format("com.databricks.spark.avro").mode(SaveMode.Overwrite).save(pathAvro)
     caseClassDS.toDF.select("name", "age").write.format("csv").mode(SaveMode.Overwrite).save(pathCsv)

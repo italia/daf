@@ -130,12 +130,14 @@ val kuduLibraries = Seq(
   "org.apache.kudu" %% "kudu-spark2" % kuduVersion % "compile"
 )
 
-dependencyOverrides ++= Seq(
-  //"com.google.guava" % "guava" % "16.0.1" % "test",
-  //usefull for docker-java
-  "org.apache.httpcomponents" % "httpcore" % "4.4.5" % "compile",
-  "com.google.guava" % "guava" % "16.0.1" % "compile"
-)
+//dependencyOverrides ++= Seq(
+//  //"com.google.guava" % "guava" % "16.0.1" % "test",
+//  //usefull for docker-java
+//  "org.apache.httpcomponents" % "httpcore" % "4.4.5" % "compile",
+//  "com.google.guava" % "guava" % "16.0.1" % "compile"
+//)
+
+dependencyOverrides += "com.google.guava" % "guava" % "16.0.1" % "compile"
 
 resolvers ++= Seq(
   Resolver.mavenLocal,
@@ -147,6 +149,7 @@ resolvers ++= Seq(
 
 libraryDependencies ++= Seq(
   //Test Dependencies
+  "com.typesafe" % "config" % "1.3.1",
   "org.scalatest" %% "scalatest" % "3.0.4" % "test",
   "org.scalactic" %% "scalactic" % "3.0.4" % "test",
   "com.github.pathikrit" %% "better-files" % betterFilesVersion % Test)

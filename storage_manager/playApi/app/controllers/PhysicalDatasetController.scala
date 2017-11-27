@@ -18,30 +18,34 @@ package controllers
 
 import java.lang.reflect.UndeclaredThrowableException
 import java.net.{URI, URLClassLoader}
+import java.nio.file.InvalidPathException
 import java.security.PrivilegedExceptionAction
 
 import akka.stream.scaladsl.{Source, StreamConverters}
 import akka.util.ByteString
-import com.databricks.spark.avro.SchemaConverters
+import it.gov.daf.common.authentication.Authentication
+import org.apache.hadoop.security.UserGroupInformation
+import org.pac4j.play.store.PlaySessionStore
+//import com.databricks.spark.avro.SchemaConverters
 import com.google.inject.Inject
 import com.typesafe.config.ConfigFactory
 import io.swagger.annotations.{Api, ApiOperation, ApiParam, Authorization}
-import it.gov.daf.common.authentication.Authentication
-import org.apache.avro.SchemaBuilder
-import org.apache.hadoop.fs._
-import org.apache.hadoop.security.{AccessControlException, UserGroupInformation}
-import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.spark.sql.{AnalysisException, SparkSession}
-import org.pac4j.play.store.PlaySessionStore
+//import it.gov.daf.common.authentication.Authentication
+//import org.apache.avro.SchemaBuilder
+//import org.apache.hadoop.fs._
+//import org.apache.hadoop.security.{AccessControlException, UserGroupInformation}
+//import org.apache.spark.{SparkConf, SparkContext}
+//import org.apache.spark.sql.{AnalysisException, SparkSession}
+//import org.pac4j.play.store.PlaySessionStore
 import play.api.Configuration
 import play.api.libs.json.Json
 import play.api.mvc._
 import play.mvc.Http
-import org.apache.kudu.spark.kudu._
-import org.apache.spark.opentsdb.OpenTSDBContext
+//import org.apache.kudu.spark.kudu._
+//import org.apache.spark.opentsdb.OpenTSDBContext
 import play.Logger
 import play.Logger.ALogger
-
+//
 import scala.annotation.tailrec
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
@@ -60,67 +64,67 @@ import scala.util.{Failure, Success, Try}
 @Api("physical-dataset")
 class PhysicalDatasetController @Inject()(configuration: Configuration, val playSessionStore: PlaySessionStore) extends Controller {
 
-  private val defaultLimit = configuration.getInt("max_number_of_rows").getOrElse(throw new Exception("it shouldn't happen"))
-
-  private val defaultChunkSize = configuration.getInt("chunk_size").getOrElse(throw new Exception("it shouldn't happen"))
-
-  private val sparkConfig = new SparkConf()
-  sparkConfig.set("spark.driver.memory", configuration.getString("spark_driver_memory").getOrElse("128M"))
-
-  private val sparkSession = SparkSession.builder().master("local").config(sparkConfig).getOrCreate()
-  //add all spark jars
-  addClassPathJars(sparkSession.sparkContext, getClass.getClassLoader)
-
-  implicit private val alogger: ALogger = Logger.of(this.getClass.getCanonicalName)
-
-  System.setProperty("sun.security.krb5.debug", "true")
-
-  val keytab: Option[String] = configuration.getString("opentsdb.context.keytab")
-  alogger.info(s"OpenTSDBContext Keytab: $keytab")
-
-  val principal: Option[String] = configuration.getString("opentsdb.context.principal")
-  alogger.info(s"OpenTSDBContext Principal: $principal")
-
-  val keytabLocalTempDir: Option[String] = configuration.getString("opentsdb.context.keytablocaltempdir")
-  alogger.info(s"OpenTSDBContext Keytab Local Temp Dir: $keytabLocalTempDir")
-
-  val saltwidth: Option[Int] = configuration.getInt("opentsdb.context.saltwidth")
-  alogger.info(s"OpenTSDBContext SaltWidth: $saltwidth")
-
-  val saltbucket: Option[Int] = configuration.getInt("opentsdb.context.saltbucket")
-  alogger.info(s"OpenTSDBContext SaltBucket: $saltbucket")
-
-  val openTSDBContext: OpenTSDBContext = new OpenTSDBContext(sparkSession)
-  keytabLocalTempDir.foreach(openTSDBContext.keytabLocalTempDir = _)
-  keytab.foreach(openTSDBContext.keytab = _)
-  principal.foreach(openTSDBContext.principal = _)
-  saltwidth.foreach(OpenTSDBContext.saltWidth = _)
-  saltbucket.foreach(OpenTSDBContext.saltBuckets = _)
-
-
-  //val controller = new PhysicalDatasetController()
-
-
-  private val fileSystem: FileSystem = {
-    val conf = new org.apache.hadoop.conf.Configuration()
-    FileSystem.get(conf)
-  }
-
-  @tailrec
-  private def addClassPathJars(sparkContext: SparkContext, classLoader: ClassLoader): Unit = {
-    classLoader match {
-      case urlClassLoader: URLClassLoader =>
-        urlClassLoader.getURLs.foreach { classPathUrl =>
-          if (classPathUrl.toExternalForm.endsWith(".jar") && !classPathUrl.toExternalForm.contains("test-interface")) {
-            sparkContext.addJar(classPathUrl.toExternalForm)
-          }
-        }
-      case _ =>
-    }
-    if (classLoader.getParent != null) {
-      addClassPathJars(sparkContext, classLoader.getParent)
-    }
-  }
+//  private val defaultLimit = configuration.getInt("max_number_of_rows").getOrElse(throw new Exception("it shouldn't happen"))
+//
+//  private val defaultChunkSize = configuration.getInt("chunk_size").getOrElse(throw new Exception("it shouldn't happen"))
+//
+//  private val sparkConfig = new SparkConf()
+//  sparkConfig.set("spark.driver.memory", configuration.getString("spark_driver_memory").getOrElse("128M"))
+//
+//  private val sparkSession = SparkSession.builder().master("local").config(sparkConfig).getOrCreate()
+//  //add all spark jars
+//  addClassPathJars(sparkSession.sparkContext, getClass.getClassLoader)
+//
+//  implicit private val alogger: ALogger = Logger.of(this.getClass.getCanonicalName)
+//
+//  System.setProperty("sun.security.krb5.debug", "true")
+//
+//  val keytab: Option[String] = configuration.getString("opentsdb.context.keytab")
+//  alogger.info(s"OpenTSDBContext Keytab: $keytab")
+//
+//  val principal: Option[String] = configuration.getString("opentsdb.context.principal")
+//  alogger.info(s"OpenTSDBContext Principal: $principal")
+//
+//  val keytabLocalTempDir: Option[String] = configuration.getString("opentsdb.context.keytablocaltempdir")
+//  alogger.info(s"OpenTSDBContext Keytab Local Temp Dir: $keytabLocalTempDir")
+//
+//  val saltwidth: Option[Int] = configuration.getInt("opentsdb.context.saltwidth")
+//  alogger.info(s"OpenTSDBContext SaltWidth: $saltwidth")
+//
+//  val saltbucket: Option[Int] = configuration.getInt("opentsdb.context.saltbucket")
+//  alogger.info(s"OpenTSDBContext SaltBucket: $saltbucket")
+//
+//  val openTSDBContext: OpenTSDBContext = new OpenTSDBContext(sparkSession)
+//  keytabLocalTempDir.foreach(openTSDBContext.keytabLocalTempDir = _)
+//  keytab.foreach(openTSDBContext.keytab = _)
+//  principal.foreach(openTSDBContext.principal = _)
+//  saltwidth.foreach(OpenTSDBContext.saltWidth = _)
+//  saltbucket.foreach(OpenTSDBContext.saltBuckets = _)
+//
+//
+//  //val controller = new PhysicalDatasetController()
+//
+//
+//  private val fileSystem: FileSystem = {
+//    val conf = new org.apache.hadoop.conf.Configuration()
+//    FileSystem.get(conf)
+//  }
+//
+//  @tailrec
+//  private def addClassPathJars(sparkContext: SparkContext, classLoader: ClassLoader): Unit = {
+//    classLoader match {
+//      case urlClassLoader: URLClassLoader =>
+//        urlClassLoader.getURLs.foreach { classPathUrl =>
+//          if (classPathUrl.toExternalForm.endsWith(".jar") && !classPathUrl.toExternalForm.contains("test-interface")) {
+//            sparkContext.addJar(classPathUrl.toExternalForm)
+//          }
+//        }
+//      case _ =>
+//    }
+//    if (classLoader.getParent != null) {
+//      addClassPathJars(sparkContext, classLoader.getParent)
+//    }
+//  }
 
   UserGroupInformation.loginUserFromSubject(null)
 
@@ -129,12 +133,12 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
   Authentication(configuration, playSessionStore)
 
   private val exceptionManager: PartialFunction[Throwable, Result] = (exception: Throwable) => exception match {
-    case ex: AnalysisException =>
-      Ok(Json.toJson(ex.getMessage)).copy(header = ResponseHeader(Http.Status.NOT_FOUND, Map.empty))
-    case ex: NotImplementedError =>
-      Ok(Json.toJson(ex.getMessage)).copy(header = ResponseHeader(Http.Status.NOT_IMPLEMENTED, Map.empty))
-    case ex: UndeclaredThrowableException if ex.getUndeclaredThrowable.isInstanceOf[AnalysisException] =>
-      Ok(Json.toJson(ex.getMessage)).copy(header = ResponseHeader(Http.Status.NOT_FOUND, Map.empty))
+//    case ex: AnalysisException =>
+//      Ok(Json.toJson(ex.getMessage)).copy(header = ResponseHeader(Http.Status.NOT_FOUND, Map.empty))
+//    case ex: NotImplementedError =>
+//      Ok(Json.toJson(ex.getMessage)).copy(header = ResponseHeader(Http.Status.NOT_IMPLEMENTED, Map.empty))
+//    case ex: UndeclaredThrowableException if ex.getUndeclaredThrowable.isInstanceOf[AnalysisException] =>
+//      Ok(Json.toJson(ex.getMessage)).copy(header = ResponseHeader(Http.Status.NOT_FOUND, Map.empty))
     case ex: InvalidPathException =>
       Ok(Json.toJson(ex.getMessage)).copy(header = ResponseHeader(Http.Status.BAD_REQUEST, Map.empty))
     case ex: Throwable =>
@@ -174,94 +178,95 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
     //TODO the storage manager should know the input database format
     Action {
       CheckedAction(exceptionManager orElse hadoopExceptionManager) {
-        HadoopDoAsAction {
-          _ =>
-            val datasetURI = new URI(uri)
-            val locationURI = new URI(datasetURI.getSchemeSpecificPart)
-            val locationScheme = locationURI.getScheme
-            alogger.info(s"$datasetURI\t$locationScheme\t$locationURI")
-
-            alogger.info(s" Request for $locationScheme")
-            val actualFormat = format match {
-              case "avro" => "com.databricks.spark.avro"
-              case format: String => format
-            }
-            val res: Result = locationScheme match {
-              case "hdfs" if actualFormat == "text" =>
-                alogger.info(s"In HDFS with format $actualFormat")
-                val location = locationURI.getSchemeSpecificPart
-                val rdd = sparkSession.sparkContext.textFile(location)
-                val doc = rdd.take(limit.getOrElse(defaultLimit)).mkString("\n")
-                Ok(doc).as("text/plain")
-              case "hdfs" if actualFormat == "raw" =>
-                alogger.info(s"In HDFS with format $actualFormat")
-                val location = locationURI.getSchemeSpecificPart
-                val path = new Path(location)
-                if (fileSystem.isDirectory(path))
-                  throw new InvalidPathException("The specified location is not a file")
-                val data: FSDataInputStream = fileSystem.open(path)
-                val dataContent: Source[ByteString, _] = StreamConverters.fromInputStream(() => data, chunk_size.getOrElse(defaultChunkSize))
-                Ok.chunked(dataContent.take(limit.getOrElse(defaultLimit).asInstanceOf[Long])).as("application/octet-stream")
-              case "hdfs" =>
-                alogger.info(s"In HDFS with format $actualFormat")
-                val location = locationURI.getSchemeSpecificPart
-                val df = sparkSession.read.format(actualFormat).load(location)
-                val doc = s"[${
-                  df.take(limit.getOrElse(defaultLimit)).map(row => {
-                    Utility.rowToJson(df.schema)(row)
-                  }).mkString(",")
-                }]"
-                Ok(doc).as(JSON)
-              case "kudu" =>
-                //TODO te table name is encoded in the uri
-                alogger.info(s"In KUDU")
-                println("You are in OPENTSDB")
-                val table = "Events"
-                val master = configuration.getString("kudu.master").getOrElse("NO_kudu.master")
-                val df = sparkSession
-                  .sqlContext
-                  .read
-                  .options(Map("kudu.master" -> master, "kudu.table" -> table)).kudu
-                val doc = s"[${
-                  df.take(limit.getOrElse(defaultLimit)).map(row => {
-                    Utility.rowToJson(df.schema)(row)
-                  }).mkString(",")
-                }]"
-                Ok(doc).as(JSON)
-              case "opentsdb" =>
-                alogger.info("You are in OPENTSDB")
-                //TODO te table name is encoded in the uri
-                Logger.info(s"In OPENTSDB")
-                val metric = "speed"
-                val tags: Map[String, String] = Map()
-                val interval: Option[(Long, Long)] = Some((1510499181, 1510585560))
-
-
-                //val ts = Try(openTSDBContext.load(metric, tags, interval)).map(_.collect)
-                //val result = ts.collect()
-
-                Try(openTSDBContext.loadDataFrame(metric, tags, interval)) match {
-                  case Success(df) =>
-                    alogger.info(s" Total size ${df.count()}")
-                    val doc = s"[${
-                      df.take(limit.getOrElse(defaultLimit)).map(row => {
-                        Utility.rowToJson(df.schema)(row)
-                      }).mkString(",")
-                    }]"
-                    Ok(doc).as(JSON)
-                  case Failure(ex) =>
-                    println(s"${ex.getMessage} \n ${ex.getStackTrace}")
-                    Ok(ex.getMessage).as(JSON)
-                }
-
-
-              case scheme =>
-                alogger.info(s"Storage scheme $format not supported")
-                throw new NotImplementedError(s"storage scheme: $scheme not supported")
-            }
-
-            res
-        }
+//        HadoopDoAsAction {
+//          _ =>
+//            val datasetURI = new URI(uri)
+//            val locationURI = new URI(datasetURI.getSchemeSpecificPart)
+//            val locationScheme = locationURI.getScheme
+//            alogger.info(s"$datasetURI\t$locationScheme\t$locationURI")
+//
+//            alogger.info(s" Request for $locationScheme")
+//            val actualFormat = format match {
+//              case "avro" => "com.databricks.spark.avro"
+//              case format: String => format
+//            }
+//            val res: Result = locationScheme match {
+//              case "hdfs" if actualFormat == "text" =>
+//                alogger.info(s"In HDFS with format $actualFormat")
+//                val location = locationURI.getSchemeSpecificPart
+//                val rdd = sparkSession.sparkContext.textFile(location)
+//                val doc = rdd.take(limit.getOrElse(defaultLimit)).mkString("\n")
+//                Ok(doc).as("text/plain")
+//              case "hdfs" if actualFormat == "raw" =>
+//                alogger.info(s"In HDFS with format $actualFormat")
+//                val location = locationURI.getSchemeSpecificPart
+//                val path = new Path(location)
+//                if (fileSystem.isDirectory(path))
+//                  throw new InvalidPathException("The specified location is not a file")
+//                val data: FSDataInputStream = fileSystem.open(path)
+//                val dataContent: Source[ByteString, _] = StreamConverters.fromInputStream(() => data, chunk_size.getOrElse(defaultChunkSize))
+//                Ok.chunked(dataContent.take(limit.getOrElse(defaultLimit).asInstanceOf[Long])).as("application/octet-stream")
+//              case "hdfs" =>
+//                alogger.info(s"In HDFS with format $actualFormat")
+//                val location = locationURI.getSchemeSpecificPart
+//                val df = sparkSession.read.format(actualFormat).load(location)
+//                val doc = s"[${
+//                  df.take(limit.getOrElse(defaultLimit)).map(row => {
+//                    Utility.rowToJson(df.schema)(row)
+//                  }).mkString(",")
+//                }]"
+//                Ok(doc).as(JSON)
+//              case "kudu" =>
+//                //TODO te table name is encoded in the uri
+//                alogger.info(s"In KUDU")
+//                println("You are in OPENTSDB")
+//                val table = "Events"
+//                val master = configuration.getString("kudu.master").getOrElse("NO_kudu.master")
+//                val df = sparkSession
+//                  .sqlContext
+//                  .read
+//                  .options(Map("kudu.master" -> master, "kudu.table" -> table)).kudu
+//                val doc = s"[${
+//                  df.take(limit.getOrElse(defaultLimit)).map(row => {
+//                    Utility.rowToJson(df.schema)(row)
+//                  }).mkString(",")
+//                }]"
+//                Ok(doc).as(JSON)
+//              case "opentsdb" =>
+//                alogger.info("You are in OPENTSDB")
+//                //TODO te table name is encoded in the uri
+//                Logger.info(s"In OPENTSDB")
+//                val metric = "speed"
+//                val tags: Map[String, String] = Map()
+//                val interval: Option[(Long, Long)] = Some((1510499181, 1510585560))
+//
+//
+//                //val ts = Try(openTSDBContext.load(metric, tags, interval)).map(_.collect)
+//                //val result = ts.collect()
+//
+//                Try(openTSDBContext.loadDataFrame(metric, tags, interval)) match {
+//                  case Success(df) =>
+//                    alogger.info(s" Total size ${df.count()}")
+//                    val doc = s"[${
+//                      df.take(limit.getOrElse(defaultLimit)).map(row => {
+//                        Utility.rowToJson(df.schema)(row)
+//                      }).mkString(",")
+//                    }]"
+//                    Ok(doc).as(JSON)
+//                  case Failure(ex) =>
+//                    println(s"${ex.getMessage} \n ${ex.getStackTrace}")
+//                    Ok(ex.getMessage).as(JSON)
+//                }
+//
+//
+//              case scheme =>
+//                alogger.info(s"Storage scheme $format not supported")
+//                throw new NotImplementedError(s"storage scheme: $scheme not supported")
+//            }
+//
+//            res
+//        }
+        ???
       }
     }
 
@@ -275,27 +280,28 @@ class PhysicalDatasetController @Inject()(configuration: Configuration, val play
     Action {
       CheckedAction(exceptionManager) {
         HadoopDoAsAction {
-          _ =>
-            val datasetURI = new URI(uri)
-            val locationURI = new URI(datasetURI.getSchemeSpecificPart)
-            val locationScheme = locationURI.getScheme
-            val actualFormat = format match {
-              case "avro" => "com.databricks.spark.avro"
-              case format: String => format
-            }
-            locationScheme match {
-              case "hdfs" if actualFormat == "raw" =>
-                Ok("No Scheme Available for raw format").as("text/plain")
-              case "hdfs" if actualFormat == "text" =>
-                Ok("No Scheme Available").as("text/plain")
-              case "hdfs" =>
-                val location = locationURI.getSchemeSpecificPart
-                val df = sparkSession.read.format(actualFormat).load(location)
-                val schema = SchemaConverters.convertStructToAvro(df.schema, SchemaBuilder.record("topLevelRecord"), "")
-                Ok(schema.toString(true)).as(JSON)
-              case scheme =>
-                throw new NotImplementedError(s"storage scheme: $scheme not supported")
-            }
+//          _ =>
+//            val datasetURI = new URI(uri)
+//            val locationURI = new URI(datasetURI.getSchemeSpecificPart)
+//            val locationScheme = locationURI.getScheme
+//            val actualFormat = format match {
+//              case "avro" => "com.databricks.spark.avro"
+//              case format: String => format
+//            }
+//            locationScheme match {
+//              case "hdfs" if actualFormat == "raw" =>
+//                Ok("No Scheme Available for raw format").as("text/plain")
+//              case "hdfs" if actualFormat == "text" =>
+//                Ok("No Scheme Available").as("text/plain")
+//              case "hdfs" =>
+//                val location = locationURI.getSchemeSpecificPart
+//                val df = sparkSession.read.format(actualFormat).load(location)
+//                val schema = SchemaConverters.convertStructToAvro(df.schema, SchemaBuilder.record("topLevelRecord"), "")
+//                Ok(schema.toString(true)).as(JSON)
+//              case scheme =>
+//                throw new NotImplementedError(s"storage scheme: $scheme not supported")
+//            }
+          ???
         }
       }
     }

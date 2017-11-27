@@ -20,10 +20,9 @@ import java.net.ServerSocket
 import better.files._
 import com.databricks.spark.avro.SchemaConverters
 import controllers.Utility
+import it.teamdigitale.baseSpec.HDFSbase
 import org.apache.avro.SchemaBuilder
 import org.apache.hadoop.fs.{FileSystem, Path}
-import org.apache.hadoop.hdfs.{HdfsConfiguration, MiniDFSCluster}
-import org.apache.hadoop.test.PathUtils
 import org.apache.spark.sql.{SaveMode, SparkSession}
 import org.specs2.mutable.Specification
 import org.specs2.specification.BeforeAfterAll
@@ -42,9 +41,10 @@ final case class Address(stret: String)
 final case class Person(name: String, age: Int, address: Address)
 
 @SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements", "org.wartremover.warts.Throw"))
-class ServiceSpec extends Specification with BeforeAfterAll {
+class ServiceSpec extends HDFSbase {
 
-  import ServiceSpec._
+  val url = super.pathParquet
+
 
   def getAvailablePort: Int = {
     try {
@@ -60,162 +60,97 @@ class ServiceSpec extends Specification with BeforeAfterAll {
     }
   }
 
-  def application: Application = GuiceApplicationBuilder().
-    configure("hadoop_conf_dir" -> s"${ServiceSpec.confPath.pathAsString}").
-    configure("pac4j.authenticator" -> "test").
-    build()
 
-  private val limit = 1000
 
-  "The storage_manager" should {
-    "manage the physical datasets correctly" in new WithServer(app = application, port = getAvailablePort) {
+
+  "The storage_manager" should "manage the physical datasets correctly" in new WithServer( port = getAvailablePort) {
       private val (doc, txtDoc, schema) = {
-        val sparkSession = ServiceSpec.sparkSession
-
-        import sparkSession.implicits._
-
-        val persons = (1 to limit).map(i => Person(s"Andy$i", Random.nextInt(85), Address("Via Delle Benedettine 47")))
-        val caseClassDS = persons.toDS()
-        caseClassDS.write.format("parquet").mode(SaveMode.Overwrite).save("/opendata/test.parquet")
-        caseClassDS.write.format("com.databricks.spark.avro").mode(SaveMode.Overwrite).save("/opendata/test.avro")
-        caseClassDS.toDF.select("name", "age").write.format("csv").mode(SaveMode.Overwrite).save("/opendata/test.csv")
-        val txtDoc = caseClassDS.take(limit).map(p => s"${p.name},${p.age}").mkString("\n")
-        val doc = s"[${
-          caseClassDS.toDF().take(limit).map(row => {
-            Utility.rowToJson(caseClassDS.schema)(row)
-          }).mkString(",")
-        }]"
-        val df = sparkSession.read.format("parquet").load("/opendata/test.parquet")
-        val schema = SchemaConverters.convertStructToAvro(df.schema, SchemaBuilder.record("topLevelRecord"), "").toString(true)
-        (doc, txtDoc, schema)
-      }
-
-      //Test with missing authentication information
-      WsTestClient.withClient { implicit client =>
-        val uri = "dataset:hdfs:/opendata/test.parquet"
-        val response: WSResponse = Await.result[WSResponse](client.
-          url(s"http://localhost:$port/storage-manager/v1/physical-datasets?uri=$uri&format=parquet&limit=$limit").
-          execute, Duration.Inf)
-        response.status must be equalTo Status.UNAUTHORIZED
-      }
-
-      //Test with a wrong dataset URI
-      WsTestClient.withClient { implicit client =>
-        val uri = "dataset:hdfs:/opendata/WRONG.parquet"
-        val response: WSResponse = Await.result[WSResponse](client.
-          url(s"http://localhost:$port/storage-manager/v1/physical-datasets?uri=$uri&format=parquet&limit=$limit").
-          withAuth("david", "david", WSAuthScheme.BASIC).
-          execute, Duration.Inf)
-        response.status must be equalTo Status.NOT_FOUND
-      }
-
-      //Test with a wrong dataset scheme
-      WsTestClient.withClient { implicit client =>
-        val uri = "dataset:WRONG:/opendata/WRONG.parquet"
-        val response: WSResponse = Await.result[WSResponse](client.
-          url(s"http://localhost:$port/storage-manager/v1/physical-datasets?uri=$uri&format=parquet&limit=$limit").
-          withAuth("david", "david", WSAuthScheme.BASIC).
-          execute, Duration.Inf)
-        response.status must be equalTo Status.NOT_IMPLEMENTED
-      }
 
       WsTestClient.withClient { implicit client =>
         val uri = "dataset:hdfs:/opendata/test.parquet"
+        val params = Map("protocol" -> "hdfs", "path" -> url)
         val response: WSResponse = Await.result[WSResponse](client.
-          url(s"http://localhost:$port/storage-manager/v1/physical-datasets?uri=$uri&format=parquet&limit=$limit").
-          withAuth("david", "david", WSAuthScheme.BASIC).
-          execute, Duration.Inf)
-        response.body must be equalTo doc
+          url(s"http://localhost:$port/storage-manager/v1/physical-datasets")
+          .post(params), Duration.Inf)
+        response.status === Status.UNAUTHORIZED
       }
 
-      WsTestClient.withClient { implicit client =>
-        val uri = "dataset:hdfs:/opendata/test.parquet"
-        val response: WSResponse = Await.result[WSResponse](client.
-          url(s"http://localhost:$port/storage-manager/v1/physical-datasets?uri=$uri&format=parquet&limit=$limit").
-          withAuth("david", "david", WSAuthScheme.BASIC).
-          execute, Duration.Inf)
-        response.body must be equalTo doc
-      }
-
-      WsTestClient.withClient { implicit client =>
-        val uri = "dataset:hdfs:/opendata/test.avro"
-        val response: WSResponse = Await.result[WSResponse](client.url(s"http://localhost:$port/storage-manager/v1/physical-datasets?uri=$uri&format=avro&limit=$limit").
-          withAuth("david", "david", WSAuthScheme.BASIC).
-          execute, Duration.Inf)
-        response.body must be equalTo doc
-      }
-
-      WsTestClient.withClient { implicit client =>
-        val uri = "dataset:hdfs:/opendata/test.csv"
-        val response: WSResponse = Await.result[WSResponse](client.url(s"http://localhost:$port/storage-manager/v1/physical-datasets?uri=$uri&format=text&limit=$limit").
-          withAuth("david", "david", WSAuthScheme.BASIC).
-          execute, Duration.Inf)
-        response.body must be equalTo txtDoc
-      }
-
-      WsTestClient.withClient { implicit client =>
-        val uri = "dataset:hdfs:/opendata/test.avro"
-        val response: WSResponse = Await.result[WSResponse](client.url(s"http://localhost:$port/storage-manager/v1/physical-datasets/schema?uri=$uri&format=avro").
-          withAuth("david", "david", WSAuthScheme.BASIC).
-          execute, Duration.Inf)
-        response.body must be equalTo schema
-      }
-
-      WsTestClient.withClient { implicit client =>
-        val files = fileSystem.map(fs => fs.listFiles(new Path("/opendata/test.csv"), false))
-        val csvFileName = files.map(files => {
-          files.next()
-          files.next().getPath.getName
-        }).getOrElse("")
-        val uri = s"dataset:hdfs:/opendata/test.csv/$csvFileName"
-        val response: WSResponse = Await.result[WSResponse](client.url(s"http://localhost:$port/storage-manager/v1/physical-datasets?uri=$uri&format=raw&limit=$limit").
-          withAuth("david", "david", WSAuthScheme.BASIC).
-          execute, Duration.Inf)
-        response.body.stripLineEnd must be equalTo txtDoc
-      }
+//      //Test with a wrong dataset URI
+//      WsTestClient.withClient { implicit client =>
+//        val uri = "dataset:hdfs:/opendata/WRONG.parquet"
+//        val response: WSResponse = Await.result[WSResponse](client.
+//          url(s"http://localhost:$port/storage-manager/v1/physical-datasets?uri=$uri&format=parquet&limit=$limit").
+//          withAuth("david", "david", WSAuthScheme.BASIC).
+//          execute, Duration.Inf)
+//        response.status must be equalTo Status.NOT_FOUND
+//      }
+//
+//      //Test with a wrong dataset scheme
+//      WsTestClient.withClient { implicit client =>
+//        val uri = "dataset:WRONG:/opendata/WRONG.parquet"
+//        val response: WSResponse = Await.result[WSResponse](client.
+//          url(s"http://localhost:$port/storage-manager/v1/physical-datasets?uri=$uri&format=parquet&limit=$limit").
+//          withAuth("david", "david", WSAuthScheme.BASIC).
+//          execute, Duration.Inf)
+//        response.status must be equalTo Status.NOT_IMPLEMENTED
+//      }
+//
+//      WsTestClient.withClient { implicit client =>
+//        val uri = "dataset:hdfs:/opendata/test.parquet"
+//        val response: WSResponse = Await.result[WSResponse](client.
+//          url(s"http://localhost:$port/storage-manager/v1/physical-datasets?uri=$uri&format=parquet&limit=$limit").
+//          withAuth("david", "david", WSAuthScheme.BASIC).
+//          execute, Duration.Inf)
+//        response.body must be equalTo doc
+//      }
+//
+//      WsTestClient.withClient { implicit client =>
+//        val uri = "dataset:hdfs:/opendata/test.parquet"
+//        val response: WSResponse = Await.result[WSResponse](client.
+//          url(s"http://localhost:$port/storage-manager/v1/physical-datasets?uri=$uri&format=parquet&limit=$limit").
+//          withAuth("david", "david", WSAuthScheme.BASIC).
+//          execute, Duration.Inf)
+//        response.body must be equalTo doc
+//      }
+//
+//      WsTestClient.withClient { implicit client =>
+//        val uri = "dataset:hdfs:/opendata/test.avro"
+//        val response: WSResponse = Await.result[WSResponse](client.url(s"http://localhost:$port/storage-manager/v1/physical-datasets?uri=$uri&format=avro&limit=$limit").
+//          withAuth("david", "david", WSAuthScheme.BASIC).
+//          execute, Duration.Inf)
+//        response.body must be equalTo doc
+//      }
+//
+//      WsTestClient.withClient { implicit client =>
+//        val uri = "dataset:hdfs:/opendata/test.csv"
+//        val response: WSResponse = Await.result[WSResponse](client.url(s"http://localhost:$port/storage-manager/v1/physical-datasets?uri=$uri&format=text&limit=$limit").
+//          withAuth("david", "david", WSAuthScheme.BASIC).
+//          execute, Duration.Inf)
+//        response.body must be equalTo txtDoc
+//      }
+//
+//      WsTestClient.withClient { implicit client =>
+//        val uri = "dataset:hdfs:/opendata/test.avro"
+//        val response: WSResponse = Await.result[WSResponse](client.url(s"http://localhost:$port/storage-manager/v1/physical-datasets/schema?uri=$uri&format=avro").
+//          withAuth("david", "david", WSAuthScheme.BASIC).
+//          execute, Duration.Inf)
+//        response.body must be equalTo schema
+//      }
+//
+//      WsTestClient.withClient { implicit client =>
+//        val files = fileSystem.map(fs => fs.listFiles(new Path("/opendata/test.csv"), false))
+//        val csvFileName = files.map(files => {
+//          files.next()
+//          files.next().getPath.getName
+//        }).getOrElse("")
+//        val uri = s"dataset:hdfs:/opendata/test.csv/$csvFileName"
+//        val response: WSResponse = Await.result[WSResponse](client.url(s"http://localhost:$port/storage-manager/v1/physical-datasets?uri=$uri&format=raw&limit=$limit").
+//          withAuth("david", "david", WSAuthScheme.BASIC).
+//          execute, Duration.Inf)
+//        response.body.stripLineEnd must be equalTo txtDoc
+//      }
 
     }
-  }
-
-  override def beforeAll(): Unit = {
-    val conf = new HdfsConfiguration()
-    conf.setBoolean("dfs.permissions", true)
-    System.clearProperty(MiniDFSCluster.PROP_TEST_BUILD_DATA)
-    conf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, testDataPath.pathAsString)
-    conf.set(s"hadoop.proxyuser.${System.getProperties.get("user.name")}.groups", "*")
-    conf.set(s"hadoop.proxyuser.${System.getProperties.get("user.name")}.hosts", "*")
-    val builder = new MiniDFSCluster.Builder(conf)
-    miniCluster = Try(builder.build())
-    fileSystem = miniCluster.map(_.getFileSystem)
-    fileSystem.foreach(fs => {
-      val confFile: File = confPath / "hdfs-site.xml"
-      for {os <- confFile.newOutputStream.autoClosed} fs.getConf.writeXml(os)
-    })
-  }
-
-  override def afterAll(): Unit = {
-    miniCluster.foreach(_.shutdown(true))
-    val _ = testDataPath.parent.parent.delete(true)
-    sparkSession.stop()
-  }
-}
-
-@SuppressWarnings(Array("org.wartremover.warts.Var", "org.wartremover.warts.Null"))
-object ServiceSpec {
-
-  private val (testDataPath, confPath) = {
-    val testDataPath = s"${PathUtils.getTestDir(classOf[ServiceSpec]).getCanonicalPath}/MiniCluster"
-    val confPath = s"$testDataPath/conf"
-    (
-      testDataPath.toFile.createIfNotExists(asDirectory = true, createParents = false),
-      confPath.toFile.createIfNotExists(asDirectory = true, createParents = false)
-    )
-  }
-
-  var miniCluster: Try[MiniDFSCluster] = Failure[MiniDFSCluster](new Exception)
-
-  var fileSystem: Try[FileSystem] = Failure[FileSystem](new Exception)
-
-  lazy val sparkSession: SparkSession = SparkSession.builder().master("local").getOrCreate()
 
 }
+

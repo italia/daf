@@ -12,6 +12,18 @@ curl -i -X POST \
   --data 'uris=/security-manager' \
   --data 'upstream_url=http://security-manager.default.svc.cluster.local:9000/security-manager'
 
+ curl -i -X POST \
+ --url http://kong-admin.default.svc.cluster.local:8001/apis/ \
+ --data 'name=daf-sso-manager' \
+ --data 'uris=/sso-manager' \
+ --data 'upstream_url=http://security-manager.default.svc.cluster.local:9000/sso-manager'
+
+curl -i -X POST \
+  --url http://kong-admin.default.svc.cluster.local:8001/apis/ \
+  --data 'name=daf-datipubblici' \
+  --data 'uris=/dati-gov' \
+  --data 'upstream_url=http://datipubblici.default.svc.cluster.local:9000/dati-gov'
+
 curl -i -X POST \
   --url http://kong-admin.default.svc.cluster.local:8001/apis/ \
   --data 'name=daf-iot-ingestion-manager' \

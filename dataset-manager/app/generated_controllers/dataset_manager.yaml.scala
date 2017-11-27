@@ -15,7 +15,7 @@ import scala.math.BigInt
 
 package dataset_manager.yaml {
 
-  import it.gov.daf.server.DatasetManagerService
+  import it.gov.daf.server.storage.DatasetManagerService
   import play.api.libs.ws.WSClient
 
   import scala.concurrent.ExecutionContext
@@ -32,6 +32,7 @@ package dataset_manager.yaml {
     config: ConfigurationProvider
   ) extends Dataset_managerYamlBase {
     // ----- Start of unmanaged code area for constructor Dataset_managerYaml
+
     private val catalogUrl = config.get.underlying.getString("daf.catalogUrl")
     private val storageUrl = config.get.underlying.getString("daf.storageUrl")
     private val service = new DatasetManagerService(

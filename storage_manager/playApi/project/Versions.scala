@@ -18,4 +18,6 @@ object Versions {
 
   val hbaseVersion = "1.2.0-cdh5.12.0"
 
+  val log4j = "2.9.1"
+
 }

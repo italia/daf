@@ -44,10 +44,10 @@ class PhysicalDatasetController(
         defaultLimit
       else l
 
-    params.get("protocol").map(_.asInstanceOf[String]).getOrElse("hdfs") match {
+    params.getOrElse("protocol", "hdfs") match {
 
       case "opentsdb" =>
-        val metricOp = params.get("metric").map(_.asInstanceOf[String])
+        val metricOp = params.get("metric")
         val tags = params.get("tags").map(_.asInstanceOf[Map[String, String]]).getOrElse(Map.empty[String, String])
         val intervalOp = params.get("interval").map(_.asInstanceOf[(Long, Long)])
         alogger.info(s"Reading request for opentsdb with params: metric:$metricOp tags:$tags, interval: $intervalOp")
@@ -57,7 +57,7 @@ class PhysicalDatasetController(
 
       case "kudu" =>
 
-        val tableOp = params.get("metric")
+        val tableOp = params.get("table")
         alogger.info(s"Reading request for kudu with params: table:$tableOp")
 
         val res = tableOp.map(kudu.readData(_).map(_.limit(limit)))

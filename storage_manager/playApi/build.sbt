@@ -17,10 +17,10 @@
 import Versions._
 import com.typesafe.sbt.packager.docker.Cmd
 import sbt.Keys.{resolvers, scalaVersion}
-import uk.gov.hmrc.gitstamp.GitStampPlugin._
+//import uk.gov.hmrc.gitstamp.GitStampPlugin._
 import sbt.Resolver
 
-Seq(gitStampSettings: _*)
+//Seq(gitStampSettings: _*)
 
 scalacOptions ++= Seq(
   "-deprecation",
@@ -36,7 +36,7 @@ scalacOptions ++= Seq(
   "-Xfuture"
 )
 
-lazy val core = RootProject(file("../common"))
+lazy val core = RootProject(file("../core"))
 
 lazy val root = (project in file("."))
   .settings(
@@ -44,6 +44,7 @@ lazy val root = (project in file("."))
     scalaVersion := "2.11.12",
     version in ThisBuild := sys.env.getOrElse("STORAGE_MANAGER_VERSION", "1.0.0-SNAPSHOT"),
     libraryDependencies ++= Seq(
+      "ch.qos.logback" % "logback-classic" % "1.2.3" % Test,
       cache,
       ws,
       "org.webjars" % "swagger-ui" % swaggerUiVersion,
@@ -51,8 +52,9 @@ lazy val root = (project in file("."))
       "io.swagger" %% "swagger-play2" % "1.5.3",
       "com.typesafe.play" %% "play-json" % playVersion,
       "it.gov.daf" %% "common" % version.value,
-      "org.scalatest" %% "scalatest" % "3.0.4" % "test"
-    ),
+      "org.scalatest" %% "scalatest" % "3.0.4" % "test",
+      "com.github.pathikrit" %% "better-files" % betterFilesVersion % Test
+    ).map(_.exclude("org.slf4j", "*")) ++ hbaseLibrariesTEST.map(_.exclude("org.slf4j", "*")),
 
     resolvers ++= Seq(
       Resolver.mavenLocal,
@@ -65,6 +67,62 @@ lazy val root = (project in file("."))
   .enablePlugins(PlayScala, AutomateHeaderPlugin, DockerPlugin)
   .aggregate(core)
   .dependsOn(core)
+
+val hadoopHBaseExcludes =
+  (moduleId: ModuleID) => moduleId.
+    exclude("org.slf4j", "slf4j-log4j12").
+    exclude("javax.servlet", "servlet-api").
+    exclude("org.apache.logging.log4j", "log4j-slf4j-impl").
+    exclude("org.slf4j", "slf4j-log4j12").
+    exclude("org.jboss.netty", "netty").
+    exclude("io.netty", "netty").
+    excludeAll(ExclusionRule(organization = "javax.servlet"))
+
+val hbaseExcludes =
+  (moduleID: ModuleID) => moduleID.
+    exclude("org.apache.thrift", "thrift").
+    exclude("org.jruby", "jruby-complete").
+    exclude("org.slf4j", "slf4j-log4j12").
+    exclude("org.mortbay.jetty", "jsp-2.1").
+    exclude("org.mortbay.jetty", "jsp-api-2.1").
+    exclude("org.mortbay.jetty", "servlet-api-2.5").
+    exclude("com.sun.jersey", "jersey-core").
+    exclude("com.sun.jersey", "jersey-json").
+    exclude("com.sun.jersey", "jersey-server").
+    exclude("org.mortbay.jetty", "jetty").
+    exclude("org.mortbay.jetty", "jetty-util").
+    exclude("tomcat", "jasper-runtime").
+    exclude("tomcat", "jasper-compiler").
+    exclude("org.jboss.netty", "netty").
+    exclude("io.netty", "netty").
+    exclude("commons-logging", "commons-logging").
+    exclude("org.apache.xmlgraphics", "batik-ext").
+    exclude("commons-collections", "commons-collections").
+    exclude("xom", "xom").
+    exclude("commons-beanutils", "commons-beanutils").
+    exclude("org.apache.logging.log4j", "log4j-slf4j-impl").
+    exclude("org.slf4j", "slf4j-log4j12")
+
+val hbaseLibrariesTEST = Seq (
+  hadoopHBaseExcludes("org.apache.hbase" % "hbase-server" % hbaseVersion % "test" classifier "tests"),
+  hadoopHBaseExcludes("org.apache.hbase" % "hbase-common" % hbaseVersion % "test" classifier "tests"),
+  hadoopHBaseExcludes("org.apache.hbase" % "hbase-testing-util" % hbaseVersion % "test" classifier "tests"
+    exclude("org.apache.hadoop<", "hadoop-hdfs")
+    exclude("org.apache.hadoop", "hadoop-minicluster")
+    exclude("org.apache.hadoo", "hadoop-client")),
+  hadoopHBaseExcludes("org.apache.hbase" % "hbase-hadoop-compat" % hbaseVersion % "test" classifier "tests"),
+  hadoopHBaseExcludes("org.apache.hbase" % "hbase-hadoop-compat" % hbaseVersion % "test" classifier "tests" extra "type" -> "test-jar"),
+  hadoopHBaseExcludes("org.apache.hbase" % "hbase-hadoop2-compat" % hbaseVersion % "test" classifier "tests" extra "type" -> "test-jar"),
+  hadoopHBaseExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % "test" classifier "tests"),
+  hadoopHBaseExcludes("org.apache.hadoop" % "hadoop-hdfs" % hadoopVersion % "test" classifier "tests"),
+  hadoopHBaseExcludes("org.apache.hadoop" % "hadoop-hdfs" % hadoopVersion % "test" classifier "tests" extra "type" -> "test-jar"),
+  hadoopHBaseExcludes("org.apache.hadoop" % "hadoop-hdfs" % hadoopVersion % "test" extra "type" -> "test-jar"),
+  hadoopHBaseExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % "test" classifier "tests"),
+  hadoopHBaseExcludes("org.apache.hadoop" % "hadoop-minicluster" % hadoopVersion % "test"),
+  hadoopHBaseExcludes("org.apache.hadoop" % "hadoop-common" % hadoopVersion % "test" classifier "tests" extra "type" -> "test-jar"),
+  hadoopHBaseExcludes("org.apache.hadoop" % "hadoop-mapreduce-client-jobclient" % hadoopVersion % "test" classifier "tests")
+)
+
 
 licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt"))
 headerLicense := Some(HeaderLicense.ALv2("2017", "TEAM PER LA TRASFORMAZIONE DIGITALE"))

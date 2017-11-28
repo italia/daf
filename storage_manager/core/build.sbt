@@ -148,9 +148,14 @@ resolvers ++= Seq(
 
 
 libraryDependencies ++= Seq(
-  //Test Dependencies
   "com.typesafe" % "config" % "1.3.1",
   "org.scalatest" %% "scalatest" % "3.0.4" % "test",
   "org.scalactic" %% "scalactic" % "3.0.4" % "test",
   "com.github.pathikrit" %% "better-files" % betterFilesVersion % Test)
-  .map(x => x.exclude("org.scalactic", "scalactic")) ++ sparkLibraries ++ hbaseLibraries ++ kuduLibraries ++ logLibraries
+  .map(x => x.exclude("org.scalactic", "scalactic"))
+  .map(x => x.exclude("org.slf4j", "*")) ++
+  sparkLibraries.map(x => x.exclude("org.slf4j", "*")) ++
+  hbaseLibraries.map(x => x.exclude("org.slf4j", "*")) ++
+  kuduLibraries.map(x => x.exclude("org.slf4j", "*"))
+  //++ logLibraries.map(x => x.exclude("org.slf4j", "*"))
+

@@ -36,7 +36,7 @@ import it.gov.daf.catalogmanager.service.VocServiceRegistry
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                        
+    
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -385,7 +385,7 @@ package catalog_manager.yaml {
             //println("ale")
             //println(MetaCatalog(None,None,None))
             //Datasetcatalogbyid200(MetaCatalog(None,None,None))
-            
+
             //Datasetcatalogbyid200(catalog.toString)
             // ----- End of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbyid
         }

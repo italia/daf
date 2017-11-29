@@ -6,8 +6,9 @@ import it.gov.daf.common.sso.common.{LoginInfo, SecuredInvocationManager}
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import it.gov.daf.sso.ApiClientIPA
 import play.api.libs.json._
-import play.api.libs.ws.ahc.AhcWSClient
-import play.api.libs.ws.WSResponse
+import security_manager.yaml.IpaUser
+//import play.api.libs.ws.ahc.AhcWSClient
+import play.api.libs.ws.{WSClient, WSResponse}
 import security_manager.yaml.{DafOrg, Error, IpaUser, Success, UserList}
 
 import scala.concurrent.Future
@@ -21,13 +22,18 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA,secInvokeManager:Se
 
   private val loginInfoSuperset = new LoginInfo(ConfigReader.suspersetAdminUser,ConfigReader.suspersetAdminPwd,"superset")
 
+  private def toDbName(groupCn:String)=s"$groupCn-db"
+  private def toRoleName(groupCn:String)=s"datarole-$groupCn-db"
+  private def toUserName(groupCn:String)=s"$groupCn-default-admin"
+  private def toMail(groupCn:String)=s"$groupCn@default.it"
+
   def createDafOrganization(dafOrg:DafOrg):Future[Either[Error,Success]] = {
 
 
     val defaultOrgIpaUser = new IpaUser(  dafOrg.groupCn,
                                           "default org admin",
-                                          s"${dafOrg.groupCn}@default.it",
-                                          s"${dafOrg.groupCn}-default-admin",
+                                          toMail(dafOrg.groupCn),
+                                          toUserName(dafOrg.groupCn),
                                           Option(Role.Admin.toString),
                                           Option(dafOrg.defaultUserPwd),
                                           Option(Seq(dafOrg.groupCn)))
@@ -39,12 +45,13 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA,secInvokeManager:Se
       //b <- EitherT( apiClientIPA.addUsersToGroup(dafOrg.groupCn, UserList(Option(Seq(defaultOrgIpaUser.uid)))) )
       c <- EitherT( createSuspersetDatabase(dafOrg) )
       orgAdminRoleId <- EitherT( findSupersetRoleId(ConfigReader.suspersetOrgAdminRole) )
-      dataOrgRoleId <- EitherT( findSupersetRoleId(s"datarole-${dafOrg.groupCn}") )
+      dataOrgRoleId <- EitherT( findSupersetRoleId(toRoleName(dafOrg.groupCn)) )
       d <- EitherT( createSupersetUserWithRoles(defaultOrgIpaUser,orgAdminRoleId,dataOrgRoleId) )
     } yield d
 
+    result.value
 
-
+    /*
     result.value.flatMap{
 
       case Right(r) => result.value
@@ -53,7 +60,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA,secInvokeManager:Se
         result.value
       }
 
-    }
+    }*/
 
   }
 
@@ -62,12 +69,29 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA,secInvokeManager:Se
 
     val result = for {
       a <- EitherT( apiClientIPA.deleteGroup(groupCn) )
-      b <- EitherT( apiClientIPA.deleteUser(s"$groupCn-default-admin") )
-      dbId <- EitherT( findSupersetDatabaseId(s"$groupCn-db") )
+      b <- EitherT( apiClientIPA.deleteUser(toUserName(groupCn)) )
+
+      dbId <- EitherT( findSupersetDatabaseId(toDbName(groupCn)) )
       c <- EitherT( deleteSupersetDatabase(dbId) )
-      userId <- EitherT( findSupersetUserId(s"${groupCn}-default-admin") )
-      d <- EitherT( deleteSupersetUser(userId) )
-    } yield d
+
+      roleId <- EitherT( findSupersetRoleId((toRoleName(groupCn))) )
+      d <- EitherT( deleteSupersetRole(roleId) )
+
+      userId <- EitherT( findSupersetUserId(toUserName(groupCn)) )
+      e <- EitherT( deleteSupersetUser(userId) )
+    } yield e
+
+    result.value
+  }
+
+
+  def addNewUserToOrganization(groupCn:String,ipaUser:IpaUser):Future[Either[Error,Success]] = {
+
+    val result = for {
+      orgAdminRoleId <- EitherT( findSupersetRoleId(ConfigReader.suspersetOrgAdminRole) )
+      dataOrgRoleId <- EitherT( findSupersetRoleId(toRoleName(groupCn)) )
+      a <- EitherT( createSupersetUserWithRoles(ipaUser,orgAdminRoleId,dataOrgRoleId) )
+    } yield a
 
     result.value
   }
@@ -76,14 +100,28 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA,secInvokeManager:Se
   private def createSuspersetDatabase(dafOrg:DafOrg): Future[Either[Error,Success]] = {
 
 
-    def serviceInvoke(sessionCookie: String, wSClient: AhcWSClient): Future[WSResponse] = {
+    def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
 
-      val jsonRequest: JsValue = Json.parse(s"""{
-                                              "database_name": "${dafOrg.groupCn}-db",
-                                              "extra":"${StringEscapeUtils.escapeJson("""{ "metadata_params": {}, "engine_params": { "connect_args": {"use_ssl":"true"}} }""")}",
-                                              "sqlalchemy_uri": "impala://slave1:21050/${dafOrg.supSetConnectedDbName}?auth_mechanism=PLAIN&password=${dafOrg.defaultUserPwd}&user=${dafOrg.groupCn}-default-admin",
-                                              "impersonate_user": "true"
-                                              }""")
+      val stringRequest = ConfigReader.suspersetDbUri.startsWith("impala") match{
+
+        case true => s"""{
+                          "database_name": "${toDbName(dafOrg.groupCn)}",
+                          "extra":"${StringEscapeUtils.escapeJson("""{ "metadata_params": {}, "engine_params": { "connect_args": {"use_ssl":"true"}} }""")}",
+                          "sqlalchemy_uri": "${ConfigReader.suspersetDbUri}/${dafOrg.supSetConnectedDbName}?auth_mechanism=PLAIN&password=${dafOrg.defaultUserPwd}&user=${toUserName(dafOrg.groupCn)}",
+                          "impersonate_user": "true"
+                          }"""
+        // for testing pourpose
+        case false =>s"""{
+                          "database_name": "${toDbName(dafOrg.groupCn)}",
+                          "extra":"${StringEscapeUtils.escapeJson("""{ {"metadata_params": {},"engine_params": {}}""")}",
+                          "sqlalchemy_uri": "${ConfigReader.suspersetDbUri}",
+                          "impersonate_user": "false"
+                          }"""
+
+      }
+
+
+      val jsonRequest: JsValue = Json.parse(stringRequest)
 
       println("createSuspersetDatabase request: "+jsonRequest.toString())
 
@@ -97,8 +135,11 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA,secInvokeManager:Se
     secInvokeManager.manageServiceCall(loginInfoSuperset,serviceInvoke).map { json =>
 
       ((json \ "item") \ "perm").validate[String] match {
-        case s:JsSuccess[String] => Right(Success(Some("Connection created"), Some("ok")))
-        case e:JsError => println("Error response: "+json);Left(Error(Option(0), Some("Error in createSuspersetDatabase"), None))
+        case s:JsSuccess[String] => s.asOpt match{
+          case None | Some("None") | Some("") => Left(Error(Option(0), Some("Error in createSuspersetDatabase"), None))
+          case _ => Right(Success(Some("Connection created"), Some("ok")))
+        }
+        case e:JsError => Left(Error(Option(0), Some("Error in createSuspersetDatabase"), None))
       }
 
     }
@@ -112,7 +153,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA,secInvokeManager:Se
   private def findSupersetRoleId(roleName:String): Future[Either[Error,Long]] = {
 
 
-    def serviceInvoke(sessionCookie: String, wSClient: AhcWSClient): Future[WSResponse] = {
+    def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
 
       wSClient.url(ConfigReader.supersetUrl + s"/roles/api/read?_flt_1_name=$roleName").withHeaders("Content-Type" -> "application/json",
         "Accept" -> "application/json",
@@ -121,6 +162,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA,secInvokeManager:Se
     }
 
 
+    println("findSupersetRoleId roleName: "+roleName)
     secInvokeManager.manageServiceCall(loginInfoSuperset,serviceInvoke).map{ json =>
 
       (json \ "pks")(0).validate[Long] match {
@@ -137,7 +179,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA,secInvokeManager:Se
   private def createSupersetUserWithRoles(ipaUser:IpaUser, orgAdminRoleId:Long, dataOrgRoleId:Long ): Future[Either[Error,Success]] = {
 
 
-    def serviceInvoke(sessionCookie: String, wSClient: AhcWSClient): Future[WSResponse] = {
+    def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
 
       val jsonRequest: JsValue = Json.parse(s"""{
                                                 "active": true,
@@ -173,7 +215,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA,secInvokeManager:Se
   private def findSupersetDatabaseId(dbName:String): Future[Either[Error,Long]] = {
 
 
-    def serviceInvoke(sessionCookie: String, wSClient: AhcWSClient): Future[WSResponse] = {
+    def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
 
       wSClient.url(ConfigReader.supersetUrl + s"/databaseview/api/read?_flt_1_database_name=$dbName").withHeaders("Content-Type" -> "application/json",
         "Accept" -> "application/json",
@@ -181,6 +223,8 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA,secInvokeManager:Se
       ).get
     }
 
+
+    println( "findSupersetDatabaseId dbName: "+dbName )
 
     secInvokeManager.manageServiceCall(loginInfoSuperset,serviceInvoke).map{ json =>
 
@@ -197,7 +241,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA,secInvokeManager:Se
   private def findSupersetUserId(username:String): Future[Either[Error,Long]] = {
 
 
-    def serviceInvoke(sessionCookie: String, wSClient: AhcWSClient): Future[WSResponse] = {
+    def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
 
       wSClient.url(ConfigReader.supersetUrl + s"/users/api/read?_flt_1_username=$username").withHeaders("Content-Type" -> "application/json",
         "Accept" -> "application/json",
@@ -205,6 +249,8 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA,secInvokeManager:Se
       ).get
     }
 
+
+    println( "findSupersetUserId username: "+username )
 
     secInvokeManager.manageServiceCall(loginInfoSuperset,serviceInvoke).map{ json =>
 
@@ -220,7 +266,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA,secInvokeManager:Se
 
   private def deleteSupersetUser(userId:Long): Future[Either[Error,Success]] = {
 
-    def serviceInvoke(sessionCookie: String, wSClient: AhcWSClient): Future[WSResponse] = {
+    def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
 
       println( "deleteSupersetUser userId: "+userId )
 
@@ -229,6 +275,8 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA,secInvokeManager:Se
         "Cookie" -> sessionCookie
       ).delete()
     }
+
+    println( "deleteSupersetUser userId: "+userId )
 
     secInvokeManager.manageServiceCall(loginInfoSuperset,serviceInvoke).map{json =>
 
@@ -241,9 +289,34 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA,secInvokeManager:Se
 
   }
 
+  private def deleteSupersetRole(roleId:Long): Future[Either[Error,Success]] = {
+
+    def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
+
+      println( "deleteSupersetRole roleId: "+roleId )
+
+      wSClient.url(ConfigReader.supersetUrl + s"/roles/api/delete/$roleId").withHeaders("Content-Type" -> "application/json",
+        "Accept" -> "application/json",
+        "Cookie" -> sessionCookie
+      ).delete()
+    }
+
+    println( "deleteSupersetRole roleId: "+roleId )
+
+    secInvokeManager.manageServiceCall(loginInfoSuperset,serviceInvoke).map{json =>
+
+      (json \ "message").validate[String] match {
+        case s:JsSuccess[String] => Right(Success(Some("Role deleted"), Some("ok")))
+        case e:JsError => println("Error response: "+json);Left(Error(Option(0), Some("Error in deleteSupersetRole"), None))
+      }
+
+    }
+
+  }
+
   private def deleteSupersetDatabase(dbId:Long): Future[Either[Error,Success]] = {
 
-    def serviceInvoke(sessionCookie: String, wSClient: AhcWSClient): Future[WSResponse] = {
+    def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
 
       println( "deleteSupersetDatabase dbId: "+dbId )
 
@@ -252,6 +325,8 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA,secInvokeManager:Se
         "Cookie" -> sessionCookie
       ).delete()
     }
+
+    println( "deleteSupersetDatabase dbId: "+dbId )
 
     secInvokeManager.manageServiceCall(loginInfoSuperset,serviceInvoke).map{json =>
 

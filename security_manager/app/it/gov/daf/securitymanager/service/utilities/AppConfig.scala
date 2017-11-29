@@ -31,6 +31,7 @@ private class AppConfig @Inject()(playConfig: Configuration) {
   val suspersetAdminUser:Option[String] = playConfig.getString("superset.adminUser")
   val suspersetAdminPwd:Option[String] = playConfig.getString("superset.adminPwd")
   val suspersetOrgAdminRole:Option[String] = playConfig.getString("superset.orgAdminRole")
+  val suspersetDbUri:Option[String] = playConfig.getString("superset.dbUri")
 
 
   val metabaseUrl :Option[String] = playConfig.getString("metabase.url")
@@ -54,6 +55,7 @@ object ConfigReader {
   require(config.suspersetAdminUser.nonEmpty,"A superset admin must be specified")
   require(config.suspersetAdminPwd.nonEmpty,"A superset admin password must be specified")
   require(config.suspersetOrgAdminRole.nonEmpty,"A superset organization admin role must be specified")
+  require(config.suspersetDbUri.nonEmpty,"A superset db uri must be specified")
 
 
   //def userIdHeader: String = config.userIdHeader.getOrElse("userid")
@@ -80,6 +82,7 @@ object ConfigReader {
   def suspersetAdminUser:String = config.suspersetAdminUser.get
   def suspersetAdminPwd:String = config.suspersetAdminPwd.get
   def suspersetOrgAdminRole:String = config.suspersetOrgAdminRole.get
+  def suspersetDbUri:String = config.suspersetDbUri.get
 
   def metabaseUrl:String = config.metabaseUrl.getOrElse("xxx")
   def jupyterUrl:String = config.jupyterUrl.getOrElse("xxx")

@@ -9,19 +9,20 @@ import it.gov.daf.securitymanager.service.Role
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import org.apache.commons.lang3.StringEscapeUtils
 import play.api.libs.json._
-import play.api.libs.ws.WSResponse
-import play.api.libs.ws.ahc.AhcWSClient
+import play.api.libs.ws.{WSClient, WSResponse}
+//import play.api.libs.ws.ahc.AhcWSClient
 import security_manager.yaml.{Error, Group, IpaUser, Success, UserList}
 
 import scala.concurrent.Future
 
 @Singleton
-class ApiClientIPA @Inject()(loginClient:LoginClientLocal,secInvokeManager:SecuredInvocationManager){
+class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager){
 
   import scala.concurrent.ExecutionContext.Implicits._
 
+  /*
   implicit val system = ActorSystem()
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer = ActorMaterializer()*/
   private val loginInfo = new LoginInfo(ConfigReader.ipaUser, ConfigReader.ipaUserPwd, LoginClientLocal.FREE_IPA)
 
 
@@ -57,16 +58,18 @@ class ApiClientIPA @Inject()(loginClient:LoginClientLocal,secInvokeManager:Secur
 
     println(jsonUser.toString())
 
-    val serviceInvoke : (String,AhcWSClient)=> Future[WSResponse] = callIpaUrl(jsonUser,_,_)
+    val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonUser,_,_)
     secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).flatMap { json =>
 
       val result = (json \ "result").getOrElse(JsString("null")).toString()
 
-      if (result != "null") {
-        loginCkan(user.uid, user.userpassword.get).map { _ =>
-          Right(Success(Some("User created"), Some("ok")))
-        }
-      } else Future { Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) ) }
+      if (result != "null")// {
+      //  loginCkan(user.uid, user.userpassword.get).map { _ =>
+        Future { Right(Success(Some("User created"), Some("ok"))) }
+       // }
+    //  }
+      else
+        Future { Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) ) }
 
     }
 
@@ -93,7 +96,7 @@ class ApiClientIPA @Inject()(loginClient:LoginClientLocal,secInvokeManager:Secur
 
     println("deleteUser: "+jsonDelete.toString())
 
-    val serviceInvoke : (String,AhcWSClient)=> Future[WSResponse] = callIpaUrl(jsonDelete,_,_)
+    val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonDelete,_,_)
     secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).flatMap { json =>
 
       val result = (json \ "result").getOrElse(JsString("null")).toString()
@@ -101,7 +104,7 @@ class ApiClientIPA @Inject()(loginClient:LoginClientLocal,secInvokeManager:Secur
       if (result != "null")
         Future.successful( Right(Success(Some("User deleted"), Some("ok"))) )
       else
-        Future.successful(Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) ) )
+        Future.successful( Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) ) )
 
     }
 
@@ -127,7 +130,7 @@ class ApiClientIPA @Inject()(loginClient:LoginClientLocal,secInvokeManager:Secur
 
     println("createGroup: "+ jsonGroup.toString())
 
-    val serviceInvoke : (String,AhcWSClient)=> Future[WSResponse] = callIpaUrl(jsonGroup,_,_)
+    val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonGroup,_,_)
     secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).map { json =>
 
       val result = ((json \ "result") \"result")
@@ -161,7 +164,7 @@ class ApiClientIPA @Inject()(loginClient:LoginClientLocal,secInvokeManager:Secur
 
     println("deleteGroup: "+jsonDelete.toString())
 
-    val serviceInvoke : (String,AhcWSClient)=> Future[WSResponse] = callIpaUrl(jsonDelete,_,_)
+    val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonDelete,_,_)
     secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).flatMap { json =>
 
       val result = (json \ "result").getOrElse(JsString("null")).toString()
@@ -197,7 +200,7 @@ class ApiClientIPA @Inject()(loginClient:LoginClientLocal,secInvokeManager:Secur
 
     println("addUsersToGroup: "+ jsonAdd.toString())
 
-    val serviceInvoke : (String,AhcWSClient)=> Future[WSResponse] = callIpaUrl(jsonAdd,_,_)
+    val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonAdd,_,_)
     secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).map { json =>
       val result = ((json \ "result") \"result")
 
@@ -227,7 +230,7 @@ class ApiClientIPA @Inject()(loginClient:LoginClientLocal,secInvokeManager:Secur
 
     println("showUser request: "+jsonRequest.toString())
 
-    val serviceInvoke : (String,AhcWSClient)=> Future[WSResponse] = callIpaUrl(jsonRequest,_,_)
+    val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonRequest,_,_)
     secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).map { json =>
 
       val result = ((json \ "result") \"result")//.getOrElse(JsString("null")).toString()
@@ -270,7 +273,7 @@ class ApiClientIPA @Inject()(loginClient:LoginClientLocal,secInvokeManager:Secur
 
     println("findUserByMail request: "+ jsonRequest.toString())
 
-    val serviceInvoke : (String,AhcWSClient)=> Future[WSResponse] = callIpaUrl(jsonRequest,_,_)
+    val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonRequest,_,_)
     secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).map { json =>
 
       val count = ((json \ "result") \ "count").asOpt[Int].getOrElse(-1)
@@ -299,7 +302,7 @@ class ApiClientIPA @Inject()(loginClient:LoginClientLocal,secInvokeManager:Secur
 
   }
 
-  private def callIpaUrl( payload: JsValue, sessionCookie:String, cli:AhcWSClient ): Future[WSResponse] = {
+  private def callIpaUrl( payload: JsValue, sessionCookie:String, cli:WSClient ): Future[WSResponse] = {
 
     cli.url(ConfigReader.ipaUrl+"/ipa/session/json").withHeaders( "Content-Type"->"application/json",
       "Accept"->"application/json",
@@ -309,6 +312,7 @@ class ApiClientIPA @Inject()(loginClient:LoginClientLocal,secInvokeManager:Secur
 
   }
 
+  /*
   private def loginCkan(userName:String, pwd:String ):Future[String] = {
 
     val wsClient = AhcWSClient()
@@ -329,7 +333,7 @@ class ApiClientIPA @Inject()(loginClient:LoginClientLocal,secInvokeManager:Secur
     }).andThen { case _ => wsClient.close() }
       .andThen { case _ => system.terminate() }
 
-  }
+  }*/
 
   /*
   private def bindDefaultOrg(userName:String):Future[String] = {

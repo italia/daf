@@ -1,16 +1,17 @@
 package it.gov.daf.securitymanager.service
 
+import cats.data.EitherT
 import com.google.inject.Inject
-import it.gov.daf.securitymanager.service.utilities.BearerTokenGenerator
+import it.gov.daf.securitymanager.service.utilities.{BearerTokenGenerator, ConfigReader}
 import it.gov.daf.sso.ApiClientIPA
 import play.api.libs.json.{JsError, JsSuccess, JsValue}
 import security_manager.yaml.IpaUser
 import security_manager.yaml.Success
 import security_manager.yaml.Error
-
+import cats.implicits._
 import scala.concurrent.Future
 
-class RegistrationService @Inject()(apiClientIPA:ApiClientIPA) {
+class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, integrationService:IntegrationService) {
 
   import security_manager.yaml.BodyReads._
   import scala.concurrent.ExecutionContext.Implicits._
@@ -124,10 +125,22 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA) {
 
       result match{
         case Right(r) => Future {Left(Error(Option(1), Some("Mail address already registered"), None))}
-        case Left(l) => apiClientIPA.createUser(user)
+        case Left(l) =>  createUser(user)
       }
 
     }
+  }
+
+
+  private def createUser(user:IpaUser):Future[Either[Error,Success]] = {
+
+    val result = for {
+      a <- EitherT( apiClientIPA.createUser(user) )
+      b <- EitherT( integrationService.addNewUserToOrganization(ConfigReader.defaultOrganization, user) )
+    } yield b
+
+    result.value
+
   }
 
 

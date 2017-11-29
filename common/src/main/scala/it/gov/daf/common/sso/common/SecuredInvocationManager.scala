@@ -21,7 +21,7 @@ import akka.stream.ActorMaterializer
 import com.google.inject.{Inject, Singleton}
 import org.asynchttpclient.DefaultAsyncHttpClientConfig
 import play.api.libs.json._
-import play.api.libs.ws.WSResponse
+import play.api.libs.ws.{WSClient, WSResponse}
 import play.api.libs.ws.ahc.AhcWSClient
 
 import scala.concurrent.Future
@@ -29,45 +29,47 @@ import scala.concurrent.Future
 @SuppressWarnings(
   Array(
     "org.wartremover.warts.NonUnitStatements",
-    "org.wartremover.warts.OptionPartial",
-    "org.wartremover.warts.StringPlusAny"
+    "org.wartremover.warts.OptionPartial"
   )
 )
 @Singleton
-class SecuredInvocationManager @Inject()(loginClient:LoginClient, cacheWrapper: CacheWrapper) {
+class SecuredInvocationManager @Inject()(loginClient:LoginClient, cacheWrapper: CacheWrapper, wsCli: WSClient ) {
 
   import scala.concurrent.ExecutionContext.Implicits._
 
+  /*
   private implicit val system = ActorSystem()
   private implicit val materializer = ActorMaterializer()
   private val sslconfig = new DefaultAsyncHttpClientConfig.Builder().setAcceptAnyCertificate(true).build
+  */
 
-  private def callService( wsClient:AhcWSClient, loginInfo:LoginInfo, serviceFetch:(String,AhcWSClient)=> Future[WSResponse]):Future[WSResponse] = {
+  type ServiceFetch = (String,WSClient)=> Future[WSResponse]
 
-    println("callService ("+loginInfo+")")
+  private def callService(loginInfo:LoginInfo, serviceFetch:ServiceFetch):Future[WSResponse] = {
+
+    println(s"callService ($loginInfo)")
 
     val cookieOpt = cacheWrapper.getCookie(loginInfo.appName,loginInfo.user)
 
     if( cookieOpt.isEmpty )
 
-      loginClient.login(loginInfo, wsClient).flatMap { cookie =>
+      loginClient.login(loginInfo, wsCli).flatMap { cookie =>
 
         cacheWrapper.putCookie(loginInfo.appName,loginInfo.user,cookie)
 
         val cookieString = cookie.name+"="+cookie.value
-        serviceFetch(cookieString, wsClient).map({ response =>
-          println("RESPONSE1 ("+loginInfo+"):"+response.body)
+        serviceFetch(cookieString, wsCli).map{ response =>
+          println(s"RESPONSE1 ($loginInfo):${response.body}")
           response
-        }).andThen { case _ => wsClient.close() }
-          .andThen { case _ => system.terminate() }
+        }
 
       }
 
     else {
 
       val cookieString = cookieOpt.get.name+"="+cookieOpt.get.value
-      serviceFetch(cookieString, wsClient).map { response =>
-        println("RESPONSE2 (" + loginInfo + "):" + response.body)
+      serviceFetch(cookieString, wsCli).map { response =>
+        println(s"RESPONSE2 ($loginInfo): ${response.body}")
         response
       }
 
@@ -76,23 +78,21 @@ class SecuredInvocationManager @Inject()(loginClient:LoginClient, cacheWrapper: 
   }
 
 
-  def manageServiceCall( loginInfo:LoginInfo, serviceFetch:(String,AhcWSClient)=> Future[WSResponse] ) : Future[JsValue] = {
+  def manageServiceCall( loginInfo:LoginInfo, serviceFetch:ServiceFetch ) : Future[JsValue] = {
 
-    val wsClient = AhcWSClient(sslconfig)
+    //val wsClient = AhcWSClient(sslconfig)
 
-    println("manageServiceCall ("+loginInfo+")")
+    println(s"manageServiceCall ($loginInfo)")
 
-    callService(wsClient,loginInfo,serviceFetch) flatMap {response =>
+    callService(loginInfo,serviceFetch) flatMap {response =>
 
-      println("RESPONSE STATUS("+loginInfo+"):"+response.status)
-      println("RESPONSE BODY ("+loginInfo+")"+response.body)
+      println(s"RESPONSE STATUS($loginInfo): ${response.status}")
+      println(s"RESPONSE BODY ($loginInfo) ${response.body}")
 
       if(response.status == 401){
         println("Unauthorized!!")
         cacheWrapper.deleteCookie(loginInfo.appName,loginInfo.user)
-        callService(wsClient,loginInfo,serviceFetch).map(_.json)
-          .andThen { case _ => wsClient.close() }
-          .andThen { case _ => system.terminate() }
+        callService(loginInfo,serviceFetch).map(_.json)
       }else
         Future{ response.json }
 

@@ -8,7 +8,8 @@ name := "daf-dataset-manager"
 
 Seq(gitStampSettings: _*)
 
-version in ThisBuild := sys.env.get("DATASET_MANAGER_VERSION").getOrElse("1.0-SNAPSHOT")
+version in ThisBuild := sys.env.get("DATASET_MANAGER_VERSION")
+    .getOrElse("1.0.0-SNAPSHOT")
 
 scalacOptions ++= Seq(
   "-deprecation",
@@ -23,10 +24,6 @@ scalacOptions ++= Seq(
   "-Ywarn-dead-code",
   "-Xfuture"
 )
-
-wartremoverErrors ++= Warts.allBut(Wart.Nothing, Wart.PublicInference, Wart.Any, Wart.Equals, Wart.Option2Iterable)
-wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value / "target" / "scala-2.11" / "routes").toSeq
-wartremoverExcluded ++= routes.in(Compile).value
 
 lazy val client = (project in file("client")).
   settings(Seq(
@@ -53,7 +50,7 @@ libraryDependencies ++= Seq(
   cache,
   ws,
   "org.webjars" % "swagger-ui" % swaggerUiVersion,
-  "it.gov.daf" %% "common" % version.value,
+  "it.gov.daf" %% "common" % dafCommonVersion,
   specs2 % Test
 )
 
@@ -101,3 +98,8 @@ publishTo in ThisBuild := {
 }
 
 credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
+
+//FIXME see what is the error
+// wartremoverErrors ++= Warts.allBut(Wart.Nothing, Wart.PublicInference, Wart.Any, Wart.Equals, Wart.Option2Iterable)
+// wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value / "target" / "scala-2.11" / "routes").toSeq
+// wartremoverExcluded ++= routes.in(Compile).value

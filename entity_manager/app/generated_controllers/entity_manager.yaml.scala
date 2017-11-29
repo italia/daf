@@ -27,6 +27,10 @@ import scala.concurrent.Future
 import org.janusgraph.core.Cardinality
 import collection.convert.decorateAsScala._
 import collection.convert.decorateAsScala._
+import collection.convert.decorateAsScala._
+import collection.convert.decorateAsScala._
+import collection.convert.decorateAsScala._
+import collection.convert.decorateAsScala._
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -35,7 +39,7 @@ import collection.convert.decorateAsScala._
 
 package entity_manager.yaml {
     // ----- Start of unmanaged code area for package Entity_managerYaml
-      @SuppressWarnings(
+              @SuppressWarnings(
     Array(
       "org.wartremover.warts.AsInstanceOf"
     )

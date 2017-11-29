@@ -5,7 +5,7 @@ import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
 organization in ThisBuild := "it.gov.daf"
 name := "daf-iot-manager"
 
-version in ThisBuild := "1.0-SNAPSHOT"
+version in ThisBuild := "1.0.0-SNAPSHOT"
 
 scalacOptions ++= Seq(
   "-deprecation",
@@ -21,9 +21,9 @@ scalacOptions ++= Seq(
   "-Xfuture"
 )
 
-wartremoverErrors ++= Warts.allBut(Wart.Nothing, Wart.PublicInference, Wart.Any, Wart.Equals, Wart.Option2Iterable)
-wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value / "target" / "scala-2.11" / "routes").toSeq
-wartremoverExcluded ++= routes.in(Compile).value
+// wartremoverErrors ++= Warts.allBut(Wart.Nothing, Wart.PublicInference, Wart.Any, Wart.Equals, Wart.Option2Iterable)
+// wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value / "target" / "scala-2.11" / "routes").toSeq
+// wartremoverExcluded ++= routes.in(Compile).value
 
 lazy val client = (project in file("client")).
   settings(Seq(
@@ -72,7 +72,7 @@ libraryDependencies ++= Seq(
   cache,
   ws,
   "org.webjars" % "swagger-ui" % swaggerUiVersion,
-  "it.gov.daf" %% "common" % version.value,
+  "it.gov.daf" %% "common" % dafCommonVersion,
   specs2 % Test
 ) ++ hadoopLibraries ++ solrLibreries
 

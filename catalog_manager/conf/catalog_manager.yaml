@@ -1116,9 +1116,9 @@ definitions:
         description: Main tag in the tag list
         type: string
       tag:
-       # type: array
-       # items:
-        type: string
+        type: array
+        items:
+          type: string
       required:
         type: integer
         format: int32

@@ -7,4 +7,7 @@ object Versions {
   val swaggerUiVersion = "3.0.10"
 
   val janusgraphVersion = "0.2.0-SNAPSHOT"
+
+  val dafCommonVersion = sys.env.get("COMMON_VERSION")
+                            .getOrElse("1.0.0-SNAPSHOT")
 }

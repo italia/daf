@@ -13,7 +13,6 @@ import net.caoticode.dirwatcher.FSListener
 import play.api.libs.ws.WSClient
 import play.api.libs.ws.ahc.AhcWSClient
 import play.api.mvc.MultipartFormData.FilePart
-import it.gov.daf.catalogmanager.listeners.IngestionUtils
 
 import scala.concurrent.Future
 
@@ -54,4 +53,3 @@ class DirManager() extends FSListener {
   override def onDelete(ref: Path): Unit = println(s"deleted $ref")
   override def onModify(ref: Path): Unit = println(s"modified $ref")
 }
-

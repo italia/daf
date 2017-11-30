@@ -136,7 +136,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, integrationServic
 
     val result = for {
       a <- EitherT( apiClientIPA.createUser(user) )
-      b <- EitherT( integrationService.addNewUserToOrganization(ConfigReader.defaultOrganization, user) )
+      b <- EitherT( integrationService.addNewUserToDefultOrganization(user) )
     } yield b
 
     result.value

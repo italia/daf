@@ -1,7 +1,5 @@
 package it.gov.daf.sso
 
-import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
 import com.google.inject.{Inject, Provides, Singleton}
 import it.gov.daf.common.sso.common.{LoginInfo, SecuredInvocationManager}
 import it.gov.daf.common.utils.WebServiceUtil
@@ -10,7 +8,6 @@ import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import org.apache.commons.lang3.StringEscapeUtils
 import play.api.libs.json._
 import play.api.libs.ws.{WSClient, WSResponse}
-//import play.api.libs.ws.ahc.AhcWSClient
 import security_manager.yaml.{Error, Group, IpaUser, Success, UserList}
 
 import scala.concurrent.Future

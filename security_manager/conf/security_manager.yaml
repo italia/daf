@@ -239,7 +239,54 @@ paths:
           description: Error Message
           schema:
             $ref: '#/definitions/Error'
-
+  "/daf/organization/useradd":
+    put:
+      tags:
+        - DAF
+      description: Add auser to DAF organization
+      operationId: useraddDAForganization
+      produces:
+      - application/json
+      parameters:
+      - name: payload
+        in: body
+        description: Username and groupCn
+        required: true
+        schema:
+          $ref: '#/definitions/UserAndGroup'
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+  "/daf/myorganization/useradd":
+    put:
+      tags:
+        - DAF
+      description: Add auser to my DAF organization
+      operationId: useraddMyDAForganization
+      produces:
+      - application/json
+      parameters:
+      - name: payload
+        in: body
+        description: Username
+        required: true
+        schema:
+          $ref: '#/definitions/Username'
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
   "/daf/organization/{orgName}":
     delete:
       tags:
@@ -322,6 +369,26 @@ definitions:
         type: string
       supSetConnectedDbName:
         description: Superset connected DB name
+        type: string
+  UserAndGroup:
+    type: object
+    required:
+      - userId
+      - groupCn
+    properties:
+      groupCn:
+        description: group cn
+        type: string
+      userId:
+        description: username
+        type: string
+  Username:
+    type: object
+    required:
+      - userId
+    properties:
+      userId:
+        description: username
         type: string
   Error:
     properties:

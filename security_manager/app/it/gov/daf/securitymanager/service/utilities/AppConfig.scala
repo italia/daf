@@ -8,7 +8,9 @@ import play.api.{Configuration, Environment}
 private class AppConfig @Inject()(playConfig: Configuration) {
 
   //val userIdHeader: Option[String] = playConfig.getString("app.userid.header")
-  val ckanHost: Option[String] = playConfig.getString("app.ckan.url")
+  val ckanHost: Option[String] = playConfig.getString("ckan.url")
+  val ckanAdminUser:Option[String] = playConfig.getString("ckan.adminUser")
+  val ckanAdminPwd:Option[String] = playConfig.getString("ckan.adminPwd")
   val dbHost: Option[String] = playConfig.getString("mongo.host")
   val dbPort: Option[Int] = playConfig.getInt("mongo.port")
   val userName :Option[String] = playConfig.getString("mongo.username")
@@ -56,10 +58,15 @@ object ConfigReader {
   require(config.suspersetAdminPwd.nonEmpty,"A superset admin password must be specified")
   require(config.suspersetOrgAdminRole.nonEmpty,"A superset organization admin role must be specified")
   require(config.suspersetDbUri.nonEmpty,"A superset db uri must be specified")
+  require(config.ckanAdminUser.nonEmpty,"A ckan admin must be specified")
+  require(config.ckanAdminPwd.nonEmpty,"A ckan admin password must be specified")
+
 
 
   //def userIdHeader: String = config.userIdHeader.getOrElse("userid")
-  def getCkanHost: String = config.ckanHost.getOrElse("localhost")
+  def ckanHost: String = config.ckanHost.getOrElse("localhost")
+  def ckanAdminUser:String = config.ckanAdminUser.get
+  def ckanAdminPwd:String = config.ckanAdminPwd.get
   def getDbHost: String = config.dbHost.getOrElse("localhost")
   def getDbPort: Int = config.dbPort.getOrElse(27017)
   def database :String = config.database.getOrElse("security_manager")

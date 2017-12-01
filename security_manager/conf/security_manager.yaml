@@ -263,30 +263,6 @@ paths:
           description: Error Message
           schema:
             $ref: '#/definitions/Error'
-  "/daf/myorganization/useradd":
-    put:
-      tags:
-        - DAF
-      description: Add auser to my DAF organization
-      operationId: useraddMyDAForganization
-      produces:
-      - application/json
-      parameters:
-      - name: payload
-        in: body
-        description: Username
-        required: true
-        schema:
-          $ref: '#/definitions/Username'
-      responses:
-        200:
-          description: Success
-          schema:
-            $ref: '#/definitions/Success'
-        500:
-          description: Error Message
-          schema:
-            $ref: '#/definitions/Error'
   "/daf/organization/{orgName}":
     delete:
       tags:
@@ -379,14 +355,6 @@ definitions:
       groupCn:
         description: group cn
         type: string
-      userId:
-        description: username
-        type: string
-  Username:
-    type: object
-    required:
-      - userId
-    properties:
       userId:
         description: username
         type: string

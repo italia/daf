@@ -17,9 +17,6 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager){
 
   import scala.concurrent.ExecutionContext.Implicits._
 
-  /*
-  implicit val system = ActorSystem()
-  implicit val materializer = ActorMaterializer()*/
   private val loginInfo = new LoginInfo(ConfigReader.ipaUser, ConfigReader.ipaUserPwd, LoginClientLocal.FREE_IPA)
 
 

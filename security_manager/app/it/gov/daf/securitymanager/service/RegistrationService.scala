@@ -1,16 +1,18 @@
 package it.gov.daf.securitymanager.service
 
 import cats.data.EitherT
-import com.google.inject.Inject
-import it.gov.daf.securitymanager.service.utilities.{BearerTokenGenerator, ConfigReader}
+import com.google.inject.{Inject, Singleton}
+import it.gov.daf.securitymanager.service.utilities.BearerTokenGenerator
 import it.gov.daf.sso.ApiClientIPA
 import play.api.libs.json.{JsError, JsSuccess, JsValue}
 import security_manager.yaml.IpaUser
 import security_manager.yaml.Success
 import security_manager.yaml.Error
 import cats.implicits._
+
 import scala.concurrent.Future
 
+@Singleton
 class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, integrationService:IntegrationService) {
 
   import security_manager.yaml.BodyReads._

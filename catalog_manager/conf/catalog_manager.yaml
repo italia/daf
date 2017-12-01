@@ -1035,7 +1035,7 @@ definitions:
      type: object
      required:
       - avro
-      - flatschema
+      - flatSchema
      properties:
       avro:
         $ref: '#/definitions/Avro'

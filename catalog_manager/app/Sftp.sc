@@ -4,9 +4,10 @@ import net.schmizz.sshj.sftp.SFTPClient
 
 
 val ssh = new SSHClient
-ssh.authPassword("alessandro", "silviale7881")
 ssh.loadKnownHosts()
 ssh.connect("edge1")
+ssh.authPassword("alessandro", "XXXXXXXXXXXXX")
+
 try {
   val sftp = ssh.newSFTPClient
   try {

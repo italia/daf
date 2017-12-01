@@ -56,7 +56,7 @@ libraryDependencies ++= Seq(
   "com.sksamuel.avro4s" %% "avro4s-core" % "1.1.3",
   "com.sksamuel.avro4s" %% "avro4s-json" % "1.1.3",
   "com.sksamuel.avro4s" %% "avro4s-generator" % "1.1.3",
-  "com.hierynomus" % "sshj" % "0.23.0"
+  "com.hierynomus" % "sshj" % "0.21.0"
 
   //"com.github.cb372" %% "scalacache-guava" % "0.9.4"
   //"com.unboundid" % "unboundid-ldapsdk" % "4.0.0"

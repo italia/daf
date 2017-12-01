@@ -22,7 +22,7 @@ object CoherenceChecker {
       .fields.get
       .map(x => x.name)
 
-    val convFields = ordinary.dataschema.flatSchema.get.map(x => x.name) //dataschema.get.flatSchema.get.map(x => x.).toSet
+    val convFields = ordinary.dataschema.flatSchema.map(x => x.name) //dataschema.get.flatSchema.get.map(x => x.).toSet
 
     reqStdFields.forall(x => convFields.contains(x))
   }

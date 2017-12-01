@@ -1,13 +1,14 @@
 package it.gov.daf.catalogmanager.repository.catalog
 
-import catalog_manager.yaml.{Dataset, MetaCatalog, MetadataCat, ResponseWrites, Success}
+import catalog_manager.yaml.{Dataset, DatasetCatalogFlatSchema, MetaCatalog, MetadataCat, ResponseWrites, Success}
 import com.mongodb.DBObject
 import com.mongodb.casbah.MongoClient
 import org.bson.types.ObjectId
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import com.mongodb.casbah.Imports._
-import it.gov.daf.catalogmanager.utilities.{CatalogManager, ConfigReader}
+import it.gov.daf.catalogmanager.utilities.{CatalogManager, ConfigReader, SftpUtils}
 import it.gov.daf.catalogmanager.service.CkanRegistry
+import net.schmizz.sshj.SSHClient
 
 import scala.concurrent.Future
 import scala.util.Try
@@ -132,7 +133,17 @@ class CatalogRepositoryMongo extends  CatalogRepository{
       message
     }
 
-    //Success(Option("ciao"),Some("ciao"))
+    SftpUtils.createDirs(metaCatalog)
+
+    /*
+    val ssh = new SSHClient
+    ssh.loadKnownHosts()
+    ssh.connect("edge1")
+    ssh.authPassword("alessandro", "silviale7881")
+    val sftp = ssh.newSFTPClient()
+    //val dirPath = "/home/" + groupOwn + "/" + theme + "/" + subtheme "/" + filename
+    sftp.mkdirs("/home/alessandro/" + metaCatalog.operational.theme + "/" + metaCatalog.operational.subtheme + "/" + metaCatalog.dcatapit.name)
+*/
     Success(msg, Some(msg))
   }
 

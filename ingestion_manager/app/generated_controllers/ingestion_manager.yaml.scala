@@ -46,6 +46,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import it.gov.daf.ingestion.nifi.NiFiBuilder
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -54,7 +55,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 package ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Ingestion_managerYaml
-                                                                                                                                                                                                
+                                                                                                                                                                                                    
     // ----- End of unmanaged code area for package Ingestion_managerYaml
     class Ingestion_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Ingestion_managerYaml

@@ -26,7 +26,7 @@ class DatasetOperationsSpec extends FlatSpec with Matchers with BeforeAndAfterAl
   }
 
   it should "select on multiple columns" in {
-    val result = DatasetOperations.select(Try(employees), "salary", "type")
+    val result = DatasetOperations.select(Try(employees), List("salary", "type"))
     result shouldBe 'Success
     result.get.count() should be > 0L
     result.foreach(_.show())
@@ -38,14 +38,14 @@ class DatasetOperationsSpec extends FlatSpec with Matchers with BeforeAndAfterAl
   }
 
   it should "return data for a valid where condition" in {
-    val result = DatasetOperations.where(Try(employees), "salary > 1000")
+    val result = DatasetOperations.where(Try(employees), List("salary > 1000"))
     result shouldBe 'Success
     result.get.count() === 2L
     result.foreach(_.show())
   }
 
   it should "return an error for a invalid where condition" in {
-    val result = DatasetOperations.where(Try(employees), "salary * 1000")
+    val result = DatasetOperations.where(Try(employees), List("salary * 1000"))
     result shouldBe 'Failure
   }
 

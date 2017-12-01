@@ -153,17 +153,6 @@ paths:
             $ref: '#/definitions/Error'
 
 definitions:
-  DatasetSchema:
-    type: object
-    properties:
-      name:
-        type: string
-      description:
-        type: string
-      columns:
-        type: array
-        items:
-          $ref: '#/definitions/Column'
   Query:
     type: object
     properties:

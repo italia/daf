@@ -106,7 +106,7 @@ class ServiceSpec extends HDFSbase {
       response.status shouldBe Status.BAD_REQUEST
     }
 
-    //Test with a wrong dataset scheme
+    //Test with a wrong dataset protocol
     WsTestClient.withClient { implicit client =>
       val params = Map("protocol" -> "WRONG", "path" -> urlParquet)
       val json = Json.toJson(params)

@@ -4,22 +4,26 @@ import org.apache.spark.sql.DataFrame
 
 import scala.util.{Failure, Success, Try}
 
+//FIXME port it in the poc
 trait DatasetOperations {
 
   def defaultLimit: Int
   /**
    *
    * @param df
-   * @param condition
+   * @param conditions
    * @return a valid condition
    */
-  //FIXME validate the condition
-  def where(df: Try[DataFrame], condition: String): Try[DataFrame] = {
-    df.map(_.where(condition))
+  //FIXME validate the conditions
+  def where(df: Try[DataFrame], conditions: List[String]): Try[DataFrame] = {
+    df.map { d =>
+      conditions.foldLeft(d)((d, c) => d.where(c))
+    }
   }
 
   private def validateColumns(df: Try[DataFrame], columns: Set[String]): Try[DataFrame] = {
-    df.flatMap { d =>
+    if (columns.isEmpty) df
+    else df.flatMap { d =>
       if (columns.diff(d.columns.toSet).isEmpty) Success(d)
       else Failure(new IllegalArgumentException(s"Columns $columns not found in ${d.columns}"))
     }
@@ -36,10 +40,13 @@ trait DatasetOperations {
       .map(_.select(column))
   }
 
-  def select(df: Try[DataFrame], col: String, cols: String*): Try[DataFrame] = {
-    val columns: Seq[String] = cols :+ col
-    validateColumns(df, columns.toSet)
-      .map(_.select(col, cols:_*))
+  def select(df: Try[DataFrame], columns: List[String]): Try[DataFrame] = {
+    if (columns.isEmpty) df
+    else validateColumns(df, columns.toSet)
+      .map { df =>
+        val head :: tail = columns
+        df.select(head, tail: _*)
+      }
   }
 
   type Column = String
@@ -47,12 +54,12 @@ trait DatasetOperations {
   type GroupExpr = (Column, Func)
 
   /**
-    *
-    * @param df a dataframe
-    * @param column the column used for the aggregation
-    * @param groupByOps a list of valid aggregations expression in the form (column,func) where func is in in Set("count", "max", "mean", "min", "sum")
-    * @return
-    */
+   *
+   * @param df a dataframe
+   * @param column the column used for the aggregation
+   * @param groupByOps a list of valid aggregations expression in the form (column,func) where func is in in Set("count", "max", "mean", "min", "sum")
+   * @return
+   */
   def groupBy(df: Try[DataFrame], column: String, groupByOps: GroupExpr*): Try[DataFrame] = {
 
     val validatedAggrs = groupByOps.map(kv => AggregationsValidator.validate(kv._2))

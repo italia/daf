@@ -8,27 +8,26 @@ import org.slf4j.{Logger, LoggerFactory}
 import scala.util.{Failure, Success, Try}
 
 /**
-  *
-  * @param defaultLimit
-  * @param defaultChunkSize
-  */
+ *
+ * @param defaultLimit
+ * @param defaultChunkSize
+ */
 class PhysicalDatasetController(
-                                 sparkSession: SparkSession,
-                                 kuduMaster: String,
-                                 keytab: Option[String] = None,
-                                 principal: Option[String] = None,
-                                 keytabLocalTempDir: Option[String] = None,
-                                 saltwidth: Option[Int] = None,
-                                 saltbucket: Option[Int] = None,
-                                 override  val defaultLimit: Int = 100,
-                                 defaultChunkSize: Int = 0
-                               ) extends DatasetOperations {
+  sparkSession: SparkSession,
+  kuduMaster: String,
+  keytab: Option[String] = None,
+  principal: Option[String] = None,
+  keytabLocalTempDir: Option[String] = None,
+  saltwidth: Option[Int] = None,
+  saltbucket: Option[Int] = None,
+  override val defaultLimit: Int = 1000,
+  defaultChunkSize: Int = 0
+) extends DatasetOperations {
 
   lazy val openTSDB = new OpenTSDBController(sparkSession, keytab, principal, keytabLocalTempDir, saltwidth, saltbucket)
   lazy val kudu = new KuduController(sparkSession, kuduMaster)
   lazy val hdfs = new HDFSController(sparkSession)
-  val alogger: Logger = LoggerFactory.getLogger(this.getClass)
-
+  val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
   private def toTry[T](option: Option[Try[DataFrame]], errorMessage: String): Try[DataFrame] = option match {
     case Some(d) => d
@@ -37,11 +36,9 @@ class PhysicalDatasetController(
 
   def get(params: Map[String, String]): Try[DataFrame] = {
 
-
-    val l : Int= params.get("limit").map(_.asInstanceOf[Int]).getOrElse(defaultLimit)
+    val l: Int = params.get("limit").map(_.asInstanceOf[Int]).getOrElse(defaultLimit)
     val limit =
-      if(l > defaultLimit)
-        defaultLimit
+      if (l > defaultLimit) defaultLimit
       else l
 
     params.getOrElse("protocol", "hdfs") match {
@@ -50,7 +47,7 @@ class PhysicalDatasetController(
         val metricOp = params.get("metric")
         val tags = params.get("tags").map(_.asInstanceOf[Map[String, String]]).getOrElse(Map.empty[String, String])
         val intervalOp = params.get("interval").map(_.asInstanceOf[(Long, Long)])
-        alogger.info(s"Reading request for opentsdb with params: metric:$metricOp tags:$tags, interval: $intervalOp")
+        logger.info(s"Reading request for opentsdb with params: metric:$metricOp tags:$tags, interval: $intervalOp")
 
         val res = metricOp.map(openTSDB.readData(_, tags, intervalOp).map(_.limit(limit)))
         toTry(res, "Metric should be defined")
@@ -58,7 +55,7 @@ class PhysicalDatasetController(
       case "kudu" =>
 
         val tableOp = params.get("table")
-        alogger.info(s"Reading request for kudu with params: table:$tableOp")
+        logger.info(s"Reading request for kudu with params: table:$tableOp")
 
         val res = tableOp.map(kudu.readData(_).map(_.limit(limit)))
         toTry(res, "Table should be defined")
@@ -67,14 +64,13 @@ class PhysicalDatasetController(
 
         val format = params.getOrElse("format", "parquet")
         val pathOp = params.get("path")
-        alogger.info(s"Reading request for hdfs with params: path:$pathOp format: $format")
+        logger.info(s"Reading request for hdfs with params: path:$pathOp format: $format")
 
         val res = pathOp.map(hdfs.readData(_, format).map(_.limit(limit)))
         toTry(res, "Path should be defined")
 
-
       case other =>
-        alogger.info(s"Reading request for $other is still not supported")
+        logger.info(s"Reading request for $other is still not supported")
         Failure(new IllegalArgumentException(s"$other is still not supported."))
 
     }
@@ -101,7 +97,7 @@ object PhysicalDatasetController {
     }
   }
 
-  val alogger: Logger = LoggerFactory.getLogger(this.getClass)
+  val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
   def apply(configuration: Config): PhysicalDatasetController = {
 
@@ -118,21 +114,20 @@ object PhysicalDatasetController {
 
     System.setProperty("sun.security.krb5.debug", "true")
 
-
     val keytab: Option[String] = getOptionalString("opentsdb.context.keytab", configuration)
-    alogger.info(s"OpenTSDBContext Keytab: $keytab")
+    logger.info(s"OpenTSDBContext Keytab: $keytab")
 
     val principal: Option[String] = getOptionalString("opentsdb.context.principal", configuration)
-    alogger.info(s"OpenTSDBContext Principal: $principal")
+    logger.info(s"OpenTSDBContext Principal: $principal")
 
     val keytabLocalTempDir: Option[String] = getOptionalString("opentsdb.context.keytablocaltempdir", configuration)
-    alogger.info(s"OpenTSDBContext Keytab Local Temp Dir: $keytabLocalTempDir")
+    logger.info(s"OpenTSDBContext Keytab Local Temp Dir: $keytabLocalTempDir")
 
     val saltwidth: Option[Int] = getOptionalInt("opentsdb.context.saltwidth", configuration)
-    alogger.info(s"OpenTSDBContext SaltWidth: $saltwidth")
+    logger.info(s"OpenTSDBContext SaltWidth: $saltwidth")
 
     val saltbucket: Option[Int] = getOptionalInt("opentsdb.context.saltbucket", configuration)
-    alogger.info(s"OpenTSDBContext SaltBucket: $saltbucket")
+    logger.info(s"OpenTSDBContext SaltBucket: $saltbucket")
 
     val openTSDBContext: OpenTSDBContext = new OpenTSDBContext(sparkSession)
     keytabLocalTempDir.foreach(openTSDBContext.keytabLocalTempDir = _)
@@ -148,7 +143,7 @@ object PhysicalDatasetController {
       principal,
       keytabLocalTempDir,
       saltwidth,
-      saltbucket)
-
+      saltbucket
+    )
   }
 }

@@ -10,10 +10,9 @@ import uk.gov.hmrc.gitstamp.GitStampPlugin._
 organization in ThisBuild := "it.gov.daf"
 name := "daf-ingestion-manager"
 
-
 Seq(gitStampSettings: _*)
 
-version in ThisBuild := sys.env.get("INGESTION_MANAGER_VERSION").getOrElse("1.0-SNAPSHOT")
+version in ThisBuild := sys.env.getOrElse("INGESTION_MANAGER_VERSION", "1.0.0-SNAPSHOT")
 
 lazy val client = (project in file("client")).
   settings(Seq(
@@ -32,7 +31,9 @@ lazy val client = (project in file("client")).
 
 lazy val spark = "org.apache.spark"
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser)
+lazy val root = (project in file("."))
+  .enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser)
+  .disablePlugins(PlayLogback)
 
 scalaVersion in ThisBuild := "2.11.8"
 
@@ -50,20 +51,14 @@ libraryDependencies ++= Seq(
   filters,
   "org.webjars" % "swagger-ui" % swaggerUiVersion, //excludeAll( ExclusionRule(organization = "com.fasterxml.jackson.core") ),
   "it.gov.daf" %% "daf-catalog-manager-client" % dafCatalogVersion,
-//  "org.json4s" %% "json4s-jackson" % "3.5.2"  exclude("com.fasterxml.jackson.core", "jackson-databind"),
   specs2 % Test,
-  "org.scalacheck" %% "scalacheck" % "1.13.5" % Test,
-  "org.specs2" %% "specs2-scalacheck" % "3.8.9" % Test,
-  //"me.jeffmay" %% "play-json-tests" % "1.5.0" % Test,
-  "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test,
   "me.lessis" %% "base64" % "0.2.0",
-  "org.apache.logging.log4j" % "log4j-core" % "2.9.0",
-  "org.apache.logging.log4j" % "log4j-api" % "2.9.0",
-  "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.9.0",
-  "it.gov.daf" %% "common" % "1.0-SNAPSHOT",
-  //"it.gov.daf" %% "daf-catalog-manager-client" % "1.0.0-SNAPSHOT"
-  "it.gov.daf" %% "daf-catalog-manager-client" % "1.1-SNAPSHOT"
-  )
+  "it.gov.daf" %% "common" % "1.0.0-SNAPSHOT" excludeAll(ExclusionRule(organization = "org.apache.hadoop.common")),
+  "org.scalatest" %% "scalatest" % "3.0.4" % Test,
+  "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.0" % Test,
+  "org.scalacheck" %% "scalacheck" % "1.13.5" % Test,
+  "org.specs2" %% "specs2-scalacheck" % "3.8.9" % Test
+)
 
 playScalaCustomTemplateLocation := Some(baseDirectory.value / "templates")
 
@@ -82,7 +77,7 @@ routesGenerator := InjectedRoutesGenerator
 
 apiFirstParsers := Seq(ApiFirstSwaggerParser.swaggerSpec2Ast.value).flatten
 
-playScalaAutogenerateTests := true
+playScalaAutogenerateTests := false
 
 headers := Map(
   "sbt" -> Apache2_0("2017", "TEAM PER LA TRASFORMAZIONE DIGITALE"),
@@ -115,17 +110,14 @@ publishTo in ThisBuild := {
 credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
 
 // Wart Remover Plugin Configuration
-wartremoverErrors ++= Warts.allBut(Wart.Nothing,
-  Wart.PublicInference,
-  Wart.Any,
-  Wart.Equals,
-  Wart.AsInstanceOf,
-  Wart.DefaultArguments,
-  Wart.OptionPartial)
-
-//wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value / "target" / "scala-2.11" / "routes").toSeq
-
-wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value).toSeq
-
+//wartremoverErrors ++= Warts.allBut(Wart.Nothing,
+//  Wart.PublicInference,
+//  Wart.Any,
+//  Wart.Equals,
+//  Wart.AsInstanceOf,
+//  Wart.DefaultArguments,
+//  Wart.OptionPartial)
+//
 //wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value).toSeq
-
+//wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value / "target" / "scala-2.11" / "routes").toSeq
+//wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value / "test").toSeq

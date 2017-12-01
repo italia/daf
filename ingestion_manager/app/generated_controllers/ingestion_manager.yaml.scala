@@ -17,36 +17,20 @@ import scala.util._
 
 import javax.inject._
 
-import it.gov.daf.ingestion.ClientCaller
-import it.gov.daf.ingestion.utilities.WebServiceUtil
-import scala.concurrent.Future
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
-import it.gov.daf.catalogmanager.MetaCatalog
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import it.gov.daf.ingestion.metacatalog.MetaCatalogProcessor
+import de.zalando.play.controllers.PlayBodyParsing._
+import it.gov.daf.ingestion.ClientCaller
 import play.api.libs.ws.ahc.AhcWSClient
 import scala.concurrent.Future
-import scala.util.{Failure,Success}
-import scala.concurrent.ExecutionContext.Implicits.global
-import play.api.libs.ws.ahc.AhcWSClient
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
-import it.gov.daf.ingestion.nifi.NiFiBuilder
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext.Implicits.global
+
+import com.typesafe.config.Config
+import it.gov.daf.ingestion.nifi.NifiProcessor
+import it.gov.daf.ingestion.nifi.NifiProcessor.NifiResult
+import play.api.libs.ws.WSClient
+import scala.concurrent.ExecutionContext
+import it.gov.daf.ingestion.pipelines.PipelineInfoRead
+
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -55,48 +39,62 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 package ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Ingestion_managerYaml
-                                                                                                                                                                                                    
+
     // ----- End of unmanaged code area for package Ingestion_managerYaml
     class Ingestion_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Ingestion_managerYaml
-
+    implicit
+    val system: ActorSystem,
+    implicit val ec: ExecutionContext,
+    implicit val ws: WSClient,
         // ----- End of unmanaged code area for injections Ingestion_managerYaml
         val messagesApi: MessagesApi,
         lifecycle: ApplicationLifecycle,
         config: ConfigurationProvider
     ) extends Ingestion_managerYamlBase {
         // ----- Start of unmanaged code area for constructor Ingestion_managerYaml
-        NotImplementedYet
+    NotImplementedYet
         // ----- End of unmanaged code area for constructor Ingestion_managerYaml
-        val testmicrosrv = testmicrosrvAction {  _ =>  
-            // ----- Start of unmanaged code area for action  Ingestion_managerYaml.testmicrosrv
-            NotImplementedYet
-            // ----- End of unmanaged code area for action  Ingestion_managerYaml.testmicrosrv
-        }
         val addNewDataset = addNewDatasetAction { (ds_logical_uri: String) =>  
             // ----- Start of unmanaged code area for action  Ingestion_managerYaml.addNewDataset
-            import scala.concurrent.ExecutionContext.Implicits.global
-          implicit val system: ActorSystem = ActorSystem()
-          implicit val materializer: ActorMaterializer = ActorMaterializer()
-            val auth = currentRequest.headers.get("authorization")
-            val resFuture :Future[MetaCatalog]= ClientCaller.clientCatalogMgrMetaCatalog(auth.getOrElse(""), ds_logical_uri)
+            //FIXME take out these resources and close them
+      implicit val config: Config = com.typesafe.config.ConfigFactory.load()
+      implicit val materializer: ActorMaterializer = ActorMaterializer()
+      val clientCaller = new ClientCaller(ws)
 
-            val result: Try[MetaCatalog] = Await.ready(resFuture, Duration.Inf).value.get
+      val auth = currentRequest
+        .headers
+        .get("authorization")
+        .getOrElse("")
 
-            result match {
-              case Success(metaCatalog) =>
-                val client: AhcWSClient = AhcWSClient()
+      val fResults =
+        clientCaller.clientCatalogMgrMetaCatalog(auth, ds_logical_uri)
+          .flatMap(mc => NifiProcessor(mc).createDataFlow())
 
-                val niFiBuilder = new NiFiBuilder(client, metaCatalog)
-                val niFiResults = niFiBuilder.processorBuilder()
-                AddNewDataset200(IngestionReport("Status: OK", Some(niFiResults.toString)))
-
-              case Failure(e) =>
-                println(e.printStackTrace())
-                AddNewDataset200(IngestionReport("Status: Error", Some("NiFi Info")))
-
-            }
+      fResults
+        .flatMap(r =>
+          AddNewDataset200(IngestionReport("200", Some(r.toString))))
+        .recoverWith {
+          case ex: Throwable =>
+            ex.printStackTrace()
+            AddNewDataset200(IngestionReport("400", Some(ex.getLocalizedMessage)))
+        }
             // ----- End of unmanaged code area for action  Ingestion_managerYaml.addNewDataset
+        }
+        val pipelineListAll = pipelineListAllAction {  _ =>  
+            // ----- Start of unmanaged code area for action  Ingestion_managerYaml.pipelineListAll
+            PipelineListAll200(PipelineInfoRead.pipelineInfo())
+            // ----- End of unmanaged code area for action  Ingestion_managerYaml.pipelineListAll
+        }
+        val pipelineListByCat = pipelineListByCatAction { (pipeline_category: String) =>  
+            // ----- Start of unmanaged code area for action  Ingestion_managerYaml.pipelineListByCat
+            PipelineListByCat200(PipelineInfoRead.pipelineInfoByCat(pipeline_category))
+            // ----- End of unmanaged code area for action  Ingestion_managerYaml.pipelineListByCat
+        }
+        val pipelineListById = pipelineListByIdAction { (pipeline_id: String) =>  
+            // ----- Start of unmanaged code area for action  Ingestion_managerYaml.pipelineListById
+            PipelineListById200(PipelineInfoRead.pipelineInfoById(pipeline_id))
+            // ----- End of unmanaged code area for action  Ingestion_managerYaml.pipelineListById
         }
     
     }

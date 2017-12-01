@@ -27,7 +27,7 @@ info:
   license:
     name: Creative Commons 4.0 International
     url: http://creativecommons.org/licenses/by/4.0/
-host : localhost:9001
+host : localhost:9000
 # will be prefixed to all paths
 basePath: /ingestion-manager/v1
 # array of all schemes that your API supports
@@ -36,46 +36,95 @@ schemes:
 produces:
   - application/json
 paths:
-  "/test":
+  "/add-new-dataset/{ds_logical_uri}":
     get:
-      summary: Test Endpoint
+      summary: Setup ingestion procs for a new dataset added in the catalog manager
       description: |
-        Test Endpoint
+        Setup ingestion procs for a new dataset added in the catalog manager. It calls NiFi API to manage the new pipeline.
       tags:
-        - Test Endpoint
-      operationId: testmicrosrv
+        - Ingestion, new dataset
+      operationId: addNewDataset
+      parameters:
+        - name: ds_logical_uri
+          in: path
+          description: logical uri of the dataset
+          required: true
+          type: string
       responses:
         200:
-          description: Successfull
+          description: IngestionReport
           schema:
-            $ref: '#/definitions/Successfull'
+            $ref: '#/definitions/IngestionReport'
         default:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  "/add-new-dataset/{ds_logical_uri}":
+  "/ing-pipelines/get-all/":
+    get:
+      summary: Get the list of available ingestion pipelines
+      description: Get the list of available ingestion pipelines
+      tags:
+        - Ingestion, pipelines
+      operationId: pipelineListAll
+      responses:
+        200:
+          description: List of Pipeline objects
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/PipelineInfo"
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/ing-pipelines/get-bycat/{pipeline_category}":
       get:
-        summary: Setup ingestion procs for a new dataset added in the catalog manager
-        description: |
-          Setup ingestion procs for a new dataset added in the catalog manager. It calls NiFi API to manage the new pipeline.
+        summary: Get the list of available ingestion pipelines by category
+        description: Get the list of available ingestion pipelines by category
         tags:
-          - Ingestion, new dataset
-        operationId: addNewDataset
+          - Ingestion, pipelines
+        operationId: pipelineListByCat
         parameters:
-          - name: ds_logical_uri
+          - name: pipeline_category
             in: path
-            description: logical uri of the dataset
+            description: id of the type of operation performed by the ingestion pipeline.
             required: true
             type: string
         responses:
           200:
-            description: IngestionReport
+            description: List of Pipeline objects
             schema:
-              $ref: '#/definitions/IngestionReport'
+              type: array
+              items:
+                $ref: "#/definitions/PipelineInfo"
           default:
             description: Unexpected error
             schema:
               $ref: '#/definitions/Error'
+  "/ing-pipelines/get-byid/{pipeline_id}":
+        get:
+          summary: Get the list of available ingestion pipelines by id
+          description: Get the list of available ingestion pipelines by id
+          tags:
+            - Ingestion, pipelines
+          operationId: pipelineListById
+          parameters:
+            - name: pipeline_id
+              in: path
+              description: id of the type of operation performed by the ingestion pipeline.
+              required: true
+              type: string
+          responses:
+            200:
+              description: List of Pipeline objects
+              schema:
+                type: array
+                items:
+                  $ref: "#/definitions/PipelineInfo"
+            default:
+              description: Unexpected error
+              schema:
+                $ref: '#/definitions/Error'
 
 definitions:
   Error:
@@ -108,3 +157,26 @@ definitions:
         type: string
       password:
         type: string
+  PipelineInfo:
+    type: object
+    description: Object describing info on the Ingestion Pipeline
+    required:
+      - id
+      - name
+      - category
+      - description
+      - default_batch
+      - default_stream
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      category:
+        type: string
+      description:
+        type: string
+      default_batch:
+        type: boolean
+      default_stream:
+        type: boolean

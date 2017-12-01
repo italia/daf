@@ -1,8 +1,10 @@
 object Versions {
 
-  val hadoopVersion = "2.6.0-cdh5.9.0"
+  val hadoopVersion = "2.6.0-cdh5.12.0"
 
-  val sparkVersion = "2.1.0.cloudera1"
+  val sparkVersion = "2.2.0.cloudera1"
+
+  val openTSDBVersion = "2.3.0"
 
   val playVersion = "2.5.14"
 
@@ -10,5 +12,10 @@ object Versions {
 
   val betterFilesVersion = "2.17.1"
 
-  val dafCommonVersion = sys.env.get("COMMON_VERSION").getOrElse("1.0-SNAPSHOT")
+  val kuduVersion = "1.4.0-cdh5.12.0"
+
+  val sparkOpenTSDBVersion = "2.0"
+
+  val hbaseVersion = "1.2.0-cdh5.12.0"
+
 }

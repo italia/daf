@@ -1,0 +1,153 @@
+{
+  "dataschema": {
+    "avro": {
+      "name": "test_csv",
+      "type": "record",
+      "namespace": "daf://raffaele/theme/test_csv",
+      "alliases": null,
+      "fields": [
+        {
+          "name": "col1",
+          "type": "string"
+        },
+        {
+          "name": "col2",
+          "type": "string"
+        },
+        {
+          "name": "col3",
+          "type": "string"
+        }
+      ]
+    },
+    "flatSchema": [
+      {
+        "name": "col1",
+        "type": "string",
+        "metadata": {
+          "semantics": {
+            "id": "",
+            "context": ""
+          },
+          "desc": "",
+          "tag": "",
+          "field_type": "",
+          "constr": [
+            {
+              "type": "",
+              "param": ""
+            }
+          ],
+          "required": 0,
+          "cat": ""
+        }
+      },
+      {
+        "name": "col2",
+        "type": "string",
+        "metadata": {
+          "semantics": {
+            "id": "",
+            "context": ""
+          },
+          "desc": "",
+          "tag": "",
+          "field_type": "",
+          "constr": [
+            {
+              "type": "",
+              "param": ""
+            }
+          ],
+          "required": 0,
+          "cat": ""
+        }
+      },
+      {
+        "name": "col3",
+        "type": "string",
+        "metadata": {
+          "semantics": {
+            "id": "",
+            "context": ""
+          },
+          "desc": "",
+          "tag": "",
+          "field_type": "",
+          "constr": [
+            {
+              "type": "",
+              "param": ""
+            }
+          ],
+          "required": 0,
+          "cat": ""
+        }
+      }
+    ]
+  },
+  "operational": {
+    "georef": null,
+    "physical_uri": "data/daf_testdatalake/ord/raffaele/theme/subtheme/test_csv",
+    "input_src": {
+      "sftp": [
+        {
+          "name": "sftp_daf",
+          "param": "format=csv, sep=;"
+        }
+      ]
+    },
+    "theme": "theme",
+    "subtheme": "subtheme",
+    "read_type": "update",
+    "dataset_type": "batch",
+    "storage_info": {
+      "hdfs": {
+        "name": "hdfs_daf"
+      }
+    },
+    //questo attribute da errore
+    "std_schema": null,
+    "is_std": false,
+    "logical_uri": "daf://dataset/ord/raffaele/raffaele/theme/test_csv",
+    "group_own": "raffaele",
+    "ingestion_pipeline": [
+      "pipeline1",
+      "pipeline2"
+    ]
+  },
+  "dcatapit": {
+    "name": "test_csv",
+    "notes": "NiFi Test Csv File",
+    "organization": {
+      "name": "raffaele"
+    },
+    "author": null,
+    "license_id": "other-nc",
+    "relationships_as_object": [],
+    "holder_identifier": "raffaele",
+    "identifier": "bike_sharing",
+    "license_title": "Altro (Non Commerciale)",
+    "tags": [
+      {
+        "name": "theme",
+        "state": "active",
+        "vocabulary_id": null,
+        "display_name": "theme",
+        "id": "f5feb374-3e24-417a-969e-17f00d7e6458"
+      }
+    ],
+    "groups": [],
+    "modified": "2017-07-23",
+    "alternate_identifier": "raffaele",
+    "relationships_as_subject": [],
+    "holder_name": "raffaele",
+    "publisher_identifier": "raffaele",
+    "resources": [],
+    "frequency": "unknown",
+    "title": "test_csv",
+    "owner_org": "raffaele",
+    "theme": "theme",
+    "publisher_name": "raffaele"
+  }
+}

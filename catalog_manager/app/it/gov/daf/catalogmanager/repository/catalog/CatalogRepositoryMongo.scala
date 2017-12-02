@@ -133,7 +133,7 @@ class CatalogRepositoryMongo extends  CatalogRepository{
       message
     }
 
-    SftpUtils.createDirs(metaCatalog)
+   // SftpUtils.createDirs(metaCatalog)
 
     /*
     val ssh = new SSHClient

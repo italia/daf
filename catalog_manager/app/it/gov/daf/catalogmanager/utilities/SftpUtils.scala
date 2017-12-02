@@ -9,10 +9,10 @@ object SftpUtils {
   val ingestionPass = ConfigReader.ingestionPass
 
    def createDirs(metaCatalog: MetaCatalog) = {
-     var ssh = new SSHClient
-     ssh.loadKnownHosts()
      println("User : " + user)
      println("Ingestion : " + ingestionPass)
+     var ssh = new SSHClient
+     ssh.loadKnownHosts()
      ssh.connect("edge1")
      ssh.authPassword(user, ingestionPass)
      try {

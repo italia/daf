@@ -23,14 +23,12 @@ import de.zalando.play.controllers.PlayBodyParsing._
 import it.gov.daf.ingestion.ClientCaller
 import play.api.libs.ws.ahc.AhcWSClient
 import scala.concurrent.Future
-
 import com.typesafe.config.Config
 import it.gov.daf.ingestion.nifi.NifiProcessor
 import it.gov.daf.ingestion.nifi.NifiProcessor.NifiResult
 import play.api.libs.ws.WSClient
 import scala.concurrent.ExecutionContext
 import it.gov.daf.ingestion.pipelines.PipelineInfoRead
-
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -39,7 +37,7 @@ import it.gov.daf.ingestion.pipelines.PipelineInfoRead
 
 package ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Ingestion_managerYaml
-
+            
     // ----- End of unmanaged code area for package Ingestion_managerYaml
     class Ingestion_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Ingestion_managerYaml

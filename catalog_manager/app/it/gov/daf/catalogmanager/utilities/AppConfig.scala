@@ -23,7 +23,7 @@ private class AppConfig @Inject()(playConfig: Configuration) {
   val securityManHost :Option[String] = playConfig.getString("security.manager.host")
   val cookieExpiration :Option[Long] = playConfig.getLong("cookie.expiration")
   val ingestionUser :Option[String] = playConfig.getString("ingestion.user")
-  val ingestionPass :Option[String] = playConfig.getString("ingestion.password")
+  val ingestionPass :Option[String] = playConfig.getString("ingestion.pass")
 }
 
 

@@ -982,6 +982,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+
 definitions:
   KeyValue:
     type: object
@@ -1840,3 +1841,4 @@ definitions:
         type: string
       password:
         type: string
+

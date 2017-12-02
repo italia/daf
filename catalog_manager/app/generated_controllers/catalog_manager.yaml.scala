@@ -17,6 +17,7 @@ import scala.util._
 
 import javax.inject._
 
+import java.io.File
 import de.zalando.play.controllers.PlayBodyParsing._
 import it.gov.daf.catalogmanager.listeners.IngestionListenerImpl
 import it.gov.daf.catalogmanager.service.{CkanRegistry,ServiceRegistry}
@@ -36,7 +37,7 @@ import it.gov.daf.catalogmanager.service.VocServiceRegistry
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                        
+    
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -434,6 +435,14 @@ package catalog_manager.yaml {
             val themeList: Seq[VocKeyValueSubtheme] = VocServiceRegistry.vocRepository.dcatapit2DafSubtheme(input._1, input._2)
             Voc_dcatap2dafsubtheme200(themeList)
             // ----- End of unmanaged code area for action  Catalog_managerYaml.voc_dcatap2dafsubtheme
+     */
+
+    
+     // Dead code for absent methodCatalog_managerYaml.inferschema
+     /*
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.inferschema
+            NotImplementedYet
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.inferschema
      */
 
     

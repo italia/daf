@@ -37,7 +37,7 @@ import it.gov.daf.ftp.SftpHandler
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-
+    
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -62,7 +62,7 @@ package security_manager.yaml {
       )
     ) */
         // ----- End of unmanaged code area for constructor Security_managerYaml
-        val registrationconfirm = registrationconfirmAction { (token: String) =>
+        val registrationconfirm = registrationconfirmAction { (token: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.registrationconfirm
             RegistrationService.createUser(token) flatMap {
         case Right(success) => Registrationconfirm200(success)
@@ -70,7 +70,7 @@ package security_manager.yaml {
       }
             // ----- End of unmanaged code area for action  Security_managerYaml.registrationconfirm
         }
-        val createIPAuser = createIPAuserAction { (user: IpaUser) =>
+        val createIPAuser = createIPAuserAction { (user: IpaUser) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.createIPAuser
             ApiClientIPA.createUser(user) flatMap {
         case Right(success) => CreateIPAuser200(success)
@@ -98,7 +98,7 @@ package security_manager.yaml {
       }
             // ----- End of unmanaged code area for action  Security_managerYaml.sftp
         }
-        val token = tokenAction {  _ =>
+        val token = tokenAction {  _ =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.token
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
       //SsoServiceClient.registerInternal(credentials._1.get,credentials._2.get)
@@ -107,7 +107,7 @@ package security_manager.yaml {
       Token200(Authentication.getStringToken(currentRequest, ConfigReader.tokenExpiration).getOrElse(""))
             // ----- End of unmanaged code area for action  Security_managerYaml.token
         }
-        val showipauser = showipauserAction { (mail: String) =>
+        val showipauser = showipauserAction { (mail: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.showipauser
             ApiClientIPA.findUserByMail(mail) flatMap {
         case Right(success) => Showipauser200(success)
@@ -115,7 +115,7 @@ package security_manager.yaml {
       }
             // ----- End of unmanaged code area for action  Security_managerYaml.showipauser
         }
-        val registrationrequest = registrationrequestAction { (user: IpaUser) =>
+        val registrationrequest = registrationrequestAction { (user: IpaUser) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.registrationrequest
             val reg = RegistrationService.requestRegistration(user) flatMap {
         case Right(mailService) => mailService.sendMail()
@@ -128,6 +128,6 @@ package security_manager.yaml {
       }
             // ----- End of unmanaged code area for action  Security_managerYaml.registrationrequest
         }
-
+    
     }
 }

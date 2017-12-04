@@ -1,6 +1,5 @@
 package it.gov.daf.server
 
-//import dataset_manager.yaml._
 import it.gov.daf.catalogmanager.MetaCatalog
 import it.gov.daf.catalogmanager.client.Catalog_managerClient
 import it.gov.daf.datasetmanager._
@@ -8,7 +7,8 @@ import it.gov.daf.server.storage.StorageManagerClient
 import play.api.libs.ws.WSClient
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Try}
+import json._
 
 class DatasetManagerService(
   catalogUrl: String,

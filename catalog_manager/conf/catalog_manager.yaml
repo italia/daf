@@ -1343,7 +1343,7 @@ definitions:
     type: object
     description: It contains info to build the dataset based on already existing dataset in DAF.
     required:
-      - dataset_uri
+      - dataset_uri.s
     properties:
       dataset_uri:
         type: array
@@ -1403,9 +1403,9 @@ definitions:
       name:
         type: string
         description: It is the name of the Kudu storage configuration to use. It is 'kudu_daf' by default, with which will follow the DAF convention.
-      path:
+      table_name:
         type: string
-        description: It is the Kudu path where data will be stored. It is None if the default 'kudu_daf' is used.
+        description: it is the name of the table where data are stored.
       param:
         type: string
         description: Other parameters to be passed in JSON format. It will be None by default.
@@ -1418,9 +1418,14 @@ definitions:
       name:
         type: string
         description: It is the name of the Kudu storage configuration to use. It is 'hbase_daf' by default, with which will follow the DAF convention.
-      path:
+      metric:
         type: string
-        description: It is the Hbase path where data will be stored. It is None if the default 'hbase_daf' is used.
+        description: It is the name of the metric we want to store i.e. speed, cpu temperature and so on.
+      tags:
+        description: it a list containing any metadata about the value (e.g. host, region, server, street_name)
+        type: array
+        items:
+          type: string
       param:
         type: string
         description: Other parameters to be passed in JSON format. It will be None by default.
@@ -1841,4 +1846,3 @@ definitions:
         type: string
       password:
         type: string
-

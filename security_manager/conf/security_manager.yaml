@@ -42,6 +42,39 @@ consumes:
     #type: basic
     #description: HTTP Basic Authentication. Works over `HTTP` and `HTTPS`
 paths:
+  /sftp/init/{user_id}/{path_to_create}:
+    get:
+      summary: inits sftp folder
+      description: |
+        It inits the sftp folder for the given user with a specific folder
+      tags:
+        - sftp
+      operationId: sftp
+#      security:
+#       - basicAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          description: the name of the user
+          required: true
+          type: string
+          format: string
+        - name: path_to_create
+          in: path
+          description: the path of the folder to create
+          required: true
+          type: string
+          format: string
+      responses:
+        200:
+          description: the path created
+          schema:
+            type: string
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
   "/token":
     get:
       summary: Get Token

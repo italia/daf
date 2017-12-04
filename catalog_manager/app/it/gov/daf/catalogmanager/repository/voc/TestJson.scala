@@ -8,7 +8,7 @@ import play.api.libs.json.{JsArray, JsValue}
 object TestJson extends App {
   import play.api.libs.json.{JsError, JsResult, JsSuccess, Json}
 
-  val stream = new FileInputStream("data/voc/cv_theme-subtheme.json")
+  val stream = new FileInputStream("data/voc/cv_theme-subtheme_bk.json")
   val json = try { (Json.parse(stream) \ "voc").asOpt[JsArray]} finally {stream.close()}
   val dcatapitThemeId = "AGRI"
   val subthemeId = "policy"

@@ -29,6 +29,7 @@ import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import it.gov.daf.common.sso.common.CacheWrapper
 import it.gov.daf.common.utils.WebServiceUtil
 import it.gov.daf.securitymanager.service.IntegrationService
+import it.gov.daf.ftp.SftpHandler
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -37,7 +38,7 @@ import it.gov.daf.securitymanager.service.IntegrationService
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                                                
+        
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -56,6 +57,14 @@ package security_manager.yaml {
 
       Authentication(configuration, playSessionStore)
 
+    val sftpHost: String = configuration.underlying.getString("sftp.host")
+
+    /*  @SuppressWarnings(
+      Array(
+        "org.wartremover.warts.StringPlusAny",
+        "org.wartremover.warts.NonUnitStatements"
+      )
+    ) */
         // ----- End of unmanaged code area for constructor Security_managerYaml
         val registrationconfirm = registrationconfirmAction { (token: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.registrationconfirm
@@ -73,7 +82,27 @@ package security_manager.yaml {
             }
             // ----- End of unmanaged code area for action  Security_managerYaml.createIPAuser
         }
-        val createIPAgroup = createIPAgroupAction { (group: Group) =>  
+        val sftp = sftpAction { input: (String, String) =>
+          val (user_id, path_to_create) = input
+          // ----- Start of unmanaged code area for action  Security_managerYaml.sftp
+          val tryPwd: Try[String]= CacheWrapper.instance
+            .getPwd(user_id) match {
+            case Some(path) => scala.util.Success(path)
+            case None => scala.util.Failure(new Throwable(s"cannot find user id $user_id"))
+          }
+
+          val result = tryPwd.flatMap { pwd =>
+            val sftp = new SftpHandler(user_id, pwd, sftpHost)
+            sftp.mkdir(path_to_create)
+          }
+
+          result match {
+            case scala.util.Success(path) => Sftp200(path)
+            case scala.util.Failure(ex) => Sftp500(Error(Some(404), Some(ex.getMessage), None))
+          }
+          // ----- End of unmanaged code area for action  Security_managerYaml.sftp
+        }
+        val createIPAgroup = createIPAgroupAction { (group: Group) =>
             // ----- Start of unmanaged code area for action  Security_managerYaml.createIPAgroup
             apiClientIPA.createGroup(group.cn) flatMap {
               case Right(success) => CreateIPAgroup200(success)
@@ -81,7 +110,7 @@ package security_manager.yaml {
             }
             // ----- End of unmanaged code area for action  Security_managerYaml.createIPAgroup
         }
-        val createDAForganization = createDAForganizationAction { (organization: DafOrg) =>  
+        val createDAForganization = createDAForganizationAction { (organization: DafOrg) =>
             // ----- Start of unmanaged code area for action  Security_managerYaml.createDAForganization
             integrationService.createDafOrganization(organization)flatMap {
               case Right(success) => CreateDAForganization200(success)
@@ -89,7 +118,7 @@ package security_manager.yaml {
             }
             // ----- End of unmanaged code area for action  Security_managerYaml.createDAForganization
         }
-        val deleteDAForganization = deleteDAForganizationAction { (orgName: String) =>  
+        val deleteDAForganization = deleteDAForganizationAction { (orgName: String) =>
             // ----- Start of unmanaged code area for action  Security_managerYaml.deleteDAForganization
             integrationService.deleteDafOrganization(orgName)flatMap {
               case Right(success) => DeleteDAForganization200(success)
@@ -97,7 +126,7 @@ package security_manager.yaml {
             }
             // ----- End of unmanaged code area for action  Security_managerYaml.deleteDAForganization
         }
-        val token = tokenAction {  _ =>  
+        val token = tokenAction {  _ =>
             // ----- Start of unmanaged code area for action  Security_managerYaml.token
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
             //SsoServiceClient.registerInternal(credentials._1.get,credentials._2.get)
@@ -106,7 +135,7 @@ package security_manager.yaml {
             Token200(Authentication.getStringToken(currentRequest, ConfigReader.tokenExpiration).getOrElse(""))
             // ----- End of unmanaged code area for action  Security_managerYaml.token
         }
-        val useraddDAForganization = useraddDAForganizationAction { (payload: UserAndGroup) =>  
+        val useraddDAForganization = useraddDAForganizationAction { (payload: UserAndGroup) =>
             // ----- Start of unmanaged code area for action  Security_managerYaml.useraddDAForganization
             integrationService.addUserToOrganization(payload.groupCn,payload.userId)flatMap {
               case Right(success) => UseraddDAForganization200(success)
@@ -114,7 +143,7 @@ package security_manager.yaml {
             }
             // ----- End of unmanaged code area for action  Security_managerYaml.useraddDAForganization
         }
-        val showipauser = showipauserAction { (mail: String) =>  
+        val showipauser = showipauserAction { (mail: String) =>
             // ----- Start of unmanaged code area for action  Security_managerYaml.showipauser
             apiClientIPA.findUserByMail(mail) flatMap {
               case Right(success) => Showipauser200(success)
@@ -144,6 +173,6 @@ package security_manager.yaml {
             }
             // ----- End of unmanaged code area for action  Security_managerYaml.addUserToIPAgroup
         }
-    
+
     }
 }

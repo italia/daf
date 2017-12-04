@@ -1,36 +1,24 @@
-# Copyright 2017 TEAM PER LA TRASFORMAZIONE DIGITALE
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# Questo e' la descrizione delle API che vengono esposte da dati.gov.it.
-# Le API sono pubbliche
+# this is an example of the Uber API
+# as a demonstration of an API spec in YAML
 swagger: '2.0'
 info:
   title: Dataset Manager API
-  description: Dataset Manager API
-  version: "BETA"
-  termsOfService: http://termofservice
+  description: Api to perform the e-gestion of the dataset ingested in the DAF
+  version: "1.0.0"
+# the domain of the service
+#host: api.uber.com
   contact:
     name: team digitale
     url: https://teamdigitale.governo.it
   license:
     name: Creative Commons 4.0 International
     url: http://creativecommons.org/licenses/by/4.0/
-# will be prefixed to all paths
-basePath: /dataset-manager/v1
 # array of all schemes that your API supports
 schemes:
   - http
   - https
+# will be prefixed to all paths
+basePath: /dataset-manager/v1
 produces:
   - application/json
 securityDefinitions:
@@ -38,78 +26,188 @@ securityDefinitions:
     type: basic
     description: HTTP Basic Authentication. Works over `HTTP` and `HTTPS`
 paths:
-  "/token":
+  /dataset/{datasetId}:
     get:
-      summary: Get Token
+      summary: Get a Dataset ingested via "logical uri"/id
       description: |
-        It returns the JWT token
-      tags:
-        - JWT Token
-      operationId: token
+        Get a Dataset ingested via "logical uri"/id
+      operationId: getDataset
       security:
         - basicAuth: []
+      produces:
+        - application/json
+      parameters:
+        - name: datasetId
+          in: path
+          description: The logical uri of the dataset
+          required: true
+          type: string
+          format: string
+      tags:
+        - Datasets
       responses:
         200:
-          description: The JWT token
+          description: the first n records of the requested dataset
           schema:
-            type: string
+            $ref: '#/definitions/Dataset'
         default:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  "/user":
-    post:
-      tags:
-        - IPA
-      description: Create a user
-      operationId: createIPAuser
-      #security:
-      #- basicAuth: []
+  /dataset/{datasetId}/schema:
+    get:
+      summary: Get the schema of a Dataset ingested via "logical uri"/id
+      description: |
+        Get the schema of a Dataset ingested via "logical uri"/id
+      operationId: getDatasetSchema
+      security:
+        - basicAuth: []
       produces:
-      - application/json
+        - application/json
       parameters:
-      - name: user
-        in: body
-        description: User
-        required: true
-        schema:
-          #type: object
-          $ref: '#/definitions/UserIpa'
+        - name: datasetId
+          in: path
+          description: The logical uri of the dataset
+          required: true
+          type: string
+          format: string
+      tags:
+        - Datasets
       responses:
         200:
-          description: Success
+          description: the first n records of the requested dataset
           schema:
-            #type: object
-            $ref: '#/definitions/Success'
+            $ref: '#/definitions/Dataset'
         default:
-          description: Error Message
+          description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /dataset/{datasetId}/limit/{size}:
+    get:
+      summary: Get a Dataset ingested via logical uri/id
+      description: |
+        Get a Dataset ingested via logical uri/id
+      security:
+        - basicAuth: []
+      operationId: getDatasetLimit
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: datasetId
+          in: path
+          description: The logical uri of the dataset
+          required: true
+          type: string
+        - name: size
+          in: path
+          description: the number of records to fetch
+          required: true
+          type: integer
+      tags:
+        - Datasets
+      responses:
+        200:
+          description: the first n records of the requested dataset
+          schema:
+            $ref: '#/definitions/Dataset'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /dataset/{datasetId}/query:
+    post:
+      summary: Query a given dataset by applyng multiple filter, where, group conditions and limit the number of returned records
+      description: |
+        Query a given dataset by applyng multiple filter, where, group conditions and limit the number of returned records
+      security:
+        - basicAuth: []
+      consumes:
+        - application/json
+      operationId: searchDataset
+      produces:
+        - application/json
+      parameters:
+        - name: datasetId
+          in: path
+          description: The logical uri of the dataset
+          required: true
+          type: string
+        - in: body
+          name: query
+          description: the query to be executed
+          required: true
+          schema:
+            $ref: '#/definitions/Query'
+      tags:
+        - Datasets
+      responses:
+        200:
+          description: the first n records of the requested dataset
+          schema:
+            $ref: '#/definitions/Dataset'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
 definitions:
-  UserIpa:
-    #type: object
+  Query:
+    type: object
     properties:
-      uid:
-        #description: user login
-        type: string
-      givenname:
-        #description: First name
-        type: string
-      sn:
-        #description: Last name
-        type: string
-      mail:
-        type: string
-      userpassword:
-        type: string
-  Success:
-    #type: object
+      filter:
+        type: array
+        items:
+          type: string
+      where:
+        type: array
+        items:
+          type: string
+      group_by:
+        $ref: '#/definitions/GroupBy'
+      limit:
+        type: integer
+  GroupBy:
+    type: object
     properties:
-      message:
+      groupColumn:
         type: string
-      warnings:
+      conditions:
+        type: array
+        items:
+          $ref: '#/definitions/GroupCondition'
+  GroupCondition:
+    type: object
+    properties:
+      column:
+        type: string
+      aggrFunction:
+        type: string
+  Dataset:
+    type: object
+    properties:
+      datasetId:
+        type: string
+      columns:
+        type: array
+        items:
+          $ref: '#/definitions/Column'
+      rows:
+        type: array
+        items:
+          type: string
+  Column:
+    type: object
+    properties:
+      name:
+        type: string
+      data_type:
+        type: string
+      description:
         type: string
   Error:
+    type: object
     properties:
       code:
         type: integer

@@ -38,7 +38,7 @@ import it.gov.daf.ftp.SftpHandler
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-        
+                            
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -82,11 +82,34 @@ package security_manager.yaml {
             }
             // ----- End of unmanaged code area for action  Security_managerYaml.createIPAuser
         }
+        val createIPAgroup = createIPAgroupAction { (group: Group) =>  
+            // ----- Start of unmanaged code area for action  Security_managerYaml.createIPAgroup
+            apiClientIPA.createGroup(group.cn) flatMap {
+              case Right(success) => CreateIPAgroup200(success)
+              case Left(err) => CreateIPAgroup500(err)
+            }
+            // ----- End of unmanaged code area for action  Security_managerYaml.createIPAgroup
+        }
+        val createDAForganization = createDAForganizationAction { (organization: DafOrg) =>  
+            // ----- Start of unmanaged code area for action  Security_managerYaml.createDAForganization
+            integrationService.createDafOrganization(organization)flatMap {
+              case Right(success) => CreateDAForganization200(success)
+              case Left(err) => CreateDAForganization500(err)
+            }
+            // ----- End of unmanaged code area for action  Security_managerYaml.createDAForganization
+        }
+        val deleteDAForganization = deleteDAForganizationAction { (orgName: String) =>  
+            // ----- Start of unmanaged code area for action  Security_managerYaml.deleteDAForganization
+            integrationService.deleteDafOrganization(orgName)flatMap {
+              case Right(success) => DeleteDAForganization200(success)
+              case Left(err) => DeleteDAForganization500(err)
+            }
+            // ----- End of unmanaged code area for action  Security_managerYaml.deleteDAForganization
+        }
         val sftp = sftpAction { input: (String, String) =>
-          val (user_id, path_to_create) = input
-          // ----- Start of unmanaged code area for action  Security_managerYaml.sftp
-          val tryPwd: Try[String]= CacheWrapper.instance
-            .getPwd(user_id) match {
+            val (user_id, path_to_create) = input
+            // ----- Start of unmanaged code area for action  Security_managerYaml.sftp
+            val tryPwd: Try[String]= cacheWrapper.getPwd(user_id) match {
             case Some(path) => scala.util.Success(path)
             case None => scala.util.Failure(new Throwable(s"cannot find user id $user_id"))
           }
@@ -100,33 +123,9 @@ package security_manager.yaml {
             case scala.util.Success(path) => Sftp200(path)
             case scala.util.Failure(ex) => Sftp500(Error(Some(404), Some(ex.getMessage), None))
           }
-          // ----- End of unmanaged code area for action  Security_managerYaml.sftp
+            // ----- End of unmanaged code area for action  Security_managerYaml.sftp
         }
-        val createIPAgroup = createIPAgroupAction { (group: Group) =>
-            // ----- Start of unmanaged code area for action  Security_managerYaml.createIPAgroup
-            apiClientIPA.createGroup(group.cn) flatMap {
-              case Right(success) => CreateIPAgroup200(success)
-              case Left(err) => CreateIPAgroup500(err)
-            }
-            // ----- End of unmanaged code area for action  Security_managerYaml.createIPAgroup
-        }
-        val createDAForganization = createDAForganizationAction { (organization: DafOrg) =>
-            // ----- Start of unmanaged code area for action  Security_managerYaml.createDAForganization
-            integrationService.createDafOrganization(organization)flatMap {
-              case Right(success) => CreateDAForganization200(success)
-              case Left(err) => CreateDAForganization500(err)
-            }
-            // ----- End of unmanaged code area for action  Security_managerYaml.createDAForganization
-        }
-        val deleteDAForganization = deleteDAForganizationAction { (orgName: String) =>
-            // ----- Start of unmanaged code area for action  Security_managerYaml.deleteDAForganization
-            integrationService.deleteDafOrganization(orgName)flatMap {
-              case Right(success) => DeleteDAForganization200(success)
-              case Left(err) => DeleteDAForganization500(err)
-            }
-            // ----- End of unmanaged code area for action  Security_managerYaml.deleteDAForganization
-        }
-        val token = tokenAction {  _ =>
+        val token = tokenAction {  _ =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.token
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
             //SsoServiceClient.registerInternal(credentials._1.get,credentials._2.get)
@@ -135,15 +134,16 @@ package security_manager.yaml {
             Token200(Authentication.getStringToken(currentRequest, ConfigReader.tokenExpiration).getOrElse(""))
             // ----- End of unmanaged code area for action  Security_managerYaml.token
         }
-        val useraddDAForganization = useraddDAForganizationAction { (payload: UserAndGroup) =>
+        val useraddDAForganization = useraddDAForganizationAction { (payload: UserAndGroup) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.useraddDAForganization
-            integrationService.addUserToOrganization(payload.groupCn,payload.userId)flatMap {
+            val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
+            integrationService.addUserToOrganization(payload.groupCn,payload.userId,credentials._1.get)flatMap {
               case Right(success) => UseraddDAForganization200(success)
               case Left(err) => UseraddDAForganization500(err)
             }
             // ----- End of unmanaged code area for action  Security_managerYaml.useraddDAForganization
         }
-        val showipauser = showipauserAction { (mail: String) =>
+        val showipauser = showipauserAction { (mail: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.showipauser
             apiClientIPA.findUserByMail(mail) flatMap {
               case Right(success) => Showipauser200(success)
@@ -173,6 +173,6 @@ package security_manager.yaml {
             }
             // ----- End of unmanaged code area for action  Security_managerYaml.addUserToIPAgroup
         }
-
+    
     }
 }

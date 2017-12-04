@@ -30,7 +30,7 @@ class LoginClientLocal() extends LoginClient {
   private val JUPYTER = "jupyter"
   private val GRAFANA = "grafana"
 
-  private val CKAN_URL = ConfigReader.getCkanHost
+  private val CKAN_URL = ConfigReader.ckanHost
   private val IPA_URL = ConfigReader.ipaUrl
   private val SUPERSET_URL = ConfigReader.supersetUrl
   private val METABASE_URL = ConfigReader.metabaseUrl

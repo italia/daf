@@ -9,7 +9,7 @@ import scala.concurrent.Future
 import cats.implicits._
 
 @Singleton
-class IntegrationService @Inject()(apiClientIPA:ApiClientIPA,supersetApiClient: SupersetApiClient){
+class IntegrationService @Inject()(apiClientIPA:ApiClientIPA,supersetApiClient: SupersetApiClient,ckanApiClient: CkanApiClient){
 
   import scala.concurrent.ExecutionContext.Implicits._
 
@@ -39,7 +39,8 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA,supersetApiClient: 
       orgAdminRoleId <- EitherT( supersetApiClient.findRoleId(ConfigReader.suspersetOrgAdminRole) )
       dataOrgRoleId <- EitherT( supersetApiClient.findRoleId(toRoleName(groupCn)) )
       d <- EitherT( supersetApiClient.createUserWithRoles(defaultOrgIpaUser,orgAdminRoleId,dataOrgRoleId) )
-    } yield d
+      e <- EitherT( ckanApiClient.createOrganization(toUserName(groupCn),dafOrg.defaultUserPwd,dafOrg.groupCn) )
+    } yield e
 
     result.value
 
@@ -71,13 +72,16 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA,supersetApiClient: 
 
       userInfo <- EitherT( supersetApiClient.findUser(toUserName(groupCn)) )
       e <- EitherT( supersetApiClient.deleteUser(userInfo._1) )
-    } yield e
+
+      f <- EitherT( ckanApiClient.deleteOrganization(groupCn) )
+      g <- EitherT( ckanApiClient.purgeOrganization(groupCn) )
+    } yield g
 
     result.value
   }
 
 
-  def addUserToOrganization(groupCn:String, userName:String):Future[Either[Error,Success]] = {
+  def addUserToOrganization(groupCn:String, userName:String, loggedUserName:String ):Future[Either[Error,Success]] = {
 
     val result = for {
       user <-  EitherT( apiClientIPA.showUser(userName) )
@@ -85,7 +89,10 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA,supersetApiClient: 
       roleIds <- EitherT( supersetApiClient.findRoleIds(toRoleName(groupCn)::supersetUserInfo._2.toList:_*) )
       a <- EitherT( supersetApiClient.deleteUser(supersetUserInfo._1) )
       b <- EitherT( supersetApiClient.createUserWithRoles(user,roleIds:_*) )
-    } yield b
+
+      org <- EitherT( ckanApiClient.getOrganization(loggedUserName,groupCn) )
+      c <- EitherT( ckanApiClient.putUserInOrganization(loggedUserName,userName,org) )
+    } yield c
 
     result.value
   }
@@ -94,7 +101,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA,supersetApiClient: 
   def addNewUserToDefultOrganization(ipaUser:IpaUser):Future[Either[Error,Success]] = {
 
     val result = for {
-      roleIds <- EitherT( supersetApiClient.findRoleIds(ConfigReader.suspersetOrgAdminRole,ConfigReader.defaultOrganization) )
+      roleIds <- EitherT( supersetApiClient.findRoleIds(ConfigReader.suspersetOrgAdminRole,toRoleName(ConfigReader.defaultOrganization)) )
       a <- EitherT( supersetApiClient.createUserWithRoles(ipaUser,roleIds:_*) )
     } yield a
 

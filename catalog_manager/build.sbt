@@ -15,6 +15,7 @@ Seq(gitStampSettings: _*)
 
 version in ThisBuild := sys.env.getOrElse("CATALOG_MANAGER_VERSION", "1.0.0-SNAPSHOT")
 
+
 lazy val client = (project in file("client")).
   settings(Seq(
     name := "daf-catalog-manager-client",
@@ -29,7 +30,7 @@ lazy val client = (project in file("client")).
   )).enablePlugins(SwaggerCodegenPlugin)
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser)
-.dependsOn(client).aggregate(client)
+  .dependsOn(client).aggregate(client)
 
 scalaVersion in ThisBuild := "2.11.8"
 
@@ -48,7 +49,13 @@ libraryDependencies ++= Seq(
   "net.caoticode.dirwatcher" %% "dir-watcher" % "0.1.0",
   "it.gov.daf" %% "common" % Versions.dafCommonVersion,
   "me.lessis" %% "base64" % "0.2.0",
-  "ch.lightshed" %% "courier" % "0.1.4"
+  "ch.lightshed" %% "courier" % "0.1.4",
+  "com.chuusai" %% "shapeless" % "2.3.2",
+  "com.sksamuel.avro4s" %% "avro4s-core" % "1.1.3",
+  "com.sksamuel.avro4s" %% "avro4s-json" % "1.1.3",
+  "com.sksamuel.avro4s" %% "avro4s-generator" % "1.1.3",
+  "com.hierynomus" % "sshj" % "0.21.0"
+
   //"com.github.cb372" %% "scalacache-guava" % "0.9.4"
   //"com.unboundid" % "unboundid-ldapsdk" % "4.0.0"
   //"it.teamdigitale" %% "ingestion-module" % "0.1.0" exclude("org.apache.avro", "avro")

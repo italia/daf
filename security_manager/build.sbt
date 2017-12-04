@@ -57,7 +57,10 @@ libraryDependencies ++= Seq(
   "org.mongodb" %% "casbah" % "3.1.1",
   "ch.lightshed" %% "courier" % "0.1.4",
   //"com.github.cb372" %% "scalacache-guava" % "0.9.4",
-  specs2 % Test
+  "com.jcraft" % "jsch" % "0.1.54",
+  specs2 % Test,
+  "org.scalactic" %% "scalactic" % "3.0.4" % "test",
+  "org.scalatest" %% "scalatest" % "3.0.4" % "test"
 )
 
 //Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns),

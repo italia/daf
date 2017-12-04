@@ -10,9 +10,10 @@ val betterFilesVersion = "2.17.1"
 val spec2Version = "3.9.5"
 val kuduVersion = "1.4.0-cdh5.12.0"
 
+organization := "it.gov.daf"
 name := "daf-storage-manager-common"
 
-version := "1.0-SNAPSHOT"
+version := "1.0.0-SNAPSHOT"
 
 scalaVersion := "2.11.12"
 
@@ -159,3 +160,12 @@ libraryDependencies ++= Seq(
   kuduLibraries.map(x => x.exclude("org.slf4j", "*"))
   //++ logLibraries.map(x => x.exclude("org.slf4j", "*"))
 
+publishTo := {
+  val nexus = "http://nexus.default.svc.cluster.local:8081/repository/"
+  if (isSnapshot.value)
+    Some("snapshots" at nexus + "maven-snapshots/")
+  else
+    Some("releases"  at nexus + "maven-releases/")
+}
+
+credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")

@@ -982,6 +982,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+
 definitions:
   KeyValue:
     type: object
@@ -1035,7 +1036,7 @@ definitions:
      type: object
      required:
       - avro
-      - flatschema
+      - flatSchema
      properties:
       avro:
         $ref: '#/definitions/Avro'
@@ -1116,9 +1117,9 @@ definitions:
         description: Main tag in the tag list
         type: string
       tag:
-       # type: array
-       # items:
-        type: string
+        type: array
+        items:
+          type: string
       required:
         type: integer
         format: int32

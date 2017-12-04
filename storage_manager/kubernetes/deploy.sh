@@ -2,9 +2,11 @@
 
 set -e
 
-cd ../../bin
-. ./setVersions.sh
-cd -
+# cd ../../bin
+# . ./setVersions.sh
+# cd -
+
+export STORAGE_MANAGER_VERSION=1.0.0-SNAPSHOT
 
 # test for template
 envsubst < daf_storage_manager.yml > output.yml

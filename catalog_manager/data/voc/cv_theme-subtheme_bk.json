@@ -15,11 +15,6 @@
           ]
         },
         {
-          "subtheme_daf_code": "organizzazioni",
-          "subtheme_daf_ita": "Organizzazioni",
-          "subthemes_ita": []
-        },
-        {
           "subtheme_daf_code": "produzione_agricola",
           "subtheme_daf_ita": "Produzione Agricola",
           "subthemes_ita": [
@@ -60,11 +55,6 @@
           ]
         },
         {
-          "subtheme_daf_code": "organizzazioni",
-          "subtheme_daf_ita": "Organizzazioni",
-          "subthemes_ita": []
-        },
-        {
           "subtheme_daf_code": "produzione_energia",
           "subtheme_daf_ita": "Produzione energetica",
           "subthemes_ita": [
@@ -75,6 +65,7 @@
           ]
         }
       ]
+
     },
     {
       "theme_ita":"Regioni e Citta'",
@@ -119,13 +110,7 @@
           "subtheme_daf_code": "policy",
           "subtheme_daf_ita": "Policy",
           "subthemes_ita": [
-            ["4806", "poolitica dei trasporti"]
-          ]
-        },
-        {
-          "subtheme_daf_code": "organizzazioni",
-          "subtheme_daf_ita": "Organizzazioni",
-          "subthemes_ita": [
+            ["4806", "poolitica ei trasporti"],
             ["4811", "organizzazione dei trasporti"]
           ]
         },
@@ -152,6 +137,7 @@
         }
       ]
     },
+
     {
       "theme_ita":"Economia e Finanza",
       "theme_code":"ECON",
@@ -263,7 +249,7 @@
           ]
         },
         {
-          "subtheme_daf_code": "organizzazioni",
+          "subtheme_daf_code": "organizations",
           "subtheme_daf_ita": "Organizzazioni internazionali",
           "subthemes_ita": [
             ["7606", "Nazioni Unite"],
@@ -412,11 +398,6 @@
         {
           "subtheme_daf_code": "policy",
           "subtheme_daf_ita": "Politiche sulla salute",
-          "subthemes_ita": []
-        },
-        {
-          "subtheme_daf_code": "organizzazioni",
-          "subtheme_daf_ita": "Organizzazioni",
           "subthemes_ita": []
         },
         {

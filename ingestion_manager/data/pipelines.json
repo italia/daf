@@ -1,0 +1,18 @@
+[
+  {
+    "id": "std_voc",
+    "name": "Standardization Pipeline",
+    "category": "standardization",
+    "description": "The Standardization Pipeline checks if features controlled by a vocabulary are compliant with it. In it found different values, it tries to match with the most similar value found in the vocabulary. It append 2 columns to the dataset: `__std_{colname}` containing the standardized values, `__stdstat_{colname}` containing a measure of the closeness between the original value and the one chosen from the vocabulary",
+    "default_batch": true,
+    "default_stream": false
+  },
+  {
+    "id": "std_voc_test",
+    "name": "Standardization Pipeline TEST",
+    "category": "standardization",
+    "description": "The Standardization Pipeline checks if features controlled by a vocabulary are compliant with it. In it found different values, it tries to match with the most similar value found in the vocabulary. It append 2 columns to the dataset: `__std_{colname}` containing the standardized values, `__stdstat_{colname}` containing a measure of the closeness between the original value and the one chosen from the vocabulary",
+    "default_batch": true,
+    "default_stream": false
+  }
+]

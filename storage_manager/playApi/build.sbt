@@ -40,6 +40,7 @@ lazy val core = RootProject(file("../core"))
 
 lazy val root = (project in file("."))
   .settings(
+    organization := "it.gov.daf",
     name := "daf-storage-manager",
     scalaVersion := "2.11.12",
     version in ThisBuild := sys.env.getOrElse("STORAGE_MANAGER_VERSION", "1.0.0-SNAPSHOT"),
@@ -139,7 +140,6 @@ dockerCommands := dockerCommands.value.flatMap {
   case other => List(other)
 }
 dockerEntrypoint := Seq(s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
-dockerCmd := Seq("-jvm-debug", "5005")
 dockerExposedPorts := Seq(9000)
 dockerRepository := Option("10.98.74.120:5000")
 

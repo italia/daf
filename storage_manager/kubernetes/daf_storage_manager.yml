@@ -7,12 +7,9 @@ metadata:
 spec:
   type: NodePort
   ports:
-  - port: 9900
+  - port: 9000
     protocol: TCP
     name: http
-  - port: 5005
-    protocol: TCP
-    name: debugger
   selector:
     app: storage-manager
 ---
@@ -37,9 +34,7 @@ spec:
              command: ["/bin/sh", "-c", "cat /etc/extra_hosts >> /etc/hosts"]
         ports:
         - name: client
-          containerPort: 9900
-        - name: debugger
-          containerPort: 5005
+          containerPort: 9000
         securityContext:
           privileged: true
           runAsUser: 0

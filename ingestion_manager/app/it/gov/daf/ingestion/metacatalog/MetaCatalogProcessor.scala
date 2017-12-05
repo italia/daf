@@ -25,7 +25,6 @@ class MetaCatalogProcessor(metaCatalog: MetaCatalog) {
   }
 
   def storage(): StorageInfo = {
-
     metaCatalog.operational.storage_info match {
       case Some(s) => s
       case None => MetaCatalogDefault.storageInfo()
@@ -33,7 +32,6 @@ class MetaCatalogProcessor(metaCatalog: MetaCatalog) {
   }
 
   def ingPipeline(): List[String] = {
-
     metaCatalog.operational.ingestion_pipeline match {
       case Some(s) => s
       case None => MetaCatalogDefault.ingPipeline()
@@ -41,9 +39,31 @@ class MetaCatalogProcessor(metaCatalog: MetaCatalog) {
   }
 
   def dataschema(): Avro = {
-
     metaCatalog.dataschema.avro
+  }
 
+  def theme() = metaCatalog.operational.theme
+
+  def subtheme() = metaCatalog.operational.subtheme
+
+  def hdfsPath() = {
+    val op = metaCatalog.operational
+    dataset_typeNifi() match {
+      case "standard" =>
+        s"/daf/standard/${op.theme}/${op.subtheme}/${dsName()}"
+
+      case "opendata" =>
+        s"/daf/opendata/${dsName()}"
+
+      case "ordinary" =>
+        s"/daf/ordinary/${op.group_own}/${op.theme}/${op.subtheme}/${dsName()}"
+    }
+  }
+
+  import it.gov.daf.catalogmanager.json._
+  def avroSchema() = {
+    val json = Json.toJson(metaCatalog.dataschema.avro)
+    Json.stringify(json)
   }
 
   def dsType(): String = {
@@ -51,7 +71,6 @@ class MetaCatalogProcessor(metaCatalog: MetaCatalog) {
   }
 
   def groupAccess(): List[GroupAccess] = {
-
     metaCatalog.operational.group_access match {
       case Some(s) => s
       case None => List()
@@ -61,8 +80,8 @@ class MetaCatalogProcessor(metaCatalog: MetaCatalog) {
   def groupOwn(): String = metaCatalog.operational.group_own
 
   /**
-    * Methods to return default values based on MetaCatalog available info
-    */
+   * Methods to return default values based on MetaCatalog available info
+   */
   def sourceSftpPathDefault(): String = {
     val sftpDefaultPrefix = sftpDefPrefix
     val theme = metaCatalog.operational.theme
@@ -77,21 +96,15 @@ class MetaCatalogProcessor(metaCatalog: MetaCatalog) {
    */
 
   def inputSrcNifi(): String = {
-
     StringEscapeUtils.escapeJava(Json.toJson(inputSrc()).toString)
-
   }
 
   def storageNifi(): String = {
-
     StringEscapeUtils.escapeJava(Json.toJson(storage()).toString)
-
   }
 
   def dataschemaNifi(): String = {
-
     StringEscapeUtils.escapeJava(Json.toJson(dataschema()).toString)
-
   }
 
   def dataset_typeNifi(): String = {
@@ -109,19 +122,39 @@ class MetaCatalogProcessor(metaCatalog: MetaCatalog) {
     }
   }
 
+  /**
+    *
+    * @return the separator value extracted from
+    *         "input_src": {
+      "sftp": [
+        {
+          "name": "sftp_daf",
+          "param": "format=csv, sep=;"
+        }
+      ]
+    },
+    */
+  def separator() = {
+    metaCatalog.operational
+      .input_src.sftp
+      .flatMap(_.headOption)
+      .flatMap(_.param)
+      .flatMap(_.split(", ").reverse.headOption)
+      .map(_.replace("sep=", ""))
+      .getOrElse(",")
+  }
+
   def fileFormatNifi(): String = {
     val inputSftp = metaCatalog.operational.input_src.sftp
 
     inputSftp match {
       case Some(s) =>
         val sftps: Seq[SourceSftp] = s.filter(x => x.name.equals("sftp_daf"))
-        if (sftps.length > 0) {
-          sftps(0).param.getOrElse("")
-        } else {
-          ""
-        }
-    }
+        if (sftps.nonEmpty) sftps.head.param.getOrElse("")
+        else ""
 
+      case None => ""
+    }
   }
 
   def ingPipelineNifi(): String = {

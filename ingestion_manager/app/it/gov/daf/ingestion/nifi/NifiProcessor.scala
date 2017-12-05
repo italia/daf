@@ -253,7 +253,12 @@ class NifiProcessor(
       dataschema = catalogWrapper.dataschemaNifi(),
       dataset_type = catalogWrapper.dataset_typeNifi(),
       transfPipeline = catalogWrapper.ingPipelineNifi(),
-      format = catalogWrapper.fileFormatNifi()
+      format = catalogWrapper.fileFormatNifi(),
+      theme = catalogWrapper.theme(),
+      subTheme = catalogWrapper.subtheme(),
+      hdfsPath = catalogWrapper.hdfsPath(),
+      avroSchema = catalogWrapper.avroSchema(),
+      sep = catalogWrapper.separator()
     )
 
     val request: WSRequest = ws.url(nifiUrl + "process-groups/" + nifiGroupId + "/processors")

@@ -41,14 +41,8 @@ class NifiProcessorSpec extends AsyncFlatSpec with Matchers {
       wsClient.close()
     }
 
-    var fResult = NifiProcessor(metaCatalog.get).createDataFlow()
-//    fResult = NifiProcessor(metaCatalog.get).createDataFlow()
-//    fResult = NifiProcessor(metaCatalog.get).createDataFlow()
-//    fResult = NifiProcessor(metaCatalog.get).createDataFlow()
-//    fResult = NifiProcessor(metaCatalog.get).createDataFlow()
-//    fResult = NifiProcessor(metaCatalog.get).createDataFlow()
-//    fResult = NifiProcessor(metaCatalog.get).createDataFlow()
-//    fResult = NifiProcessor(metaCatalog.get).createDataFlow()
+    val fResult = NifiProcessor(metaCatalog.get).createDataFlow()
+
     fResult.map { response =>
       println(response)
       closeAll()

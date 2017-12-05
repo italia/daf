@@ -1,3 +1,5 @@
+#!/bin/sh
+
 export COMMON_VERSION=$(cat ../versions/common.version)
 export DATASET_MANAGER_VERSION=$(cat ../versions/dataset_manager.version)
 export CATALOG_MANAGER_VERSION=$(cat ../versions/catalog_manager.version)

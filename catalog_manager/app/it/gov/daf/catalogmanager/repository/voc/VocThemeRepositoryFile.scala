@@ -8,7 +8,7 @@ import play.api.libs.json._
 class VocThemeRepositoryFile extends VocThemeRepository{
 
   def listThemeAll() :Seq[KeyValue] = {
-    val stream = new FileInputStream("data/voc/cv_theme-subtheme.json")
+    val stream = new FileInputStream("data/voc/cv_theme-subtheme_bk.json")
     val json = try { (Json.parse(stream) \ "voc").asOpt[JsArray]} finally {stream.close()}
 
     json match {
@@ -21,7 +21,7 @@ class VocThemeRepositoryFile extends VocThemeRepository{
 
 
   def listSubthemeAll(): Seq[VocKeyValueSubtheme] = {
-    val stream = new FileInputStream("data/voc/cv_theme-subtheme.json")
+    val stream = new FileInputStream("data/voc/cv_theme-subtheme_bk.json")
     val json = try { (Json.parse(stream) \ "voc").asOpt[JsArray]} finally {stream.close()}
 
     json match {
@@ -38,7 +38,7 @@ class VocThemeRepositoryFile extends VocThemeRepository{
     }
   }
   def listSubtheme(themeId: String): Seq[KeyValue] = {
-    val stream = new FileInputStream("data/voc/cv_theme-subtheme.json")
+    val stream = new FileInputStream("data/voc/cv_theme-subtheme_bk.json")
     val json = try { (Json.parse(stream) \ "voc").asOpt[JsArray]} finally {stream.close()}
     json match {
       case Some(s) => s.value.map(x => ((x \ "theme_daf_code").as[String],
@@ -56,7 +56,7 @@ class VocThemeRepositoryFile extends VocThemeRepository{
     }
   }
   def daf2dcatTheme(dafThemeId: String): Seq[KeyValue] = {
-    val stream = new FileInputStream("data/voc/cv_theme-subtheme.json")
+    val stream = new FileInputStream("data/voc/cv_theme-subtheme_bk.json")
     val json = try { (Json.parse(stream) \ "voc").asOpt[JsArray]} finally {stream.close()}
     json match {
       case Some(s) => s.value.map(x => ((x \ "theme_daf_code").as[String],
@@ -70,7 +70,7 @@ class VocThemeRepositoryFile extends VocThemeRepository{
     }
   }
   def daf2dcatSubtheme(dafThemeId: String, dafSubthemeId: String = "__-1NOFILTER__"): Seq[VocKeyValueSubtheme] = {
-    val stream = new FileInputStream("data/voc/cv_theme-subtheme.json")
+    val stream = new FileInputStream("data/voc/cv_theme-subtheme_bk.json")
     val json = try { (Json.parse(stream) \ "voc").asOpt[JsArray]} finally {stream.close()}
 
 
@@ -101,7 +101,7 @@ class VocThemeRepositoryFile extends VocThemeRepository{
   }
 
   def listDcatThemeAll(): Seq[KeyValue] = {
-    val stream = new FileInputStream("data/voc/cv_theme-subtheme.json")
+    val stream = new FileInputStream("data/voc/cv_theme-subtheme_bk.json")
     val json = try { (Json.parse(stream) \ "voc").asOpt[JsArray]} finally {stream.close()}
 
     json match {
@@ -113,7 +113,7 @@ class VocThemeRepositoryFile extends VocThemeRepository{
   }
 
   def listDcatSubthemeAll(): Seq[VocKeyValueSubtheme] = {
-    val stream = new FileInputStream("data/voc/cv_theme-subtheme.json")
+    val stream = new FileInputStream("data/voc/cv_theme-subtheme_bk.json")
     val json = try { (Json.parse(stream) \ "voc").asOpt[JsArray]} finally {stream.close()}
 
     json match {
@@ -135,7 +135,7 @@ class VocThemeRepositoryFile extends VocThemeRepository{
     }
   }
   def listDcatSubtheme(dcatapitThemeId: String): Seq[KeyValue] = {
-    val stream = new FileInputStream("data/voc/cv_theme-subtheme.json")
+    val stream = new FileInputStream("data/voc/cv_theme-subtheme_bk.json")
     val json = try { (Json.parse(stream) \ "voc").asOpt[JsArray]} finally {stream.close()}
 
     json match {
@@ -160,7 +160,7 @@ class VocThemeRepositoryFile extends VocThemeRepository{
   }
 
   def dcat2DafTheme(dcatapitThemeId: String): Seq[KeyValue] = {
-    val stream = new FileInputStream("data/voc/cv_theme-subtheme.json")
+    val stream = new FileInputStream("data/voc/cv_theme-subtheme_bk.json")
     val json = try { (Json.parse(stream) \ "voc").asOpt[JsArray]} finally {stream.close()}
 
     json match {
@@ -176,7 +176,7 @@ class VocThemeRepositoryFile extends VocThemeRepository{
   }
 
   def dcat2DafSubtheme(dcatapitThemeId: String, dcatapitSubthemeId: String): Seq[VocKeyValueSubtheme] = {
-    val stream = new FileInputStream("data/voc/cv_theme-subtheme.json")
+    val stream = new FileInputStream("data/voc/cv_theme-subtheme_bk.json")
     val json = try {
       (Json.parse(stream) \ "voc").asOpt[JsArray]
     } finally {

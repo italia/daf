@@ -47,6 +47,12 @@ class ErrorHandler @Inject() (
   }
 
 
+  override def onDevServerError(request: RequestHeader, exception: UsefulException) = {
+    implicit val writer = PlayBodyParsing.anyToWritable[Throwable](contentType(request))
+    Future.successful(InternalServerError(exception))
+  }
+
+
   // called when a route is found, but it was not possible to bind the request parameters
   override def onBadRequest(request: RequestHeader, error: String): Future[Result] = {
     implicit val writer = PlayBodyParsing.anyToWritable[String](contentType(request))

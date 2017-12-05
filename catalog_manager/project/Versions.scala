@@ -4,5 +4,5 @@ object Versions {
 
   val swaggerUiVersion = "3.0.10"
 
-  val dafCommonVersion = sys.env.getOrElse("COMMON_VERSION", "1.0.0-SNAPSHOT")
+  val dafCommonVersion = sys.env.get("COMMON_VERSION").getOrElse("1.0.2-SNAPSHOT")
 }

@@ -70,6 +70,7 @@ object WebServiceUtil {
       ( user, Option(userAndPass.drop(1).mkString(":")))
 
     }else if( authType.equalsIgnoreCase("bearer") ) {
+      println("claims:"+Authentication.getClaims(request))
       val user:Option[String] = Option( Authentication.getClaims(request).get.get("sub").get.toString )
       println("JWT user:"+user)
       (user , None)

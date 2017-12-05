@@ -27,7 +27,7 @@ class Global @Inject() (lifecycle: ApplicationLifecycle) {
   lifecycle.addStopHook { () => Future.successful({}) }
 }
 
-
+/*
 @Singleton
 class Module extends AbstractModule {
   def configure() = {
@@ -35,4 +35,4 @@ class Module extends AbstractModule {
     bind(classOf[IngestionListener]).to(classOf[IngestionListenerImpl]).asEagerSingleton()
   }
 
-}
+}*/

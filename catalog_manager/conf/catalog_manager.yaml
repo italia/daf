@@ -1060,7 +1060,9 @@ definitions:
           type: string
           description: Name of the dataset
         aliases:
-          type: string
+          type: array
+          items:
+            type: string
           description: Alises for dataset
         #alliases:
         #  type: array

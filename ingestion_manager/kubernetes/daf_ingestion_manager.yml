@@ -18,7 +18,7 @@ kind: Deployment
 metadata:
   name: ingestion-manager-deployment
 spec:
-  replicas: 3
+  replicas: 2
   template:
     metadata:
       labels:

@@ -3,7 +3,7 @@ package it.gov.daf.sso
 import com.google.inject.{Inject, Provides, Singleton}
 import it.gov.daf.common.sso.common.{LoginInfo, SecuredInvocationManager}
 import it.gov.daf.common.utils.WebServiceUtil
-import it.gov.daf.securitymanager.service.Role
+import it.gov.daf.common.authentication.Role
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import org.apache.commons.lang3.StringEscapeUtils
 import play.api.libs.json._
@@ -202,6 +202,40 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager){
         Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
       else
         Right(Success(Some("Users added"), Some("ok")))
+    }
+
+  }
+
+  def removeUsersFromGroup(group: String, userList: UserList):Future[Either[Error,Success]]= {
+
+    val jArrayStr = userList.users.get.mkString("\"","\",\"","\"")
+
+    val jsonAdd: JsValue = Json.parse(
+      s"""{
+                                       "method":"group_remove_member",
+                                       "params":[
+                                          [
+                                             "$group"
+                                          ],
+                                          {
+                                             "user":[$jArrayStr],
+                                             "raw":false,
+                                             "version": "2.213"
+                                          }
+                                       ],
+                                       "id":0
+                                    }""")
+
+    println("removeUsersToGroup: "+ jsonAdd.toString())
+
+    val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonAdd,_,_)
+    secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).map { json =>
+      val result = ((json \ "result") \"result")
+
+      if( result == "null" || result.isInstanceOf[JsUndefined] )
+        Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
+      else
+        Right(Success(Some("Users removed"), Some("ok")))
     }
 
   }

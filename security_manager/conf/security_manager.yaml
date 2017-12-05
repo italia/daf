@@ -144,12 +144,42 @@ paths:
           description: Error Message
           schema:
             $ref: '#/definitions/Error'
-  "/ipa/group/{group}":
+  "/ipa/group-useradd/{group}":
     put:
       tags:
         - IPA
-      description: Add users to an organization
+      description: Add users to a IPA group
       operationId: addUserToIPAgroup
+      produces:
+      - application/json
+      parameters:
+      - name: group
+        in: path
+        description: Group uid
+        required: true
+        type: string
+      - name: users
+        in: body
+        description: List of users
+        required: true
+        schema:
+         $ref: '#/definitions/UserList'
+      responses:
+        200:
+          description: Success
+          schema:
+            #type: object
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+  "/ipa/group-userdel/{group}":
+    put:
+      tags:
+        - IPA
+      description: Delete users from a IPA group
+      operationId: delUserToIPAgroup
       produces:
       - application/json
       parameters:

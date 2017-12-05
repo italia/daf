@@ -38,7 +38,7 @@ import it.gov.daf.ftp.SftpHandler
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                            
+                                                                                                        
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -59,12 +59,7 @@ package security_manager.yaml {
 
     val sftpHost: String = configuration.underlying.getString("sftp.host")
 
-    /*  @SuppressWarnings(
-      Array(
-        "org.wartremover.warts.StringPlusAny",
-        "org.wartremover.warts.NonUnitStatements"
-      )
-    ) */
+
         // ----- End of unmanaged code area for constructor Security_managerYaml
         val registrationconfirm = registrationconfirmAction { (token: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.registrationconfirm
@@ -76,35 +71,71 @@ package security_manager.yaml {
         }
         val createIPAuser = createIPAuserAction { (user: IpaUser) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.createIPAuser
-            apiClientIPA.createUser(user) flatMap {
-              case Right(success) => CreateIPAuser200(success)
-              case Left(err) => CreateIPAuser500(err)
-            }
+            if(! WebServiceUtil.isDafAdmin(currentRequest) )
+              CreateIPAuser500( Error(Option(0),Some("Admin permissions required"),None) )
+            else
+              apiClientIPA.createUser(user) flatMap {
+                case Right(success) => CreateIPAuser200(success)
+                case Left(err) => CreateIPAuser500(err)
+              }
             // ----- End of unmanaged code area for action  Security_managerYaml.createIPAuser
         }
         val createIPAgroup = createIPAgroupAction { (group: Group) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.createIPAgroup
-            apiClientIPA.createGroup(group.cn) flatMap {
-              case Right(success) => CreateIPAgroup200(success)
-              case Left(err) => CreateIPAgroup500(err)
-            }
+            if(! WebServiceUtil.isDafAdmin(currentRequest) )
+              CreateIPAgroup500( Error(Option(0),Some("Admin permissions required"),None) )
+            else
+              apiClientIPA.createGroup(group.cn) flatMap {
+                case Right(success) => CreateIPAgroup200(success)
+                case Left(err) => CreateIPAgroup500(err)
+              }
             // ----- End of unmanaged code area for action  Security_managerYaml.createIPAgroup
         }
         val createDAForganization = createDAForganizationAction { (organization: DafOrg) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.createDAForganization
-            integrationService.createDafOrganization(organization)flatMap {
-              case Right(success) => CreateDAForganization200(success)
-              case Left(err) => CreateDAForganization500(err)
-            }
+            if(! WebServiceUtil.isDafAdmin(currentRequest) )
+              CreateDAForganization500( Error(Option(0),Some("Admin permissions required"),None) )
+            else
+              integrationService.createDafOrganization(organization)flatMap {
+                case Right(success) => CreateDAForganization200(success)
+                case Left(err) => CreateDAForganization500(err)
+              }
             // ----- End of unmanaged code area for action  Security_managerYaml.createDAForganization
         }
         val deleteDAForganization = deleteDAForganizationAction { (orgName: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.deleteDAForganization
-            integrationService.deleteDafOrganization(orgName)flatMap {
-              case Right(success) => DeleteDAForganization200(success)
-              case Left(err) => DeleteDAForganization500(err)
-            }
+            if(! WebServiceUtil.isDafAdmin(currentRequest) )
+              DeleteDAForganization500( Error(Option(0),Some("Admin permissions required"),None) )
+            else
+              integrationService.deleteDafOrganization(orgName)flatMap {
+                case Right(success) => DeleteDAForganization200(success)
+                case Left(err) => DeleteDAForganization500(err)
+              }
             // ----- End of unmanaged code area for action  Security_managerYaml.deleteDAForganization
+        }
+        val addUserToIPAgroup = addUserToIPAgroupAction { input: (String, UserList) =>
+            val (group, users) = input
+            // ----- Start of unmanaged code area for action  Security_managerYaml.addUserToIPAgroup
+            if(! WebServiceUtil.isDafAdmin(currentRequest) )
+              AddUserToIPAgroup500( Error(Option(0),Some("Admin permissions required"),None) )
+            else
+              apiClientIPA.addUsersToGroup(group,users) flatMap {
+                case Right(success) => AddUserToIPAgroup200(success)
+                case Left(err) => AddUserToIPAgroup500(err)
+              }
+            // ----- End of unmanaged code area for action  Security_managerYaml.addUserToIPAgroup
+        }
+        val delUserToIPAgroup = delUserToIPAgroupAction { input: (String, UserList) =>
+            val (group, users) = input
+            // ----- Start of unmanaged code area for action  Security_managerYaml.delUserToIPAgroup
+            if(! WebServiceUtil.isDafAdmin(currentRequest) )
+              DelUserToIPAgroup500( Error(Option(0),Some("Admin permissions required"),None) )
+            else
+              apiClientIPA.removeUsersFromGroup(group,users) flatMap {
+              case Right(success) => DelUserToIPAgroup200(success)
+              case Left(err) => DelUserToIPAgroup500(err)
+            }
+            // ----- End of unmanaged code area for action  Security_managerYaml.delUserToIPAgroup
         }
         val sftp = sftpAction { input: (String, String) =>
             val (user_id, path_to_create) = input
@@ -163,15 +194,6 @@ package security_manager.yaml {
               case Left(msg) => Registrationrequest500(Error(Option(1), Option(msg), None))
             }
             // ----- End of unmanaged code area for action  Security_managerYaml.registrationrequest
-        }
-        val addUserToIPAgroup = addUserToIPAgroupAction { input: (String, UserList) =>
-            val (group, users) = input
-            // ----- Start of unmanaged code area for action  Security_managerYaml.addUserToIPAgroup
-            apiClientIPA.addUsersToGroup(group,users) flatMap {
-              case Right(success) => AddUserToIPAgroup200(success)
-              case Left(err) => AddUserToIPAgroup500(err)
-            }
-            // ----- End of unmanaged code area for action  Security_managerYaml.addUserToIPAgroup
         }
     
     }

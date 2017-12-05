@@ -5,9 +5,8 @@ import com.google.inject.{Inject, Singleton}
 import it.gov.daf.securitymanager.service.utilities.BearerTokenGenerator
 import it.gov.daf.sso.ApiClientIPA
 import play.api.libs.json.{JsError, JsSuccess, JsValue}
-import security_manager.yaml.IpaUser
-import security_manager.yaml.Success
-import security_manager.yaml.Error
+import security_manager.yaml.{Error, IpaUser, Success, UserList}
+import it.gov.daf.common.authentication.Role
 import cats.implicits._
 
 import scala.concurrent.Future
@@ -136,10 +135,13 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, integrationServic
 
   private def createUser(user:IpaUser):Future[Either[Error,Success]] = {
 
+    val userId = UserList(Option(Seq(user.uid)))
+
     val result = for {
       a <- EitherT( apiClientIPA.createUser(user) )
-      b <- EitherT( integrationService.addNewUserToDefultOrganization(user) )
-    } yield b
+      b <- EitherT( apiClientIPA.addUsersToGroup(Role.Viewer.toString,userId) )
+      c <- EitherT( integrationService.addNewUserToDefultOrganization(user) )
+    } yield c
 
     result.value
 

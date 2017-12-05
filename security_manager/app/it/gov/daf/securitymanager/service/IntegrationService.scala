@@ -2,6 +2,7 @@ package it.gov.daf.securitymanager.service
 
 import cats.data.EitherT
 import com.google.inject.{Inject, Singleton}
+import it.gov.daf.common.authentication.Role
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import it.gov.daf.sso.ApiClientIPA
 import security_manager.yaml.{DafOrg, Error, IpaUser, Success}

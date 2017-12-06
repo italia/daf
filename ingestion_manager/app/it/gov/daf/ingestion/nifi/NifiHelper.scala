@@ -218,7 +218,6 @@ object NifiHelper {
    * @param storage
    * @param dataschema
    * @param dataset_type
-   * @param transfavroSchemaPipeline
    * @param format
    * @param inputType
    * @param sep

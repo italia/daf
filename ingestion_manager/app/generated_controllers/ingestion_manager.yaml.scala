@@ -37,7 +37,7 @@ import it.gov.daf.ingestion.pipelines.PipelineInfoRead
 
 package ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Ingestion_managerYaml
-            
+                
     // ----- End of unmanaged code area for package Ingestion_managerYaml
     class Ingestion_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Ingestion_managerYaml
@@ -59,6 +59,7 @@ package ingestion_manager.yaml {
       implicit val config: Config = com.typesafe.config.ConfigFactory.load()
       implicit val materializer: ActorMaterializer = ActorMaterializer()
       val clientCaller = new ClientCaller(ws)
+
 
       val auth = currentRequest
         .headers

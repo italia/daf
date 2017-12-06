@@ -29,6 +29,7 @@ import org.pac4j.play.store.PlaySessionStore
 import play.api.Configuration
 import it.gov.daf.common.utils.WebServiceUtil
 import it.gov.daf.catalogmanager.service.VocServiceRegistry
+import play.api.libs.ws.WSClient
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -37,7 +38,7 @@ import it.gov.daf.catalogmanager.service.VocServiceRegistry
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-    
+                
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -45,7 +46,7 @@ package catalog_manager.yaml {
         ingestionListener : IngestionListenerImpl,
         val configuration: Configuration,
         val playSessionStore: PlaySessionStore,
-
+        val ws: WSClient,
         // ----- End of unmanaged code area for injections Catalog_managerYaml
         val messagesApi: MessagesApi,
         lifecycle: ApplicationLifecycle,
@@ -188,6 +189,7 @@ package catalog_manager.yaml {
                 val logicalUri = created.message.get
              //   ingestionListener.addDirListener(catalog, logicalUri)
             }
+            ws.url("http://www.google.com").get().map( x => println(x.body))
             Createdatasetcatalog200(created)
             //NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalog

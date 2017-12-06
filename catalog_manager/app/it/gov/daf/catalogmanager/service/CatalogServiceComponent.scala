@@ -5,9 +5,9 @@ import catalog_manager.yaml.{Dataset, MetaCatalog, MetadataCat, Success}
 import it.gov.daf.catalogmanager.repository.catalog.CatalogRepositoryComponent
 import play.api.libs.json.JsValue
 
-
-
 import scala.concurrent.Future
+import play.api.libs.ws._
+import play.api.libs.ws.ahc.AhcWSComponents
 
 /**
   * Created by ale on 05/05/17.

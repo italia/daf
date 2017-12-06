@@ -52,11 +52,9 @@ libraryDependencies ++= Seq(
   "it.gov.daf" %% "common" % Versions.dafCommonVersion,
   "me.lessis" %% "base64" % "0.2.0",
   "ch.lightshed" %% "courier" % "0.1.4",
-  "com.chuusai" %% "shapeless" % "2.3.2",
   "com.sksamuel.avro4s" %% "avro4s-core" % "1.1.3",
   "com.sksamuel.avro4s" %% "avro4s-json" % "1.1.3",
-  "com.sksamuel.avro4s" %% "avro4s-generator" % "1.1.3",
-  "com.hierynomus" % "sshj" % "0.21.0"
+  "com.sksamuel.avro4s" %% "avro4s-generator" % "1.1.3"
 
   //"com.github.cb372" %% "scalacache-guava" % "0.9.4"
   //"com.unboundid" % "unboundid-ldapsdk" % "4.0.0"

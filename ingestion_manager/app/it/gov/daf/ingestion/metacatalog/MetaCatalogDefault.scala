@@ -16,8 +16,4 @@ object MetaCatalogDefault {
   def ingPipeline() = List(" ")
 
 
-
-
-
-
 }

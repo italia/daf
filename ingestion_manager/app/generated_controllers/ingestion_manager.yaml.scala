@@ -37,7 +37,7 @@ import it.gov.daf.ingestion.pipelines.PipelineInfoRead
 
 package ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Ingestion_managerYaml
-                
+                    
     // ----- End of unmanaged code area for package Ingestion_managerYaml
     class Ingestion_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Ingestion_managerYaml
@@ -51,7 +51,7 @@ package ingestion_manager.yaml {
         config: ConfigurationProvider
     ) extends Ingestion_managerYamlBase {
         // ----- Start of unmanaged code area for constructor Ingestion_managerYaml
-    NotImplementedYet
+
         // ----- End of unmanaged code area for constructor Ingestion_managerYaml
         val addNewDataset = addNewDatasetAction { (ds_logical_uri: String) =>  
             // ----- Start of unmanaged code area for action  Ingestion_managerYaml.addNewDataset

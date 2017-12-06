@@ -11,6 +11,7 @@
   import it.gov.daf.catalogmanager.utilities.uri.UriDataset
   import play.Environment
   import play.api.libs.json._
+  import play.api.libs.ws.WSClient
   //import it.gov.daf.catalogmanager.utilities.datastructures._
   import play.api.Logger
   import scala.util.Failure
@@ -129,8 +130,38 @@
     }
 
 
+    def catalogByTitle(title :String): Option[MetaCatalog] = {
+      println(title)
+      println("####################")
+      val file: File = Environment.simple().getFile("data/data-mgt/data_test.json")
+      val lines = scala.io.Source.fromFile(file).getLines()
+      val results: Seq[Option[MetaCatalog]] = lines.map(line => {
+        println(line)
+        val metaCatalogJs = Json.parse(line)
+        println(metaCatalogJs.toString())
+        val metaCatalogResult: JsResult[MetaCatalog] = metaCatalogJs.validate[MetaCatalog]
+        metaCatalogResult match {
+          case s: JsSuccess[MetaCatalog] => Some(s.get)
+          case e: JsError => {
+            println("ERRORE qui!!!!!!!!!!!!!")
+            println(e)
+            None
+          }
+        }
 
-    def createCatalog(metaCatalog: MetaCatalog, callingUserid :MetadataCat) :Success = {
+      }).toList.filter( x =>
+        x match {
+          case Some(s) => s.dcatapit.title.equals(title)
+          case None => false
+        })
+
+      results match {
+        case List() => None
+        case _ => results(0)
+      }
+    }
+
+    def createCatalog(metaCatalog: MetaCatalog, callingUserid :MetadataCat, ws :WSClient) :Success = {
       import catalog_manager.yaml.ResponseWrites.MetaCatalogWrites
 
       val fw = new FileWriter("data/data-mgt/data_test.json", true)

@@ -1,6 +1,7 @@
 package it.gov.daf.catalogmanager.repository.catalog
 
 import catalog_manager.yaml._
+import play.api.libs.ws.WSClient
 
 
 /**
@@ -13,7 +14,8 @@ trait CatalogRepository {
 
     def listCatalogs(page :Option[Int], limit :Option[Int]) :Seq[MetaCatalog]
     def catalog(catalogId :String): Option[MetaCatalog]
-    def createCatalog(metaCatalog: MetaCatalog,callingUserid :MetadataCat) :Success
+    def catalogByTitle(title :String): Option[MetaCatalog]
+    def createCatalog(metaCatalog: MetaCatalog,callingUserid :MetadataCat, ws :WSClient) :Success
     def standardUris() : List[String]
 
 

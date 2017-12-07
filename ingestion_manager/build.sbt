@@ -51,6 +51,7 @@ libraryDependencies ++= Seq(
   filters,
   "org.webjars" % "swagger-ui" % swaggerUiVersion, //excludeAll( ExclusionRule(organization = "com.fasterxml.jackson.core") ),
   "it.gov.daf" %% "daf-catalog-manager-client" % dafCatalogVersion,
+  "it.gov.daf" %% "daf-security-manager-client" % dafSecurityVersion,
   specs2 % Test,
   "me.lessis" %% "base64" % "0.2.0",
   "it.gov.daf" %% "common" % "1.0.0-SNAPSHOT" excludeAll(ExclusionRule(organization = "org.apache.hadoop.common")),

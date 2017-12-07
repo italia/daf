@@ -19,16 +19,16 @@ import javax.inject._
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
+import com.typesafe.config.Config
 import de.zalando.play.controllers.PlayBodyParsing._
 import it.gov.daf.ingestion.ClientCaller
-import play.api.libs.ws.ahc.AhcWSClient
-import scala.concurrent.Future
-import com.typesafe.config.Config
 import it.gov.daf.ingestion.nifi.NifiProcessor
-import it.gov.daf.ingestion.nifi.NifiProcessor.NifiResult
+import it.gov.daf.ingestion.pipelines.PipelineInfoRead
 import play.api.libs.ws.WSClient
 import scala.concurrent.ExecutionContext
-import it.gov.daf.ingestion.pipelines.PipelineInfoRead
+import it.gov.daf.securitymanager.client.Security_managerClient
+import java.net.URLEncoder
+import it.gov.daf.securitymanager.client.Security_managerClient
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -37,7 +37,10 @@ import it.gov.daf.ingestion.pipelines.PipelineInfoRead
 
 package ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Ingestion_managerYaml
-                    
+          import java.net.URLEncoder
+
+      import it.gov.daf.securitymanager.client.Security_managerClient
+
     // ----- End of unmanaged code area for package Ingestion_managerYaml
     class Ingestion_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Ingestion_managerYaml
@@ -60,14 +63,28 @@ package ingestion_manager.yaml {
       implicit val materializer: ActorMaterializer = ActorMaterializer()
       val clientCaller = new ClientCaller(ws)
 
+      val securityClient = new Security_managerClient(ws)(
+        baseUrl = config.getString("daf.security_manager_url")
+      )
+
 
       val auth = currentRequest
         .headers
         .get("authorization")
         .getOrElse("")
 
-      val fResults =
-        clientCaller.clientCatalogMgrMetaCatalog(auth, ds_logical_uri)
+      val fResults = clientCaller.clientCatalogMgrMetaCatalog(auth, ds_logical_uri)
+          .flatMap{ mc =>
+            //TODO move this logic into common
+            val user = mc.operational.group_own
+            val domain = mc.operational.theme
+            val subDomain = mc.operational.subtheme
+            val dsName = mc.dcatapit.name
+            val path = URLEncoder.encode(s"/home/$user/$domain/$subDomain/$dsName", "UTF-8")
+
+            securityClient.sftp(auth,mc.operational.group_own, path)
+              .map(res => mc)
+          }
           .flatMap(mc => NifiProcessor(mc).createDataFlow())
 
       fResults

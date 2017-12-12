@@ -85,7 +85,7 @@ dockerExposedPorts := Seq(7000)
 spec:
   type: NodePort
   ports:
-  - port 7000
+  - port: 7000
     protocol: TCP
     name: metrics
 

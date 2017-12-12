@@ -1,6 +1,5 @@
-import CommonBuild._
 import Versions._
-import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
+import com.typesafe.sbt.packager.docker.Cmd
 import de.heikoseeberger.sbtheader.license.Apache2_0
 import de.zalando.play.generator.sbt.ApiFirstPlayScalaCodeGenerator.autoImport.playScalaAutogenerateTests
 import play.sbt.routes.RoutesKeys.routesGenerator
@@ -9,6 +8,16 @@ import uk.gov.hmrc.gitstamp.GitStampPlugin._
 
 organization in ThisBuild := "it.gov.daf"
 name := "daf-ingestion-manager"
+
+resolvers ++= Seq(
+  Resolver.mavenLocal,
+  "zalando-bintray" at "https://dl.bintray.com/zalando/maven",
+  "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
+  "jeffmay" at "https://dl.bintray.com/jeffmay/maƒven",
+  "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/",
+  Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns),
+  Resolver.bintrayRepo("jtescher", " sbt-plugin-releases")
+)
 
 Seq(gitStampSettings: _*)
 
@@ -63,14 +72,7 @@ libraryDependencies ++= Seq(
 
 playScalaCustomTemplateLocation := Some(baseDirectory.value / "templates")
 
-resolvers ++= Seq(
-  Resolver.mavenLocal,
-  "zalando-bintray" at "https://dl.bintray.com/zalando/maven",
-  "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
-  "jeffmay" at "https://dl.bintray.com/jeffmay/maƒven",
-  "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/",
-  Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns) //, Resolver.mavenLocal
-)
+
 
 // Play provides two styles of routers, one expects its actions to be injected, the
 // other, legacy style, accesses its actions statically.

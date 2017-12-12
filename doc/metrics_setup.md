@@ -5,11 +5,79 @@ Jolokia is a way to access JMX MBeans remotely. It is different from JSR-160 con
 
 ## Setup
 
-### Publish sbt-jolokia to our local nexus
+### sbt-jolokia
 
-Clone the project [sbt-jolokia](https://github.com/fabiofumarola/sbt-jolokia)
+1. add `Resolver.bintrayRepo("jtescher", " sbt-plugin-releases")` to resolvers settings
 
-```bash
+```sbt-jolokia
 
-$ git clone 
-````
+resolvers += Resolver.bintrayRepo("jtescher", " sbt-plugin-releases")
+
+```
+
+To steup [sbt-jolokia](https://github.com/jtescher/sbt-jolokia) for play do:
+2. add `jolokia.sbt` in the `project` folder
+
+```sbt
+
+addSbtPlugin("com.jatescher" % "sbt-jolokia" % "1.1.1")
+
+```
+
+3. To use the Jolokia settings in your project, add the Jolokia auto-plugin to your project.
+
+```
+enablePlugins(Jolokia)
+```
+
+4. Customize the setting for jolokia port
+
+```sbt
+.settings(
+  jolokiaPort := "7000"
+)
+```
+
+5. Add the exposed port to `sbt-native-packager`
+
+```sbt
+
+dockerExposedPorts := Seq(7000)
+
+```
+
+6. run `sbt stage start` to run the service in pseudo-production
+
+7. navigate to `https://127.0.0.1:7000/jolokia/` and yould see a response like
+
+```json
+{
+   "request":{
+      "type":"version"
+   },
+   "value":{
+      "agent":"1.3.7",
+      "protocol":"7.2",
+      "config":{
+         "maxDepth":"15",
+         "discoveryEnabled":"true",
+         "maxCollectionSize":"0",
+         "agentId":"10.137.1.54-14997-6bf2d08e-jvm",
+         "debug":"false",
+         "agentType":"jvm",
+         "historyMaxEntries":"10",
+         "agentContext":"\/jolokia",
+         "maxObjects":"0",
+         "debugMaxEntries":"100"
+      },
+      "info":{
+
+      }
+   },
+   "timestamp":1513072097,
+   "status":200
+}
+```
+
+With these steps your project is enabled to collect metrics.
+`

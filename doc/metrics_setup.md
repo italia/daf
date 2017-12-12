@@ -20,7 +20,7 @@ To steup [sbt-jolokia](https://github.com/jtescher/sbt-jolokia) for play do:
 
 ```sbt
 
-addSbtPlugin("com.jatescher" % "sbt-jolokia" % "1.1.1")
+addSbtPlugin("com.jatescher" % "sbt-jolokia" % "1.1.0")
 
 ```
 

@@ -35,7 +35,8 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala, ApiFirstCore, Ap
   .dependsOn(client)
   .aggregate(client)
   .settings(
-    jolokiaPort := "7000"
+    jolokiaPort := "7000",
+    jolokiaProtocol := "http"
   )
 
 scalaVersion in ThisBuild := "2.11.8"

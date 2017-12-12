@@ -10,7 +10,7 @@ spec:
   - port: 9000
     protocol: TCP
     name: http
-  - port 7000
+  - port: 7000
     protocol: TCP
     name: metrics
   selector:
@@ -41,7 +41,7 @@ spec:
         ports:
         - name: client
           containerPort: 9000
-        - name: metrics:
+        - name: metrics
           containerPort: 7000
         securityContext:
           privileged: true

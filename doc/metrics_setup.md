@@ -79,5 +79,23 @@ dockerExposedPorts := Seq(7000)
 }
 ```
 
+8. In order to deploy the configuration to Kubernetes, add the node port and the ports definition.
+
+```
+spec:
+  type: NodePort
+  ports:
+  - port 7000
+    protocol: TCP
+    name: metrics
+
+spec:
+  template:
+    spec:
+        ports:
+        - name: metrics:
+          containerPort: 7000
+```
+
 With these steps your project is enabled to collect metrics.
 `

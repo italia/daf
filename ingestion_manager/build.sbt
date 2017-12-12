@@ -9,6 +9,17 @@ import uk.gov.hmrc.gitstamp.GitStampPlugin._
 organization in ThisBuild := "it.gov.daf"
 name := "daf-ingestion-manager"
 
+javaOptions := Seq(
+  "-server",
+  "-XX:+UseG1GC",
+  "-XX:MaxGCPauseMillis=100",
+  "-XX:+PerfDisableSharedMem",
+  "-XX:+ParallelRefProcEnabled",
+  "-Xmx2g",
+  "-Xms2g",
+  "-XX:MaxPermSize=1024m"
+)
+
 resolvers ++= Seq(
   Resolver.mavenLocal,
   "zalando-bintray" at "https://dl.bintray.com/zalando/maven",
@@ -39,7 +50,7 @@ lazy val client = (project in file("client")).
 lazy val spark = "org.apache.spark"
 
 lazy val root = (project in file("."))
-  .enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser, Jolokia)
+  .enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser, Jolokia, DockerPlugin)
   .disablePlugins(PlayLogback)
   .settings(
     jolokiaPort := "7000"
@@ -98,11 +109,11 @@ dockerCommands := dockerCommands.value.flatMap {
   )
   case other => List(other)
 }
+
 dockerEntrypoint := Seq(s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
 //9000 -> rest api, 7000 -> jolokia port
 dockerExposedPorts := Seq(9000, 7000)
 dockerRepository := Option("10.98.74.120:5000")
-
 
 publishTo in ThisBuild := {
   val nexus = "http://nexus.default.svc.cluster.local:8081/repository/"

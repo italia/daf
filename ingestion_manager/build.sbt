@@ -23,15 +23,18 @@ lazy val client = (project in file("client")).
     swaggerSourcesDir := file(s"${baseDirectory.value}/../conf"),
     libraryDependencies ++= Seq(
       "com.typesafe.play" %% "play-json" % playVersion,
-      "com.typesafe.play" %% "play-ws" %  playVersion
+      "com.typesafe.play" %% "play-ws" % playVersion
     )
   )).enablePlugins(SwaggerCodegenPlugin)
 
 lazy val spark = "org.apache.spark"
 
 lazy val root = (project in file("."))
-  .enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser)
+  .enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser, Jolokia)
   .disablePlugins(PlayLogback)
+  .settings(
+    jolokiaPort := "7000"
+  )
 
 scalaVersion in ThisBuild := "2.11.8"
 
@@ -51,7 +54,7 @@ libraryDependencies ++= Seq(
   "it.gov.daf" %% "daf-catalog-manager-client" % dafCatalogVersion,
   specs2 % Test,
   "me.lessis" %% "base64" % "0.2.0",
-  "it.gov.daf" %% "common" % "1.0.0-SNAPSHOT" excludeAll(ExclusionRule(organization = "org.apache.hadoop.common")),
+  "it.gov.daf" %% "common" % "1.0.0-SNAPSHOT" excludeAll (ExclusionRule(organization = "org.apache.hadoop.common")),
   "org.scalatest" %% "scalatest" % "3.0.4" % Test,
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.0" % Test,
   "org.scalacheck" %% "scalacheck" % "1.13.5" % Test,
@@ -66,7 +69,7 @@ resolvers ++= Seq(
   "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
   "jeffmay" at "https://dl.bintray.com/jeffmay/maƒven",
   "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/",
-  Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns)//, Resolver.mavenLocal
+  Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns) //, Resolver.mavenLocal
 )
 
 // Play provides two styles of routers, one expects its actions to be injected, the
@@ -94,7 +97,8 @@ dockerCommands := dockerCommands.value.flatMap {
   case other => List(other)
 }
 dockerEntrypoint := Seq(s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
-dockerExposedPorts := Seq(9000)
+//9000 -> rest api, 7000 -> jolokia port
+dockerExposedPorts := Seq(9000, 7000)
 dockerRepository := Option("10.98.74.120:5000")
 
 
@@ -103,7 +107,7 @@ publishTo in ThisBuild := {
   if (isSnapshot.value)
     Some("snapshots" at nexus + "maven-snapshots/")
   else
-    Some("releases"  at nexus + "maven-releases/")
+    Some("releases" at nexus + "maven-releases/")
 }
 credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
 

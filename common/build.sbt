@@ -90,4 +90,6 @@ publishTo := {
     Some("releases" at nexus + "maven-releases/")
 }
 
+publishMavenStyle := true
+
 credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")

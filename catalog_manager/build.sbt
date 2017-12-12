@@ -31,8 +31,12 @@ lazy val client = (project in file("client")).
     )
   )).enablePlugins(SwaggerCodegenPlugin)
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser)
-  .dependsOn(client).aggregate(client)
+lazy val root = (project in file(".")).enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser, Jolokia)
+  .dependsOn(client)
+  .aggregate(client)
+  .settings(
+    jolokiaPort := "7000"
+  )
 
 scalaVersion in ThisBuild := "2.11.8"
 
@@ -70,9 +74,9 @@ resolvers ++= Seq(
   "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
   "jeffmay" at "https://dl.bintray.com/jeffmay/maven",
   Resolver.url("sbt-plugins", url("http://dl.bintray.com/gruggiero/sbt-plugins"))(Resolver.ivyStylePatterns),
-  Resolver.mavenLocal,
   "lightshed-maven" at "http://dl.bintray.com/content/lightshed/maven",
-  "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/"
+  "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/",
+  Resolver.bintrayRepo("jtescher", " sbt-plugin-releases")
 )
 
 // Play provides two styles of routers, one expects its actions to be injected, the
@@ -102,7 +106,7 @@ dockerCommands := dockerCommands.value.flatMap {
   case other => List(other)
 }
 dockerEntrypoint := Seq(s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
-dockerExposedPorts := Seq(9000)
+dockerExposedPorts := Seq(9000, 7000)
 dockerRepository := Option("10.98.74.120:5000")
 
 

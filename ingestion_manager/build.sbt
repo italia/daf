@@ -26,8 +26,7 @@ resolvers ++= Seq(
   "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
   "jeffmay" at "https://dl.bintray.com/jeffmay/maƒven",
   "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/",
-  Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns),
-  Resolver.bintrayRepo("jtescher", " sbt-plugin-releases")
+  Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns)
 )
 
 Seq(gitStampSettings: _*)
@@ -50,12 +49,8 @@ lazy val client = (project in file("client")).
 lazy val spark = "org.apache.spark"
 
 lazy val root = (project in file("."))
-  .enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser, Jolokia, DockerPlugin)
+  .enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser, DockerPlugin)
   .disablePlugins(PlayLogback)
-  .settings(
-    jolokiaPort := "7000"
-  )
-
 scalaVersion in ThisBuild := "2.11.8"
 
 def dependencyToProvide(scope: String = "compile") = Seq(
@@ -64,6 +59,11 @@ def dependencyToProvide(scope: String = "compile") = Seq(
   spark %% "spark-streaming" % sparkVersion % scope exclude("com.fasterxml.jackson.core", "jackson-databind")
 )
 
+libraryDependencies ++= Seq(
+  "io.prometheus" % "simpleclient" % "0.1.0",
+  "io.prometheus" % "simpleclient_hotspot" % "0.1.0",
+  "io.prometheus" % "simpleclient_common" % "0.1.0"
+)
 
 libraryDependencies ++= Seq(
   jdbc,
@@ -112,7 +112,7 @@ dockerCommands := dockerCommands.value.flatMap {
 
 dockerEntrypoint := Seq(s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
 //9000 -> rest api, 7000 -> jolokia port
-dockerExposedPorts := Seq(9000, 7000)
+dockerExposedPorts := Seq(9000)
 dockerRepository := Option("10.98.74.120:5000")
 
 publishTo in ThisBuild := {

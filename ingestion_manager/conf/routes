@@ -16,6 +16,7 @@ GET         /api/*file      controllers.Assets.versioned(path="/public/swagger-u
 
 ->          /ingestion-manager/v1            ingestion_manager.yaml.Routes
 
+GET         /metrics                         controllers.MetricsController.index
 
 ### NoDocs ###
 GET         /docs/swagger-ui/*file    controllers.Assets.at(path:String="/public/lib/swagger-ui", file:String)

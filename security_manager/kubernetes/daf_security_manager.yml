@@ -10,9 +10,6 @@ spec:
   - port: 9000
     protocol: TCP
     name: http
-  - port: 7000
-    protocol: TCP
-    name: metrics
   selector:
     app: security-manager
 
@@ -43,8 +40,6 @@ spec:
         ports:
         - name: client
           containerPort: 9000
-        - name: metrics
-          containerPort: 7000
         securityContext:
           privileged: true
           runAsUser: 0

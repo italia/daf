@@ -18,6 +18,8 @@ GET         /api/*file                     controllers.Assets.versioned(path="/p
 
 ->          /security-manager/v1           security_manager.yaml.Routes
 
+GET         /metrics                         controllers.MetricsController.index
+
 ### NoDocs ###
 GET         /security-manager/docs/swagger-ui/*file controllers.Assets.at(path:String="/public/lib/swagger-ui", file:String)
 

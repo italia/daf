@@ -61,6 +61,12 @@ libraryDependencies ++= Seq(
   "org.specs2" %% "specs2-scalacheck" % "3.8.9" % Test
 )
 
+libraryDependencies ++= Seq(
+  "io.prometheus" % "simpleclient" % "0.1.0",
+  "io.prometheus" % "simpleclient_hotspot" % "0.1.0",
+  "io.prometheus" % "simpleclient_common" % "0.1.0"
+)
+
 playScalaCustomTemplateLocation := Some(baseDirectory.value / "templates")
 
 resolvers ++= Seq(

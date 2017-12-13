@@ -31,13 +31,9 @@ lazy val client = (project in file("client")).
     )
   )).enablePlugins(SwaggerCodegenPlugin)
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser, Jolokia)
+lazy val root = (project in file(".")).enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser)
   .dependsOn(client)
   .aggregate(client)
-  .settings(
-    jolokiaPort := "7000",
-    jolokiaProtocol := "http"
-  )
 
 scalaVersion in ThisBuild := "2.11.8"
 
@@ -69,6 +65,12 @@ libraryDependencies ++= Seq(
 // add nexus repo from security manager
 //
 
+libraryDependencies ++= Seq(
+  "io.prometheus" % "simpleclient" % "0.1.0",
+  "io.prometheus" % "simpleclient_hotspot" % "0.1.0",
+  "io.prometheus" % "simpleclient_common" % "0.1.0"
+)
+
 resolvers ++= Seq(
   Resolver.mavenLocal,
   //"zalando-bintray" at "https://dl.bintray.com/zalando/maven",
@@ -76,8 +78,7 @@ resolvers ++= Seq(
   "jeffmay" at "https://dl.bintray.com/jeffmay/maven",
   Resolver.url("sbt-plugins", url("http://dl.bintray.com/gruggiero/sbt-plugins"))(Resolver.ivyStylePatterns),
   "lightshed-maven" at "http://dl.bintray.com/content/lightshed/maven",
-  "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/",
-  Resolver.bintrayRepo("jtescher", " sbt-plugin-releases")
+  "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/"
 )
 
 // Play provides two styles of routers, one expects its actions to be injected, the
@@ -107,7 +108,7 @@ dockerCommands := dockerCommands.value.flatMap {
   case other => List(other)
 }
 dockerEntrypoint := Seq(s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
-dockerExposedPorts := Seq(9000, 7000)
+dockerExposedPorts := Seq(9000)
 dockerRepository := Option("10.98.74.120:5000")
 
 

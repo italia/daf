@@ -15,7 +15,6 @@ scalacOptions ++= Seq(
   "-encoding", "UTF-8", // yes, this is 2 args
   "-feature",
   "-unchecked",
-  "-Xfatal-warnings",
   "-Xlint",
   "-Yno-adapted-args",
   "-Ywarn-numeric-widen",
@@ -44,10 +43,8 @@ lazy val client = (project in file("client")).
   enablePlugins(SwaggerCodegenPlugin)
 
 lazy val root = (project in file(".")).
-  enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser, /*AutomateHeaderPlugin,*/ DockerPlugin, Jolokia).
-  dependsOn(client).aggregate(client).settings(
-    jolokiaPort := "7000"
-  )
+  enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser, /*AutomateHeaderPlugin,*/ DockerPlugin).
+  dependsOn(client).aggregate(client)
 
 scalaVersion in ThisBuild := "2.11.8"
 
@@ -65,6 +62,12 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.0.4" % "test"
 )
 
+libraryDependencies ++= Seq(
+  "io.prometheus" % "simpleclient" % "0.1.0",
+  "io.prometheus" % "simpleclient_hotspot" % "0.1.0",
+  "io.prometheus" % "simpleclient_common" % "0.1.0"
+)
+
 //Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns),
 
 
@@ -76,8 +79,7 @@ resolvers ++= Seq(
   "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos/",
   "lightshed-maven" at "http://dl.bintray.com/content/lightshed/maven",
   Resolver.mavenLocal,
-  "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/",
-  Resolver.bintrayRepo("jtescher", " sbt-plugin-releases")
+  "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/"
 )
 
 // Play provides two styles of routers, one expects its actions to be injected, the
@@ -103,7 +105,7 @@ dockerCommands := dockerCommands.value.flatMap {
   case other => List(other)
 }
 dockerEntrypoint := Seq(s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
-dockerExposedPorts := Seq(9000,7000)
+dockerExposedPorts := Seq(9000)
 dockerRepository := Option("10.98.74.120:5000")
 
 publishTo in ThisBuild := {

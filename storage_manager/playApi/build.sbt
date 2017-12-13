@@ -63,12 +63,8 @@ lazy val root = (project in file("."))
       Resolver.mavenLocal,
       Resolver.sonatypeRepo("releases"),
       "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos/",
-      "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/",
-      Resolver.bintrayRepo("jtescher", " sbt-plugin-releases")
+      "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/"
     )
-  )
-  .settings(
-    jolokiaPort := "7000"
   )
   .enablePlugins(PlayScala, AutomateHeaderPlugin, DockerPlugin)
   .aggregate(core)
@@ -143,7 +139,7 @@ dockerCommands := dockerCommands.value.flatMap {
   case other => List(other)
 }
 dockerEntrypoint := Seq(s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
-dockerExposedPorts := Seq(9000, 7000)
+dockerExposedPorts := Seq(9000)
 dockerRepository := Option("10.98.74.120:5000")
 
 publishTo := {

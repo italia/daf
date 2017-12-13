@@ -17,23 +17,7 @@ class MetricsController extends Controller {
   //export default jvm metrics
   DefaultExports.initialize()
 
-  val indexCounter = {
-    val metric = Counter.build()
-      .name("my_test_request_total")
-      .help("total requests count").create()
-
-    Try {
-      CollectorRegistry.defaultRegistry.unregister(metric)
-      metric.register()
-    }
-
-    metric
-  }
-
   def index = Action {
-
-    indexCounter.inc()
-
     val samples = new StringBuilder()
     val writer = new WriterAdapter(samples)
 
@@ -52,6 +36,5 @@ class WriterAdapter(buffer: StringBuilder) extends Writer {
     buffer ++= new String(new String(charArray, offset, length).getBytes("UTF-8"), "UTF-8")
   }
   override def flush(): Unit = {}
-
   override def close(): Unit = {}
 }

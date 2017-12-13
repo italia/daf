@@ -27,7 +27,6 @@ scalacOptions ++= Seq(
   "-encoding", "UTF-8", // yes, this is 2 args
   "-feature",
   "-unchecked",
-  "-Xfatal-warnings",
   "-Xlint",
   "-Yno-adapted-args",
   "-Ywarn-numeric-widen",
@@ -52,11 +51,14 @@ lazy val root = (project in file("."))
       specs2 % Test,
       "io.swagger" %% "swagger-play2" % "1.5.3",
       "com.typesafe.play" %% "play-json" % playVersion,
-      "it.gov.daf" %% "common" % version.value,
+      "it.gov.daf" %% "common" % "1.0.0-SNAPSHOT" excludeAll (ExclusionRule(organization = "org.apache.hadoop.common")),
       "it.gov.daf" %% "daf-catalog-manager-client" % "1.0.0-SNAPSHOT",
       "org.scalatest" %% "scalatest" % "3.0.4" % "test",
       "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % "test",
-      "com.github.pathikrit" %% "better-files" % betterFilesVersion % Test
+      "com.github.pathikrit" %% "better-files" % betterFilesVersion % Test,
+      "io.prometheus" % "simpleclient" % "0.1.0",
+      "io.prometheus" % "simpleclient_hotspot" % "0.1.0",
+      "io.prometheus" % "simpleclient_common" % "0.1.0"
     ).map(_.exclude("org.slf4j", "*")) ++ hbaseLibrariesTEST.map(_.exclude("org.slf4j", "*")),
 
     resolvers ++= Seq(

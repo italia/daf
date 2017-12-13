@@ -1,64 +1,60 @@
 {
-  "voc":
-  [
-    {
-      "theme_ita":"Agricoltura, pesca, silvicoltura e prodotti alimentari",
-      "theme_code": "AGRI",
-      "theme_daf_ita": "Agricoltura",
-      "theme_daf_code": "agricoltura",
-      "subthemes": [
-        {
-          "subtheme_daf_code": "policy",
-          "subtheme_daf_ita": "Policy Agricola e Alimentare",
-          "subthemes_ita": [
-            ["5606", "politiche agricole"]
-          ]
-        },
-        {
-          "subtheme_daf_code": "organizzazioni",
-          "subtheme_daf_ita": "Organizzazioni",
-          "subthemes_ita": []
-        },
-        {
-          "subtheme_daf_code": "produzione_agricola",
-          "subtheme_daf_ita": "Produzione Agricola",
-          "subthemes_ita": [
-            ["5611", "produzione e strutture agricole"],
-            ["5621", "coltivazione di terreni agricoli"],
-            ["5626", "mezzo di produzione agricola"],
-            ["5631", "attività agricola"],
-            ["6031", "industria agro-alimentare"],
-            ["6036", "tecnologia alimentare"],
-            ["6026", "prodotto alimentare"],
-            ["6016", "prodotto agricolo trasformato"],
-            ["6006", "prodotto vegetale"],
-            ["6021", "bevande e zucchero"],
-            ["5636", "foresta"]
-          ]
-        },
-        {
-          "subtheme_daf_code": "produzione_animale",
-          "subtheme_daf_ita": "Produzione Animale",
-          "subthemes_ita": [
-            ["5641", "pesca"],
-            ["6011", "prodotto animale"]
-          ]
-        }
+  "voc": [{
+    "theme_ita": "Agricoltura, pesca, silvicoltura e prodotti alimentari",
+    "theme_code": "AGRI",
+    "theme_daf_ita": "Agricoltura",
+    "theme_daf_code": "agricoltura",
+    "subthemes": [{
+      "subtheme_daf_code": "policy",
+      "subtheme_daf_ita": "Policy Agricola e Alimentare",
+      "subthemes_ita": [
+        ["5606", "politiche agricole"]
       ]
     },
+      {
+        "subtheme_daf_code": "organizzazioni",
+        "subtheme_daf_ita": "Organizzazioni",
+        "subthemes_ita": []
+      },
+      {
+        "subtheme_daf_code": "produzione_agricola",
+        "subtheme_daf_ita": "Produzione Agricola",
+        "subthemes_ita": [
+          ["5611", "produzione e strutture agricole"],
+          ["5621", "coltivazione di terreni agricoli"],
+          ["5626", "mezzo di produzione agricola"],
+          ["5631", "attività agricola"],
+          ["6031", "industria agro-alimentare"],
+          ["6036", "tecnologia alimentare"],
+          ["6026", "prodotto alimentare"],
+          ["6016", "prodotto agricolo trasformato"],
+          ["6006", "prodotto vegetale"],
+          ["6021", "bevande e zucchero"],
+          ["5636", "foresta"]
+        ]
+      },
+      {
+        "subtheme_daf_code": "produzione_animale",
+        "subtheme_daf_ita": "Produzione Animale",
+        "subthemes_ita": [
+          ["5641", "pesca"],
+          ["6011", "prodotto animale"]
+        ]
+      }
+    ]
+  },
     {
-      "theme_ita":"Energia",
+      "theme_ita": "Energia",
       "theme_code": "ENER",
       "theme_daf_ita": "Energia",
       "theme_daf_code": "energia",
-      "subthemes": [
-        {
-          "subtheme_daf_code": "policy",
-          "subtheme_daf_ita": "Policy",
-          "subthemes_ita": [
-            ["6606", "politica energetica"]
-          ]
-        },
+      "subthemes": [{
+        "subtheme_daf_code": "policy",
+        "subtheme_daf_ita": "Policy",
+        "subthemes_ita": [
+          ["6606", "politica energetica"]
+        ]
+      },
         {
           "subtheme_daf_code": "organizzazioni",
           "subtheme_daf_ita": "Organizzazioni",
@@ -77,19 +73,18 @@
       ]
     },
     {
-      "theme_ita":"Regioni e Citta'",
+      "theme_ita": "Regioni e Citta'",
       "theme_code": "REGI",
       "theme_daf_ita": "Territori",
       "theme_daf_code": "territori",
-      "subthemes": [
-        {
-          "subtheme_daf_code": "policy",
-          "subtheme_daf_ita": "Policy",
-          "subthemes_ita": [
-            ["7231", "geografia economica"],
-            ["7236", "geografia politica"]
-          ]
-        },
+      "subthemes": [{
+        "subtheme_daf_code": "policy",
+        "subtheme_daf_ita": "Policy",
+        "subthemes_ita": [
+          ["7231", "geografia economica"],
+          ["7236", "geografia politica"]
+        ]
+      },
         {
           "subtheme_daf_code": "europa",
           "subtheme_daf_ita": "Europa",
@@ -110,18 +105,17 @@
       ]
     },
     {
-      "theme_ita":"Trasporti",
-      "theme_code":"TRAN",
+      "theme_ita": "Trasporti",
+      "theme_code": "TRAN",
       "theme_daf_ita": "Trasporti",
       "theme_daf_code": "trasporti",
-      "subthemes": [
-        {
-          "subtheme_daf_code": "policy",
-          "subtheme_daf_ita": "Policy",
-          "subthemes_ita": [
-            ["4806", "poolitica dei trasporti"]
-          ]
-        },
+      "subthemes": [{
+        "subtheme_daf_code": "policy",
+        "subtheme_daf_ita": "Policy",
+        "subthemes_ita": [
+          ["4806", "poolitica dei trasporti"]
+        ]
+      },
         {
           "subtheme_daf_code": "organizzazioni",
           "subtheme_daf_ita": "Organizzazioni",
@@ -153,31 +147,30 @@
       ]
     },
     {
-      "theme_ita":"Economia e Finanza",
-      "theme_code":"ECON",
+      "theme_ita": "Economia e Finanza",
+      "theme_code": "ECON",
       "theme_daf_ita": "Economia e Finanza",
       "theme_daf_code": "economia",
-      "subthemes": [
-        {
-          "subtheme_daf_code": "policy",
-          "subtheme_daf_ita": "Policy",
-          "subthemes_ita": [
-            ["1606", "politica economica"],
-            ["1611", "crescita economica"],
-            ["2006", "politica commerciale"],
-            ["2011", "politica tariffaria"],
-            ["6806", "politiche e strutture industriali"],
-            ["1616", "regione e politica regionale"],
-            ["6811", "chimica"],
-            ["6816", "metallurgia e siderurgia"],
-            ["6821", "industria meccanica"],
-            ["6826", "elettronica ed elettrotecnica"],
-            ["6831", "edilizia e lavori pubblici"],
-            ["6836", "industria del legno"],
-            ["6841", "industria del cuoio e dei prodotti tessili"],
-            ["6846", "industrie varie"]
-          ]
-        },
+      "subthemes": [{
+        "subtheme_daf_code": "policy",
+        "subtheme_daf_ita": "Policy",
+        "subthemes_ita": [
+          ["1606", "politica economica"],
+          ["1611", "crescita economica"],
+          ["2006", "politica commerciale"],
+          ["2011", "politica tariffaria"],
+          ["6806", "politiche e strutture industriali"],
+          ["1616", "regione e politica regionale"],
+          ["6811", "chimica"],
+          ["6816", "metallurgia e siderurgia"],
+          ["6821", "industria meccanica"],
+          ["6826", "elettronica ed elettrotecnica"],
+          ["6831", "edilizia e lavori pubblici"],
+          ["6836", "industria del legno"],
+          ["6841", "industria del cuoio e dei prodotti tessili"],
+          ["6846", "industrie varie"]
+        ]
+      },
         {
           "subtheme_daf_code": "finanza_publica",
           "subtheme_daf_ita": "Finanza Pubblica",
@@ -235,7 +228,7 @@
         {
           "subtheme_daf_code": "immobiliare",
           "subtheme_daf_ita": "Immobiliare",
-          "subthemes_ita":[]
+          "subthemes_ita": []
         }
       ]
     },
@@ -245,16 +238,15 @@
       "theme_code": "INTR",
       "theme_daf_ita": "Internazionale",
       "theme_daf_code": "internazionale",
-      "subthemes": [
-        {
-          "subtheme_daf_code": "policy",
-          "subtheme_daf_ita": "Politiche Internazionali",
-          "subthemes_ita": [
-            ["0806", "politica internazionale"],
-            ["0811", "politica di cooperazione"],
-            ["0816", "equilibrio internazionale"]
-          ]
-        },
+      "subthemes": [{
+        "subtheme_daf_code": "policy",
+        "subtheme_daf_ita": "Politiche Internazionali",
+        "subthemes_ita": [
+          ["0806", "politica internazionale"],
+          ["0811", "politica di cooperazione"],
+          ["0816", "equilibrio internazionale"]
+        ]
+      },
         {
           "subtheme_daf_code": "difesa",
           "subtheme_daf_ita": "Difesa",
@@ -280,19 +272,18 @@
       "theme_code": "GOVE",
       "theme_daf_ita": "Pubblica Amministrazione",
       "theme_daf_code": "pa",
-      "subthemes": [
-        {
-          "subtheme_daf_code": "politica",
-          "subtheme_daf_ita": "Politica",
-          "subthemes_ita": [
-            ["0406", "quadro politico"],
-            ["0411", "partito politico"],
-            ["0416", "procedura elettorale e voto"],
-            ["0421", "parlamento"],
-            ["0426", "lavori parlamentari"],
-            ["0431", "vita politica e sicurezza pubblica"]
-          ]
-        },
+      "subthemes": [{
+        "subtheme_daf_code": "politica",
+        "subtheme_daf_ita": "Politica",
+        "subthemes_ita": [
+          ["0406", "quadro politico"],
+          ["0411", "partito politico"],
+          ["0416", "procedura elettorale e voto"],
+          ["0421", "parlamento"],
+          ["0426", "lavori parlamentari"],
+          ["0431", "vita politica e sicurezza pubblica"]
+        ]
+      },
         {
           "subtheme_daf_code": "amministrazione",
           "subtheme_daf_ita": "Governo e Amministrazione",
@@ -311,18 +302,17 @@
       "theme_code": "JUST",
       "theme_daf_ita": "Giustizia e sistema giuridico",
       "theme_daf_code": "giustizia",
-      "subthemes": [
-        {
-          "subtheme_daf_code": "leggi",
-          "subtheme_daf_ita": "Sistema giuridico",
-          "subthemes_ita": [
-            ["1206", "fonti e branche del diritto"],
-            ["1211", "diritto civile"],
-            ["1216", "diritto penale"],
-            ["1231", "diritto internazionale"],
-            ["1236", "diritti e liberta"]
-          ]
-        },
+      "subthemes": [{
+        "subtheme_daf_code": "leggi",
+        "subtheme_daf_ita": "Sistema giuridico",
+        "subthemes_ita": [
+          ["1206", "fonti e branche del diritto"],
+          ["1211", "diritto civile"],
+          ["1216", "diritto penale"],
+          ["1231", "diritto internazionale"],
+          ["1236", "diritti e liberta"]
+        ]
+      },
         {
           "subtheme_daf_code": "giustizia",
           "subtheme_daf_ita": "Giustizia",
@@ -334,7 +324,7 @@
         {
           "subtheme_daf_code": "sicurezza",
           "subtheme_daf_ita": "sicurezza",
-          "subthemes_ita":[]
+          "subthemes_ita": []
         }
       ]
     },
@@ -343,14 +333,13 @@
       "theme_code": "ENVI",
       "theme_daf_ita": "Ambiente",
       "theme_daf_code": "ambiente",
-      "subthemes": [
-        {
-          "subtheme_daf_code": "policy",
-          "subtheme_daf_ita": "Politiche ambientali",
-          "subthemes_ita": [
-            ["5206", "politica dell'ambiente"]
-          ]
-        },
+      "subthemes": [{
+        "subtheme_daf_code": "policy",
+        "subtheme_daf_ita": "Politiche ambientali",
+        "subthemes_ita": [
+          ["5206", "politica dell'ambiente"]
+        ]
+      },
         {
           "subtheme_daf_code": "misurazioni",
           "subtheme_daf_ita": "Misurazioni",
@@ -367,20 +356,19 @@
       "theme_code": "EDUC",
       "theme_daf_ita": "Istruzione Cultura Sport",
       "theme_daf_code": "istruzionecs",
-      "subthemes": [
-        {
-          "subtheme_daf_code": "istruzione",
-          "subtheme_daf_ita": "Istruzione",
-          "subthemes_ita": [
-            ["3206", "istruzione"],
-            ["3211", "insegnamento"],
-            ["3216", "organizzazione scolastica"],
-            ["3221", "documentazione"],
-            ["3226", "comunicazione"],
-            ["3231", "informazione ed elaborazione dell'informazione"],
-            ["3236", "informatica e trattamento dei dati"]
-          ]
-        },
+      "subthemes": [{
+        "subtheme_daf_code": "istruzione",
+        "subtheme_daf_ita": "Istruzione",
+        "subthemes_ita": [
+          ["3206", "istruzione"],
+          ["3211", "insegnamento"],
+          ["3216", "organizzazione scolastica"],
+          ["3221", "documentazione"],
+          ["3226", "comunicazione"],
+          ["3231", "informazione ed elaborazione dell'informazione"],
+          ["3236", "informatica e trattamento dei dati"]
+        ]
+      },
         {
           "subtheme_daf_code": "luoghi",
           "subtheme_daf_ita": "Luoghi",
@@ -405,15 +393,14 @@
 
     {
       "theme_ita": "Salute",
-      "theme_code":"HEAL",
+      "theme_code": "HEAL",
       "theme_daf_ita": "Salute",
       "theme_daf_code": "salute",
-      "subthemes": [
-        {
-          "subtheme_daf_code": "policy",
-          "subtheme_daf_ita": "Politiche sulla salute",
-          "subthemes_ita": []
-        },
+      "subthemes": [{
+        "subtheme_daf_code": "policy",
+        "subtheme_daf_ita": "Politiche sulla salute",
+        "subthemes_ita": []
+      },
         {
           "subtheme_daf_code": "organizzazioni",
           "subtheme_daf_ita": "Organizzazioni",
@@ -434,16 +421,15 @@
       "theme_code": "SOCI",
       "theme_daf_ita": "Popolazione",
       "theme_daf_code": "popolazione",
-      "subthemes": [
-        {
-          "subtheme_daf_code": "demografia",
-          "subtheme_daf_ita": "Demografia",
-          "subthemes_ita": [
-            ["2811", "migrazione"],
-            ["2816", "demografia e popolazione"],
-            ["2806", "famiglia"]
-          ]
-        },
+      "subthemes": [{
+        "subtheme_daf_code": "demografia",
+        "subtheme_daf_ita": "Demografia",
+        "subthemes_ita": [
+          ["2811", "migrazione"],
+          ["2816", "demografia e popolazione"],
+          ["2806", "famiglia"]
+        ]
+      },
         {
           "subtheme_daf_code": "societa",
           "subtheme_daf_ita": "Societa",
@@ -461,22 +447,20 @@
         }
       ]
     },
-
     {
       "theme_ita": "Scienza e Tecnologia",
-      "theme_code":"TECH",
+      "theme_code": "TECH",
       "theme_daf_ita": "Scienza e Tecnologia",
       "theme_daf_code": "tecnologia",
-      "subthemes": [
-        {
-          "subtheme_daf_code": "scienza",
-          "subtheme_daf_ita": "Scienza e Ricerca",
-          "subthemes_ita": [
-            ["3606", "scienze naturali e applicate"],
-            ["3611", "scienze umane"],
-            ["6416", "ricerca e proprieta intellettuale"]
-          ]
-        },
+      "subthemes": [{
+        "subtheme_daf_code": "scienza",
+        "subtheme_daf_ita": "Scienza e Ricerca",
+        "subthemes_ita": [
+          ["3606", "scienze naturali e applicate"],
+          ["3611", "scienze umane"],
+          ["6416", "ricerca e proprieta intellettuale"]
+        ]
+      },
         {
           "subtheme_daf_code": "produzione",
           "subtheme_daf_ita": "Produzione",
@@ -490,7 +474,78 @@
           "subthemes_ita": []
         }
       ]
+    },
+    {
+      "theme_ita": "",
+      "theme_code": "DAF_VOC",
+      "theme_daf_ita": "Vocabolari Controllati",
+      "theme_daf_code": "DAF_VOC",
+      "subthemes": [{
+        "subtheme_daf_code": "agricoltura",
+        "subtheme_daf_ita": "Agricoltura",
+        "subthemes_ita": []
+      },
+        {
+          "subtheme_daf_code": "energia",
+          "subtheme_daf_ita": "Energia",
+          "subthemes_ita": []
+        },
+        {
+          "subtheme_daf_code": "territori",
+          "subtheme_daf_ita": "Territori",
+          "subthemes_ita": []
+        },
+        {
+          "subtheme_daf_code": "trasporti",
+          "subtheme_daf_ita": "Trasporti",
+          "subthemes_ita": []
+        },
+        {
+          "subtheme_daf_code": "economia",
+          "subtheme_daf_ita": "Economia e Finanza",
+          "subthemes_ita": []
+        },
+        {
+          "subtheme_daf_code": "internazionale",
+          "subtheme_daf_ita": "Internazionale",
+          "subthemes_ita": []
+        },
+        {
+          "subtheme_daf_code": "pa",
+          "subtheme_daf_ita": "Pubblica Amministrazione",
+          "subthemes_ita": []
+        },
+        {
+          "subtheme_daf_code": "giustizia",
+          "subtheme_daf_ita": "Giustizia e sistema giuridico",
+          "subthemes_ita": []
+        },
+        {
+          "subtheme_daf_code": "ambiente",
+          "subtheme_daf_ita": "Ambiente",
+          "subthemes_ita": []
+        },
+        {
+          "subtheme_daf_code": "istruzionecs",
+          "subtheme_daf_ita": "Istruzione, Cultura e Sport",
+          "subthemes_ita": []
+        },
+        {
+          "subtheme_daf_code": "salute",
+          "subtheme_daf_ita": "Salute",
+          "subthemes_ita": []
+        },
+        {
+          "subtheme_daf_code": "popolazione",
+          "subtheme_daf_ita": "Popolazione",
+          "subthemes_ita": []
+        },
+        {
+          "subtheme_daf_code": "tecnologia",
+          "subtheme_daf_ita": "scienza e tecnologia",
+          "subthemes_ita": []
+        }
+      ]
     }
   ]
-
 }

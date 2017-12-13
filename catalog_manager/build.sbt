@@ -32,7 +32,8 @@ lazy val client = (project in file("client")).
   )).enablePlugins(SwaggerCodegenPlugin)
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser, Jolokia)
-  .dependsOn(client).aggregate(client)
+  .dependsOn(client)
+  .aggregate(client)
   .settings(
     jolokiaPort := "7000",
     jolokiaProtocol := "http"

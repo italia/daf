@@ -1,5 +1,8 @@
 package it.gov.daf.catalogmanager.repository.catalog
 
+import java.net.URLEncoder
+import javax.security.auth.login.AppConfigurationEntry
+
 import catalog_manager.yaml.{Dataset, DatasetCatalogFlatSchema, MetaCatalog, MetadataCat, ResponseWrites, Success}
 import com.mongodb.DBObject
 import com.mongodb.casbah.MongoClient
@@ -8,6 +11,8 @@ import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import com.mongodb.casbah.Imports._
 import it.gov.daf.catalogmanager.utilities.{CatalogManager, ConfigReader}
 import it.gov.daf.catalogmanager.service.CkanRegistry
+import play.api.libs.ws.{WSClient, WSResponse}
+
 import scala.concurrent.Future
 import scala.util.Try
 
@@ -81,7 +86,32 @@ class CatalogRepositoryMongo extends  CatalogRepository{
     metaCatalog
   }
 
-  def createCatalog(metaCatalog: MetaCatalog, callingUserid :MetadataCat) :Success = {
+  def catalogByTitle(title :String): Option[MetaCatalog] = {
+    //val objectId : ObjectId = new ObjectId(catalogId)
+    val query = MongoDBObject("dcatapit.title" -> title)
+    // val mongoClient = MongoClient(mongoHost, mongoPort)
+    val mongoClient = MongoClient(server, List(credentials))
+    val db = mongoClient(source)
+    val coll = db("catalog_test")
+    val result = coll.findOne(query)
+    mongoClient.close
+    val metaCatalog: Option[MetaCatalog] = result match {
+      case Some(x) => {
+        val jsonString = com.mongodb.util.JSON.serialize(x)
+        val json = Json.parse(jsonString) //.as[List[JsObject]]
+        val metaCatalogJs = json.validate[MetaCatalog]
+        val metaCatalog = metaCatalogJs match {
+          case s: JsSuccess[MetaCatalog] => Some(s.get)
+          case _: JsError => None
+        }
+        metaCatalog
+      }
+      case _ => None
+    }
+    metaCatalog
+  }
+
+  def createCatalog(metaCatalog: MetaCatalog, callingUserid :MetadataCat, ws :WSClient) :Success = {
 
     import catalog_manager.yaml.ResponseWrites.MetaCatalogWrites
 
@@ -133,8 +163,6 @@ class CatalogRepositoryMongo extends  CatalogRepository{
       }
       message
     }
-
-  //  ws.url("http://google.com").get().map(x => println(x.body))
 
     Success(msg, Some(msg))
   }

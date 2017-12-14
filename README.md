@@ -11,6 +11,16 @@ Welcome to the project homepage.
 In general, we prefer to keep all the project with Version 1.0.0-SNAPSHOT. This requires that could need to publish to your local nexus ivy repository some local projects.
 This part is experimental and can change in the future.
 
+
+## Submodules
+
+We use submodules for Kong and other projects. To init the repo submodule run:
+
+```
+$ git submodule init
+$ git submodule update
+```
+
 ### Internal Team
 
 Each time you start working on the DAF the desiderata is that:

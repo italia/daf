@@ -3,22 +3,16 @@ package it.gov.daf.securitymanager.service
 import cats.data.EitherT
 import com.google.inject.{Inject, Singleton}
 import it.gov.daf.common.authentication.Role
-import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import it.gov.daf.sso.ApiClientIPA
 import security_manager.yaml.{DafOrg, Error, IpaUser, Success}
 import scala.concurrent.Future
 import cats.implicits._
+import IntegrationService._
 
 @Singleton
-class IntegrationService @Inject()(apiClientIPA:ApiClientIPA,supersetApiClient: SupersetApiClient,ckanApiClient: CkanApiClient){
+class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient: SupersetApiClient, ckanApiClient: CkanApiClient, grafanaApiClient:GrafanaApiClient, registrationService: RegistrationService){
 
   import scala.concurrent.ExecutionContext.Implicits._
-
-  private def toDataSource(groupCn:String)=s"$groupCn-db"
-  private def toRoleName(groupCn:String)=s"datarole-$groupCn-db"
-  private def toUserName(groupCn:String)=s"$groupCn-default-admin"
-  private def toMail(groupCn:String)=s"$groupCn@default.it"
-
 
   def createDafOrganization(dafOrg:DafOrg):Future[Either[Error,Success]] = {
 
@@ -34,16 +28,24 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA,supersetApiClient: 
 
     val result = for {
       a <- EitherT( apiClientIPA.createGroup(dafOrg.groupCn) )
-      b <- EitherT( apiClientIPA.createUser(defaultOrgIpaUser) )
-      //b <- EitherT( apiClientIPA.addUsersToGroup(dafOrg.groupCn, UserList(Option(Seq(defaultOrgIpaUser.uid)))) )
-      c <- EitherT( supersetApiClient.createDatabase(toDataSource(groupCn),toUserName(groupCn),dafOrg.defaultUserPwd,dafOrg.supSetConnectedDbName) )
+      b <- EitherT( registrationService.createUser(defaultOrgIpaUser) )
+      c <- EitherT( supersetApiClient.createDatabase(toDataSource(groupCn),defaultOrgIpaUser.uid,dafOrg.defaultUserPwd,dafOrg.supSetConnectedDbName) )
+      /*
       orgAdminRoleId <- EitherT( supersetApiClient.findRoleId(ConfigReader.suspersetOrgAdminRole) )
       dataOrgRoleId <- EitherT( supersetApiClient.findRoleId(toRoleName(groupCn)) )
       d <- EitherT( supersetApiClient.createUserWithRoles(defaultOrgIpaUser,orgAdminRoleId,dataOrgRoleId) )
-      e <- EitherT( ckanApiClient.createOrganization(toUserName(groupCn),dafOrg.defaultUserPwd,dafOrg.groupCn) )
-    } yield e
+      */
+      e <- EitherT( ckanApiClient.createOrganizationAsAdmin(groupCn) )
+      f <- EitherT( grafanaApiClient.createOrganization(groupCn) )
+      g <- EitherT( addUserToOrganizationAsAdmin(groupCn,defaultOrgIpaUser.uid) )
+      //g <- EitherT( grafanaApiClient.addUserInOrganization(groupCn,toUserName(groupCn)) )
+    } yield g
 
-    result.value
+
+    result.value.map{
+      case Right(r) => Right( Success(Some("Organization created"), Some("ok")) )
+      case Left(l) => Left(l)
+    }
 
     /* per cancellare automatcamente tutto in caso di errore
     result.value.flatMap{
@@ -53,7 +55,6 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA,supersetApiClient: 
         deleteDafOrganization(dafOrg.groupCn)
         result.value
       }
-
     }*/
 
   }
@@ -76,13 +77,15 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA,supersetApiClient: 
 
       f <- EitherT( ckanApiClient.deleteOrganization(groupCn) )
       g <- EitherT( ckanApiClient.purgeOrganization(groupCn) )
-    } yield g
+
+      h <- EitherT( grafanaApiClient.deleteOrganization(groupCn) )
+    } yield h
 
     result.value
   }
 
 
-  def addUserToOrganization(groupCn:String, userName:String, loggedUserName:String ):Future[Either[Error,Success]] = {
+  def addUserToOrganization(groupCn:String, userName:String):Future[Either[Error,Success]] = {
 
     val result = for {
       user <-  EitherT( apiClientIPA.showUser(userName) )
@@ -91,24 +94,40 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA,supersetApiClient: 
       a <- EitherT( supersetApiClient.deleteUser(supersetUserInfo._1) )
       b <- EitherT( supersetApiClient.createUserWithRoles(user,roleIds:_*) )
 
-      org <- EitherT( ckanApiClient.getOrganization(loggedUserName,groupCn) )
-      c <- EitherT( ckanApiClient.putUserInOrganization(loggedUserName,userName,org) )
-    } yield c
+      org <- EitherT( ckanApiClient.getOrganizationAsAdmin(groupCn) )
+      c <- EitherT( ckanApiClient.putUserInOrganizationAsAdmin(userName,org) )
+
+      d <- EitherT( grafanaApiClient.addUserInOrganization(groupCn,userName) )
+    } yield d
 
     result.value
   }
 
-
-  def addNewUserToDefultOrganization(ipaUser:IpaUser):Future[Either[Error,Success]] = {
+  def addUserToOrganizationAsAdmin(groupCn:String, userName:String):Future[Either[Error,Success]] = {
 
     val result = for {
-      roleIds <- EitherT( supersetApiClient.findRoleIds(ConfigReader.suspersetOrgAdminRole,toRoleName(ConfigReader.defaultOrganization)) )
-      a <- EitherT( supersetApiClient.createUserWithRoles(ipaUser,roleIds:_*) )
-    } yield a
+      user <-  EitherT( apiClientIPA.showUser(userName) )
+      supersetUserInfo <- EitherT( supersetApiClient.findUser(userName) )
+      roleIds <- EitherT( supersetApiClient.findRoleIds(toRoleName(groupCn)::supersetUserInfo._2.toList:_*) )
+      a <- EitherT( supersetApiClient.deleteUser(supersetUserInfo._1) )
+      b <- EitherT( supersetApiClient.createUserWithRoles(user,roleIds:_*) )
+
+      org <- EitherT( ckanApiClient.getOrganizationAsAdmin(groupCn) )
+      c <- EitherT( ckanApiClient.putUserInOrganizationAsAdmin(userName,org) )
+
+      d <- EitherT( grafanaApiClient.addUserInOrganization(groupCn,userName) )
+    } yield d
 
     result.value
   }
 
 
+}
 
+
+object IntegrationService {
+  def toDataSource(groupCn:String)=s"$groupCn-db"
+  def toRoleName(groupCn:String)=s"datarole-$groupCn-db"
+  def toUserName(groupCn:String)=s"$groupCn-default-admin"
+  def toMail(groupCn:String)=s"$groupCn@default.it"
 }

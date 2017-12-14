@@ -189,13 +189,13 @@ class LoginClientLocal() extends LoginClient {
 
     println("login grafana")
 
-    wsResponse.map(getCookies(_))
+    wsResponse.map(getCookies)
 
   }
 
   private def loginGrafana(userName: String, pwd: String, wsClient: WSClient): Future[Cookie] = {
 
-    loginGrafanaFE(userName, pwd, wsClient).map(_.find(_.name!="grafana_sess").get )
+    loginGrafanaFE(userName, pwd, wsClient).map(_.find(_.name=="grafana_sess").get )
 
   }
 

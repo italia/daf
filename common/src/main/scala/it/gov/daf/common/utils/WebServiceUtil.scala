@@ -99,6 +99,9 @@ object WebServiceUtil {
     readCredentialFromRequest(request)._3.contains(Role.Admin.toString)
   }
 
+  def isBelongingToGroup( request:Request[Any], group:String ):Boolean ={
+    readCredentialFromRequest(request)._3.contains(group)
+  }
 
   def cleanDquote(in:String): String = {
     in.replace("\"","").replace("[","")replace("]","")

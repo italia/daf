@@ -57,6 +57,29 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
 
   }
 
+  def createOrganizationAsAdmin(groupCn:String):Future[Either[Error, Success]] = {
+
+    val jsonRequest: JsValue = Json.parse(
+      s"""{
+           "description": "Organizzazione: $groupCn",
+           "title": "Organizzazione: $groupCn",
+           "name": "$groupCn",
+           "is_organization": true,
+           "state": "active",
+           "type": "organization"
+         }""")
+
+    println("createOrganization request: " + jsonRequest.toString())
+
+
+    def serviceInvoke(cookie: String, wsClient: WSClient): Future[WSResponse] = {
+      wsClient.url(ConfigReader.ckanHost + "/api/3/action/organization_create").withHeaders("Cookie" -> cookie).post(jsonRequest)
+    }
+
+    secInvokeManager.manageServiceCall(ckanAdminLogin, serviceInvoke) map ( evaluateResult(_,"Organization created") )
+
+  }
+
 
   def deleteOrganization(groupCn:String):Future[Either[Error, Success]] = {
 
@@ -118,6 +141,23 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
 
   }
 
+  def putUserInOrganizationAsAdmin(userName:String, ckanOrg:CkanOrg):Future[Either[Error, Success]] = {
+
+    val updatedCkanOrg = ckanOrg.copy( users=ckanOrg.users :+ CkanOrgUser(userName,"admin") )
+
+    val jsonRequest: JsValue = Json.toJson(updatedCkanOrg)
+
+    println("putUsersInOrganization request: " + jsonRequest.toString())
+
+
+    def serviceInvoke(cookie: String, wsClient: WSClient): Future[WSResponse] = {
+      wsClient.url(ConfigReader.ckanHost + "/api/3/action/organization_patch?id=" + updatedCkanOrg.name).withHeaders("Cookie" -> cookie).post(jsonRequest)
+    }
+
+    secInvokeManager.manageServiceCall( ckanAdminLogin, serviceInvoke) map ( evaluateResult(_,"User added") )
+
+  }
+
 
   def getOrganization(loggedUserName:String, groupCn:String):Future[Either[Error, CkanOrg]] = {
 
@@ -133,6 +173,20 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
     val ckanLogin =  new LoginInfo(loggedUserName, cacheWrapper.getPwd(loggedUserName).get , "ckan")
 
     secInvokeManager.manageServiceCall(ckanLogin, serviceInvoke) map getOrgFromJson
+
+  }
+
+  def getOrganizationAsAdmin( groupCn:String):Future[Either[Error, CkanOrg]] = {
+
+    println("getUsersOfOrganization groupCn: " + groupCn)
+
+
+    def serviceInvoke( cookie: String, wsClient: WSClient ):Future[WSResponse] ={
+      val url = ConfigReader.ckanHost  + "/api/3/action/organization_show?id=" + groupCn
+      wsClient.url(url).withHeaders("Cookie" -> cookie).get
+    }
+
+    secInvokeManager.manageServiceCall(ckanAdminLogin, serviceInvoke) map getOrgFromJson
 
   }
 

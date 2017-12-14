@@ -38,7 +38,10 @@ private class AppConfig @Inject()(playConfig: Configuration) {
 
   val metabaseUrl :Option[String] = playConfig.getString("metabase.url")
   val jupyterUrl :Option[String] = playConfig.getString("jupyter.url")
+
   val grafanaUrl :Option[String] = playConfig.getString("grafana.url")
+  val grafanaAdminUser :Option[String] = playConfig.getString("grafana.adminUser")
+  val grafanaAdminPwd :Option[String] = playConfig.getString("grafana.adminPwd")
 
   val tokenExpiration :Option[Long] = playConfig.getLong("token.expiration")
   val cookieExpiration :Option[Long] = playConfig.getLong("cookie.expiration")
@@ -60,7 +63,8 @@ object ConfigReader {
   require(config.suspersetDbUri.nonEmpty,"A superset db uri must be specified")
   require(config.ckanAdminUser.nonEmpty,"A ckan admin must be specified")
   require(config.ckanAdminPwd.nonEmpty,"A ckan admin password must be specified")
-
+  require(config.grafanaAdminUser.nonEmpty,"A grafana admin must be specified")
+  require(config.grafanaAdminPwd.nonEmpty,"A grafana admin password must be specified")
 
 
   //def userIdHeader: String = config.userIdHeader.getOrElse("userid")
@@ -93,7 +97,10 @@ object ConfigReader {
 
   def metabaseUrl:String = config.metabaseUrl.getOrElse("xxx")
   def jupyterUrl:String = config.jupyterUrl.getOrElse("xxx")
+
   def grafanaUrl:String = config.grafanaUrl.getOrElse("xxx")
+  def grafanaAdminUser:String = config.grafanaAdminUser.get
+  def grafanaAdminPwd:String = config.grafanaAdminPwd.get
 
   def tokenExpiration:Long = config.tokenExpiration.getOrElse(60L*8L)// 8h by default
   def cookieExpiration:Long = config.cookieExpiration.getOrElse(30L)// 30 min by default

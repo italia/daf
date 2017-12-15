@@ -31,6 +31,8 @@ import java.net.URLEncoder
 import it.gov.daf.securitymanager.client.Security_managerClient
 import java.net.URLEncoder
 import it.gov.daf.securitymanager.client.Security_managerClient
+import java.net.URLEncoder
+import it.gov.daf.securitymanager.client.Security_managerClient
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -39,7 +41,7 @@ import it.gov.daf.securitymanager.client.Security_managerClient
 
 package ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Ingestion_managerYaml
-              import java.net.URLEncoder
+                  import java.net.URLEncoder
 
       import it.gov.daf.securitymanager.client.Security_managerClient
 

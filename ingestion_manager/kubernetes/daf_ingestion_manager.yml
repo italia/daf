@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
       - name: ingestion-manager
-        image: 10.98.74.120:5000/daf-ingestion-manager:${INGESTION_MANAGER_VERSION}
+        image: 10.98.74.120:5000/daf-ingestion-manager:1.0.0-SNAPSHOT
         imagePullPolicy: Always
         env:
         - name: JVM_OPTS

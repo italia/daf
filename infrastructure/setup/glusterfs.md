@@ -6,6 +6,7 @@ https://docs.openshift.org/latest/install_config/storage_examples/gluster_exampl
 
 ## steps
 All needed files are in [daf_provisioning_and_maintenance](https://github.com/teamdigitale/daf_provisioning_and_maintenance/tree/master/kubernetes) project.
+
 Create endopoints and verify the endpoints were created:
 ```
 kubectl create -f glusterfs-endpoints.json

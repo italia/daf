@@ -1,33 +1,31 @@
 package it.gov.daf.sso
 
-import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
+import com.google.inject.{Inject, Provides, Singleton}
 import it.gov.daf.common.sso.common.{LoginInfo, SecuredInvocationManager}
 import it.gov.daf.common.utils.WebServiceUtil
+import it.gov.daf.common.authentication.Role
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import org.apache.commons.lang3.StringEscapeUtils
 import play.api.libs.json._
-import play.api.libs.ws.WSResponse
-import play.api.libs.ws.ahc.AhcWSClient
-import security_manager.yaml.{Error, IpaUser, Success}
+import play.api.libs.ws.{WSClient, WSResponse}
+import security_manager.yaml.{Error, Group, IpaUser, Success, UserList}
 
 import scala.concurrent.Future
 
-
-object ApiClientIPA {
+@Singleton
+class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClientLocal: LoginClientLocal,wsClient: WSClient){
 
   import scala.concurrent.ExecutionContext.Implicits._
 
-  implicit val system = ActorSystem()
-  implicit val materializer = ActorMaterializer()
   private val loginInfo = new LoginInfo(ConfigReader.ipaUser, ConfigReader.ipaUserPwd, LoginClientLocal.FREE_IPA)
-  private val loginClient = LoginClientLocal.instance()
-  private val secInvokeManager = SecuredInvocationManager.init(loginClient)
+
 
   def createUser(user: IpaUser):Future[Either[Error,Success]]= {
 
+    val role = user.role.getOrElse(Role.Viewer.toString)
+
     val jsonUser: JsValue = Json.parse(
-      s"""{
+                                s"""{
                                        "method":"user_add",
                                        "params":[
                                           [
@@ -45,6 +43,7 @@ object ApiClientIPA {
                                              "noprivate":false,
                                              "random":false,
                                              "raw":false,
+                                             "userclass":"$role",
                                              "version": "2.213"
                                           }
                                        ],
@@ -53,7 +52,7 @@ object ApiClientIPA {
 
     println(jsonUser.toString())
 
-    val serviceInvoke : (String,AhcWSClient)=> Future[WSResponse] = callIpaUrl(jsonUser,_,_)
+    val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonUser,_,_)
     secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).flatMap { json =>
 
       val result = (json \ "result").getOrElse(JsString("null")).toString()
@@ -62,12 +61,184 @@ object ApiClientIPA {
         loginCkan(user.uid, user.userpassword.get).map { _ =>
           Right(Success(Some("User created"), Some("ok")))
         }
-      } else Future { Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) ) }
+      }
+      else
+        Future { Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) ) }
 
     }
 
   }
 
+
+  def deleteUser(userUid: String):Future[Either[Error,Success]]= {
+
+
+    val jsonDelete: JsValue = Json.parse(
+                                s"""{
+                                       "method":"user_del",
+                                       "params":[
+                                          [
+                                             "${userUid}"
+                                          ],
+                                          {
+                                             "continue":false,
+                                             "version": "2.213"
+                                          }
+                                       ],
+                                       "id":0
+                                    }""")
+
+    println("deleteUser: "+jsonDelete.toString())
+
+    val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonDelete,_,_)
+    secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).flatMap { json =>
+
+      val result = (json \ "result").getOrElse(JsString("null")).toString()
+
+      if (result != "null")
+        Future.successful( Right(Success(Some("User deleted"), Some("ok"))) )
+      else
+        Future.successful( Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) ) )
+
+    }
+
+  }
+
+
+  def createGroup(group: String):Future[Either[Error,Success]]= {
+
+    val jsonGroup: JsValue = Json.parse(
+                                s"""{
+                                       "method":"group_add",
+                                       "params":[
+                                          [
+                                             "${group}"
+                                          ],
+                                          {
+                                             "raw":false,
+                                             "version": "2.213"
+                                          }
+                                       ],
+                                       "id":0
+                                    }""")
+
+    println("createGroup: "+ jsonGroup.toString())
+
+    val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonGroup,_,_)
+    secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).map { json =>
+
+      val result = ((json \ "result") \"result")
+
+      if( result == "null" || result.isInstanceOf[JsUndefined] )
+        Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
+      else
+        Right( Success(Some("Group created"), Some("ok")) )
+
+    }
+
+  }
+
+  def deleteGroup(group: String):Future[Either[Error,Success]]= {
+
+
+    val jsonDelete: JsValue = Json.parse(
+                                s"""{
+                                       "method":"group_del",
+                                       "params":[
+                                          [
+                                             "${group}"
+                                          ],
+                                          {
+                                             "continue":false,
+                                             "version": "2.213"
+                                          }
+                                       ],
+                                       "id":0
+                                    }""")
+
+    println("deleteGroup: "+jsonDelete.toString())
+
+    val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonDelete,_,_)
+    secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).flatMap { json =>
+
+      val result = (json \ "result").getOrElse(JsString("null")).toString()
+
+      if (result != "null")
+        Future.successful( Right(Success(Some("Group deleted"), Some("ok"))) )
+      else
+        Future.successful(Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) ) )
+
+    }
+
+  }
+
+  def addUsersToGroup(group: String, userList: UserList):Future[Either[Error,Success]]= {
+
+    val jArrayStr = userList.users.get.mkString("\"","\",\"","\"")
+
+    val jsonAdd: JsValue = Json.parse(
+                                s"""{
+                                       "method":"group_add_member",
+                                       "params":[
+                                          [
+                                             "$group"
+                                          ],
+                                          {
+                                             "user":[$jArrayStr],
+                                             "raw":false,
+                                             "version": "2.213"
+                                          }
+                                       ],
+                                       "id":0
+                                    }""")
+
+    println("addUsersToGroup: "+ jsonAdd.toString())
+
+    val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonAdd,_,_)
+    secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).map { json =>
+      val result = ((json \ "result") \"result")
+
+      if( result == "null" || result.isInstanceOf[JsUndefined] )
+        Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
+      else
+        Right(Success(Some("Users added"), Some("ok")))
+    }
+
+  }
+
+  def removeUsersFromGroup(group: String, userList: UserList):Future[Either[Error,Success]]= {
+
+    val jArrayStr = userList.users.get.mkString("\"","\",\"","\"")
+
+    val jsonAdd: JsValue = Json.parse(
+      s"""{
+                                       "method":"group_remove_member",
+                                       "params":[
+                                          [
+                                             "$group"
+                                          ],
+                                          {
+                                             "user":[$jArrayStr],
+                                             "raw":false,
+                                             "version": "2.213"
+                                          }
+                                       ],
+                                       "id":0
+                                    }""")
+
+    println("removeUsersToGroup: "+ jsonAdd.toString())
+
+    val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonAdd,_,_)
+    secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).map { json =>
+      val result = ((json \ "result") \"result")
+
+      if( result == "null" || result.isInstanceOf[JsUndefined] )
+        Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
+      else
+        Right(Success(Some("Users removed"), Some("ok")))
+    }
+
+  }
 
   def showUser(userId: String):Future[Either[Error,IpaUser]]={
 
@@ -79,14 +250,15 @@ object ApiClientIPA {
                                                      "$userId"
                                                  ],
                                                  {
+                                                     "all": "true",
                                                      "version": "2.213"
                                                  }
                                              ]
                                          }""")
 
-    println(jsonRequest.toString())
+    println("showUser request: "+jsonRequest.toString())
 
-    val serviceInvoke : (String,AhcWSClient)=> Future[WSResponse] = callIpaUrl(jsonRequest,_,_)
+    val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonRequest,_,_)
     secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).map { json =>
 
       val result = ((json \ "result") \"result")//.getOrElse(JsString("null")).toString()
@@ -102,7 +274,9 @@ object ApiClientIPA {
             (result \ "givenname") (0).asOpt[String].getOrElse(""),
             (result \ "mail") (0).asOpt[String].getOrElse(""),
             (result \ "uid") (0).asOpt[String].getOrElse(""),
-            None
+            (result \ "userclass") (0).asOpt[String],
+            None,
+            (result \ "memberof_group").asOpt[Seq[String]]
           )
         )
 
@@ -119,14 +293,15 @@ object ApiClientIPA {
                                                  [""],
                                                  {
                                                     "mail": "$mail",
+                                                    "all": "true",
                                                     "version": "2.213"
                                                  }
                                              ]
                                          }""")
 
-    //println(jsonRequest.toString())
+    println("findUserByMail request: "+ jsonRequest.toString())
 
-    val serviceInvoke : (String,AhcWSClient)=> Future[WSResponse] = callIpaUrl(jsonRequest,_,_)
+    val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonRequest,_,_)
     secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).map { json =>
 
       val count = ((json \ "result") \ "count").asOpt[Int].getOrElse(-1)
@@ -145,7 +320,9 @@ object ApiClientIPA {
             (result \ "givenname") (0).asOpt[String].getOrElse(""),
             (result \ "mail") (0).asOpt[String].getOrElse(""),
             (result \ "uid") (0).asOpt[String].getOrElse(""),
-            None
+            (result \ "userclass") (0).asOpt[String],
+            None,
+            (result \ "memberof_group").asOpt[Seq[String]]
           )
         )
 
@@ -153,7 +330,7 @@ object ApiClientIPA {
 
   }
 
-  private def callIpaUrl( payload: JsValue, sessionCookie:String, cli:AhcWSClient ): Future[WSResponse] = {
+  private def callIpaUrl( payload: JsValue, sessionCookie:String, cli:WSClient ): Future[WSResponse] = {
 
     cli.url(ConfigReader.ipaUrl+"/ipa/session/json").withHeaders( "Content-Type"->"application/json",
       "Accept"->"application/json",
@@ -163,26 +340,15 @@ object ApiClientIPA {
 
   }
 
-  private def loginCkan(userName:String, pwd:String ):Future[String] = {
 
-    val wsClient = AhcWSClient()
+  private def loginCkan(userName:String, pwd:String):Future[String] = {
 
     println("login ckan")
 
     val loginInfo = new LoginInfo(userName,pwd,LoginClientLocal.CKAN)
-    val wsResponse = loginClient.login(loginInfo,wsClient)
+    val wsResponse = loginClientLocal.login(loginInfo,wsClient)
 
-    wsResponse.map({ response =>
-
-      if( response != null  )
-        "ok"
-      else
-        throw new Exception("Failed to login to ckan")
-
-
-    }).andThen { case _ => wsClient.close() }
-      .andThen { case _ => system.terminate() }
-
+    wsResponse.map(_=>"ok")
   }
 
   /*

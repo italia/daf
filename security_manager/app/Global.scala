@@ -25,9 +25,3 @@ import scala.concurrent.Future
 class Global @Inject()(lifecycle: ApplicationLifecycle) {
   lifecycle.addStopHook { () => Future.successful({}) }
 }
-
-//@SuppressWarnings(Array("org.wartremover.warts.Overloading"))
-@Singleton
-class Module extends AbstractModule {
-  def configure() = {}
-}

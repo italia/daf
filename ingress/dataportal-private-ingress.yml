@@ -2,6 +2,8 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: dataportal-private-ingress
+  annotations:
+    ngnix.ingress.kubernetes.io/proxy-body-size: "20m"
 spec:
   tls:
   - hosts:

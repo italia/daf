@@ -27,8 +27,6 @@ lazy val client = (project in file("client")).
     )
   )).enablePlugins(SwaggerCodegenPlugin)
 
-
-
 lazy val spark = "org.apache.spark"
 
 lazy val root = (project in file("."))

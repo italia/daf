@@ -1,0 +1,5 @@
+{"type": "HourlySalaryEmployee", "age": 30, "salary": 10, "name": "Anna", "id": 1}
+{"type": "HourlySalaryEmployee", "age": 25, "salary": 8, "name": "Bob", "id": 2}
+{"type": "FixedSalaryEmployee", "age": 52, "salary": 8000, "name": "Dany", "id": 3}
+{"type": "FixedSalaryEmployee", "age": 60, "salary": 8000, "name": "Clara", "id": 4}
+{"type": "FixedSalaryEmployee", "age": 42, "salary": 1000, "name": "Egor", "id": 5}

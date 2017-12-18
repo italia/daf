@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingestion-manager
+  labels:
+    app: ingestion-manager
+spec:
+  type: NodePort
+  ports:
+  - port: 9000
+    protocol: TCP
+    name: http
+  selector:
+    app: ingestion-manager
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: ingestion-manager-deployment
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: ingestion-manager
+    spec:
+      containers:
+      - name: ingestion-manager
+        image: 10.98.74.120:5000/daf-ingestion-manager:${INGESTION_MANAGER_VERSION}
+        imagePullPolicy: Always
+        lifecycle:
+          postStart:
+            exec:
+             command: ["/bin/sh", "-c", "cat /etc/extra_hosts >> /etc/hosts"]
+        ports:
+        - name: client
+          containerPort: 9000
+        securityContext:
+          privileged: true
+          runAsUser: 0
+        volumeMounts:
+        - name: glusterfsvol
+          mountPath: /opt/docker/conf/production.conf
+          subPath: ingestion-manager/conf/production.conf
+          readOnly: true
+        - name: glusterfsvol
+          mountPath: /opt/docker/conf/logback.xml
+          subPath: ingestion-manager/conf/logback.xml
+          readOnly: true
+        - name: hosts
+          mountPath: /etc/extra_hosts
+        - name: krb5conf
+          mountPath: /etc/krb5.conf
+        - name: hadoopconf
+          mountPath: /etc/hadoop/conf
+          readOnly: true
+      imagePullSecrets:
+        - name: regsecret
+      volumes:
+      - name: glusterfsvol
+        persistentVolumeClaim:
+          claimName: gluster-claim
+      - name: hosts
+        hostPath:
+          path: /etc/hosts
+      - name: krb5conf
+        hostPath:
+          path: /etc/krb5.conf
+      - name: hadoopconf
+        hostPath:
+          path: /etc/hadoop/conf

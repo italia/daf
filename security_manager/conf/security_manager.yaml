@@ -120,6 +120,90 @@ paths:
           description: Error Message
           schema:
             $ref: '#/definitions/Error'
+  "/ipa/group":
+    post:
+      tags:
+        - IPA
+      description: Create an freeIPA group
+      operationId: createIPAgroup
+      produces:
+      - application/json
+      parameters:
+      - name: group
+        in: body
+        description: freeIPA group
+        required: true
+        schema:
+          $ref: '#/definitions/Group'
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+  "/ipa/group-useradd/{group}":
+    put:
+      tags:
+        - IPA
+      description: Add users to a IPA group
+      operationId: addUserToIPAgroup
+      produces:
+      - application/json
+      parameters:
+      - name: group
+        in: path
+        description: Group uid
+        required: true
+        type: string
+      - name: users
+        in: body
+        description: List of users
+        required: true
+        schema:
+         $ref: '#/definitions/UserList'
+      responses:
+        200:
+          description: Success
+          schema:
+            #type: object
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+  "/ipa/group-userdel/{group}":
+    put:
+      tags:
+        - IPA
+      description: Delete users from a IPA group
+      operationId: delUserToIPAgroup
+      produces:
+      - application/json
+      parameters:
+      - name: group
+        in: path
+        description: Group uid
+        required: true
+        type: string
+      - name: users
+        in: body
+        description: List of users
+        required: true
+        schema:
+         $ref: '#/definitions/UserList'
+      responses:
+        200:
+          description: Success
+          schema:
+            #type: object
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
   "/ipa/registration/request":
     post:
       tags:
@@ -194,6 +278,77 @@ paths:
           description: Error Message
           schema:
             $ref: '#/definitions/Error'
+  "/daf/organization":
+    post:
+      tags:
+        - DAF
+      description: Create a DAF organization
+      operationId: createDAForganization
+      produces:
+      - application/json
+      parameters:
+      - name: organization
+        in: body
+        description: Organization
+        required: true
+        schema:
+          $ref: '#/definitions/DafOrg'
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+  "/daf/organization/useradd":
+    put:
+      tags:
+        - DAF
+      description: Add auser to DAF organization
+      operationId: useraddDAForganization
+      produces:
+      - application/json
+      parameters:
+      - name: payload
+        in: body
+        description: Username and groupCn
+        required: true
+        schema:
+          $ref: '#/definitions/UserAndGroup'
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+  "/daf/organization/{orgName}":
+    delete:
+      tags:
+        - DAF
+      description: delete DAF organization
+      operationId: deleteDAForganization
+      produces:
+      - application/json
+      parameters:
+      - name: orgName
+        in: path
+        description: group Cn
+        required: true
+        type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
 definitions:
   IpaUser:
     type: object
@@ -215,6 +370,56 @@ definitions:
       mail:
         type: string
       userpassword:
+        type: string
+      organizations:
+        type: array
+        items:
+          type: string
+      role:
+        type: string
+  Group:
+    type: object
+    required:
+      - cn
+    properties:
+      cn:
+        description: group cn
+        type: string
+  UserList:
+    type: object
+    required:
+      - uid
+    properties:
+      users:
+        type: array
+        items:
+          type: string
+  DafOrg:
+    type: object
+    required:
+      - groupCn
+      - defaultUserPwd
+      - supSetConnectedDbName
+    properties:
+      groupCn:
+        description: group cn
+        type: string
+      defaultUserPwd:
+        type: string
+      supSetConnectedDbName:
+        description: Superset connected DB name
+        type: string
+  UserAndGroup:
+    type: object
+    required:
+      - userId
+      - groupCn
+    properties:
+      groupCn:
+        description: group cn
+        type: string
+      userId:
+        description: username
         type: string
   Error:
     properties:

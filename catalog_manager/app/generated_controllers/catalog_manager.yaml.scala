@@ -388,7 +388,7 @@ package catalog_manager.yaml {
             //println("ale")
             //println(MetaCatalog(None,None,None))
             //Datasetcatalogbyid200(MetaCatalog(None,None,None))
-            
+
             //Datasetcatalogbyid200(catalog.toString)
             // ----- End of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbyid
         }

@@ -17,29 +17,32 @@
 package it.gov.daf.common.sso.client
 
 
+import com.google.inject.Singleton
 import it.gov.daf.common.sso.common.{LoginClient, LoginInfo}
 import play.api.libs.ws.WSClient
 import play.api.mvc.Cookie
 
 import scala.concurrent.Future
 
-
-final case class LoginClientRemote(secManagerHost:String) extends LoginClient{
+@Singleton
+class LoginClientRemote(secManagerHost:String) extends LoginClient{
 
   //val secManagerHost:String = _secManagerHost
 
   def login(loginInfo:LoginInfo, client: WSClient):Future[Cookie] = {
 
-    if(client != null )
+    require(secManagerHost!=null, "Security Manager host must be provided")
+
+    //if(client != null )
       SsoServiceClient.retriveCookieInternal(secManagerHost,loginInfo.user,loginInfo.appName,client)
-    else
-      SsoServiceClient.retriveCookieInternal(secManagerHost,loginInfo.user,loginInfo.appName)
+    //else
+      //SsoServiceClient.retriveCookieInternal(secManagerHost,loginInfo.user,loginInfo.appName)
 
   }
 
 
 }
-
+/*
 @SuppressWarnings(
   Array(
     "org.wartremover.warts.Throw",
@@ -70,6 +73,6 @@ object LoginClientRemote {
   }
 
 
-}
+}*/
 
 

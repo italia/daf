@@ -60,6 +60,39 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
   }
 
 
+  def createDefaultDafOrganization():Future[Either[Error,Success]] = {
+
+    val dafOrg = DafOrg("default_org","defaultusrpwd!","default-db")
+    val groupCn = dafOrg.groupCn
+    val defaultOrgIpaUser = new IpaUser(  dafOrg.groupCn,
+      "default org admin",
+      toMail(groupCn),
+      toUserName(groupCn),
+      Option(Role.Admin.toString),
+      Option(dafOrg.defaultUserPwd),
+      Option(Seq(dafOrg.groupCn)))
+
+
+    val result = for {
+      a <- EitherT( apiClientIPA.createGroup(dafOrg.groupCn) )
+      //b <- EitherT( registrationService.createDefaultUser(defaultOrgIpaUser) )
+      c <- EitherT( supersetApiClient.createDatabase(toDataSource(groupCn),defaultOrgIpaUser.uid,dafOrg.defaultUserPwd,dafOrg.supSetConnectedDbName) )
+      //e <- EitherT( ckanApiClient.createOrganizationAsAdmin(groupCn) )
+      //f <- EitherT( grafanaApiClient.createOrganization(groupCn) )
+      //g <- EitherT( addUserToOrganizationAsAdmin(groupCn,defaultOrgIpaUser.uid) )
+
+    } yield c
+
+
+    result.value.map{
+      case Right(r) => Right( Success(Some("Organization created"), Some("ok")) )
+      case Left(l) => Left(l)
+    }
+
+
+  }
+
+
   def deleteDafOrganization(groupCn:String):Future[Either[Error,Success]] = {
 
     val result = for {

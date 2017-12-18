@@ -128,6 +128,6 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 object IntegrationService {
   def toDataSource(groupCn:String)=s"$groupCn-db"
   def toRoleName(groupCn:String)=s"datarole-$groupCn-db"
-  def toUserName(groupCn:String)=s"$groupCn-default-admin"
+  def toUserName(groupCn:String)=groupCn+"_default_admin"
   def toMail(groupCn:String)=s"$groupCn@default.it"
 }

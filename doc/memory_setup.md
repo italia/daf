@@ -7,6 +7,6 @@ spec:
   template:
     spec:
         env:
-        - name: JVM_OPTS
+        - name: JAVA_OPTS
           value: "-server -XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:+PerfDisableSharedMem -XX:+ParallelRefProcEnabled -Xmx2g -Xms2g -XX:MaxPermSize=1024m"
 ```

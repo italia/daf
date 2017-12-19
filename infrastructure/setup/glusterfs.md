@@ -31,6 +31,13 @@ kubectl create -f glusterfs-pvc.yml
 kubectl get pvc
 ```
 
+Create secrets to deploy dockers (see [here](https://github.com/k8s-community/cluster-deploy) and [here](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/) for more details):
+```
+kubectl create secret docker-registry regsecret --docker-server=10.98.74.120:5000 --docker-username=daf --docker-password=<put nexus password> --docker-email=daf@DAF.GOV.IT
+```
+
+
+
 riferimenti
 
 https://github.com/teamdigitale/daf_provisioning_and_maintenance

@@ -5,6 +5,7 @@ import java.io.{FileInputStream, FileWriter}
 import catalog_manager.yaml._
 import play.Environment
 import play.api.libs.json._
+import play.api.libs.ws.WSClient
 
 
 /**
@@ -88,7 +89,17 @@ class CatalogRepositoryDev extends CatalogRepository{
 
   }
 
-  def createCatalog(metaCatalog: MetaCatalog, callingUserid :MetadataCat) :Success = {
+  def catalogByTitle(catalogByTitle :String): Option[MetaCatalog] = {
+    // MetaCatalog(datasetCatalog,operational,conversion,dcat)
+    for {
+      dc <- datasetCatalog
+      op <- operational
+      dcatapit <- dcat
+    } yield MetaCatalog(dc, op, dcatapit)
+
+  }
+
+  def createCatalog(metaCatalog: MetaCatalog, callingUserid :MetadataCat, ws :WSClient) :Success = {
     Success("Created",None)
   }
 

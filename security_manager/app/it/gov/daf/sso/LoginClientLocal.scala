@@ -4,16 +4,17 @@ import java.net.URLEncoder
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
+import com.google.inject.Singleton
 import it.gov.daf.common.sso.common.{LoginClient, LoginInfo}
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import play.api.libs.json.Json
-import play.api.libs.ws.{WSClient, WSResponse,WSCookie}
+import play.api.libs.ws.{WSClient, WSCookie, WSResponse}
 import play.api.mvc.Cookie
 
 import scala.concurrent.Future
 
-
-final case class LoginClientLocal() extends LoginClient {
+@Singleton
+class LoginClientLocal() extends LoginClient {
 
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()
@@ -22,7 +23,14 @@ final case class LoginClientLocal() extends LoginClient {
 
   //private val CKAN_URL = "http://localhost:5000"
 
-  private val CKAN_URL = ConfigReader.getCkanHost
+  private val CKAN = "ckan"
+  private val FREE_IPA = "freeIPA"
+  private val SUPERSET = "superset"
+  private val METABASE = "metabase"
+  private val JUPYTER = "jupyter"
+  private val GRAFANA = "grafana"
+
+  private val CKAN_URL = ConfigReader.ckanHost
   private val IPA_URL = ConfigReader.ipaUrl
   private val SUPERSET_URL = ConfigReader.supersetUrl
   private val METABASE_URL = ConfigReader.metabaseUrl
@@ -181,13 +189,13 @@ final case class LoginClientLocal() extends LoginClient {
 
     println("login grafana")
 
-    wsResponse.map(getCookies(_))
+    wsResponse.map(getCookies)
 
   }
 
   private def loginGrafana(userName: String, pwd: String, wsClient: WSClient): Future[Cookie] = {
 
-    loginGrafanaFE(userName, pwd, wsClient).map(_.find(_.name!="grafana_sess").get )
+    loginGrafanaFE(userName, pwd, wsClient).map(_.find(_.name=="grafana_sess").get )
 
   }
 
@@ -195,6 +203,7 @@ final case class LoginClientLocal() extends LoginClient {
 
   private def getCookies(response:WSResponse):Seq[Cookie]={
 
+    println("RESPONSE IN GET COOKIES: "+response)
     response.header("Set-Cookie").getOrElse(throw new Exception("Set-Cookie header not found"))
 
     //Cookie(name: String, value: String, maxAge: Option[Int] = None, path: String = "/", domain: Option[String] = None, secure: Boolean = false, httpOnly: Boolean = true)
@@ -225,15 +234,6 @@ object LoginClientLocal {
   val METABASE = "metabase"
   val JUPYTER = "jupyter"
   val GRAFANA = "grafana"
-
-  private var _instance:LoginClientLocal=null
-
-  def instance() = {
-    if(_instance == null)
-      _instance = new LoginClientLocal()
-
-    _instance
-  }
 
 }
 

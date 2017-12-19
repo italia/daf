@@ -17,12 +17,12 @@ import it.gov.daf.catalogmanager.service.CkanRegistry
 import it.gov.daf.common.sso.client.LoginClientRemote
 import it.gov.daf.common.sso.common.{LoginInfo, SecuredInvocationManager}
 import it.gov.daf.common.utils.WebServiceUtil
-import play.api.libs.ws.ahc.AhcWSClient
+//import play.api.libs.ws.ahc.AhcWSClient
 
 
 
 @Singleton
-class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) extends Controller {
+class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, secInvokManager:SecuredInvocationManager) extends Controller {
 
   import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
@@ -36,10 +36,10 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
   private val SEC_MANAGER_HOST:String = config.get.getString("security.manager.host").get
 
-  private val secInvokManager = SecuredInvocationManager.init( LoginClientRemote.init(SEC_MANAGER_HOST) )
+  //private val secInvokManager = SecuredInvocationManager.init( LoginClientRemote.init(SEC_MANAGER_HOST) )
 
   private def getOrgs(orgId :String): Future[List[String]] = {
-    val orgs : Future[WSResponse] = ws.url(LOCAL_URL + "/ckan/organizations/" + orgId).get()
+    val orgs : Future[WSResponse] = wsc.url(LOCAL_URL + "/ckan/organizations/" + orgId).get()
     orgs.map( item => {
       val messages  = (item.json \ "result" \\ "message").map(_.as[String]).toList
       val datasetIds :List[String]= messages.filterNot(_.isEmpty) map { message =>
@@ -54,7 +54,7 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
   private def getOrgDatasets(datasetIds : List[String]): Future[Seq[JsValue]] = {
     val datasetResponses: Seq[Future[JsValue]] = datasetIds.map(datasetId => {
-      val response = ws.url(LOCAL_URL + "/ckan/dataset/" + datasetId).get
+      val response = wsc.url(LOCAL_URL + "/ckan/dataset/" + datasetId).get
       println(datasetId)
       response map { x =>
         println(x.json.toString)
@@ -101,8 +101,8 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
       val user = request.headers.get(USER_ID_HEADER).getOrElse("")
 
-      def callCreateDataset(cookie: String,wSClient: AhcWSClient ):Future[WSResponse] = {
-        ws.url(CKAN_URL + "/api/3/action/package_create").withHeaders("Cookie" -> cookie).post(json)
+      def callCreateDataset(cookie: String,wsClient: WSClient):Future[WSResponse] = {
+        wsClient.url(CKAN_URL + "/api/3/action/package_create").withHeaders("Cookie" -> cookie).post(json)
       }
 
       secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callCreateDataset)map { Ok(_) }
@@ -118,8 +118,8 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
     val user = request.headers.get(USER_ID_HEADER).getOrElse("")
     val json:JsValue = request.body.asJson.get
 
-    def callUpdateDataset(cookie: String, wSClient: AhcWSClient):Future[WSResponse] ={
-      ws.url(CKAN_URL + "/api/3/action/package_update?id=" + datasetId).withHeaders("Cookie" -> cookie).post(json)
+    def callUpdateDataset(cookie: String, wsClient: WSClient):Future[WSResponse] ={
+      wsClient.url(CKAN_URL + "/api/3/action/package_update?id=" + datasetId).withHeaders("Cookie" -> cookie).post(json)
     }
 
     secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callUpdateDataset)map { Ok(_) }
@@ -132,11 +132,11 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
     val user = request.headers.get(USER_ID_HEADER).getOrElse("")
 
-    def callDeleteDataset( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] ={
+    def callDeleteDataset( cookie: String, wsClient: WSClient ):Future[WSResponse] ={
 
       val url = CKAN_URL + "/api/3/action/package_delete"
       val body = s"""{\"id\":\"$datasetId\"}"""
-      ws.url(url).withHeaders("Cookie" -> cookie).post(body)
+      wsClient.url(url).withHeaders("Cookie" -> cookie).post(body)
 
     }
 
@@ -152,10 +152,10 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
     val user = request.headers.get(USER_ID_HEADER).getOrElse("")
 
-    def callPurgeDataset( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] ={
+    def callPurgeDataset( cookie: String, wsClient: WSClient ):Future[WSResponse] ={
       val url = CKAN_URL + "/api/3/action/dataset_purge"
       val body = s"""{\"id\":\"$datasetId\"}"""
-      ws.url(url).withHeaders("Cookie" -> cookie).post(body)
+      wsClient.url(url).withHeaders("Cookie" -> cookie).post(body)
     }
 
     secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callPurgeDataset)map { Ok(_) }
@@ -172,8 +172,8 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
     val json:JsValue = request.body.asJson.get
     val user = request.headers.get(USER_ID_HEADER).getOrElse("")
 
-    def callCreateOrganization( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] = {
-      ws.url(CKAN_URL + "/api/3/action/organization_create").withHeaders("Cookie" -> cookie).post(json)
+    def callCreateOrganization( cookie: String, wsClient: WSClient ):Future[WSResponse] = {
+      wsClient.url(CKAN_URL + "/api/3/action/organization_create").withHeaders("Cookie" -> cookie).post(json)
     }
 
     secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callCreateOrganization)map { Ok(_) }
@@ -199,8 +199,8 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
     val user = request.headers.get(USER_ID_HEADER).getOrElse("")
     val json:JsValue = request.body.asJson.get
 
-    def callCreateUser( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] ={
-      ws.url(CKAN_URL + "/api/3/action/user_create").withHeaders("Cookie" -> cookie).post(json)
+    def callCreateUser( cookie: String, wsClient: WSClient ):Future[WSResponse] ={
+      wsClient.url(CKAN_URL + "/api/3/action/user_create").withHeaders("Cookie" -> cookie).post(json)
     }
 
     secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callCreateUser)map { Ok(_) }
@@ -212,9 +212,9 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
     val user = request.headers.get(USER_ID_HEADER).getOrElse("")
 
-    def callGetUser( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] ={
+    def callGetUser( cookie: String, wsClient: WSClient ):Future[WSResponse] ={
       val url = CKAN_URL + "/api/3/action/user_show?id=" + userId
-      ws.url(url).withHeaders("Cookie" -> cookie).get
+      wsClient.url(url).withHeaders("Cookie" -> cookie).get
     }
 
     secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callGetUser)map { Ok(_) }
@@ -229,10 +229,10 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
     val user = request.headers.get(USER_ID_HEADER).getOrElse("")
 
-    def callGetUserOrganizations( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] ={
+    def callGetUserOrganizations( cookie: String, wsClient: WSClient ):Future[WSResponse] ={
       val url = CKAN_URL + "/api/3/action/organization_list_for_user?id="+userId
       println("organization_list_for_user URL " + url)
-      ws.url(url).withHeaders("Cookie" -> cookie).get
+      wsClient.url(url).withHeaders("Cookie" -> cookie).get
     }
 
     secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callGetUserOrganizations)map { Ok(_) }
@@ -244,9 +244,9 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
     val user = request.headers.get(USER_ID_HEADER).getOrElse("")
 
-    def callGetOrganization( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] ={
+    def callGetOrganization( cookie: String, wsClient: WSClient ):Future[WSResponse] ={
       val url = CKAN_URL + "/api/3/action/organization_show?id=" + orgId
-      ws.url(url).withHeaders("Cookie" -> cookie).get
+      wsClient.url(url).withHeaders("Cookie" -> cookie).get
     }
 
     secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callGetOrganization)map { Ok(_) }
@@ -261,9 +261,9 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
     val user = request.headers.get(USER_ID_HEADER).getOrElse("")
     val json:JsValue = request.body.asJson.get
 
-    def callUpdateOrganization( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] = {
+    def callUpdateOrganization( cookie: String, wsClient: WSClient ):Future[WSResponse] = {
       val url = CKAN_URL + "/api/3/action/organization_update?id=" + orgId
-      ws.url(url).withHeaders("Cookie" -> cookie).post(json)
+      wsClient.url(url).withHeaders("Cookie" -> cookie).post(json)
     }
 
     secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callUpdateOrganization)map { Ok(_) }
@@ -277,9 +277,9 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
     val user = request.headers.get(USER_ID_HEADER).getOrElse("")
     val json:JsValue = request.body.asJson.get
 
-    def callPatchOrganization( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] = {
+    def callPatchOrganization( cookie: String, wsClient: WSClient ):Future[WSResponse] = {
       val url = CKAN_URL + "/api/3/action/organization_patch?id=" + orgId
-      ws.url(url).withHeaders("Cookie" -> cookie).post(json)
+      wsClient.url(url).withHeaders("Cookie" -> cookie).post(json)
     }
 
     secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callPatchOrganization)map { Ok(_) }
@@ -294,10 +294,10 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
     val user = request.headers.get(USER_ID_HEADER).getOrElse("")
 
-    def callDeleteOrganization( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] = {
+    def callDeleteOrganization( cookie: String, wsClient: WSClient ):Future[WSResponse] = {
       val url = CKAN_URL + "/api/3/action/organization_delete"
       val body = s"""{\"id\":\"$orgId\"}"""
-      ws.url(url).withHeaders("Cookie" -> cookie).post(body)
+      wsClient.url(url).withHeaders("Cookie" -> cookie).post(body)
     }
 
     secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callDeleteOrganization)map { Ok(_) }
@@ -310,10 +310,10 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
     val user = request.headers.get(USER_ID_HEADER).getOrElse("")
 
-    def callPurgeOrganization( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] = {
+    def callPurgeOrganization( cookie: String, wsClient: WSClient ):Future[WSResponse] = {
       val url = CKAN_URL + "/api/3/action/organization_purge"
       val body = s"""{\"id\":\"$orgId\"}"""
-      ws.url(url).withHeaders("Cookie" -> cookie).post(body)
+      wsClient.url(url).withHeaders("Cookie" -> cookie).post(body)
     }
 
     secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callPurgeOrganization)map { Ok(_) }
@@ -324,8 +324,8 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
     val user = request.headers.get(USER_ID_HEADER).getOrElse("")
 
-    def callGetDatasetList( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] = {
-      ws.url(CKAN_URL + "/api/3/action/package_list").withHeaders("Cookie" -> cookie).get
+    def callGetDatasetList( cookie: String, wsClient: WSClient ):Future[WSResponse] = {
+      wsClient.url(CKAN_URL + "/api/3/action/package_list").withHeaders("Cookie" -> cookie).get
     }
 
     secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callGetDatasetList)map { Ok(_) }
@@ -341,9 +341,9 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
     val params= Map( ("limit",limit), ("offset",offset) )
     val queryString = WebServiceUtil.buildEncodedQueryString(params)
 
-    def callDatasetListWithResources( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] = {
+    def callDatasetListWithResources( cookie: String, wsClient: WSClient ):Future[WSResponse] = {
       val url = CKAN_URL + s"/api/3/action/current_package_list_with_resources$queryString"
-      ws.url(url).withHeaders("Cookie" -> cookie).get
+      wsClient.url(url).withHeaders("Cookie" -> cookie).get
     }
 
     secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callDatasetListWithResources)map { Ok(_) }
@@ -354,8 +354,8 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
     val user = request.headers.get(USER_ID_HEADER).getOrElse("")
 
-    def callGetOrganizationList( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] = {
-      ws.url(CKAN_URL + "/api/3/action/organization_list").withHeaders("Cookie" -> cookie).get
+    def callGetOrganizationList( cookie: String, wsClient: WSClient ):Future[WSResponse] = {
+      wsClient.url(CKAN_URL + "/api/3/action/organization_list").withHeaders("Cookie" -> cookie).get
     }
 
     secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callGetOrganizationList)map { Ok(_) }
@@ -370,9 +370,9 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
     val params= Map( ("q",q), ("sort",sort), ("rows",rows), ("start",start) )
     val queryString = WebServiceUtil.buildEncodedQueryString(params)
 
-    def callSearchDataset( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] = {
+    def callSearchDataset( cookie: String, wsClient: WSClient ):Future[WSResponse] = {
       val url = CKAN_URL + s"/api/3/action/package_search$queryString"
-      ws.url(url).withHeaders("Cookie" -> cookie).get
+      wsClient.url(url).withHeaders("Cookie" -> cookie).get
     }
 
     secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callSearchDataset)map { Ok(_) }
@@ -386,9 +386,9 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
     val params= Map( ("q",q), ("limit",limit) )
     val queryString = WebServiceUtil.buildEncodedQueryString(params)
 
-    def autocompleteDataset( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] = {
+    def autocompleteDataset( cookie: String, wsClient: WSClient ):Future[WSResponse] = {
       val url = CKAN_URL + s"/api/3/action/package_autocomplete$queryString"
-      ws.url(url).withHeaders("Cookie" -> cookie).get
+      wsClient.url(url).withHeaders("Cookie" -> cookie).get
     }
 
     secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), autocompleteDataset)map { Ok(_) }
@@ -400,9 +400,9 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
     val user = request.headers.get(USER_ID_HEADER).getOrElse("")
 
-    def callGetOganizationRevisionList( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] = {
+    def callGetOganizationRevisionList( cookie: String, wsClient: WSClient ):Future[WSResponse] = {
       val url = CKAN_URL + "/api/3/action/organization_revision_list?id=" + organizationId
-      ws.url(url).withHeaders("Cookie" -> cookie).get
+      wsClient.url(url).withHeaders("Cookie" -> cookie).get
     }
 
     secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callGetOganizationRevisionList)map { Ok(_) }
@@ -423,9 +423,9 @@ class CkanController @Inject() (ws: WSClient, config: ConfigurationProvider) ext
 
       val user = request.headers.get(USER_ID_HEADER).getOrElse("")
 
-      def callGetDataset( cookie: String, wSClient: AhcWSClient ):Future[WSResponse] = {
+      def callGetDataset( cookie: String, wsClient: WSClient ):Future[WSResponse] = {
         val url = CKAN_URL + "/api/3/action/package_show?id=" + datasetId
-        ws.url(url).withHeaders("Cookie" -> cookie).get
+        wsClient.url(url).withHeaders("Cookie" -> cookie).get
       }
 
       secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callGetDataset)map { Ok(_) }

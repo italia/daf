@@ -1,6 +1,4 @@
-import CommonBuild._
-import Versions._
-import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
+import com.typesafe.sbt.packager.docker.Cmd
 import de.heikoseeberger.sbtheader.license.Apache2_0
 import de.zalando.play.generator.sbt.ApiFirstPlayScalaCodeGenerator.autoImport.playScalaAutogenerateTests
 import play.sbt.routes.RoutesKeys.routesGenerator
@@ -84,11 +82,8 @@ resolvers ++= Seq(
 // Play provides two styles of routers, one expects its actions to be injected, the
 // other, legacy style, accesses its actions statically.
 routesGenerator := InjectedRoutesGenerator
-
 apiFirstParsers := Seq(ApiFirstSwaggerParser.swaggerSpec2Ast.value).flatten
-
 playScalaAutogenerateTests := false
-
 playScalaCustomTemplateLocation := Some(baseDirectory.value / "templates")
 
 headers := Map(
@@ -124,9 +119,8 @@ credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
 
 
 javaOptions in Test += "-Dconfig.resource=" + System.getProperty("config.resource", "integration.conf")
-playScalaAutogenerateTests := false
+
 
 // Wart Remover Plugin Configuration
 //wartremoverErrors ++= Warts.allBut(Wart.Nothing, Wart.PublicInference, Wart.Any, Wart.Equals)
-
 //wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value / "target" / "scala-2.11" / "routes").toSeq

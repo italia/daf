@@ -40,7 +40,6 @@ import it.gov.daf.catalogmanager.utilities.ConfigReader
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-            
 
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
@@ -398,7 +397,7 @@ package catalog_manager.yaml {
             //println("ale")
             //println(MetaCatalog(None,None,None))
             //Datasetcatalogbyid200(MetaCatalog(None,None,None))
-            
+
             //Datasetcatalogbyid200(catalog.toString)
             // ----- End of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbyid
         }

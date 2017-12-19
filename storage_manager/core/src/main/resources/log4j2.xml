@@ -1,0 +1,45 @@
+<!--<?xml version="1.0" encoding="UTF-8"?>-->
+<!--&lt;!&ndash;Configuration status="INFO"&ndash;&gt;-->
+<!--<Configuration >-->
+    <!--<Appenders>-->
+        <!--<Console name="Console" target="SYSTEM_OUT">-->
+            <!--<PatternLayout pattern="%d{yyyy MMM dd HH:mm:ss.SSS Z}  -  [%t] %-5p %c - %m%ex%n"/>-->
+            <!--&lt;!&ndash;<PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>&ndash;&gt;-->
+        <!--</Console>-->
+
+        <!--&lt;!&ndash; This logs all log messages &ndash;&gt;-->
+        <!--<RollingFile name="File" fileName="logs/INFO.iotIngestion.${date:yyyyMMdd-HHmmss}.log"-->
+                     <!--filePattern="logs/INFO.${date:yyyyMMdd-HHmmss}.-%i.log.gz" append="false">-->
+            <!--<PatternLayout pattern="%d{yyyy MMM dd HH:mm:ss.SSS Z}  -  [%t] %-5p %c - %m%ex%n"/>-->
+            <!--<Policies>-->
+                <!--<SizeBasedTriggeringPolicy size="100 MB"/>-->
+            <!--</Policies>-->
+            <!--<DefaultRolloverStrategy max="5"/>-->
+        <!--</RollingFile>-->
+
+        <!--<RollingFile name="FileError" fileName="logs/ERROR.iotIngestion.${date:yyyyMMdd-HHmmss}.log"-->
+                     <!--filePattern="logs/ERROR.iotIngestion.${date:yyyyMMdd-HHmmss}-%i.log.gz" append="false">-->
+            <!--<PatternLayout pattern="%d{yyyy MMM dd HH:mm:ss.SSS Z}  -  [%t] %-5p %c - %m%ex%n"/>-->
+            <!--<Policies>-->
+                <!--<SizeBasedTriggeringPolicy size="100 MB"/>-->
+            <!--</Policies>-->
+            <!--<DefaultRolloverStrategy max="5"/>-->
+        <!--</RollingFile>-->
+
+    <!--</Appenders>-->
+
+    <!--<Loggers>-->
+        <!--&lt;!&ndash;Logger name="org.apache.zookeeper" level="info">-->
+            <!--<AppenderRef ref="Console"/>-->
+        <!--</Logger&ndash;&gt;-->
+        <!--<Logger name="it.teamdigitale" level="info">-->
+            <!--<AppenderRef ref="File"/>-->
+            <!--<AppenderRef ref="FileError" level="error"/>-->
+            <!--&lt;!&ndash;AppenderRef ref="Console"/&ndash;&gt;-->
+        <!--</Logger>-->
+        <!--<Root level="error">-->
+            <!--<AppenderRef ref="Console"/>-->
+        <!--</Root>-->
+    <!--</Loggers>-->
+
+<!--</Configuration>-->

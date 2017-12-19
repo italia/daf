@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package it.gov.daf.common.sso.client{
+package it.gov.daf.common.sso.client
 
   import akka.actor.ActorSystem
   import akka.stream.ActorMaterializer
@@ -29,8 +29,6 @@ package it.gov.daf.common.sso.client{
   @SuppressWarnings(
     Array(
       "org.wartremover.warts.ExplicitImplicitTypes",
-      "org.wartremover.warts.Overloading",
-      "org.wartremover.warts.StringPlusAny",
       "org.wartremover.warts.Throw"
     )
   )
@@ -38,12 +36,14 @@ package it.gov.daf.common.sso.client{
 
     import scala.concurrent.ExecutionContext.Implicits._
 
+    /*
     private implicit val system = ActorSystem()
     private implicit val materializer = ActorMaterializer()
+    */
 
     private implicit val cookieReads = Json.reads[Cookie]
 
-
+  /*
     def registerInternal(host:String, username:String, password:String):Future[String]= {
 
       val wsClient = AhcWSClient()
@@ -62,17 +62,17 @@ package it.gov.daf.common.sso.client{
         .andThen { case _ => system.terminate() }
 
     }
-
+  */
 
     def registerInternal(host:String, username:String, password:String, wsClient:WSClient):Future[String]= {
 
       val params = WebServiceUtil.buildEncodedQueryString(Map("username"->username,"password"->password))
-      val url =  host+"/sso-manager/internal/register/"+params
+      val url =  s"$host/sso-manager/internal/register/$params"
 
       wsClient.url(url).get().map{ response =>
 
         if(response.status != 200)
-          throw new Exception("User internal registering failed (http status code"+response.status+")")
+          throw new Exception(s"User internal registering failed (http status code ${response.status})")
 
         response.body
 
@@ -84,25 +84,27 @@ package it.gov.daf.common.sso.client{
     def retriveCookieInternal(host:String, username:String,appName:String,wsClient:WSClient):Future[Cookie] =  {
 
       val userParam = WebServiceUtil.buildEncodedQueryString( Map("username"->username) )
-      val url =  host+"/sso-manager/internal/retriveCookie/"+appName+userParam
+      val url =  s"$host/sso-manager/internal/retriveCookie/$appName$userParam"
 
       wsClient.url(url).get().map{ response =>
 
         if(response.status != 200)
-          throw new Exception("Internal user cookie retrive failed (http status code"+response.status+")")
+          throw new Exception(s"Internal user cookie retrive failed (http status code ${response.status})")
 
         val json = Json.parse(response.body)
         val cookieFromJson: JsResult[Cookie] = Json.fromJson[Cookie](json)
 
         cookieFromJson match {
           case JsSuccess(cookie: Cookie, path: JsPath) => cookie
-          case e: JsError => throw new Exception("Malformed response:"+response.body)
+          case e: JsError => throw new Exception(s"Malformed response:${response.body}")
         }
 
       }
 
     }
 
+
+
   }
 
-}
+

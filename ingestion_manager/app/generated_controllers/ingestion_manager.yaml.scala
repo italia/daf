@@ -26,13 +26,10 @@ import it.gov.daf.ingestion.nifi.NifiProcessor
 import it.gov.daf.ingestion.pipelines.PipelineInfoRead
 import play.api.libs.ws.WSClient
 import scala.concurrent.ExecutionContext
-import it.gov.daf.securitymanager.client.Security_managerClient
 import java.net.URLEncoder
 import it.gov.daf.securitymanager.client.Security_managerClient
-import java.net.URLEncoder
-import it.gov.daf.securitymanager.client.Security_managerClient
-import java.net.URLEncoder
-import it.gov.daf.securitymanager.client.Security_managerClient
+
+
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -41,9 +38,7 @@ import it.gov.daf.securitymanager.client.Security_managerClient
 
 package ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Ingestion_managerYaml
-                  import java.net.URLEncoder
 
-      import it.gov.daf.securitymanager.client.Security_managerClient
 
     // ----- End of unmanaged code area for package Ingestion_managerYaml
     class Ingestion_managerYaml @Inject() (

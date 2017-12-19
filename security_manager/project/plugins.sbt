@@ -14,6 +14,8 @@ addSbtPlugin("com.typesafe.play" % "sbt-plugin"  % "2.5.14")
 
 addSbtPlugin("de.zalando" % "sbt-api-first-hand" % "0.2.4-daf")
 
+addSbtPlugin("org.lyranthe.sbt" % "partial-unification" % "1.1.0")
+
 addSbtPlugin("eu.unicredit" % "sbt-swagger-codegen" % "0.0.10" excludeAll(
   ExclusionRule(organization = "com.fasterxml.jackson.core"),
   ExclusionRule(organization = "com.fasterxml.jackson.dataformat"),

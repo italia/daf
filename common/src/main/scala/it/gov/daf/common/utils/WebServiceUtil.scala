@@ -17,7 +17,8 @@
 package it.gov.daf.common.utils
 
 import java.net.URLEncoder
-import it.gov.daf.common.authentication.Authentication
+
+import it.gov.daf.common.authentication.{Authentication, Role}
 import org.apache.commons.net.util.Base64
 import play.api.libs.json._
 import play.api.mvc.Request
@@ -34,7 +35,9 @@ import play.api.mvc.Request
     "org.wartremover.warts.StringPlusAny",
     "org.wartremover.warts.Throw",
     "org.wartremover.warts.ToString",
-    "org.wartremover.warts.TraversableOps"
+    "org.wartremover.warts.TraversableOps",
+    "org.wartremover.warts.AsInstanceOf",
+    "org.wartremover.warts.NonUnitStatements"
   )
 )
 object WebServiceUtil {
@@ -53,8 +56,7 @@ object WebServiceUtil {
   }
 
 
-  def readCredentialFromRequest( request:Request[Any] ) :(Option[String],Option[String]) ={
-
+  def readCredentialFromRequest( request:Request[Any] ) :(Option[String],Option[String],Array[String]) ={
 
     val auth = request.headers.get("authorization")
     val authType = auth.get.split(" ")(0)
@@ -62,25 +64,43 @@ object WebServiceUtil {
     if( authType.equalsIgnoreCase("basic") ){
 
       // LDAP profiles are only created  during BA
-      println("profiles:"+Authentication.getProfiles(request))
+      val ldapGroups = Authentication.getProfiles(request).head.getAttribute("memberOf").asInstanceOf[java.util.Collection[String]].toArray
+      val groups=ldapGroups.map( _.toString.split(",")(0).split("=")(1) )
+
       val user:Option[String] = Option( Authentication.getProfiles(request).head.getId )
+
       println("userId:"+user)
+      println("belonging to groups:"+groups.toList)
+      //groups.map(println)
 
       val userAndPass = new String(Base64.decodeBase64(auth.get.split(" ").drop(1).head.getBytes)).split(":")
-      ( user, Option(userAndPass.drop(1).mkString(":")))
+
+      ( user, Option(userAndPass.drop(1).mkString(":")),groups)
 
     }else if( authType.equalsIgnoreCase("bearer") ) {
+
+      println("claims:"+Authentication.getClaims(request))
+
+      val ldapGroups= Authentication.getClaims(request).get.get("memberOf").asInstanceOf[Option[Any]].get.asInstanceOf[net.minidev.json.JSONArray].toArray
+      val groups:Array[String] = ldapGroups.map( _.toString.split(",")(0).split("=")(1)  )
       val user:Option[String] = Option( Authentication.getClaims(request).get.get("sub").get.toString )
+
       println("JWT user:"+user)
-      (user , None)
+      println("belonging to groups:"+groups.toList)
+
+      (user , None, groups)
     }else
       throw new Exception("Authorization header not found")
 
-
-    //val userAndPass = if (auth.get.contains(" ")) new String(Base64.decodeBase64(auth.get.split(" ").drop(1).head.getBytes)).split(":")
-    //                  else new String(Base64.decodeBase64(auth.get.getBytes)).split(":")
+  }
 
 
+  def isDafAdmin(request:Request[Any]):Boolean ={
+    readCredentialFromRequest(request)._3.contains(Role.Admin.toString)
+  }
+
+  def isBelongingToGroup( request:Request[Any], group:String ):Boolean ={
+    readCredentialFromRequest(request)._3.contains(group)
   }
 
   def cleanDquote(in:String): String = {

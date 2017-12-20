@@ -29,8 +29,6 @@ import scala.concurrent.ExecutionContext
 import java.net.URLEncoder
 import it.gov.daf.securitymanager.client.Security_managerClient
 
-
-
 /**
  * This controller is re-generated after each change in the specification.
  * Please only place your hand-written code between appropriate comments in the body of the controller.
@@ -38,8 +36,7 @@ import it.gov.daf.securitymanager.client.Security_managerClient
 
 package ingestion_manager.yaml {
     // ----- Start of unmanaged code area for package Ingestion_managerYaml
-
-
+        
     // ----- End of unmanaged code area for package Ingestion_managerYaml
     class Ingestion_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Ingestion_managerYaml

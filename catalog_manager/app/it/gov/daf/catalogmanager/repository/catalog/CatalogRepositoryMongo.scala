@@ -1,17 +1,21 @@
 package it.gov.daf.catalogmanager.repository.catalog
 
+import java.net.URLEncoder
+import javax.security.auth.login.AppConfigurationEntry
+
 import catalog_manager.yaml.{Dataset, DatasetCatalogFlatSchema, MetaCatalog, MetadataCat, ResponseWrites, Success}
 import com.mongodb.DBObject
 import com.mongodb.casbah.MongoClient
 import org.bson.types.ObjectId
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import com.mongodb.casbah.Imports._
-import it.gov.daf.catalogmanager.utilities.{CatalogManager, ConfigReader, SftpUtils}
+import it.gov.daf.catalogmanager.utilities.{CatalogManager, ConfigReader}
 import it.gov.daf.catalogmanager.service.CkanRegistry
-import net.schmizz.sshj.SSHClient
+import play.api.libs.ws.{WSClient, WSResponse}
 
 import scala.concurrent.Future
 import scala.util.Try
+
 
 
 /**
@@ -26,6 +30,8 @@ class CatalogRepositoryMongo extends  CatalogRepository{
   private val userName = ConfigReader.userName
   private val source = ConfigReader.database
   private val password = ConfigReader.password
+
+  import scala.concurrent.ExecutionContext.Implicits.global
 
   val server = new ServerAddress(mongoHost, 27017)
   val credentials = MongoCredential.createCredential(userName, source, password.toCharArray)
@@ -80,7 +86,32 @@ class CatalogRepositoryMongo extends  CatalogRepository{
     metaCatalog
   }
 
-  def createCatalog(metaCatalog: MetaCatalog, callingUserid :MetadataCat) :Success = {
+  def catalogByTitle(title :String): Option[MetaCatalog] = {
+    //val objectId : ObjectId = new ObjectId(catalogId)
+    val query = MongoDBObject("dcatapit.title" -> title)
+    // val mongoClient = MongoClient(mongoHost, mongoPort)
+    val mongoClient = MongoClient(server, List(credentials))
+    val db = mongoClient(source)
+    val coll = db("catalog_test")
+    val result = coll.findOne(query)
+    mongoClient.close
+    val metaCatalog: Option[MetaCatalog] = result match {
+      case Some(x) => {
+        val jsonString = com.mongodb.util.JSON.serialize(x)
+        val json = Json.parse(jsonString) //.as[List[JsObject]]
+        val metaCatalogJs = json.validate[MetaCatalog]
+        val metaCatalog = metaCatalogJs match {
+          case s: JsSuccess[MetaCatalog] => Some(s.get)
+          case _: JsError => None
+        }
+        metaCatalog
+      }
+      case _ => None
+    }
+    metaCatalog
+  }
+
+  def createCatalog(metaCatalog: MetaCatalog, callingUserid :MetadataCat, ws :WSClient) :Success = {
 
     import catalog_manager.yaml.ResponseWrites.MetaCatalogWrites
 
@@ -133,17 +164,6 @@ class CatalogRepositoryMongo extends  CatalogRepository{
       message
     }
 
-   // SftpUtils.createDirs(metaCatalog)
-
-    /*
-    val ssh = new SSHClient
-    ssh.loadKnownHosts()
-    ssh.connect("edge1")
-    ssh.authPassword("alessandro", "silviale7881")
-    val sftp = ssh.newSFTPClient()
-    //val dirPath = "/home/" + groupOwn + "/" + theme + "/" + subtheme "/" + filename
-    sftp.mkdirs("/home/alessandro/" + metaCatalog.operational.theme + "/" + metaCatalog.operational.subtheme + "/" + metaCatalog.dcatapit.name)
-*/
     Success(msg, Some(msg))
   }
 

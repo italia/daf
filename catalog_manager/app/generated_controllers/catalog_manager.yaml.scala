@@ -29,6 +29,9 @@ import org.pac4j.play.store.PlaySessionStore
 import play.api.Configuration
 import it.gov.daf.common.utils.WebServiceUtil
 import it.gov.daf.catalogmanager.service.VocServiceRegistry
+import play.api.libs.ws.WSClient
+import java.net.URLEncoder
+import it.gov.daf.catalogmanager.utilities.ConfigReader
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -37,7 +40,7 @@ import it.gov.daf.catalogmanager.service.VocServiceRegistry
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                
+
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -45,7 +48,7 @@ package catalog_manager.yaml {
         ingestionListener : IngestionListenerImpl,
         val configuration: Configuration,
         val playSessionStore: PlaySessionStore,
-
+        val ws: WSClient,
         // ----- End of unmanaged code area for injections Catalog_managerYaml
         val messagesApi: MessagesApi,
         lifecycle: ApplicationLifecycle,
@@ -183,11 +186,19 @@ package catalog_manager.yaml {
         val createdatasetcatalog = createdatasetcatalogAction { (catalog: MetaCatalog) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalog
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
-            val created: Success = ServiceRegistry.catalogService.createCatalog(catalog, credentials._1 )
+            val created: Success = ServiceRegistry.catalogService.createCatalog(catalog, credentials._1, ws )
             if (!created.message.toLowerCase.equals("error")) {
-                val logicalUri = created.message.get
+                val logicalUri = created.message
+                val logicalUriEncoded = URLEncoder.encode(logicalUri, "UTF-8")
+                val ingestionUrl = ConfigReader.ingestionUrl
+                val wsResponse = ws.url(ingestionUrl + "/ingestion-manager/v1/add-new-dataset/" + logicalUriEncoded)
+                    .withHeaders(("authorization",currentRequest.headers.get("authorization").get))
+                    .get()
+                wsResponse.map(x => println(x.body))
              //   ingestionListener.addDirListener(catalog, logicalUri)
             }
+           // ws.url("http://www.google.com").get().map( x => println(x.body))
+
             Createdatasetcatalog200(created)
             //NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalog
@@ -416,6 +427,24 @@ package catalog_manager.yaml {
                 case Left(error) => GetckanorganizationList401(error)
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.getckanorganizationList
+        }
+        val datasetcatalogbytitle = datasetcatalogbytitleAction { (title: String) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbytitle
+            val catalog = ServiceRegistry.catalogService.catalogBytitle(title)
+
+            /*
+            val resutl  = catalog match {
+                case MetaCatalog(None,None,None) => Datasetcatalogbyid401("Error no data with that logical_uri")
+                case  _ =>  Datasetcatalogbyid200(catalog)
+            }
+            resutl
+            */
+
+            catalog match {
+                case Some(c) => Datasetcatalogbytitle200(c)
+                case None => Datasetcatalogbytitle401("Error")
+            }
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbytitle
         }
     
      // Dead code for absent methodCatalog_managerYaml.createIPAuser

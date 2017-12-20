@@ -13,11 +13,7 @@ object MetaCatalogDefault {
     textdb = None,
     mongo = None)
 
-  def ingPipeline() = List("StdControlledVoc")
-
-
-
-
+  def ingPipeline() = List(" ")
 
 
 }

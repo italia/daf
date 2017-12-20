@@ -6,5 +6,7 @@ object Versions {
 
   val swaggerUiVersion = "3.0.10"
 
-  val dafCatalogVersion = sys.env.get("CATALOG_MANAGER_VERSION").getOrElse("1.0.0-SNAPSHOT")
+  val dafCatalogVersion = sys.env.getOrElse("CATALOG_MANAGER_VERSION", "1.0.0-SNAPSHOT")
+
+  val dafSecurityVersion = sys.env.getOrElse("SECURITY_MANAGER_VERSION", "1.0.0-SNAPSHOT")
 }

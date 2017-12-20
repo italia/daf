@@ -203,6 +203,7 @@ class LoginClientLocal() extends LoginClient {
 
   private def getCookies(response:WSResponse):Seq[Cookie]={
 
+    println("RESPONSE IN GET COOKIES: "+response)
     response.header("Set-Cookie").getOrElse(throw new Exception("Set-Cookie header not found"))
 
     //Cookie(name: String, value: String, maxAge: Option[Int] = None, path: String = "/", domain: Option[String] = None, secure: Boolean = false, httpOnly: Boolean = true)

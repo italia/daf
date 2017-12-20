@@ -27,6 +27,8 @@ spec:
       labels:
         app: ingestion-manager
     spec:
+      securityContext:
+        runAsUser: 0
       hostAliases:
       - ip: "192.168.0.23"
         hostnames:
@@ -80,9 +82,9 @@ spec:
           containerPort: 9000
         - name: metrics
           containerPort: 7000
-        securityContext:
-          privileged: true
-          runAsUser: 0
+        # securityContext:
+        #   privileged: true
+        #   runAsUser: 0
         volumeMounts:
         - name: glusterfsvol
           mountPath: /opt/docker/conf/production.conf

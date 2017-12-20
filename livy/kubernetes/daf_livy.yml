@@ -26,14 +26,55 @@ spec:
         app: livy
     spec:
       hostNetwork: true
+      hostAliases:
+      - ip: "192.168.0.23"
+        hostnames:
+          - "master.platform.daf.gov.it"
+          - "master"
+      - ip: "192.168.0.22"
+        hostnames:
+          - "slave1.platform.daf.gov.it"
+          - "slave1"
+      - ip: "192.168.0.24"
+        hostnames:
+          - "slave2.platform.daf.gov.it"
+          - "slave2"
+      - ip: "192.168.0.36"
+        hostnames:
+          - "slave3.platform.daf.gov.it"
+          - "slave3"
+      - ip: "192.168.0.26"
+        hostnames:
+          - "slave4.platform.daf.gov.it"
+          - "slave4"
+      - ip: "192.168.0.26"
+        hostnames:
+          - "slave4.platform.daf.gov.it"
+          - "slave4"
+      - ip: "192.168.0.20"
+        hostnames:
+          - "edge1.platform.daf.gov.it"
+          - "edge1"
+      - ip: "192.168.0.21"
+        hostnames:
+          - "edge2.platform.daf.gov.it"
+          - "edge2"
+      - ip: "192.168.0.27"
+        hostnames:
+          - "edge3.platform.daf.gov.it"
+          - "edge3"
+      - ip: "192.168.0.29"
+        hostnames:
+          - "idm.daf.gov.it"
+          - "idm"
       containers:
       - name: livy
         image: 10.98.74.120:5000/daf-livy:1.0.0
         imagePullPolicy: Always
-        lifecycle:
-          postStart:
-            exec:
-             command: ["/bin/sh", "-c", "cat /etc/extra_hosts >> /etc/hosts"]
+        # lifecycle:
+        #   postStart:
+        #     exec:
+        #      command: ["/bin/sh", "-c", "cat /etc/extra_hosts >> /etc/hosts"]
         ports:
         - name: client
           containerPort: 8998
@@ -45,8 +86,8 @@ spec:
           mountPath: /livy/conf
           subPath: livy/conf
           readOnly: true
-        - name: hosts
-          mountPath: /etc/extra_hosts
+        # - name: hosts
+        #   mountPath: /etc/extra_hosts
         - name: krb5conf
           mountPath: /etc/krb5.conf
         - name: hadoopconf
@@ -61,9 +102,9 @@ spec:
       - name: glusterfsvol
         persistentVolumeClaim:
           claimName: gluster-claim
-      - name: hosts
-        hostPath:
-          path: /etc/hosts
+      # - name: hosts
+      #   hostPath:
+      #     path: /etc/hosts
       - name: krb5conf
         hostPath:
           path: /etc/krb5.conf

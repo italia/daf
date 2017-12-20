@@ -17,3 +17,4 @@ kubectl delete -f output.yml
 kubectl create -f output.yml
 
 rm output.yml
+

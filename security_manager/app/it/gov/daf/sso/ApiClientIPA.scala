@@ -13,7 +13,7 @@ import security_manager.yaml.{Error, Group, IpaUser, Success, UserList}
 import scala.concurrent.Future
 
 @Singleton
-class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager){
+class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClientLocal: LoginClientLocal,wsClient: WSClient){
 
   import scala.concurrent.ExecutionContext.Implicits._
 
@@ -57,11 +57,11 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager){
 
       val result = (json \ "result").getOrElse(JsString("null")).toString()
 
-      if (result != "null")// {
-      //  loginCkan(user.uid, user.userpassword.get).map { _ =>
-        Future { Right(Success(Some("User created"), Some("ok"))) }
-       // }
-    //  }
+      if (result != "null") {
+        loginCkan(user.uid, user.userpassword.get).map { _ =>
+          Right(Success(Some("User created"), Some("ok")))
+        }
+      }
       else
         Future { Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) ) }
 
@@ -340,28 +340,16 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager){
 
   }
 
-  /*
-  private def loginCkan(userName:String, pwd:String ):Future[String] = {
 
-    val wsClient = AhcWSClient()
+  private def loginCkan(userName:String, pwd:String):Future[String] = {
 
     println("login ckan")
 
     val loginInfo = new LoginInfo(userName,pwd,LoginClientLocal.CKAN)
-    val wsResponse = loginClient.login(loginInfo,wsClient)
+    val wsResponse = loginClientLocal.login(loginInfo,wsClient)
 
-    wsResponse.map({ response =>
-
-      if( response != null  )
-        "ok"
-      else
-        throw new Exception("Failed to login to ckan")
-
-
-    }).andThen { case _ => wsClient.close() }
-      .andThen { case _ => system.terminate() }
-
-  }*/
+    wsResponse.map(_=>"ok")
+  }
 
   /*
   private def bindDefaultOrg(userName:String):Future[String] = {

@@ -30,7 +30,8 @@ lazy val client = (project in file("client")).
   )).enablePlugins(SwaggerCodegenPlugin)
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser)
-  .dependsOn(client).aggregate(client)
+  .dependsOn(client)
+  .aggregate(client)
 
 scalaVersion in ThisBuild := "2.11.8"
 
@@ -50,11 +51,9 @@ libraryDependencies ++= Seq(
   "it.gov.daf" %% "common" % Versions.dafCommonVersion,
   "me.lessis" %% "base64" % "0.2.0",
   "ch.lightshed" %% "courier" % "0.1.4",
-  "com.chuusai" %% "shapeless" % "2.3.2",
   "com.sksamuel.avro4s" %% "avro4s-core" % "1.1.3",
   "com.sksamuel.avro4s" %% "avro4s-json" % "1.1.3",
-  "com.sksamuel.avro4s" %% "avro4s-generator" % "1.1.3",
-  "com.hierynomus" % "sshj" % "0.21.0"
+  "com.sksamuel.avro4s" %% "avro4s-generator" % "1.1.3"
 
   //"com.github.cb372" %% "scalacache-guava" % "0.9.4"
   //"com.unboundid" % "unboundid-ldapsdk" % "4.0.0"
@@ -64,13 +63,18 @@ libraryDependencies ++= Seq(
 // add nexus repo from security manager
 //
 
+libraryDependencies ++= Seq(
+  "io.prometheus" % "simpleclient" % "0.1.0",
+  "io.prometheus" % "simpleclient_hotspot" % "0.1.0",
+  "io.prometheus" % "simpleclient_common" % "0.1.0"
+)
+
 resolvers ++= Seq(
   Resolver.mavenLocal,
   //"zalando-bintray" at "https://dl.bintray.com/zalando/maven",
   "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
   "jeffmay" at "https://dl.bintray.com/jeffmay/maven",
   Resolver.url("sbt-plugins", url("http://dl.bintray.com/gruggiero/sbt-plugins"))(Resolver.ivyStylePatterns),
-  Resolver.mavenLocal,
   "lightshed-maven" at "http://dl.bintray.com/content/lightshed/maven",
   "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/"
 )

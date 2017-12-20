@@ -4,7 +4,7 @@
       "name": "test_csv",
       "type": "record",
       "namespace": "daf://raffaele/theme/test_csv",
-      "alliases": null,
+      "aliases": null,
       "fields": [
         {
           "name": "col1",

@@ -38,7 +38,7 @@ import it.gov.daf.ftp.SftpHandler
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                                                        
+
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -168,11 +168,26 @@ package security_manager.yaml {
         val useraddDAForganization = useraddDAForganizationAction { (payload: UserAndGroup) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.useraddDAForganization
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
-            integrationService.addUserToOrganization(payload.groupCn,payload.userId,credentials._1.get)flatMap {
-              case Right(success) => UseraddDAForganization200(success)
-              case Left(err) => UseraddDAForganization500(err)
-            }
+
+            if( credentials._3.contains(payload.groupCn) || WebServiceUtil.isDafAdmin(currentRequest) )
+              integrationService.addUserToOrganization( payload.groupCn, payload.userId )flatMap {
+                case Right(success) => UseraddDAForganization200(success)
+                case Left(err) => UseraddDAForganization500(err)
+              }
+            else
+              UseraddDAForganization500( Error(Option(0),Some("Admin permissions required"),None) )
             // ----- End of unmanaged code area for action  Security_managerYaml.useraddDAForganization
+        }
+        val createDefaultDAForganization = createDefaultDAForganizationAction { (organization: DafOrg) =>  
+            // ----- Start of unmanaged code area for action  Security_managerYaml.createDefaultDAForganization
+            if(! WebServiceUtil.isDafAdmin(currentRequest) )
+            CreateDefaultDAForganization500( Error(Option(0),Some("Admin permissions required"),None) )
+          else
+            integrationService.createDefaultDafOrganization()flatMap {
+              case Right(success) => CreateDefaultDAForganization200(success)
+              case Left(err) => CreateDefaultDAForganization500(err)
+            }
+            // ----- End of unmanaged code area for action  Security_managerYaml.createDefaultDAForganization
         }
         val showipauser = showipauserAction { (mail: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.showipauser

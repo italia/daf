@@ -29,9 +29,9 @@ object Role {
     override def toString = name
   }
 
-  case object Admin extends EnumVal("dafadmin")
-  case object Editor extends EnumVal("dafeditor")
-  case object Viewer extends EnumVal("dafviewer")
+  case object Admin extends EnumVal("daf_admins")
+  case object Editor extends EnumVal("daf_editors")
+  case object Viewer extends EnumVal("daf_viewers")
 
   val roles = Seq(Admin, Editor, Viewer)
 

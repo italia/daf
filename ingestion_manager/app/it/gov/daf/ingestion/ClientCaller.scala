@@ -32,7 +32,7 @@ class ClientCaller(private val wsClient: WSClient)
     //to modify with the correct wsClient class that has been defined in build as dependency
     //val serviceClient = new Service_managerClient(wsClient)(uriSrvManager)
 
-    //Anytime the param is a uri, you need to trun this
+    //Anytime the param is a uri, you need to run this
     val logicalUriEncoded = URLEncoder.encode(logicalUri, "UTF-8")
     catalogManagerClient.datasetcatalogbyid(auth, logicalUriEncoded)
   }

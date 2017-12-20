@@ -5,9 +5,9 @@ import catalog_manager.yaml.{Dataset, MetaCatalog, MetadataCat, Success}
 import it.gov.daf.catalogmanager.repository.catalog.CatalogRepositoryComponent
 import play.api.libs.json.JsValue
 
-
-
 import scala.concurrent.Future
+import play.api.libs.ws._
+import play.api.libs.ws.ahc.AhcWSComponents
 
 /**
   * Created by ale on 05/05/17.
@@ -27,9 +27,13 @@ trait CatalogServiceComponent {
       catalogRepository.catalog(catalogId)
     }
 
-    def createCatalog(metaCatalog: MetaCatalog, callingUserid :MetadataCat) :Success = {
+    def catalogBytitle(title :String): Option[MetaCatalog] = {
+      catalogRepository.catalogByTitle(title)
+    }
+
+    def createCatalog(metaCatalog: MetaCatalog, callingUserid :MetadataCat, ws :WSClient) :Success = {
       println("Service : " +  callingUserid)
-      catalogRepository.createCatalog(metaCatalog, callingUserid)
+      catalogRepository.createCatalog(metaCatalog, callingUserid, ws)
     }
   }
 }

@@ -22,19 +22,22 @@ livy.impersonation.enabled = true
 # on user request and then livy server classpath automatically.
 livy.repl.enableHiveContext = true
 
-livy.server.launch.kerberos.keytab = <path of the x.keytab file>
-livy.server.launch.kerberos.principal= <principal for @PLATFORM.DAF.LOCAL>
-
-livy.impersonation.enabled = true
-livy.server.auth.type = kerberos
-
-livy.server.auth.kerberos.keytab= <path of the x.keytab file>
-livy.server.auth.kerberos.principal=HTTP/<principal for @PLATFORM.DAF.LOCAL>
+livy.server.launch.kerberos.keytab = /opt/livy/daf.keytab
+livy.server.launch.kerberos.principal=<principal for @PLATFORM.DAF.LOCAL>
 
 livy.server.access_control.enabled=true
-livy.server.access_control.users=<user that has the access>
+livy.server.access_control.users=daf
 
-livy.superusers=<superusers>
+livy.server.auth.type = basic
+
+livy.server.pac4j.jwt_secret = <secret number>
+livy.server.pac4j.authenticator = ldap
+livy.server.pac4j.ldap.url = ldaps://idm.daf.gov.it:636
+livy.server.pac4j.ldap.username_attribute = uid
+livy.server.pac4j.ldap.user_dn_pattern = uid=%s,cn=users,cn=accounts,dc=daf,dc=gov,dc=it
+livy.server.pac4j.ldap.bind_dn = uid=admin,cn=users,cn=accounts,dc=daf,dc=gov,dc=it
+livy.server.pac4j.ldap.bind_pwd = <password>
+
 
 ```
 

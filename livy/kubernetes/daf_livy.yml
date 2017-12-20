@@ -96,6 +96,10 @@ spec:
         - name: hiveconf
           mountPath: /etc/hive/conf
           readOnly: true
+        - name: glusterfsvol
+          mountPath: /opt/livy/daf.keytab
+          subPath: livy/conf/daf.keytab
+          readOnly: true
       imagePullSecrets:
       - name: regsecret
       volumes:

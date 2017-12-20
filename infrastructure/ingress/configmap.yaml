@@ -2,7 +2,7 @@ kind: ConfigMap
 apiVersion: v1
 metadata:
   name: nginx-configuration
-  namespace: kube-system
+  namespace: ingress-nginx
   labels:
     app: ingress-nginx
 data:

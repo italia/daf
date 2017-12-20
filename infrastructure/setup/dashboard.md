@@ -24,7 +24,7 @@ Run `kubectl proxy` to access the dashboard.
 Run this command to install the latest version of [Helm](https://helm.sh/). Helm is a package manager for kubernetes.
 It has the definition of `charts` that are reusable deploy of applications. You can create your [charts]() or to use other deployed at [kubeapps](https://kubeapps.com/).
 
-We can manage also [secrets](https://github.com/kubeapps/kubeapps/blob/master/docs/getting-started.md).  
+We can manage also [secrets](https://github.com/kubeapps/kubeapps/blob/master/docs/getting-started.md).
 
 There is a problem on Helm for the first installation since we need to create the role for [tiller](https://github.com/kubernetes/helm/issues/2224).
 A workaround is to run the following commands.
@@ -64,13 +64,13 @@ and run the command `helm init` to initialize helm. Every client can run this co
 1. search the Dashboard `helm search dashboard` or you can navigate to `https://hub.kubeapps.com/`.
 
 ```
-NAME                       	VERSION	DESCRIPTION                                       
-stable/kubernetes-dashboard	0.4.2  	General-purpose web UI for Kubernetes clusters    
-stable/jasperreports       	0.2.1  	The JasperReports server can be used as a stand...
-stable/kube-ops-view       	0.4.1  	Kubernetes Operational View - read-only system ...
-stable/uchiwa              	0.2.2  	Dashboard for the Sensu monitoring framework      
-stable/weave-cloud         	0.1.2  	Weave Cloud is a add-on to Kubernetes which pro...
-stable/weave-scope         	0.9.1  	A Helm chart for the Weave Scope cluster visual...
+NAME                        VERSION DESCRIPTION
+stable/kubernetes-dashboard 0.4.2   General-purpose web UI for Kubernetes clusters
+stable/jasperreports        0.2.1   The JasperReports server can be used as a stand...
+stable/kube-ops-view        0.4.1   Kubernetes Operational View - read-only system ...
+stable/uchiwa               0.2.2   Dashboard for the Sensu monitoring framework
+stable/weave-cloud          0.1.2   Weave Cloud is a add-on to Kubernetes which pro...
+stable/weave-scope          0.9.1   A Helm chart for the Weave Scope cluster visual...
 
 ```
 
@@ -139,8 +139,8 @@ https://www.weave.works/docs/scope/latest/introducing/
 
 ```
 [pippo@master ~]# helm ls
-NAME       	REVISION	UPDATED                 	STATUS  	CHART            	NAMESPACE
-weave-scope	1       	Sat Dec 16 12:00:46 2017	DEPLOYED	weave-scope-0.9.1	default  
+NAME        REVISION    UPDATED                     STATUS      CHART               NAMESPACE
+weave-scope 1           Sat Dec 16 12:00:46 2017    DEPLOYED    weave-scope-0.9.1   default
 ```
 
 4. get its status and info `helm status weave-scope`
@@ -164,5 +164,5 @@ use `delete` or `create` instead of apply to delete or create the service and de
 
 ## Install Kong
 
-Kong in installed from mthis [repo](https://github.com/Kong/kong-dist-kubernetes/tree/master/charts/kong), by using an helm chart.
+Kong is installed from this [repo](https://github.com/Kong/kong-dist-kubernetes/tree/master/charts/kong), by using an helm chart.
 Please check the documentation a the link above to install Kong.

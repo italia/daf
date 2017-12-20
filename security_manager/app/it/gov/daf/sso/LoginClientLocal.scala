@@ -189,13 +189,13 @@ class LoginClientLocal() extends LoginClient {
 
     println("login grafana")
 
-    wsResponse.map(getCookies(_))
+    wsResponse.map(getCookies)
 
   }
 
   private def loginGrafana(userName: String, pwd: String, wsClient: WSClient): Future[Cookie] = {
 
-    loginGrafanaFE(userName, pwd, wsClient).map(_.find(_.name!="grafana_sess").get )
+    loginGrafanaFE(userName, pwd, wsClient).map(_.find(_.name=="grafana_sess").get )
 
   }
 
@@ -203,6 +203,7 @@ class LoginClientLocal() extends LoginClient {
 
   private def getCookies(response:WSResponse):Seq[Cookie]={
 
+    println("RESPONSE IN GET COOKIES: "+response)
     response.header("Set-Cookie").getOrElse(throw new Exception("Set-Cookie header not found"))
 
     //Cookie(name: String, value: String, maxAge: Option[Int] = None, path: String = "/", domain: Option[String] = None, secure: Boolean = false, httpOnly: Boolean = true)

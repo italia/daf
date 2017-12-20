@@ -74,7 +74,7 @@ spec:
       nodeSelector:
         kubernetes.io/hostname: edge1.platform.daf.gov.it
       containers:
-      - image: gcr.io/google_containers/nginx-ingress-controller:0.9.0-beta.11
+      - image: quay.io/kubernetes-ingress-controller/nginx-ingress-controller:0.9.0
         name: nginx-ingress-controller
         readinessProbe:
           httpGet:
@@ -106,3 +106,5 @@ spec:
         - /nginx-ingress-controller
         - --default-backend-service=$(POD_NAMESPACE)/default-http-backend
         - --default-ssl-certificate=default/tls-daf-teamdigitale-secret
+        - --annotations-prefix=nginx.ingress.kubernetes.io
+        - --configmap=$(POD_NAMESPACE)/nginx-configuration

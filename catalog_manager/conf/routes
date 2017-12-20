@@ -18,6 +18,8 @@ GET         /api/*file      controllers.Assets.versioned(path="/public/swagger-u
 
 ->          /catalog-manager/v1           catalog_manager.yaml.Routes
 
+GET         /metrics                         controllers.MetricsController.index
+
 
 # Temporary Ckan API outside swagger file
 GET /ckan/organizations                         controllers.ckan.CkanController.getOrganizationList

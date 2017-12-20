@@ -10,6 +10,7 @@ import io.prometheus.client.hotspot.DefaultExports
 import play.api.http.HttpEntity
 import play.api.mvc._
 
+
 @Singleton
 class MetricsController extends Controller {
   //export default jvm metrics
@@ -32,6 +33,7 @@ class MetricsController extends Controller {
 class WriterAdapter(buffer: StringBuilder) extends Writer {
   override def write(charArray: Array[Char], offset: Int, length: Int): Unit = {
     buffer ++= new String(new String(charArray, offset, length).getBytes("UTF-8"), "UTF-8")
+
   }
   override def flush(): Unit = {}
   override def close(): Unit = {}

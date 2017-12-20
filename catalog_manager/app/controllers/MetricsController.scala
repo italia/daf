@@ -10,6 +10,7 @@ import io.prometheus.client.hotspot.DefaultExports
 import play.api.http.HttpEntity
 import play.api.mvc._
 
+
 @Singleton
 class MetricsController extends Controller {
   //export default jvm metrics

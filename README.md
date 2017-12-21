@@ -5,6 +5,9 @@ Welcome to the project homepage.
 * [Documentation for developers](https://developers.italia.it/it/daf/#documentazione)
 * [User Manual](docs-usr)
 
+## Infrastructure setup
+
+To see how the DAF is setup please take a look at the [setup documentation](./infrastructure/README.md).
 
 ## Development Guidelines
 

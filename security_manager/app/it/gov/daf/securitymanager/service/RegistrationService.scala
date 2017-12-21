@@ -147,7 +147,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   }
 
-  /*
+
   def createDefaultUser(user:IpaUser):Future[Either[Error,Success]] = {
 
     val userId = UserList(Option(Seq(user.uid)))
@@ -160,7 +160,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
     result.value
 
-  }*/
+  }
 
 
   def addNewUserToDefultOrganization(ipaUser:IpaUser):Future[Either[Error,Success]] = {
@@ -170,13 +170,13 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
     val result = for {
       roleIds <- EitherT( supersetApiClient.findRoleIds(ConfigReader.suspersetOrgAdminRole,IntegrationService.toRoleName(ConfigReader.defaultOrganization)) )
       a <- EitherT( supersetApiClient.createUserWithRoles(ipaUser,roleIds:_*) )
-      b <- EitherT( grafanaApiClient.addNewUserInOrganization(ConfigReader.defaultOrganization,ipaUser.uid,ipaUser.userpassword.get) )
-    } yield b
+      //b <- EitherT( grafanaApiClient.addNewUserInOrganization(ConfigReader.defaultOrganization,ipaUser.uid,ipaUser.userpassword.get) ) TODO da riattivare
+    } yield a
 
     result.value
   }
 
-  /*
+
   def addDefaultUserToDefultOrganization(ipaUser:IpaUser):Future[Either[Error,Success]] = {
 
     require(ipaUser.userpassword.nonEmpty,"user password needed!")
@@ -188,7 +188,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
     } yield a
 
     result.value
-  }*/
+  }
 
 
 

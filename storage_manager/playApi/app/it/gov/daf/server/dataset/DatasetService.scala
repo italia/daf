@@ -31,10 +31,7 @@ class DatasetService(
   ws: WSClient
 )(implicit private val ec: ExecutionContext) {
 
-  private val catalogClient = new CatalogManagerClient(
-    serviceUrl = config.getString("daf.catalog-url"),
-    ws = ws
-  )(ec)
+  private val catalogClient = new CatalogManagerClient(config.getString("daf.catalog-url"))(ec)
   private val storageClient = PhysicalDatasetController(config)
 
   def schema(auth: String, uri: String): Future[StructType] = {

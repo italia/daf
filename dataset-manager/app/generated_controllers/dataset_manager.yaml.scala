@@ -23,6 +23,9 @@ import de.zalando.play.controllers.PlayBodyParsing._
 import it.gov.daf.server.DatasetManagerService
 import play.api.libs.ws.WSClient
 import scala.concurrent.ExecutionContext
+import it.gov.daf.server.DatasetManagerService
+import play.api.libs.ws.WSClient
+import scala.concurrent.ExecutionContext
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -31,7 +34,7 @@ import scala.concurrent.ExecutionContext
 
 package dataset_manager.yaml {
     // ----- Start of unmanaged code area for package Dataset_managerYaml
-      import it.gov.daf.server.DatasetManagerService
+          import it.gov.daf.server.DatasetManagerService
   import play.api.libs.ws.WSClient
   import scala.concurrent.ExecutionContext
     // ----- End of unmanaged code area for package Dataset_managerYaml

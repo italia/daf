@@ -18,3 +18,4 @@ In particular there the documentation for:
 13. [monitoring](./pages/monitoring.md)
 14. [nexus](./pages/nexus.md)
 15. [superset](./pages/superset.md)
+16. [Nifi](./pages/nifi.md)

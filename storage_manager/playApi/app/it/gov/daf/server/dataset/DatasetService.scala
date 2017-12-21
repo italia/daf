@@ -17,8 +17,7 @@
 package it.gov.daf.server.dataset
 
 import com.typesafe.config.Config
-import it.gov.daf.catalogmanager.MetaCatalog
-import it.gov.daf.catalogmanager.client.Catalog_managerClient
+import it.gov.daf.catalogmanager.{CatalogManagerClient, MetaCatalog}
 import it.teamdigitale.{DatasetOperations, PhysicalDatasetController}
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.types.StructType
@@ -32,24 +31,27 @@ class DatasetService(
   ws: WSClient
 )(implicit private val ec: ExecutionContext) {
 
-  private val catalogClient = new Catalog_managerClient(ws)(config.getString("daf.catalog-url"))
+  private val catalogClient = new CatalogManagerClient(
+    serviceUrl = config.getString("daf.catalog-url"),
+    ws = ws
+  )(ec)
   private val storageClient = PhysicalDatasetController(config)
 
   def schema(auth: String, uri: String): Future[StructType] = {
-    catalogClient.datasetcatalogbyid(auth, uri)
+    catalogClient.datasetCatalogByUid(auth, uri)
       .flatMap(c => extractParamsF(c).map(_ +  ("limit" -> "1")))
       .flatMap(params => Future.fromTry(storageClient.get(params)))
       .map(_.schema)
   }
 
   def data(auth: String, uri: String): Future[DataFrame] = {
-    catalogClient.datasetcatalogbyid(auth, uri)
+    catalogClient.datasetCatalogByUid(auth, uri)
       .flatMap(extractParamsF)
       .flatMap(params => Future.fromTry(storageClient.get(params)))
   }
 
   def query(auth: String, uri: String, query: Query): Future[DataFrame] = {
-    val result = catalogClient.datasetcatalogbyid(auth, uri)
+    val result = catalogClient.datasetCatalogByUid(auth, uri)
       .flatMap(extractParamsF)
       .map(params => storageClient.get(params))
         .map{ tryDf =>

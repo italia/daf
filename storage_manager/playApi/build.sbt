@@ -52,7 +52,7 @@ lazy val root = (project in file("."))
       "io.swagger" %% "swagger-play2" % "1.5.3",
       "com.typesafe.play" %% "play-json" % playVersion,
       "it.gov.daf" %% "common" % "1.0.0-SNAPSHOT" excludeAll (ExclusionRule(organization = "org.apache.hadoop.common")),
-      "it.gov.daf" %% "daf-catalog-manager-client" % "1.0.0-SNAPSHOT",
+//      "it.gov.daf" %% "daf-catalog-manager-client" % "1.0.0-SNAPSHOT",
       "org.scalatest" %% "scalatest" % "3.0.4" % "test",
       "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % "test",
       "com.github.pathikrit" %% "better-files" % betterFilesVersion % Test,

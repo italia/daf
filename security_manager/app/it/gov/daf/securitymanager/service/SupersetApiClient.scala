@@ -29,7 +29,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
                           "database_name": "$dataSource",
                           "extra":"${StringEscapeUtils.escapeJson("""{ "metadata_params": {}, "engine_params": { "connect_args": {"use_ssl":"true"}} }""")}",
                           "sqlalchemy_uri": "${ConfigReader.suspersetDbUri}/$connectedDbName?auth_mechanism=PLAIN&password=$userPwd&user=$userName",
-                          "impersonate_user": "true"
+                          "impersonate_user": "false"
                           }"""
         // for testing pourpose
         case false => s"""{

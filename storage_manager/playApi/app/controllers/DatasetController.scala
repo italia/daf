@@ -18,14 +18,14 @@ package controllers
 
 import com.google.inject.Inject
 import io.swagger.annotations._
-import it.gov.daf.server.dataset.{DatasetService, Query}
+import daf.dataset.{DatasetService, Query}
+import daf.dataset.json._
 import org.pac4j.play.store.PlaySessionStore
 import play.api.Configuration
 import play.api.libs.ws.WSClient
 import play.api.mvc._
 
 import scala.concurrent.{ExecutionContext, Future}
-import it.gov.daf.server.dataset.json._
 
 @Api(value = "dataset-manager")
 class DatasetController @Inject() (
@@ -93,7 +93,7 @@ class DatasetController @Inject() (
       name = "query",
       value = "A valid query",
       required = true,
-      dataType = "it.gov.daf.server.dataset.Query",
+      dataType = "daf.dataset.Query",
       paramType = "body"
     )
   ))

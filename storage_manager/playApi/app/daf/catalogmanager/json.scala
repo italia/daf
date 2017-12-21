@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package it.gov.daf.catalogmanager
+package daf.catalogmanager
 
 import play.api.libs.json._
 

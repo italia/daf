@@ -14,23 +14,36 @@
  * limitations under the License.
  */
 
-package it.gov.daf.catalogmanager
+package daf.dataset
 
 import play.api.libs.json.Json
 
-import scala.concurrent.{ExecutionContext, Future}
-import scalaj.http.Http
+case class Query(
+  filter: Option[List[String]],
+  where: Option[List[String]],
+  groupBy: Option[GroupBy],
+  limit: Option[Int]
+)
 
-class CatalogManagerClient(serviceUrl: String)(implicit val ec: ExecutionContext) {
-  import json._
+case class GroupBy(
+  groupColumn: String,
+  conditions: List[GroupCondition]
+)
 
-  def datasetCatalogByUid(authorization: String, catalogId: String): Future[MetaCatalog] = Future {
-    val resp = Http(s"$serviceUrl/catalog-manager/v1/catalog-ds/get/$catalogId")
-      .header("Authorization", authorization)
-      .asString
+case class GroupCondition(
+  column: String,
+  aggregationFunction: String
+)
 
-    if (resp.is2xx) Json.parse(resp.body).as[MetaCatalog]
-    else throw new java.lang.RuntimeException("unexpected response status: " + resp.statusLine + " " + resp.body)
-  }
+object json {
+
+  implicit val groupConditionWrites = Json.writes[GroupCondition]
+  implicit val groupConditionReads = Json.reads[GroupCondition]
+
+  implicit val groupByWrites = Json.writes[GroupBy]
+  implicit val groupByReads = Json.reads[GroupBy]
+
+  implicit val queryWrites = Json.writes[Query]
+  implicit val queryReads = Json.reads[Query]
 
 }

@@ -17,7 +17,7 @@
 package controllers
 
 import com.typesafe.config.ConfigFactory
-import it.gov.daf.server.dataset.DatasetService
+import daf.dataset.DatasetService
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play._
 import play.api.Configuration

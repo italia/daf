@@ -1,6 +1,5 @@
-import CommonBuild._
 import Versions._
-import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
+import com.typesafe.sbt.packager.docker.Cmd
 import de.heikoseeberger.sbtheader.license.Apache2_0
 import de.zalando.play.generator.sbt.ApiFirstPlayScalaCodeGenerator.autoImport.playScalaAutogenerateTests
 import play.sbt.routes.RoutesKeys.routesGenerator
@@ -9,6 +8,26 @@ import uk.gov.hmrc.gitstamp.GitStampPlugin._
 
 organization in ThisBuild := "it.gov.daf"
 name := "daf-ingestion-manager"
+
+javaOptions := Seq(
+  "-server",
+  "-XX:+UseG1GC",
+  "-XX:MaxGCPauseMillis=100",
+  "-XX:+PerfDisableSharedMem",
+  "-XX:+ParallelRefProcEnabled",
+  "-Xmx2g",
+  "-Xms2g",
+  "-XX:MaxPermSize=1024m"
+)
+
+resolvers ++= Seq(
+  Resolver.mavenLocal,
+  "zalando-bintray" at "https://dl.bintray.com/zalando/maven",
+  "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
+  "jeffmay" at "https://dl.bintray.com/jeffmay/maƒven",
+  "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/",
+  Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns)
+)
 
 Seq(gitStampSettings: _*)
 
@@ -23,16 +42,15 @@ lazy val client = (project in file("client")).
     swaggerSourcesDir := file(s"${baseDirectory.value}/../conf"),
     libraryDependencies ++= Seq(
       "com.typesafe.play" %% "play-json" % playVersion,
-      "com.typesafe.play" %% "play-ws" %  playVersion
+      "com.typesafe.play" %% "play-ws" % playVersion
     )
   )).enablePlugins(SwaggerCodegenPlugin)
 
 lazy val spark = "org.apache.spark"
 
 lazy val root = (project in file("."))
-  .enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser)
+  .enablePlugins(PlayScala, ApiFirstCore, ApiFirstPlayScalaCodeGenerator, ApiFirstSwaggerParser, DockerPlugin)
   .disablePlugins(PlayLogback)
-
 scalaVersion in ThisBuild := "2.11.8"
 
 def dependencyToProvide(scope: String = "compile") = Seq(
@@ -41,6 +59,11 @@ def dependencyToProvide(scope: String = "compile") = Seq(
   spark %% "spark-streaming" % sparkVersion % scope exclude("com.fasterxml.jackson.core", "jackson-databind")
 )
 
+libraryDependencies ++= Seq(
+  "io.prometheus" % "simpleclient" % "0.1.0",
+  "io.prometheus" % "simpleclient_hotspot" % "0.1.0",
+  "io.prometheus" % "simpleclient_common" % "0.1.0"
+)
 
 libraryDependencies ++= Seq(
   jdbc,
@@ -52,7 +75,7 @@ libraryDependencies ++= Seq(
   "it.gov.daf" %% "daf-security-manager-client" % dafSecurityVersion,
   specs2 % Test,
   "me.lessis" %% "base64" % "0.2.0",
-  "it.gov.daf" %% "common" % "1.0.0-SNAPSHOT" excludeAll(ExclusionRule(organization = "org.apache.hadoop.common")),
+  "it.gov.daf" %% "common" % "1.0.0-SNAPSHOT" excludeAll (ExclusionRule(organization = "org.apache.hadoop.common")),
   "org.scalatest" %% "scalatest" % "3.0.4" % Test,
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.0" % Test,
   "org.scalacheck" %% "scalacheck" % "1.13.5" % Test,
@@ -67,14 +90,7 @@ libraryDependencies ++= Seq(
 
 playScalaCustomTemplateLocation := Some(baseDirectory.value / "templates")
 
-resolvers ++= Seq(
-  Resolver.mavenLocal,
-  "zalando-bintray" at "https://dl.bintray.com/zalando/maven",
-  "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
-  "jeffmay" at "https://dl.bintray.com/jeffmay/maƒven",
-  "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/",
-  Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns)//, Resolver.mavenLocal
-)
+
 
 // Play provides two styles of routers, one expects its actions to be injected, the
 // other, legacy style, accesses its actions statically.
@@ -100,17 +116,18 @@ dockerCommands := dockerCommands.value.flatMap {
   )
   case other => List(other)
 }
+
 dockerEntrypoint := Seq(s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
+//9000 -> rest api, 7000 -> jolokia port
 dockerExposedPorts := Seq(9000)
 dockerRepository := Option("10.98.74.120:5000")
-
 
 publishTo in ThisBuild := {
   val nexus = "http://nexus.default.svc.cluster.local:8081/repository/"
   if (isSnapshot.value)
     Some("snapshots" at nexus + "maven-snapshots/")
   else
-    Some("releases"  at nexus + "maven-releases/")
+    Some("releases" at nexus + "maven-releases/")
 }
 credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
 

@@ -10,6 +10,9 @@ spec:
   - port: 9000
     protocol: TCP
     name: http
+  - port: 7000
+    protocol: TCP
+    name: metrics
   selector:
     app: ingestion-manager
 ---
@@ -24,6 +27,47 @@ spec:
       labels:
         app: ingestion-manager
     spec:
+      hostAliases:
+      - ip: "192.168.0.23"
+        hostnames:
+          - "master.platform.daf.gov.it"
+          - "master"
+      - ip: "192.168.0.22"
+        hostnames:
+          - "slave1.platform.daf.gov.it"
+          - "slave1"
+      - ip: "192.168.0.24"
+        hostnames:
+          - "slave2.platform.daf.gov.it"
+          - "slave2"
+      - ip: "192.168.0.36"
+        hostnames:
+          - "slave3.platform.daf.gov.it"
+          - "slave3"
+      - ip: "192.168.0.26"
+        hostnames:
+          - "slave4.platform.daf.gov.it"
+          - "slave4"
+      - ip: "192.168.0.26"
+        hostnames:
+          - "slave4.platform.daf.gov.it"
+          - "slave4"
+      - ip: "192.168.0.20"
+        hostnames:
+          - "edge1.platform.daf.gov.it"
+          - "edge1"
+      - ip: "192.168.0.21"
+        hostnames:
+          - "edge2.platform.daf.gov.it"
+          - "edge2"
+      - ip: "192.168.0.27"
+        hostnames:
+          - "edge3.platform.daf.gov.it"
+          - "edge3"
+      - ip: "192.168.0.29"
+        hostnames:
+          - "idm.daf.gov.it"
+          - "idm"
       containers:
       - name: ingestion-manager
         image: 10.98.74.120:5000/daf-ingestion-manager:1.0.0-SNAPSHOT
@@ -31,16 +75,14 @@ spec:
         env:
         - name: JAVA_OPTS
           value: "-server -XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:+PerfDisableSharedMem -XX:+ParallelRefProcEnabled -Xmx2g -Xms2g -XX:MaxPermSize=1024m"
-        lifecycle:
-          postStart:
-            exec:
-             command: ["/bin/sh", "-c", "cat /etc/extra_hosts >> /etc/hosts"]
         ports:
         - name: client
           containerPort: 9000
-        securityContext:
-          privileged: true
-          runAsUser: 0
+        - name: metrics
+          containerPort: 7000
+        # securityContext:
+        #   privileged: true
+        #   runAsUser: 0
         volumeMounts:
         - name: glusterfsvol
           mountPath: /opt/docker/conf/production.conf
@@ -50,8 +92,6 @@ spec:
           mountPath: /opt/docker/conf/logback.xml
           subPath: ingestion-manager/conf/logback.xml
           readOnly: true
-        - name: hosts
-          mountPath: /etc/extra_hosts
         - name: krb5conf
           mountPath: /etc/krb5.conf
         - name: hadoopconf
@@ -63,9 +103,6 @@ spec:
       - name: glusterfsvol
         persistentVolumeClaim:
           claimName: gluster-claim
-      - name: hosts
-        hostPath:
-          path: /etc/hosts
       - name: krb5conf
         hostPath:
           path: /etc/krb5.conf

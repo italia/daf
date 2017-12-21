@@ -95,21 +95,26 @@ class DatasetService(
           Try(
             Map(
               "protocol" -> "kudu",
-              "table" -> storage.kudu.flatMap(_.table_name).get
+              "table" -> storage.kudu.map(_.name).get
             )
           )
-        } else if (storage.hbase.isDefined) {
-          Try(
-            Map(
-              "protocol" -> "opentsdb",
-              "metric" -> storage.hbase.flatMap(_.metric).get,
-              //FIXME right now it encodes a list a as comma separated values of tags
-              "tags" -> storage.hbase.flatMap(_.tags).get.mkString(","),
-              //FIXME how to encode the interval?
-              "interval" -> ""
-            )
-          )
-        } else Failure(new IllegalArgumentException("no storage configured into catalog.operational field"))
+        }
+
+//FIXME re enable after the merge
+//        } else if (storage.hbase.isDefined) {
+//          Try(
+//            Map(
+//              "protocol" -> "opentsdb",
+//              "metric" -> storage.hbase.flatMap(_.metric).get,
+//              //FIXME right now it encodes a list a as comma separated values of tags
+//              "tags" -> storage.hbase.flatMap(_.tags).get.mkString(","),
+//              //FIXME how to encode the interval?
+//              "interval" -> ""
+//            )
+//          )
+//        }
+
+        else Failure(new IllegalArgumentException("no storage configured into catalog.operational field"))
 
       case None =>
         Failure(new IllegalArgumentException("no storage_info configured"))

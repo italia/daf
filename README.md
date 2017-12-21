@@ -42,3 +42,8 @@ The releases will be tagged and there will be also a branch.
 ### External TEAM
 
 Please fork the project and then do a pull request at the end. Pull request are super welcome !!! :)
+
+## Dev Doc
+
+1. [metrics setup](./doc/metrics_setup.md)
+2. [java configurations setup](./doc/memory_setup.md)

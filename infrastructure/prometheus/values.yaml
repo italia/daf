@@ -608,6 +608,26 @@ serverFiles:
           - targets:
             - localhost:9090
 
+      - job_name: catalaog_manager
+        static_configs:
+          - targets:
+            - catalog-manager.default.svc.cluster.local:9000
+
+      - job_name: storage_manager
+        static_configs:
+          - targets:
+            - storage-manager.default.svc.cluster.local:9000
+
+      - job_name: ingestion_manager
+        static_configs:
+          - targets:
+            - ingestion-manager.default.svc.cluster.local:9000
+
+      - job_name: security_manager
+        static_configs:
+          - targets:
+            - security-manager.default.svc.cluster.local:9000
+
       # A scrape configuration for running Prometheus on a Kubernetes cluster.
       # This uses separate scrape configs for cluster components (i.e. API server, node)
       # and services to allow each to use different authentication configs.

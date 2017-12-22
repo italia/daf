@@ -7,7 +7,7 @@ In particular there the documentation for:
 2. [dashboard](./pages/dashboard.md)
 3. [free ipa](./pages/freeipa.md)
 4. [backup](./pages/backup.md)
-5. [glusterfs](,/pages/glusterfs.md)
+5. [glusterfs](./pages/glusterfs.md)
 6. [haproxy](./pages/haproxy.md)
 7. [helm](./pages/helm.md)
 8. [ingress](./pages/ingress.md)

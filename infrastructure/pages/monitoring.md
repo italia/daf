@@ -1,6 +1,10 @@
 # Monitoring
 
+As tool for monitoring we use Prometheus + Grafana
+
 ## Prometheus
+
+
 
 ## Grafana
 

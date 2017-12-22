@@ -151,18 +151,3 @@ weave-scope 1           Sat Dec 16 12:00:46 2017    DEPLOYED    weave-scope-0.9.
 kubectl -n default port-forward $(kubectl -n default get endpoints \
 weave-scope-weave-scope -o jsonpath='{.subsets[0].addresses[0].targetRef.name}') 8080:4040
 ```
-
-## Install Nexus
-
-To install nexus run the following
-
-```
-kubectl apply -f ./nexus/daf_nexus.yml
-```
-
-use `delete` or `create` instead of apply to delete or create the service and deploy.
-
-## Install Kong
-
-Kong is installed from this [repo](https://github.com/Kong/kong-dist-kubernetes/tree/master/charts/kong), by using an helm chart.
-Please check the documentation a the link above to install Kong.

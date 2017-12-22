@@ -66,6 +66,26 @@ Add glusterfs volume claim for the chart
 
 ## Grafana
 
+To install grafana we use the official [kubernetes chart of grafana](https://github.com/kubernetes/charts/tree/master/stable/grafana).
+In the folder `grafana` check at the file `values.yaml`. It contains the default configuration used to run the chart.
+The `daf prometheus` datasource is configured ad runtime. As regards the password we setup for now `admin:admin`, but we can integrate the instance to run with ldap, by modifying the corresponding section in the file [values.yaml](./grafana/values.yaml).
+
+To run the chart:
+
+```bash
+helm install --name metrics stable/grafana -f ./grafana/values.yaml
+```
+
+to get the default admin password run the following command:
+
+`kubectl get secret --namespace default metrics-grafana -o jsonpath="{.data.grafana-admin-password}" | base64 --decode ; echo`
+
+to upgrade the config map please check the documentation made for prometheus. The commands to run are the same.
+
+Right now there is a bug with the job that setup the datasource a thus we need to provide it manually.
+
+### [TODO] setup persistence volume for dashboards and configurations.
+
 ## Kube-Daemon
 
 https://github.com/appscode/kubed

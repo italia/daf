@@ -185,7 +185,9 @@ server:
   ## This will pass each plugin name to `grafana-cli plugins install ${plugin}`.
   ## Ref: https://github.com/grafana/grafana-docker#installing-plugins-for-grafana-3
   ##
-  # installPlugins:
+  installPlugins:
+    - raintank-kubernetes-app
+    - camptocamp-prometheus-alertmanager-datasource
 
   # Set datasource in beginning
   setDatasource:

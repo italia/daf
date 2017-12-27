@@ -33,6 +33,12 @@ Now we can deploy the application in Kubernetes, with the following steps:
 
 ## Example queries
 
+Below you can find an example of body that can be used to make queries.
+
+```bash
+http://storage-manager.default.svc.cluster.local:9000/dataset-manager/v1/dataset/daf%253A%252F%252Fdataset%252Ford%252Falessandro%252Fdefault_org%252FAGRI%252Forganizzazioni%252Fagency_infer_ale/search
+```
+
 ### Where
 
 ```json

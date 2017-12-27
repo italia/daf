@@ -70,7 +70,7 @@ class DatasetService(
 
         //applying select and where
         val df = for {
-          selectDf <- DatasetOperations.select(tryDf, query.filter.getOrElse(List.empty))
+          selectDf <- DatasetOperations.select(tryDf, query.select.getOrElse(List.empty))
           whereDf <- DatasetOperations.where(Try(selectDf), query.where.getOrElse(List.empty))
         } yield whereDf
 

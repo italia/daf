@@ -21,6 +21,7 @@ import it.teamdigitale.{DatasetOperations, PhysicalDatasetController}
 import daf.catalogmanager.{CatalogManagerClient, MetaCatalog}
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.types.StructType
+import play.api.Logger
 import play.api.libs.ws.WSClient
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -34,8 +35,14 @@ class DatasetService(
   private val catalogClient = new CatalogManagerClient(config.getString("daf.catalog-url"))(ec)
   private val storageClient = PhysicalDatasetController(config)
 
+  private val log = Logger(this.getClass)
+
   def schema(auth: String, uri: String): Future[StructType] = {
     catalogClient.datasetCatalogByUid(auth, uri)
+      .map { mc =>
+        log.debug(s"dataset catalog result $mc")
+        mc
+      }
       .flatMap(c => extractParamsF(c).map(_ + ("limit" -> "1")))
       .flatMap(params => Future.fromTry(storageClient.get(params)))
       .map(_.schema)
@@ -43,16 +50,20 @@ class DatasetService(
 
   def data(auth: String, uri: String): Future[DataFrame] = {
     catalogClient.datasetCatalogByUid(auth, uri)
-      .flatMap(extractParamsF)
-      .map { s =>
-        println(s)
-        s
+      .map { mc =>
+        log.debug(s"dataset catalog result $mc")
+        mc
       }
+      .flatMap(extractParamsF)
       .flatMap(params => Future.fromTry(storageClient.get(params)))
   }
 
   def query(auth: String, uri: String, query: Query): Future[DataFrame] = {
     val result = catalogClient.datasetCatalogByUid(auth, uri)
+      .map { mc =>
+        log.debug(s"dataset catalog result $mc")
+        mc
+      }
       .flatMap(extractParamsF)
       .map(params => storageClient.get(params))
       .map { tryDf =>

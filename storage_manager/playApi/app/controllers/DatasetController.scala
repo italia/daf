@@ -21,7 +21,7 @@ import io.swagger.annotations._
 import daf.dataset.{DatasetService, Query}
 import daf.dataset.json._
 import org.pac4j.play.store.PlaySessionStore
-import play.api.Configuration
+import play.api.{Configuration, Logger}
 import play.api.libs.ws.WSClient
 import play.api.mvc._
 
@@ -35,7 +35,9 @@ class DatasetController @Inject() (
   implicit val ec: ExecutionContext
 ) extends Controller with Common {
 
-  val datasetService = new DatasetService(configuration.underlying, ws)(ec)
+  private val datasetService = new DatasetService(configuration.underlying, ws)(ec)
+
+  private val log = Logger(this.getClass)
 
   @ApiOperation(
     value = "Get a dataset based on the dataset id",
@@ -47,11 +49,17 @@ class DatasetController @Inject() (
   def getSchema(
     @ApiParam(value = "the uri to access the dataset", required = true) uri: String
   ): Action[AnyContent] = Action.async { implicit request =>
+    log.info(s"processing request=${request.method} with uri=$uri")
+
     withAuthentication(request) { auth =>
       datasetService.schema(auth, uri)
-        .map(st => Ok(st.prettyJson))
+        .map { st =>
+          log.info(s"response request=${request.method} with value=$st")
+          Ok(st.prettyJson)
+        }
         .recover {
           case ex: Throwable =>
+            log.error(s"processing request=${request.method} with uri=$uri error=${ex.getMessage}", ex)
             BadRequest(ex.getMessage).as(JSON)
         }
     }
@@ -67,14 +75,17 @@ class DatasetController @Inject() (
   def getDataset(
     @ApiParam(value = "the uri to access the dataset", required = true) uri: String
   ): Action[AnyContent] = Action.async { implicit request =>
+    log.info(s"processing request=${request.method} with uri=$uri")
     withAuthentication(request) { auth =>
       datasetService.data(auth, uri)
         .map { df =>
           val records = s"[${df.toJSON.collect().mkString(",")}]"
+          log.info(s"response request=${request.method} with records=$records")
           Ok(records)
         }
         .recover {
           case ex: Throwable =>
+            log.error(s"processing request=${request.method} with uri=$uri error=${ex.getMessage}", ex)
             BadRequest(ex.getMessage).as(JSON)
         }
     }
@@ -100,14 +111,20 @@ class DatasetController @Inject() (
   def queryDataset(
     @ApiParam(value = "the uri to access the dataset", required = true) uri: String
   ): Action[AnyContent] = Action.async { request =>
+    log.info(s"processing request=${request.method} with uri=$uri")
     withAuthentication(request){ auth =>
       val query = request.body.asJson.map(_.as[Query])
       query match {
         case Some(q) =>
           datasetService.query(auth, uri, q)
-            .map(df => Ok(s"[${df.toJSON.collect().mkString(",")}]"))
+            .map { df =>
+              val records = s"[${df.toJSON.collect().mkString(",")}]"
+              log.info(s"response request=${request.method} with records=$records")
+              Ok(records)
+            }
 
         case None =>
+          log.error(s"processing request=${request.method} with uri=$uri error=missing query body")
           Future.successful(BadRequest("Missing Query Body").as(JSON))
       }
     }

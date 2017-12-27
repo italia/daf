@@ -14,6 +14,7 @@ catalog_manager/conf/cluster_application.conf
 catalog_manager/conf/integration.conf
 catalog_manager/conf/production.conf
 security_manager/conf/integration.conf
+*/conf/production/
 catalog_manager/conf/cross_spec
 ingestion_manager/conf/
 storage_manager_core

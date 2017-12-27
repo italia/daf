@@ -56,7 +56,7 @@ http://storage-manager.default.svc.cluster.local:9000/dataset-manager/v1/dataset
 ```json
 
 {
-  "filter": ["agency_url"]
+  "select": ["agency_url"]
 }
 
 ```

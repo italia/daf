@@ -81,6 +81,7 @@ class DatasetController @Inject() (
         .map { df =>
           val records = s"[${df.toJSON.collect().mkString(",")}]"
           log.info(s"response request=${request.method} with records=$records")
+          df.unpersist()
           Ok(records)
         }
         .recover {
@@ -120,6 +121,7 @@ class DatasetController @Inject() (
             .map { df =>
               val records = s"[${df.toJSON.collect().mkString(",")}]"
               log.info(s"response request=${request.method} with records=$records")
+              df.unpersist()
               Ok(records)
             }
 

@@ -10,10 +10,13 @@
         </encoder>
     </appender>
 
-    <logger name="play" level="INFO"/>
+    <logger name="play" level="ERROR"/>
     <logger name="application" level="INFO"/>
+    <logger name="org.asynchttpclient.netty" level="ERROR" />
 
-    <root level="ERROR">
+
+
+    <root level="INFO">
         <appender-ref ref="STDOUT"/>
     </root>
 

@@ -51,14 +51,14 @@ lazy val root = (project in file("."))
       specs2 % Test,
       "io.swagger" %% "swagger-play2" % "1.5.3",
       "com.typesafe.play" %% "play-json" % playVersion,
-      "it.gov.daf" %% "common" % "1.0.0-SNAPSHOT" excludeAll (ExclusionRule(organization = "org.apache.hadoop.common")),
-      "it.gov.daf" %% "daf-catalog-manager-client" % "1.0.0-SNAPSHOT",
+      "it.gov.daf" %% "common" % "1.0.2-SNAPSHOT",
       "org.scalatest" %% "scalatest" % "3.0.4" % "test",
       "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % "test",
       "com.github.pathikrit" %% "better-files" % betterFilesVersion % Test,
       "io.prometheus" % "simpleclient" % "0.1.0",
       "io.prometheus" % "simpleclient_hotspot" % "0.1.0",
-      "io.prometheus" % "simpleclient_common" % "0.1.0"
+      "io.prometheus" % "simpleclient_common" % "0.1.0",
+      "org.scalaj" %% "scalaj-http" % "2.3.0"
     ).map(_.exclude("org.slf4j", "*")) ++ hbaseLibrariesTEST.map(_.exclude("org.slf4j", "*")),
 
     resolvers ++= Seq(
@@ -79,7 +79,7 @@ val hadoopHBaseExcludes =
     exclude("org.apache.logging.log4j", "log4j-slf4j-impl").
     exclude("org.slf4j", "slf4j-log4j12").
     exclude("org.jboss.netty", "netty").
-    exclude("io.netty", "netty").
+//    exclude("io.netty", "netty").
     excludeAll(ExclusionRule(organization = "javax.servlet"))
 
 val hbaseExcludes =
@@ -98,7 +98,7 @@ val hbaseExcludes =
     exclude("tomcat", "jasper-runtime").
     exclude("tomcat", "jasper-compiler").
     exclude("org.jboss.netty", "netty").
-    exclude("io.netty", "netty").
+//    exclude("io.netty", "netty").
     exclude("commons-logging", "commons-logging").
     exclude("org.apache.xmlgraphics", "batik-ext").
     exclude("commons-collections", "commons-collections").
@@ -107,7 +107,7 @@ val hbaseExcludes =
     exclude("org.apache.logging.log4j", "log4j-slf4j-impl").
     exclude("org.slf4j", "slf4j-log4j12")
 
-val hbaseLibrariesTEST = Seq (
+val hbaseLibrariesTEST = Seq(
   hadoopHBaseExcludes("org.apache.hbase" % "hbase-server" % hbaseVersion % "test" classifier "tests"),
   hadoopHBaseExcludes("org.apache.hbase" % "hbase-common" % hbaseVersion % "test" classifier "tests"),
   hadoopHBaseExcludes("org.apache.hbase" % "hbase-testing-util" % hbaseVersion % "test" classifier "tests"
@@ -149,7 +149,7 @@ publishTo := {
   if (isSnapshot.value)
     Some("snapshots" at nexus + "maven-snapshots/")
   else
-    Some("releases"  at nexus + "maven-releases/")
+    Some("releases" at nexus + "maven-releases/")
 }
 
 credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")

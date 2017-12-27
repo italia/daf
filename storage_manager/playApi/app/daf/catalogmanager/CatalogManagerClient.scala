@@ -16,6 +16,8 @@
 
 package daf.catalogmanager
 
+import java.net.URLEncoder
+
 import play.api.libs.json.Json
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -25,7 +27,7 @@ class CatalogManagerClient(serviceUrl: String)(implicit val ec: ExecutionContext
   import json._
 
   def datasetCatalogByUid(authorization: String, catalogId: String): Future[MetaCatalog] = Future {
-    val resp = Http(s"$serviceUrl/catalog-manager/v1/catalog-ds/get/$catalogId")
+    val resp = Http(s"$serviceUrl/catalog-manager/v1/catalog-ds/get/${URLEncoder.encode(catalogId,"UTF-8")}")
       .header("Authorization", authorization)
       .asString
 

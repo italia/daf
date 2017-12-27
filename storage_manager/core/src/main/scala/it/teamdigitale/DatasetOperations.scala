@@ -23,9 +23,10 @@ trait DatasetOperations {
 
   private def validateColumns(df: Try[DataFrame], columns: Set[String]): Try[DataFrame] = {
     if (columns.isEmpty) df
+    else if (columns.contains("*")) df
     else df.flatMap { d =>
       if (columns.diff(d.columns.toSet).isEmpty) Success(d)
-      else Failure(new IllegalArgumentException(s"Columns $columns not found in ${d.columns}"))
+      else Failure(new IllegalArgumentException(s"Columns $columns not found in [${d.columns.mkString(",")}]"))
     }
   }
 

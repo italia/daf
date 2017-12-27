@@ -30,3 +30,59 @@ Now we can deploy the application in Kubernetes, with the following steps:
 2. place a file `production.conf` with all the production configuration overrides.
 3. `cd kubernetes`
 4. execute `$ deploy.sh`. it creates a file output.yml that replaces the variable STORAGE_MANAGER_VERSION with 1.0.0-SNAPSTHOT, calls `kubectl delete -f output.yml` and `kubectl create -f output.yml`
+
+## Example queries
+
+Below you can find an example of body that can be used to make queries.
+
+```bash
+http://storage-manager.default.svc.cluster.local:9000/dataset-manager/v1/dataset/daf%253A%252F%252Fdataset%252Ford%252Falessandro%252Fdefault_org%252FAGRI%252Forganizzazioni%252Fagency_infer_ale/search
+```
+
+### Where
+
+```json
+
+{
+  "where": [
+    "num > 21",
+    "agency_name == 'GTT servizio extraurbano'"
+  ]
+}
+```
+
+### Filter
+
+```json
+
+{
+  "filter": ["agency_url"]
+}
+
+```
+
+### GroupBy
+
+```json
+
+{
+  "groupBy": {
+    "groupColumn": "agency_lang",
+    "conditions": [
+      {
+        "column": "num",
+        "aggregationFunction": "max"
+      }
+    ]
+  }
+}
+```
+
+### Limit
+
+```json
+
+{
+  "limit": 5
+}
+```

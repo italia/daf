@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package it.gov.daf.server.dataset
+package daf.dataset
 
 import play.api.libs.json.Json
 
 case class Query(
-  filter: Option[List[String]],
+  select: Option[List[String]],
   where: Option[List[String]],
   groupBy: Option[GroupBy],
   limit: Option[Int]

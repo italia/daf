@@ -36,7 +36,7 @@ class PhysicalDatasetController(
 
   def get(params: Map[String, String]): Try[DataFrame] = {
 
-    val l: Int = params.get("limit").map(_.asInstanceOf[Int]).getOrElse(defaultLimit)
+    val l: Int = params.get("limit").map(_.toInt).getOrElse(defaultLimit)
     val limit =
       if (l > defaultLimit) defaultLimit
       else l

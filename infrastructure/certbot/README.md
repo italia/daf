@@ -13,10 +13,10 @@ Certbot needs to be launched from the server associated to the domain to validat
 To ease this activity, a Docker image has been created containing the Certbot tool and a Bash script is used to automate the operation.
 
 The script executes the following steps:
- * Delete the preexisting Kubernetes Ingress controller
+ * Delete the pre-existing Kubernetes Ingress controller
  * Open a ssh session to the server to be validated
  * Launch a docker run command to generate the certificates through Certbot
- * Delete the preexistings secret on kubernetes
+ * Delete the pre-existings secret on kubernetes
  * Create the new secret with the fresh certificates
  * Recreate the Kubernetes Ingress controller
 

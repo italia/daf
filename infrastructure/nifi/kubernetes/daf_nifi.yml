@@ -1,4 +1,4 @@
-# TODO we need to put somewhere a script for adding the rootCA as a secret: kubectl create secret generic daf-root-ca --from-file= 
+# TODO we need to put somewhere a script for adding the rootCA as a secret: kubectl create secret generic daf-root-ca --from-file=
 apiVersion: v1
 kind: Service
 metadata:
@@ -7,16 +7,16 @@ metadata:
     app: nifi
 spec:
   ports:
-  - port: 9090 
+  - port: 9090
   selector:
-    app: nifi 
+    app: nifi
 ---
 apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
   name: nifi-deployment
 spec:
-  replicas: 3
+  replicas: 1
   strategy:
       type: Recreate
   template:
@@ -25,6 +25,8 @@ spec:
         app: nifi
     spec:
       hostNetwork: true
+      nodeSelector:
+          kubernetes.io/hostname: edge1.platform.daf.gov.it
       containers:
       - name: nifi
         image: 10.98.74.120:5000/daf-nifi:1.0.0
@@ -84,4 +86,3 @@ spec:
       - name: daf-root-ca
         secret:
           secretName: daf-root-ca
-          

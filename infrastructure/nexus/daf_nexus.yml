@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nexus
+  labels:
+    app: nexus
+spec:
+  clusterIP: 10.98.74.120
+  type: NodePort
+  ports:
+  - port: 8081
+    protocol: TCP
+    name: http
+  - port: 5000
+    protocol: TCP
+    name: docker
+  selector:
+    app: nexus
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: nexus
+  namespace: default
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: nexus
+    spec:
+      containers:
+        - name: nexus
+          image: sonatype/nexus3:3.5.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8081
+            - containerPort: 5000
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          volumeMounts:
+            - name: nexus-volume
+              mountPath: /nexus-data
+      nodeSelector:
+          kubernetes.io/hostname: edge3.platform.daf.gov.it
+      volumes:
+        - name: nexus-volume
+          hostPath:
+            path:  /var/daf/nexus

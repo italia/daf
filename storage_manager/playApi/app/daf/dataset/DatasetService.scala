@@ -101,7 +101,7 @@ class DatasetService(
           Try(
             Map(
               "protocol" -> "hdfs",
-              "path" -> catalog.operational.physical_uri.get //storage.hdfs.flatMap(_.path).map(_ + "/final.parquet").get
+              "path" -> s"${catalog.operational.physical_uri.get}/final.parquet" //storage.hdfs.flatMap(_.path).map(_ + "/final.parquet").get
             )
           )
         } else if (storage.kudu.isDefined) {

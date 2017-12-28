@@ -25,7 +25,7 @@ spec:
       hostNetwork: true
       containers:
       - name: iot-ingestion-manager
-        image: 10.98.74.120:5000/daf-iot-ingestion-manager:${IOT_MANAGER_VERSION}
+        image: 10.98.74.120:5000/daf-iot-ingestion-manager:1.0.0-bug178
         imagePullPolicy: Always
         lifecycle:
           postStart:

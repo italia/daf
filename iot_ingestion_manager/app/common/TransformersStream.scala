@@ -23,7 +23,7 @@ import org.apache.kudu.client.KuduClient
 import org.apache.kudu.spark.kudu.KuduContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, Encoder, SparkSession}
-import org.apache.spark.streaming.dstream.DStream
+import org.apache.spark.streaming.dstream.{DStream, InputDStream}
 import org.apache.spark.streaming.kafka010.ConsumerStrategies._
 import org.apache.spark.streaming.kafka010.LocationStrategies.PreferConsistent
 import org.apache.spark.streaming.kafka010.{HasOffsetRanges, KafkaUtils}
@@ -102,9 +102,12 @@ object TransformersStream extends OffsetsManagement {
 
     val fromOffsets = getLastCommittedOffsets(kuduContext.syncClient, tableName, topic, groupId, kafkaZkQuorum, kafkaZkRootDir, 60000, 60000) //TODO Magic numbers
 
-    val inputStream = stageOffsets[Array[Byte], Array[Byte]](kuduContext.syncClient, tableName, topic, groupId) {
-      fromOffsets.map(fromOffsets => KafkaUtils.createDirectStream(ssc, PreferConsistent, Assign[Array[Byte], Array[Byte]](fromOffsets.keys, kafkaParams, fromOffsets)))
-    }
+//    val inputStream: Try[DStream[ConsumerRecord[Array[Byte], Array[Byte]]]] = stageOffsets[Array[Byte], Array[Byte]](kuduContext.syncClient, tableName, topic, groupId) {
+//      fromOffsets.map(fromOffsets => KafkaUtils.createDirectStream(ssc, PreferConsistent, Assign[Array[Byte], Array[Byte]](fromOffsets.keys, kafkaParams, fromOffsets)))
+//    }
+
+    val inputStream = Try(KafkaUtils.createDirectStream(ssc, PreferConsistent, Subscribe[Array[Byte], Array[Byte]](Set(topic), kafkaParams)))
+
     inputStream.map(_.flatMap{cr =>
       val dp  = transform(cr.value)
       logInfo(dp)

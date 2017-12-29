@@ -8,7 +8,7 @@ name := "daf-iot-ingestion-manager"
 
 Seq(gitStampSettings: _*)
 
-version in ThisBuild := "1.0.0-bug178"
+version in ThisBuild := "1.0.0.bug178-SNAPSHOT"
 
 scalacOptions ++= Seq(
   "-deprecation",

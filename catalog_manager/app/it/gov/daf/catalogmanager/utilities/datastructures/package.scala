@@ -47,8 +47,8 @@ package object datastructures {
    } */
 
   object DatasetType extends Enumeration {
-    val STANDARD = Value("std")
-    val ORDINARY = Value("ord")
+    val STANDARD = Value("standard")
+    val ORDINARY = Value("ordinary")
     val RAW = Value("raw")
 
     def withNameOpt(s: String): Option[Value] = values.find(_.toString == s)

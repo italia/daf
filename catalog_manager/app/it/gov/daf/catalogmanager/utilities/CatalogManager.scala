@@ -85,7 +85,8 @@ object CatalogManager {
     }
   }
 
-  /*
+
+  // TODO Old depracated
   def writeOrdinary(metaCatalogOrdinary: MetaCatalog): Option[MetaCatalog] = {
 
 
@@ -100,6 +101,7 @@ object CatalogManager {
     toSave
   }
 
+  // TODO Old depracated
   def writeStandard(metaCatalogOrdinary: MetaCatalog) : Option[MetaCatalog] = {
     val toSave: Option[MetaCatalog] = for {
       uriDataset <- Option(UriDataset.convertToUriDataset(metaCatalogOrdinary))
@@ -112,7 +114,7 @@ object CatalogManager {
     //savoAsFile(save)
     toSave
   }
-  */
+
 
   def writeOrdAndStd(metaCatalog: MetaCatalog) : Option[MetaCatalog] = {
 

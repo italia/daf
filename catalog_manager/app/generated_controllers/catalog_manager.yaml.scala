@@ -40,7 +40,7 @@ import it.gov.daf.catalogmanager.utilities.ConfigReader
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-    
+        
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -232,6 +232,11 @@ package catalog_manager.yaml {
                 case e =>  Createckandataset401(Error(e,None,None))
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.createckandataset
+        }
+        val startKyloFedd = startKyloFeddAction { (feed: MetaCatalog) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.startKyloFedd
+            NotImplementedYet
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.startKyloFedd
         }
         val getckandatasetListWithRes = getckandatasetListWithResAction { input: (ResourceSize, ResourceSize) =>
             val (limit, offset) = input

@@ -85,7 +85,7 @@ object CatalogManager {
     }
   }
 
-  /*
+  
   def writeOrdinary(metaCatalogOrdinary: MetaCatalog): Option[MetaCatalog] = {
 
 
@@ -112,7 +112,7 @@ object CatalogManager {
     //savoAsFile(save)
     toSave
   }
-  */
+
 
   def writeOrdAndStd(metaCatalog: MetaCatalog) : Option[MetaCatalog] = {
 

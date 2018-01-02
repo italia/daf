@@ -30,7 +30,7 @@ $ curl -X POST -i -H "Content-Type: application/json" -H "Authorization: Basic Y
 ## User and groups managment
 User and organization creation should always be handled through the portal: users and groups not only lives in LDAP and freeIPA but also matches user profiling info in others DAF subsystems like CKAN or Superset.
 
-In order to create a user without step in the registration process is possible to invoke directly the user creation services:
+In order to create a user without step in the registration process is possible to invoke directly the user creation service:
 
 ```bash
 

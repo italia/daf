@@ -22,23 +22,44 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   def requestRegistration(userIn:IpaUser):Future[Either[String,MailService]] = {
 
-    val user = setUid(userIn)
+    checkUserInfo(userIn) match{
+
+      case Left(l) => Future {Left(l)}
+      case Right(r) => {
+
+        val user = setUid(userIn)
+        MongoService.findUserByUid(user.uid) match {
+          case Right(o) => Future{Left("Username already requested")}
+          case Left(o) => checkUserNregister(user)
+        }
+
+      }
+
+    }
+
+  }
+
+  def checkUserNcreate(userIn:IpaUser):Future[Either[Error,Success]] = {
+
+    checkUserInfo(userIn) match{
+      case Left(l) => Future {Left( Error(Option(1),Some(l),None) )}
+      case Right(r) => checkMailUidNcreateUser(userIn)
+    }
+
+  }
+
+  private def checkUserInfo(user:IpaUser):Either[String,String] ={
 
     if (user.userpassword.isEmpty || user.userpassword.get.length < 8)
-      Future{Left("Password minimum length is 8 characters")}
+      Left("Password minimum length is 8 characters")
     else if( !user.userpassword.get.matches("^[a-zA-Z0-9%@#   &,;:_'/\\\\<\\\\(\\\\[\\\\{\\\\\\\\\\\\^\\\\-\\\\=\\\\$\\\\!\\\\|\\\\]\\\\}\\\\)\u200C\u200B\\\\?\\\\*\\\\+\\\\.\\\\>]*$") )
-      Future{Left("Invalid chars in password")}
-    else if( !user.uid.matches("^[a-zA-Z0-9_\\\\-]*$") )
-      if( userIn.uid == null || userIn.uid.isEmpty )
-        Future{Left("Invalid chars in mail")}
-      else
-        Future{Left("Invalid chars in username")}
-    else{
-      MongoService.findUserByUid(user.uid) match {
-        case Right(o) => Future{Left("Username already requested")}
-        case Left(o) => checkUserNregister(user)
-      }
-    }
+      Left("Invalid chars in password")
+    else if( user.uid != null && !user.uid.isEmpty && !user.uid.matches("^[a-zA-Z0-9_\\\\-]*$") )
+      Left("Invalid chars in username")
+    else if( !user.mail.matches("^[a-zA-Z0-9_@\\\\-\\\\.]*$") )
+      Left("Invalid chars in mail")
+    else
+      Right("ok")
 
   }
 

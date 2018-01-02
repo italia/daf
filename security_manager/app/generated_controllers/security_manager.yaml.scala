@@ -38,7 +38,7 @@ import it.gov.daf.ftp.SftpHandler
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-        
+                            
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -69,16 +69,16 @@ package security_manager.yaml {
             }
             // ----- End of unmanaged code area for action  Security_managerYaml.registrationconfirm
         }
-        val createIPAuser = createIPAuserAction { (user: IpaUser) =>  
-            // ----- Start of unmanaged code area for action  Security_managerYaml.createIPAuser
+        val createDAFuser = createDAFuserAction { (user: IpaUser) =>  
+            // ----- Start of unmanaged code area for action  Security_managerYaml.createDAFuser
             if(! WebServiceUtil.isDafAdmin(currentRequest) )
-              CreateIPAuser500( Error(Option(0),Some("Admin permissions required"),None) )
-            else
-              apiClientIPA.createUser(user) flatMap {
-                case Right(success) => CreateIPAuser200(success)
-                case Left(err) => CreateIPAuser500(err)
-              }
-            // ----- End of unmanaged code area for action  Security_managerYaml.createIPAuser
+            CreateDAFuser500( Error(Option(0),Some("Admin permissions required"),None) )
+          else
+            registrationService.checkUserNcreate(user) flatMap {
+              case Right(success) => CreateDAFuser200(success)
+              case Left(err) => CreateDAFuser500(err)
+            }
+            // ----- End of unmanaged code area for action  Security_managerYaml.createDAFuser
         }
         val createIPAgroup = createIPAgroupAction { (group: Group) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.createIPAgroup
@@ -210,6 +210,20 @@ package security_manager.yaml {
             }
             // ----- End of unmanaged code area for action  Security_managerYaml.registrationrequest
         }
+    
+     // Dead code for absent methodSecurity_managerYaml.createIPAuser
+     /*
+            // ----- Start of unmanaged code area for action  Security_managerYaml.createIPAuser
+            if(! WebServiceUtil.isDafAdmin(currentRequest) )
+              CreateIPAuser500( Error(Option(0),Some("Admin permissions required"),None) )
+            else
+              apiClientIPA.createUser(user) flatMap {
+                case Right(success) => CreateIPAuser200(success)
+                case Left(err) => CreateIPAuser500(err)
+              }
+            // ----- End of unmanaged code area for action  Security_managerYaml.createIPAuser
+     */
+
     
     }
 }

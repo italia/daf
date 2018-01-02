@@ -94,12 +94,12 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  "/ipa/user":
+  "/daf/user":
     post:
       tags:
         - IPA
       description: Create a user
-      operationId: createIPAuser
+      operationId: createDAFuser
       produces:
       - application/json
       parameters:

@@ -8,6 +8,16 @@ import play.api.libs.functional.syntax._
 
 object KyloTrasformers {
 
+
+  def generateInputSftpPath(mc: MetaCatalog) :String = {
+    val user = mc.operational.group_own
+    val domain = mc.operational.theme
+    val subDomain = mc.operational.subtheme
+    val dsName = mc.dcatapit.name
+    val path =  s"/home/$user/$domain/$subDomain/$dsName"
+    path
+  }
+
   def  transformTemplates(value: String): Reads[JsObject] =
     __.json.update(
       (__ \ "value").json.put(JsString(value))

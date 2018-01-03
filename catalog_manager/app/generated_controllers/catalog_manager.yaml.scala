@@ -45,7 +45,7 @@ import it.gov.daf.catalogmanager.kylo.KyloTrasformers
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                                                                                        
+                                                                                                                
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -253,7 +253,7 @@ package catalog_manager.yaml {
 
                 //val templatesNew = templatesEditable.map( x => x.transform(transformTemplates(feed.operational.physical_uri.get)))
 
-                val template1 = templatesEditable(0).transform(KyloTrasformers.transformTemplates(feed.operational.physical_uri.get))
+                val template1 = templatesEditable(0).transform(KyloTrasformers.transformTemplates(KyloTrasformers.generateInputSftpPath(feed)))
                 // TODO check regex is correct
                 val template2 = templatesEditable(1).transform(KyloTrasformers.transformTemplates(feed.dcatapit.name + "*"))
 
@@ -263,8 +263,6 @@ package catalog_manager.yaml {
             }
 
             // TODO call categories now using an embedded one
-
-
 
             val streamKyloTemplate = new FileInputStream(Environment.simple().getFile("data/kylo/template.json"))
 
@@ -276,12 +274,15 @@ package catalog_manager.yaml {
 
             //val trasformed = kyloTemplate.transform(KyloTrasformers.feedTrasform(feed))
 
-            val test   = for {
+            val feedData = for {
                 (template, templates) <- templateProperties
                 trasformed <- Future(kyloTemplate.transform(KyloTrasformers.feedTrasform(feed, template, templates)))
             } yield trasformed
 
-            test.map(println(_))
+            feedData.map {
+                case s: JsSuccess[JsValue] => println(Json.stringify(s.get))
+                case e: JsError => logger.debug("Errors: " + JsError.toJson(e).toString())
+            }
 
             NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.startKyloFedd

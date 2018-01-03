@@ -8,7 +8,7 @@ import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import org.apache.commons.lang3.StringEscapeUtils
 import play.api.libs.json._
 import play.api.libs.ws.{WSClient, WSResponse}
-import security_manager.yaml.{Error, Group, IpaUser, Success, UserList}
+import security_manager.yaml.{Error, Group, IpaGroup, IpaUser, Success, UserList}
 
 import scala.concurrent.Future
 
@@ -134,6 +134,45 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
       else
         Right( Success(Some("Group created"), Some("ok")) )
 
+    }
+
+  }
+
+  def showGroup(group: String):Future[Either[Error,IpaGroup]]= {
+
+    val jsonGroup: JsValue = Json.parse(
+      s"""{
+                                       "method":"group_show",
+                                       "params":[
+                                          [
+                                             "${group}"
+                                          ],
+                                          {
+                                             "raw":false,
+                                             "version": "2.213"
+                                          }
+                                       ],
+                                       "id":0
+                                    }""")
+
+    println("showGroup: "+ jsonGroup.toString())
+
+    val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonGroup,_,_)
+    secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).map { json =>
+
+      val result = ((json \ "result") \"result")//.getOrElse(JsString("null")).toString()
+
+      if( result == "null" || result.isInstanceOf[JsUndefined] )
+
+        Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
+      else
+        Right(
+          IpaGroup(
+            (result \ "dn").asOpt[String].getOrElse(""),
+            (result \ "gidnumber") (0).asOpt[String],
+            (result \ "member_user").asOpt[Seq[String]]
+          )
+        )
     }
 
   }

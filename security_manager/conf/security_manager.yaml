@@ -278,6 +278,30 @@ paths:
           description: Error Message
           schema:
             $ref: '#/definitions/Error'
+  "/ipa/group/{cn}":
+    get:
+      tags:
+        - IPA
+      description: Show grpup info
+      operationId: showipagroup
+      produces:
+      - application/json
+      parameters:
+      - name: cn
+        in: path
+        description: Group cn
+        required: true
+        type: string
+      responses:
+        200:
+          description: IPA Group
+          schema:
+            type: object
+            $ref: '#/definitions/IpaGroup'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
   "/daf/organization":
     post:
       tags:
@@ -401,6 +425,21 @@ definitions:
           type: string
       role:
         type: string
+  IpaGroup:
+    type: object
+    required:
+      - dn
+    properties:
+      dn:
+        description: group dn
+        type: string
+      gidnumber:
+        description: group gid number
+        type: string
+      member_user:
+        type: array
+        items:
+          type: string
   Group:
     type: object
     required:

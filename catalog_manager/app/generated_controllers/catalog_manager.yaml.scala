@@ -34,6 +34,9 @@ import java.net.URLEncoder
 import it.gov.daf.catalogmanager.utilities.ConfigReader
 import play.api.libs.ws.WSResponse
 import play.api.libs.ws.WSAuthScheme
+import java.io.FileInputStream
+import play.Environment
+import it.gov.daf.catalogmanager.kylo.KyloTrasformers
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -41,12 +44,8 @@ import play.api.libs.ws.WSAuthScheme
  */
 
 package catalog_manager.yaml {
-
-    import java.io.FileInputStream
-
-    import play.Environment
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                                            
+                                                                                                        
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -246,10 +245,6 @@ package catalog_manager.yaml {
                 .withAuth("dladmin","thinkbig", scheme = WSAuthScheme.BASIC)
                 .get()
 
-            def  transformTemplates(value: String) =
-             __.json.update(
-                (__ \ "value").json.put(JsString(value))
-             )
 
             val templateProperties = templateById.map { response =>
                 val templates = response.json
@@ -258,19 +253,18 @@ package catalog_manager.yaml {
 
                 //val templatesNew = templatesEditable.map( x => x.transform(transformTemplates(feed.operational.physical_uri.get)))
 
-                val template1 = templatesEditable(0).transform(transformTemplates(feed.operational.physical_uri.get))
+                val template1 = templatesEditable(0).transform(KyloTrasformers.transformTemplates(feed.operational.physical_uri.get))
                 // TODO check regex is correct
-                val template2 = templatesEditable(1).transform(transformTemplates(feed.dcatapit.name + "*"))
+                val template2 = templatesEditable(1).transform(KyloTrasformers.transformTemplates(feed.dcatapit.name + "*"))
 
-                logger.debug(List(template1,template2).toString())
+                //logger.debug(List(template1,template2).toString())
+                (templates, List(template1.get, template2.get))
 
             }
 
             // TODO call categories now using an embedded one
 
-            //id: "efc036fe-ef47-42a6-bb00-7067efb358a5",
-            //name: "DAF Category",
-            //systemName: "daf_category"
+
 
             val streamKyloTemplate = new FileInputStream(Environment.simple().getFile("data/kylo/template.json"))
 
@@ -280,7 +274,14 @@ package catalog_manager.yaml {
                 streamKyloTemplate.close()
             }
 
+            //val trasformed = kyloTemplate.transform(KyloTrasformers.feedTrasform(feed))
 
+            val test   = for {
+                (template, templates) <- templateProperties
+                trasformed <- Future(kyloTemplate.transform(KyloTrasformers.feedTrasform(feed, template, templates)))
+            } yield trasformed
+
+            test.map(println(_))
 
             NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.startKyloFedd

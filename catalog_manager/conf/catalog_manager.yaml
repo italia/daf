@@ -1106,6 +1106,9 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/FlatSchema'
+      kyloSchema:
+        type: string
+        description: String representing json value from kylo infer
   Avro:
       required:
         - namespace

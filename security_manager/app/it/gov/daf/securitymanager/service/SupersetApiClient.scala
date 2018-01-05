@@ -34,7 +34,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
         // for testing pourpose
         case false => s"""{
                           "database_name": "$dataSource",
-                          "extra":"${StringEscapeUtils.escapeJson("""{ {"metadata_params": {},"engine_params": {}}""")}",
+                          "extra":"${StringEscapeUtils.escapeJson("""{ "metadata_params": {},"engine_params": {} }""")}",
                           "sqlalchemy_uri": "${ConfigReader.suspersetDbUri}",
                           "impersonate_user": "false"
                           }"""
@@ -228,6 +228,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
   }
 
+
   def deleteRole(roleId: Long): Future[Either[Error, Success]] = {
 
     def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
@@ -277,5 +278,32 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
     }
 
   }
+
+
+
+  def checkDbTables(dbId:Long):Future[Either[Error,Success]] = {
+
+    def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
+
+      wSClient.url(ConfigReader.supersetUrl + s"/tablemodelview/api/readvalues?_flt_0_database=$dbId").withHeaders("Content-Type" -> "application/json",
+        "Accept" -> "application/json",
+        "Cookie" -> sessionCookie
+      ).get
+    }
+
+    println("checkDbTables id: " + dbId)
+
+    secInvokeManager.manageServiceCall(loginAdminSuperset, serviceInvoke).map { json =>
+
+      json(0).validate[JsValue] match {
+        case s: JsSuccess[JsValue] =>  Left(Error(Option(0), Some("Some tables on Superset founded. Please delete them before cancel datasource"), None))
+        case e: JsError =>  Right(Success(Some("Tables not presents"), Some("ok")))
+      }
+
+    }
+
+  }
+
+
 
 }

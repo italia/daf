@@ -99,17 +99,21 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
   def deleteDafOrganization(groupCn:String):Future[Either[Error,Success]] = {
 
     val result = for {
+
+      dbId <- EitherT( supersetApiClient.findDatabaseId(toDataSource(groupCn)) )
+      a1 <- EitherT( supersetApiClient.checkDbTables(dbId) )
+
       a <- EitherT( apiClientIPA.deleteGroup(groupCn) )
       b <- EitherT( apiClientIPA.deleteUser(toUserName(groupCn)) )
 
-      dbId <- EitherT( supersetApiClient.findDatabaseId(toDataSource(groupCn)) )
-      c <- EitherT( supersetApiClient.deleteDatabase(dbId) )
+      userInfo <- EitherT( supersetApiClient.findUser(toUserName(groupCn)) )
+      e <- EitherT( supersetApiClient.deleteUser(userInfo._1) )
 
       roleId <- EitherT( supersetApiClient.findRoleId(toRoleName(groupCn)) )
       d <- EitherT( supersetApiClient.deleteRole(roleId) )
 
-      userInfo <- EitherT( supersetApiClient.findUser(toUserName(groupCn)) )
-      e <- EitherT( supersetApiClient.deleteUser(userInfo._1) )
+      //dbId <- EitherT( supersetApiClient.findDatabaseId(toDataSource(groupCn)) )
+      c <- EitherT( supersetApiClient.deleteDatabase(dbId) )
 
       f <- EitherT( ckanApiClient.deleteOrganization(groupCn) )
       g <- EitherT( ckanApiClient.purgeOrganization(groupCn) )

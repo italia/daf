@@ -38,7 +38,7 @@ import it.gov.daf.ftp.SftpHandler
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                            
+                                                                
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -72,7 +72,7 @@ package security_manager.yaml {
         val createDAFuser = createDAFuserAction { (user: IpaUser) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.createDAFuser
             if(! WebServiceUtil.isDafAdmin(currentRequest) )
-            CreateDAFuser500( Error(Option(0),Some("Admin permissions required"),None) )
+            CreateDAFuser500( Error(Option(1),Some("Admin permissions required"),None) )
           else
             registrationService.checkUserNcreate(user) flatMap {
               case Right(success) => CreateDAFuser200(success)
@@ -83,7 +83,7 @@ package security_manager.yaml {
         val createIPAgroup = createIPAgroupAction { (group: Group) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.createIPAgroup
             if(! WebServiceUtil.isDafAdmin(currentRequest) )
-              CreateIPAgroup500( Error(Option(0),Some("Admin permissions required"),None) )
+              CreateIPAgroup500( Error(Option(1),Some("Admin permissions required"),None) )
             else
               apiClientIPA.createGroup(group.cn) flatMap {
                 case Right(success) => CreateIPAgroup200(success)
@@ -94,7 +94,7 @@ package security_manager.yaml {
         val createDAForganization = createDAForganizationAction { (organization: DafOrg) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.createDAForganization
             if(! WebServiceUtil.isDafAdmin(currentRequest) )
-              CreateDAForganization500( Error(Option(0),Some("Admin permissions required"),None) )
+              CreateDAForganization500( Error(Option(1),Some("Admin permissions required"),None) )
             else
               integrationService.createDafOrganization(organization)flatMap {
                 case Right(success) => CreateDAForganization200(success)
@@ -105,7 +105,7 @@ package security_manager.yaml {
         val deleteDAForganization = deleteDAForganizationAction { (orgName: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.deleteDAForganization
             if(! WebServiceUtil.isDafAdmin(currentRequest) )
-              DeleteDAForganization500( Error(Option(0),Some("Admin permissions required"),None) )
+              DeleteDAForganization500( Error(Option(1),Some("Admin permissions required"),None) )
             else
               integrationService.deleteDafOrganization(orgName)flatMap {
                 case Right(success) => DeleteDAForganization200(success)
@@ -117,7 +117,7 @@ package security_manager.yaml {
             val (group, users) = input
             // ----- Start of unmanaged code area for action  Security_managerYaml.addUserToIPAgroup
             if(! WebServiceUtil.isDafAdmin(currentRequest) )
-              AddUserToIPAgroup500( Error(Option(0),Some("Admin permissions required"),None) )
+              AddUserToIPAgroup500( Error(Option(1),Some("Admin permissions required"),None) )
             else
               apiClientIPA.addUsersToGroup(group,users) flatMap {
                 case Right(success) => AddUserToIPAgroup200(success)
@@ -129,7 +129,7 @@ package security_manager.yaml {
             val (group, users) = input
             // ----- Start of unmanaged code area for action  Security_managerYaml.delUserToIPAgroup
             if(! WebServiceUtil.isDafAdmin(currentRequest) )
-              DelUserToIPAgroup500( Error(Option(0),Some("Admin permissions required"),None) )
+              DelUserToIPAgroup500( Error(Option(1),Some("Admin permissions required"),None) )
             else
               apiClientIPA.removeUsersFromGroup(group,users) flatMap {
               case Right(success) => DelUserToIPAgroup200(success)
@@ -165,6 +165,19 @@ package security_manager.yaml {
             Token200(Authentication.getStringToken(currentRequest, ConfigReader.tokenExpiration).getOrElse(""))
             // ----- End of unmanaged code area for action  Security_managerYaml.token
         }
+        val showipagroup = showipagroupAction { (cn: String) =>  
+            // ----- Start of unmanaged code area for action  Security_managerYaml.showipagroup
+            val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
+
+            if( credentials._3.contains(cn) || WebServiceUtil.isDafAdmin(currentRequest) )
+              apiClientIPA.showGroup(cn) flatMap {
+                case Right(success) => Showipagroup200(success)
+                case Left(err) => Showipagroup500(err)
+              }
+            else
+              Showipagroup500( Error(Option(1),Some("Admin permissions required"),None) )
+            // ----- End of unmanaged code area for action  Security_managerYaml.showipagroup
+        }
         val useraddDAForganization = useraddDAForganizationAction { (payload: UserAndGroup) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.useraddDAForganization
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
@@ -175,18 +188,18 @@ package security_manager.yaml {
                 case Left(err) => UseraddDAForganization500(err)
               }
             else
-              UseraddDAForganization500( Error(Option(0),Some("Admin permissions required"),None) )
+              UseraddDAForganization500( Error(Option(1),Some("Admin permissions required"),None) )
             // ----- End of unmanaged code area for action  Security_managerYaml.useraddDAForganization
         }
         val createDefaultDAForganization = createDefaultDAForganizationAction { (organization: DafOrg) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.createDefaultDAForganization
             if(! WebServiceUtil.isDafAdmin(currentRequest) )
-            CreateDefaultDAForganization500( Error(Option(0),Some("Admin permissions required"),None) )
-          else
-            integrationService.createDefaultDafOrganization()flatMap {
-              case Right(success) => CreateDefaultDAForganization200(success)
-              case Left(err) => CreateDefaultDAForganization500(err)
-            }
+              CreateDefaultDAForganization500( Error(Option(1),Some("Admin permissions required"),None) )
+            else
+              integrationService.createDefaultDafOrganization()flatMap {
+                case Right(success) => CreateDefaultDAForganization200(success)
+                case Left(err) => CreateDefaultDAForganization500(err)
+              }
             // ----- End of unmanaged code area for action  Security_managerYaml.createDefaultDAForganization
         }
         val showipauser = showipauserAction { (mail: String) =>  

@@ -101,7 +101,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
       (json \ "pks") (0).validate[Long] match {
         case s: JsSuccess[Long] => Right(s.value)
-        case e: JsError => println("Error response: " + json); Left(Error(Option(0), Some("Error in findSupersetRoleId"), None))
+        case e: JsError => Left(Error(Option(0), Some("Error in findSupersetRoleId"), None))
       }
 
     }
@@ -140,7 +140,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
       ((json \ "item") \ "username").validate[String] match {
         case s: JsSuccess[String] => Right(Success(Some("Connection created"), Some("ok")))
-        case e: JsError => println("Error response: " + json); Left(Error(Option(0), Some("Error in createSupersetUserWithRole"), None))
+        case e: JsError => Left(Error(Option(0), Some("Error in createSupersetUserWithRole"), None))
       }
 
     }
@@ -153,7 +153,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
     def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
 
-      wSClient.url(ConfigReader.supersetUrl + s"/databaseview/api/read?_flt_1_database_name=$dbName").withHeaders("Content-Type" -> "application/json",
+      wSClient.url(ConfigReader.supersetUrl + s"/databaseview/api/read?_flt_3_database_name=$dbName").withHeaders("Content-Type" -> "application/json",
         "Accept" -> "application/json",
         "Cookie" -> sessionCookie
       ).get
@@ -165,7 +165,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
       (json \ "pks") (0).validate[Long] match {
         case s: JsSuccess[Long] => Right(s.value)
-        case e: JsError => println("Error response: " + json); Left(Error(Option(0), Some("Error in findSupersetDatabaseId"), None))
+        case e: JsError => Left(Error(Option(0), Some("Error in findSupersetDatabaseId"), None))
       }
 
     }
@@ -195,7 +195,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
           case s2: JsSuccess[Array[String]] => Right((s.value, s2.value))
           case e2: JsError => println("Error response: " + json); Left(Error(Option(0), Some("Error in findSupersetUserId"), None))
         }
-        case e: JsError => println("Error response: " + json); Left(Error(Option(0), Some("Error in findSupersetUserId"), None))
+        case e: JsError => Left(Error(Option(0), Some("Error in findSupersetUserId"), None))
       }
 
     }
@@ -221,7 +221,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
       (json \ "message").validate[String] match {
         case s: JsSuccess[String] => Right(Success(Some("User deleted"), Some("ok")))
-        case e: JsError => println("Error response: " + json); Left(Error(Option(0), Some("Error in deleteSupersetUser"), None))
+        case e: JsError => Left(Error(Option(0), Some("Error in deleteSupersetUser"), None))
       }
 
     }
@@ -247,7 +247,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
       (json \ "message").validate[String] match {
         case s: JsSuccess[String] => Right(Success(Some("Role deleted"), Some("ok")))
-        case e: JsError => println("Error response: " + json); Left(Error(Option(0), Some("Error in deleteSupersetRole"), None))
+        case e: JsError => Left(Error(Option(0), Some("Error in deleteSupersetRole"), None))
       }
 
     }
@@ -272,7 +272,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
       (json \ "message").validate[String] match {
         case s: JsSuccess[String] => Right(Success(Some("Db deleted"), Some("ok")))
-        case e: JsError => println("Error response: " + json); Left(Error(Option(0), Some("Error in deleteSupersetDatabase"), None))
+        case e: JsError => Left(Error(Option(0), Some("Error in deleteSupersetDatabase"), None))
       }
 
     }
@@ -298,6 +298,141 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
       json(0).validate[JsValue] match {
         case s: JsSuccess[JsValue] =>  Left(Error(Option(0), Some("Some tables on Superset founded. Please delete them before cancel datasource"), None))
         case e: JsError =>  Right(Success(Some("Tables not presents"), Some("ok")))
+      }
+
+    }
+
+  }
+
+
+  def findPermissionViewIds(view_menu_id:Long):Future[Either[Error,Array[Option[Long]]]] = {
+
+    def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
+
+      wSClient.url(ConfigReader.supersetUrl + s"/permissionviews/api/readvalues?_flt_0_view_menu_id=$view_menu_id").withHeaders("Content-Type" -> "application/json",
+        "Accept" -> "application/json",
+        "Cookie" -> sessionCookie
+      ).get
+    }
+
+
+    println("findPermissionViewIds view_menu_id: " + view_menu_id)
+
+    secInvokeManager.manageServiceCall(loginAdminSuperset, serviceInvoke).map { json =>
+
+      json.validate[Array[JsValue]] match {
+        case s: JsSuccess[Array[JsValue]] =>  Right(
+          s.value.map{ jsval =>
+            (jsval \ "id").validate[Long] match {
+              case si: JsSuccess[Long] => Some(si.value)
+              case ei: JsError =>  None
+            }
+          }
+        )
+        case e: JsError => Left(Error(Option(0), Some("Error in findPermissionViewIds"), None))
+      }
+
+    }
+
+  }
+
+
+  def findViewId(permName:String):Future[Either[Error,Long]] = {
+
+    def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
+
+      wSClient.url(ConfigReader.supersetUrl + s"/viewmenus/api/read?_flt_3_name=$permName").withHeaders("Content-Type" -> "application/json",
+        "Accept" -> "application/json",
+        "Cookie" -> sessionCookie
+      ).get
+    }
+
+    println("findViewId permName: " + permName)
+
+    secInvokeManager.manageServiceCall(loginAdminSuperset, serviceInvoke).map { json =>
+
+      (json \ "pks") (0).validate[Long] match {
+        case s: JsSuccess[Long] => Right(s.value)
+        case e: JsError => Left(Error(Option(0), Some("Error in findViewId"), None))
+      }
+
+    }
+
+  }
+
+
+  def deleteView(id: Long): Future[Either[Error, Success]] = {
+
+    def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
+
+      println("deleteView id: " + id)
+
+      wSClient.url(ConfigReader.supersetUrl + s"/viewmenus/api/delete/$id").withHeaders("Content-Type" -> "application/json",
+        "Accept" -> "application/json",
+        "Cookie" -> sessionCookie
+      ).delete()
+    }
+
+    println("deleteSupersetDatabase id: " + id)
+
+    secInvokeManager.manageServiceCall(loginAdminSuperset, serviceInvoke).map { json =>
+
+      (json \ "message").validate[String] match {
+        case s: JsSuccess[String] => Right(Success(Some("view deleted"), Some("ok")))
+        case e: JsError => Left(Error(Option(0), Some("Error in deleteView"), None))
+      }
+
+    }
+
+  }
+
+
+  def deletePermissionsViews(ids: Array[Option[Long]]): Future[Either[Error, Success]] = {
+
+    val ok: Future[Either[Error, Success]]  = Future{Right(Success(Some("permission-view deleted"), Some("ok")))}
+    val ko: Future[Either[Error, Success]]  = Future{Left(Error(Option(0), Some("Error in deletePermissionView"), None))}
+
+
+    ids.foldLeft(ok)((b,a)=>{
+      b.flatMap {
+        case Right(r) => deletePermissionView(a)
+        case Left(l) => ko
+      }
+    })
+
+
+  }
+
+
+  private def deletePermissionView(id: Option[Long]): Future[Either[Error, Success]] = {
+
+    id match{
+      case Some(x) => deletePermissionView(x)
+      case None => Future{Left(Error(Option(0), Some("Error in deletePermissionView"), None))}
+    }
+
+  }
+
+
+  private def deletePermissionView(id: Long): Future[Either[Error, Success]] = {
+
+    def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
+
+      println("deleteView id: " + id)
+
+      wSClient.url(ConfigReader.supersetUrl + s"/permissionviews/api/delete/$id").withHeaders("Content-Type" -> "application/json",
+        "Accept" -> "application/json",
+        "Cookie" -> sessionCookie
+      ).delete()
+    }
+
+    println("deletePermissionView id: " + id)
+
+    secInvokeManager.manageServiceCall(loginAdminSuperset, serviceInvoke).map { json =>
+
+      (json \ "message").validate[String] match {
+        case s: JsSuccess[String] => Right(Success(Some("permission-view deleted"), Some("ok")))
+        case e: JsError => Left(Error(Option(0), Some("Error in deletePermissionView"), None))
       }
 
     }

@@ -107,19 +107,21 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
       b <- EitherT( apiClientIPA.deleteUser(toUserName(groupCn)) )
 
       userInfo <- EitherT( supersetApiClient.findUser(toUserName(groupCn)) )
-      e <- EitherT( supersetApiClient.deleteUser(userInfo._1) )
+      c <- EitherT( supersetApiClient.deleteUser(userInfo._1) )
 
       roleId <- EitherT( supersetApiClient.findRoleId(toRoleName(groupCn)) )
       d <- EitherT( supersetApiClient.deleteRole(roleId) )
 
       //dbId <- EitherT( supersetApiClient.findDatabaseId(toDataSource(groupCn)) )
-      c <- EitherT( supersetApiClient.deleteDatabase(dbId) )
+      e <- EitherT( supersetApiClient.deleteDatabase(dbId) )
+      f <- EitherT( clearSupersetPermissions(dbId, toDataSource(groupCn)) )
 
-      f <- EitherT( ckanApiClient.deleteOrganization(groupCn) )
-      g <- EitherT( ckanApiClient.purgeOrganization(groupCn) )
 
-      //h <- EitherT( grafanaApiClient.deleteOrganization(groupCn) ) TODO da riabilitare
-    } yield g
+      g <- EitherT( ckanApiClient.deleteOrganization(groupCn) )
+      h <- EitherT( ckanApiClient.purgeOrganization(groupCn) )
+
+      //i <- EitherT( grafanaApiClient.deleteOrganization(groupCn) ) TODO da riabilitare
+    } yield h
 
     result.value
   }
@@ -157,6 +159,19 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
       //d <- EitherT( grafanaApiClient.addUserInOrganization(groupCn,userName) ) TODO da riabilitare
     } yield c
+
+    result.value
+  }
+
+  private def clearSupersetPermissions(dbId:Long,dbName:String):Future[Either[Error,Success]] = {
+
+    val permName = s"[$dbName].(id:$dbId)"
+    val result = for {
+      viewId <-  EitherT( supersetApiClient.findViewId(permName) )
+      permViewIds <- EitherT( supersetApiClient.findPermissionViewIds(viewId) )
+      a <- EitherT( supersetApiClient.deletePermissionsViews(permViewIds) )
+      b <- EitherT( supersetApiClient.deleteView(viewId) )
+    } yield b
 
     result.value
   }

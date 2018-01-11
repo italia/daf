@@ -254,18 +254,42 @@ paths:
           description: Error Message
           schema:
             $ref: '#/definitions/Error'
-  "/ipa/user/{mail}":
+  "/ipa/userbymail/{mail}":
     get:
       tags:
         - IPA
       description: Show user info
-      operationId: showipauser
+      operationId: findIpauserByMail
       produces:
       - application/json
       parameters:
       - name: mail
         in: path
         description: User email
+        required: true
+        type: string
+      responses:
+        200:
+          description: IPA User
+          schema:
+            type: object
+            $ref: '#/definitions/IpaUser'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+  "/ipa/userbyname/{userName}":
+    get:
+      tags:
+        - IPA
+      description: Show user info
+      operationId: findIpauserByName
+      produces:
+      - application/json
+      parameters:
+      - name: userName
+        in: path
+        description: User uid
         required: true
         type: string
       responses:
@@ -374,6 +398,30 @@ paths:
           description: Error Message
           schema:
             $ref: '#/definitions/Error'
+  "/daf/organization/userdel":
+    put:
+      tags:
+        - DAF
+      description: Delete a user from DAF organization
+      operationId: userdelDAForganization
+      produces:
+      - application/json
+      parameters:
+      - name: payload
+        in: body
+        description: Username and groupCn
+        required: true
+        schema:
+          $ref: '#/definitions/UserAndGroup'
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
   "/daf/organization/{orgName}":
     delete:
       tags:
@@ -386,6 +434,29 @@ paths:
       - name: orgName
         in: path
         description: group Cn
+        required: true
+        type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+  "/daf/user/{userName}":
+    delete:
+      tags:
+        - DAF
+      description: delete DAF user
+      operationId: deleteDAFuser
+      produces:
+      - application/json
+      parameters:
+      - name: userName
+        in: path
+        description: user uid
         required: true
         type: string
       responses:
@@ -418,6 +489,8 @@ definitions:
       mail:
         type: string
       userpassword:
+        type: string
+      title:
         type: string
       organizations:
         type: array
@@ -461,13 +534,15 @@ definitions:
     type: object
     required:
       - groupCn
-      - defaultUserPwd
+      - predefinedUserPwd
       - supSetConnectedDbName
     properties:
       groupCn:
         description: group cn
         type: string
-      defaultUserPwd:
+      predefinedUserMail:
+        type: string
+      predefinedUserPwd:
         type: string
       supSetConnectedDbName:
         description: Superset connected DB name

@@ -158,6 +158,23 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
 
   }
 
+  def removeUserInOrganizationAsAdmin(userName:String, ckanOrg:CkanOrg):Future[Either[Error, Success]] = {
+
+    val updatedCkanOrg = ckanOrg.copy( users=ckanOrg.users.filter(c=>(!c.name.equals(userName))) )
+
+    val jsonRequest: JsValue = Json.toJson(updatedCkanOrg)
+
+    println("removeUsersInOrganization request: " + jsonRequest.toString())
+
+
+    def serviceInvoke(cookie: String, wsClient: WSClient): Future[WSResponse] = {
+      wsClient.url(ConfigReader.ckanHost + "/api/3/action/organization_patch?id=" + updatedCkanOrg.name).withHeaders("Cookie" -> cookie).post(jsonRequest)
+    }
+
+    secInvokeManager.manageServiceCall( ckanAdminLogin, serviceInvoke) map ( evaluateResult(_,"User removed") )
+
+  }
+
 
   def getOrganization(loggedUserName:String, groupCn:String):Future[Either[Error, CkanOrg]] = {
 

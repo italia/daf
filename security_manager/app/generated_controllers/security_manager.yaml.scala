@@ -38,7 +38,7 @@ import it.gov.daf.ftp.SftpHandler
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                        
+                                                                                                                                                                
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -101,6 +101,14 @@ package security_manager.yaml {
                 case Left(err) => CreateDAForganization500(err)
               }
             // ----- End of unmanaged code area for action  Security_managerYaml.createDAForganization
+        }
+        val findIpauserByName = findIpauserByNameAction { (userName: String) =>  
+            // ----- Start of unmanaged code area for action  Security_managerYaml.findIpauserByName
+            apiClientIPA.findUserByUid(userName) flatMap {
+              case Right(success) => FindIpauserByName200(success)
+              case Left(err) => FindIpauserByName500(err)
+            }
+            // ----- End of unmanaged code area for action  Security_managerYaml.findIpauserByName
         }
         val deleteDAForganization = deleteDAForganizationAction { (orgName: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.deleteDAForganization
@@ -184,33 +192,59 @@ package security_manager.yaml {
             // ----- Start of unmanaged code area for action  Security_managerYaml.useraddDAForganization
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
 
-            if( credentials._3.contains(payload.groupCn) || WebServiceUtil.isDafAdmin(currentRequest) )
+            if( (credentials._3.contains(payload.groupCn) && WebServiceUtil.isDafEditor(currentRequest) ) ||
+                WebServiceUtil.isDafAdmin(currentRequest) )
               integrationService.addUserToOrganization( payload.groupCn, payload.userId )flatMap {
                 case Right(success) => UseraddDAForganization200(success)
                 case Left(err) => UseraddDAForganization500(err)
               }
             else
-              UseraddDAForganization500( Error(Option(1),Some("Admin permissions required"),None) )
+              UseraddDAForganization500( Error(Option(1),Some("Permissions required"),None) )
             // ----- End of unmanaged code area for action  Security_managerYaml.useraddDAForganization
+        }
+        val findIpauserByMail = findIpauserByMailAction { (mail: String) =>  
+            // ----- Start of unmanaged code area for action  Security_managerYaml.findIpauserByMail
+            apiClientIPA.findUserByMail(mail) flatMap {
+              case Right(success) => FindIpauserByMail200(success)
+              case Left(err) => FindIpauserByMail500(err)
+            }
+            // ----- End of unmanaged code area for action  Security_managerYaml.findIpauserByMail
         }
         val createDefaultDAForganization = createDefaultDAForganizationAction { (organization: DafOrg) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.createDefaultDAForganization
             if(! WebServiceUtil.isDafAdmin(currentRequest) )
               CreateDefaultDAForganization500( Error(Option(1),Some("Admin permissions required"),None) )
             else
-              integrationService.createDefaultDafOrganization()flatMap {
+              integrationService.createDefaultDafOrganization(organization.predefinedUserPwd)flatMap {
                 case Right(success) => CreateDefaultDAForganization200(success)
                 case Left(err) => CreateDefaultDAForganization500(err)
               }
             // ----- End of unmanaged code area for action  Security_managerYaml.createDefaultDAForganization
         }
-        val showipauser = showipauserAction { (mail: String) =>  
-            // ----- Start of unmanaged code area for action  Security_managerYaml.showipauser
-            apiClientIPA.findUserByMail(mail) flatMap {
-              case Right(success) => Showipauser200(success)
-              case Left(err) => Showipauser500(err)
+        val deleteDAFuser = deleteDAFuserAction { (userName: String) =>  
+            // ----- Start of unmanaged code area for action  Security_managerYaml.deleteDAFuser
+            if(! WebServiceUtil.isDafAdmin(currentRequest) )
+            DeleteDAFuser500( Error(Option(1),Some("Admin permissions required"),None) )
+          else
+            registrationService.deleteUser(userName) flatMap {
+              case Right(success) => DeleteDAFuser200(success)
+              case Left(err) => DeleteDAFuser500(err)
             }
-            // ----- End of unmanaged code area for action  Security_managerYaml.showipauser
+            // ----- End of unmanaged code area for action  Security_managerYaml.deleteDAFuser
+        }
+        val userdelDAForganization = userdelDAForganizationAction { (payload: UserAndGroup) =>  
+            // ----- Start of unmanaged code area for action  Security_managerYaml.userdelDAForganization
+            val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
+
+          if( (credentials._3.contains(payload.groupCn) && WebServiceUtil.isDafEditor(currentRequest) ) ||
+            WebServiceUtil.isDafAdmin(currentRequest) )
+            integrationService.removeUserFromOrganization( payload.groupCn, payload.userId )flatMap {
+              case Right(success) => UserdelDAForganization200(success)
+              case Left(err) => UserdelDAForganization500(err)
+            }
+          else
+            UserdelDAForganization500( Error(Option(1),Some("Permissions required"),None) )
+            // ----- End of unmanaged code area for action  Security_managerYaml.userdelDAForganization
         }
         val registrationrequest = registrationrequestAction { (user: IpaUser) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.registrationrequest
@@ -225,20 +259,6 @@ package security_manager.yaml {
             }
             // ----- End of unmanaged code area for action  Security_managerYaml.registrationrequest
         }
-    
-     // Dead code for absent methodSecurity_managerYaml.createIPAuser
-     /*
-            // ----- Start of unmanaged code area for action  Security_managerYaml.createIPAuser
-            if(! WebServiceUtil.isDafAdmin(currentRequest) )
-              CreateIPAuser500( Error(Option(0),Some("Admin permissions required"),None) )
-            else
-              apiClientIPA.createUser(user) flatMap {
-                case Right(success) => CreateIPAuser200(success)
-                case Left(err) => CreateIPAuser500(err)
-              }
-            // ----- End of unmanaged code area for action  Security_managerYaml.createIPAuser
-     */
-
     
     }
 }

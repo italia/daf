@@ -99,6 +99,11 @@ object WebServiceUtil {
     readCredentialFromRequest(request)._3.contains(Role.Admin.toString)
   }
 
+  def isDafEditor(request:Request[Any]):Boolean ={
+    readCredentialFromRequest(request)._3.contains(Role.Editor.toString)
+  }
+
+
   def isBelongingToGroup( request:Request[Any], group:String ):Boolean ={
     readCredentialFromRequest(request)._3.contains(group)
   }

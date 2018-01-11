@@ -1,14 +1,14 @@
 package it.gov.daf.sso
 
 import com.google.inject.{Inject, Provides, Singleton}
+import it.gov.daf.common.authentication.Role
 import it.gov.daf.common.sso.common.{LoginInfo, SecuredInvocationManager}
 import it.gov.daf.common.utils.WebServiceUtil
-import it.gov.daf.common.authentication.Role
-import it.gov.daf.securitymanager.service.utilities.ConfigReader
+import it.gov.daf.securitymanager.service.utilities.{AppConstants, ConfigReader}
 import org.apache.commons.lang3.StringEscapeUtils
 import play.api.libs.json._
 import play.api.libs.ws.{WSClient, WSResponse}
-import security_manager.yaml.{Error, Group, IpaGroup, IpaUser, Success, UserList}
+import security_manager.yaml.{Error, IpaGroup, IpaUser, Success, UserList}
 
 import scala.concurrent.Future
 
@@ -20,9 +20,9 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
   private val loginInfo = new LoginInfo(ConfigReader.ipaUser, ConfigReader.ipaUserPwd, LoginClientLocal.FREE_IPA)
 
 
-  def createUser(user: IpaUser):Future[Either[Error,Success]]= {
+  def createUser(user: IpaUser, isPredefinedOrgUser:Boolean):Future[Either[Error,Success]]= {
 
-    val role = user.role.getOrElse(Role.Viewer.toString)
+    val titleAttributeValue = if(isPredefinedOrgUser) AppConstants.PredefinedOrgUserTitle else ""
 
     val jsonUser: JsValue = Json.parse(
                                 s"""{
@@ -38,12 +38,12 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
                                              "sn":"${user.sn}",
                                              "mail":"${user.mail}",
                                              "userpassword":"${StringEscapeUtils.escapeJson(user.userpassword.get)}",
-
+                                             "title": "$titleAttributeValue",
                                              "no_members":false,
                                              "noprivate":false,
                                              "random":false,
                                              "raw":false,
-                                             "userclass":"$role",
+
                                              "version": "2.213"
                                           }
                                        ],
@@ -115,6 +115,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
                                              "${group}"
                                           ],
                                           {
+                                             "description":"${AppConstants.OrganizationIpaGroupDescription}",
                                              "raw":false,
                                              "version": "2.213"
                                           }
@@ -279,7 +280,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
   }
 
-  def showUser(userId: String):Future[Either[Error,IpaUser]]={
+  def findUserByUid(userId: String):Future[Either[Error,IpaUser]]={
 
     val jsonRequest:JsValue = Json.parse(s"""{
                                              "id": 0,
@@ -295,12 +296,16 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
                                              ]
                                          }""")
 
-    println("showUser request: "+jsonRequest.toString())
+    println("findUserByUid request: "+jsonRequest.toString())
 
     val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonRequest,_,_)
     secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).map { json =>
 
-      val result = ((json \ "result") \"result")//.getOrElse(JsString("null")).toString()
+      val count = ((json \ "result") \ "count").asOpt[Int].getOrElse(-1)
+      val result = ((json \ "result") \"result")
+
+      if(count==0)
+        Left( Error(Option(0),Some("No user found"),None) )
 
       if( result == "null" || result.isInstanceOf[JsUndefined] )
 
@@ -309,19 +314,21 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
       else
         Right(
           IpaUser(
-            (result \ "sn") (0).asOpt[String].getOrElse(""),
-            (result \ "givenname") (0).asOpt[String].getOrElse(""),
-            (result \ "mail") (0).asOpt[String].getOrElse(""),
-            (result \ "uid") (0).asOpt[String].getOrElse(""),
-            (result \ "userclass") (0).asOpt[String],
-            None,
-            (result \ "memberof_group").asOpt[Seq[String]]
+            sn = (result \ "sn") (0).asOpt[String].getOrElse(""),
+            givenname = (result \ "givenname") (0).asOpt[String].getOrElse(""),
+            mail = (result \ "mail") (0).asOpt[String].getOrElse(""),
+            uid = (result \ "uid") (0).asOpt[String].getOrElse(""),
+            role = ApiClientIPA.extractRole( (result \ "memberof_group").asOpt[Seq[String]] ),
+            title = (result \ "title") (0).asOpt[String],
+            userpassword = None,
+            organizations = ApiClientIPA.extractOrgs( (result \ "memberof_group").asOpt[Seq[String]] )
           )
         )
 
     }
 
   }
+
 
   def findUserByMail(mail: String):Future[Either[Error,IpaUser]]={
 
@@ -355,13 +362,14 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
       else
         Right(
           IpaUser(
-            (result \ "sn") (0).asOpt[String].getOrElse(""),
-            (result \ "givenname") (0).asOpt[String].getOrElse(""),
-            (result \ "mail") (0).asOpt[String].getOrElse(""),
-            (result \ "uid") (0).asOpt[String].getOrElse(""),
-            (result \ "userclass") (0).asOpt[String],
-            None,
-            (result \ "memberof_group").asOpt[Seq[String]]
+            sn = (result \ "sn") (0).asOpt[String].getOrElse(""),
+            givenname = (result \ "givenname") (0).asOpt[String].getOrElse(""),
+            mail = (result \ "mail") (0).asOpt[String].getOrElse(""),
+            uid = (result \ "uid") (0).asOpt[String].getOrElse(""),
+            role = ApiClientIPA.extractRole( (result \ "memberof_group").asOpt[Seq[String]] ),
+            title = (result \ "title") (0).asOpt[String],
+            userpassword = None,
+            organizations = ApiClientIPA.extractOrgs( (result \ "memberof_group").asOpt[Seq[String]] )
           )
         )
 
@@ -419,6 +427,37 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
       WebServiceUtil.cleanDquote( ((json \ "error") \"message").get.toString() )
     else
       "Unexpeted error"
+
+  }
+
+
+  object ApiClientIPA {
+
+    val whiteList = Seq( Role.Admin.toString(), Role.Editor.toString(), Role.Viewer.toString() )
+    val blackList = Seq( Role.Admin.toString(), Role.Editor.toString(), Role.Viewer.toString(), "ipausers" )
+
+    def extractRole( in:Option[Seq[String]] ): Option[String] = {
+
+      if(in.isEmpty)
+        None
+      else{
+        val out = in.get.filter(elem => whiteList.contains(elem))
+        if( out.isEmpty )
+          None
+        else
+          Option(out(0))
+      }
+
+    }
+
+    def extractOrgs( in:Option[Seq[String]]): Option[Seq[String]] = {
+
+      if(in.isEmpty)
+        in
+      else
+        Option( in.get.filter(elem => !blackList.contains(elem)) )
+    }
+
 
   }
 

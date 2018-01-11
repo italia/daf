@@ -186,7 +186,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
       ).get
     }
 
-    println("findSupersetUserId username: " + username)
+    println("findUser username: " + username)
 
     secInvokeManager.manageServiceCall(loginAdminSuperset, serviceInvoke).map { json =>
 

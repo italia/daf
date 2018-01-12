@@ -38,7 +38,7 @@ import it.gov.daf.ftp.SftpHandler
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                                                                                                                
+                                                                                                                                                                                        
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -220,6 +220,14 @@ package security_manager.yaml {
                 case Left(err) => CreateDefaultDAForganization500(err)
               }
             // ----- End of unmanaged code area for action  Security_managerYaml.createDefaultDAForganization
+        }
+        val listDAForganization = listDAForganizationAction {  _ =>  
+            // ----- Start of unmanaged code area for action  Security_managerYaml.listDAForganization
+            apiClientIPA.organizationList()flatMap {
+              case Right(success) => ListDAForganization200(OrgList(success))
+              case Left(err) => ListDAForganization500(err)
+            }
+            // ----- End of unmanaged code area for action  Security_managerYaml.listDAForganization
         }
         val deleteDAFuser = deleteDAFuserAction { (userName: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.deleteDAFuser

@@ -393,6 +393,48 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
   }
 
+  def organizationList():Future[Either[Error,Seq[String]]]={
+
+    val jsonRequest:JsValue = Json.parse(s"""{
+                                             "id": 0,
+                                             "method": "group_find",
+                                             "params": [
+                                                 [""],
+                                                 {
+                                                    "description": "${AppConstants.OrganizationIpaGroupDescription}",
+                                                    "all": "false",
+                                                    "raw": "true",
+                                                    "version": "2.213"
+                                                 }
+                                             ]
+                                         }""")
+
+    println("findUserByMail request: "+ jsonRequest.toString())
+
+    val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonRequest,_,_)
+    secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).map { json =>
+
+      //Right(Success(Some("ok"), Some("ok")))
+
+      val count = ((json \ "result") \ "count").asOpt[Int].getOrElse(-1)
+      val result = ((json \ "result") \"result")
+
+      if(count==0)
+        Left( Error(Option(0),Some("No organization founded"),None) )
+
+      else if( result == "null" || result.isInstanceOf[JsUndefined]  )
+        Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
+
+      else
+        Right(
+          result.asOpt[Seq[JsObject]].get map{ el => ((el \"cn")(0)).asOpt[String].get }
+        )
+
+
+    }
+
+  }
+
   private def callIpaUrl( payload: JsValue, sessionCookie:String, cli:WSClient ): Future[WSResponse] = {
 
     cli.url(ConfigReader.ipaUrl+"/ipa/session/json").withHeaders( "Content-Type"->"application/json",

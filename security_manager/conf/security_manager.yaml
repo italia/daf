@@ -326,6 +326,24 @@ paths:
           description: Error Message
           schema:
             $ref: '#/definitions/Error'
+  "/daf/organizations":
+    get:
+      tags:
+        - DAF
+      description: List  DAF organizations
+      operationId: listDAForganization
+      produces:
+      - application/json
+#      parameters:
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/OrgList'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
   "/daf/organization":
     post:
       tags:
@@ -527,6 +545,15 @@ definitions:
       - uid
     properties:
       users:
+        type: array
+        items:
+          type: string
+  OrgList:
+    type: object
+    required:
+      - orgs
+    properties:
+      orgs:
         type: array
         items:
           type: string

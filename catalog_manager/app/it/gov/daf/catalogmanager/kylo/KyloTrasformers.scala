@@ -71,15 +71,15 @@ object KyloTrasformers {
   //"systemName": "default_org"
 
   def feedTrasform(metaCatalog: MetaCatalog, template :JsValue, templates : List[JsObject], inferJson :JsValue): Reads[JsObject] = __.json.update(
-       ((__ \ 'feedName).json.put(JsString(metaCatalog.operational.group_own + "_o_" + metaCatalog.dcatapit.name)) and
+       ((__ \ 'feedName).json.put(JsString(metaCatalog.dcatapit.holder_identifier.get + "_o_" + metaCatalog.dcatapit.name)) and
         (__ \ 'description).json.put(JsString(metaCatalog.dcatapit.name)) and
-         (__ \ 'systemFeedName).json.put(JsString(metaCatalog.operational.group_own + "_o_" + metaCatalog.dcatapit.name)) and
+         (__ \ 'systemFeedName).json.put(JsString(metaCatalog.dcatapit.holder_identifier.get + "_o_" + metaCatalog.dcatapit.name)) and
          (__ \ 'templateId).json.put(JsString((template \ "id").get.as[String])) and
          (__ \ 'templateName).json.put(JsString((template \ "templateName").get.as[String])) and
          (__ \ 'inputProcessorType).json.put(JsString(((template \ "inputProcessors")(0) \ "type").get.as[String])) and
          (__ \ 'inputProcessorName).json.put(JsString(((template \ "inputProcessors")(0) \ "name").get.as[String])) and
          (__ \ 'properties).json.put(JsArray(templates)) and
-         ((__ \ 'table) \ 'tableSchema).json.put(Json.obj("name" -> (metaCatalog.operational.group_own + "_o_" + metaCatalog.dcatapit.name)
+         ((__ \ 'table) \ 'tableSchema).json.put(Json.obj("name" -> (metaCatalog.dcatapit.holder_identifier.get + "_o_" + metaCatalog.dcatapit.name)
          , "fields" -> (inferJson \ "fields").as[JsArray]  )) and
          (((__ \ 'table) \ 'sourceTableSchema) \ 'fields).json.put((inferJson \ "fields").as[JsArray]) and
          (((__ \ 'table) \ 'feedTableSchema) \ 'fields).json.put((inferJson \ "fields").as[JsArray]) and

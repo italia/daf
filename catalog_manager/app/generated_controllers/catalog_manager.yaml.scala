@@ -46,7 +46,7 @@ import catalog_manager.yaml
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                                                                                                                                                
+                                                                                                                                                                                            
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -194,13 +194,13 @@ package catalog_manager.yaml {
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
             val created: Success = ServiceRegistry.catalogService.createCatalog(catalog, credentials._1, ws )
             if (!created.message.toLowerCase.equals("error")) {
-                val logicalUri = created.message
+               /* val logicalUri = created.message
                 val logicalUriEncoded = URLEncoder.encode(logicalUri, "UTF-8")
                 val ingestionUrl = ConfigReader.ingestionUrl
                 val wsResponse = ws.url(ingestionUrl + "/ingestion-manager/v1/add-new-dataset/" + logicalUriEncoded)
                     .withHeaders(("authorization",currentRequest.headers.get("authorization").get))
                     .get()
-                wsResponse.map(x => println(x.body))
+                wsResponse.map(x => println(x.body)) */
              //   ingestionListener.addDirListener(catalog, logicalUri)
             }
            // ws.url("http://www.google.com").get().map( x => println(x.body))
@@ -285,8 +285,10 @@ package catalog_manager.yaml {
 
             val sftPath =  URLEncoder.encode(s"/home/$user/$domain/$subDomain/$dsName", "UTF-8")
 
-            val createDir = ws.url("http://security-manager.default.svc.cluster.local:9000/security-manager/v1/ssftp/init/" + feed.operational.group_own + "/" + sftPath)
-              .withHeaders(("authorization",currentRequest.headers.get("authorization").get))
+            logger.info(currentRequest.headers.get("authorization").get)
+
+            val createDir = ws.url("http://security-manager.default.svc.cluster.local:9000/security-manager/v1/sftp/init/" + feed.operational.group_own + "/" + sftPath)
+                 .withHeaders(("authorization", currentRequest.headers.get("authorization").get))
 
             //val trasformed = kyloTemplate.transform(KyloTrasformers.feedTrasform(feed))
 
@@ -299,17 +301,17 @@ package catalog_manager.yaml {
             val feedData = for {
                 (template, templates) <- templateProperties
                 created <-  createDir.get()
-                trasformed <- Future(kyloTemplate.transform(KyloTrasformers.feedTrasform(feed, template, templates, inferJson)))
+                trasformed <-  Future(kyloTemplate.transform(KyloTrasformers.feedTrasform(feed, template, templates, inferJson)))
             } yield trasformed
 
             val createFeed: Future[WSResponse] = feedData.flatMap {
-                case s: JsSuccess[JsValue] => /*logger.debug(Json.stringify(s.get))*/;feedCreation.post(s.get)
+                case s: JsSuccess[JsValue] => logger.debug(Json.stringify(s.get));feedCreation.post(s.get)
                 case e: JsError => throw new Exception(JsError.toJson(e).toString())
             }
 
             val test = createFeed.flatMap {
                 // Assuming status 200 (OK) is a valid result for you.
-                case resp : WSResponse if resp.status == 200 => logger.debug(Json.stringify(resp.json));StartKyloFedd200(yaml.Success("Feed started", Option("Feed Started")))
+                case resp : WSResponse if resp.status == 200 => logger.debug(Json.stringify(resp.json));StartKyloFedd200(yaml.Success("Feed started", Option(resp.body)))
                 case _ => StartKyloFedd401(Error("Feed not created", Option(401), None))
             }
 

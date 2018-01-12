@@ -42,7 +42,7 @@ class DafUriConverter(
     case Standard =>
       s"/daf/standard/$theme" + "__" + s"$subTheme/$dsName"
     case Ordinary =>
-      s"/daf/ordinary/$organization/$theme" + "__" + s"$subTheme/$dsName"
+      s"/daf/ordinary/$organization/$theme" + "__" + s"$subTheme/" + organization + "_o_" + dsName
     case OpenData =>
       s"/daf/opendata/$dsName"
   }

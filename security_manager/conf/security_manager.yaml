@@ -120,6 +120,39 @@ paths:
           description: Error Message
           schema:
             $ref: '#/definitions/Error'
+
+  "/daf/user/{uid}":
+    put:
+      tags:
+        - IPA
+      description: Update a user
+      operationId: updateDAFuser
+      produces:
+      - application/json
+      parameters:
+      - name: uid
+        in: path
+        type: string
+        description: User id
+        required: true
+      - name: user
+        in: body
+        description: User
+        required: true
+        schema:
+          #type: object
+          $ref: '#/definitions/IpaUserMod'
+      responses:
+        200:
+          description: Success
+          schema:
+            #type: object
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+
   "/ipa/group":
     post:
       tags:
@@ -514,6 +547,21 @@ definitions:
         type: array
         items:
           type: string
+      role:
+        type: string
+  IpaUserMod:
+    type: object
+    required:
+      - givenname
+      - sn
+      - role
+    properties:
+      givenname:
+        description: First name
+        type: string
+      sn:
+        description: Last name
+        type: string
       role:
         type: string
   IpaGroup:

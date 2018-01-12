@@ -71,6 +71,45 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
   }
 
 
+  def updateUser(userUid: String, givenname:String, sn:String):Future[Either[Error,Success]]= {
+
+    val jsonUser: JsValue = Json.parse(
+      s"""{
+                                       "method":"user_mod",
+                                       "params":[
+                                          [
+                                             "$userUid"
+                                          ],
+                                          {
+                                             "cn":"${givenname + " " + sn}",
+                                             "displayname":"${givenname + " " + sn}",
+                                             "givenname":"${givenname}",
+                                             "sn":"$sn",
+
+                                             "raw":false,
+                                             "version": "2.213"
+                                          }
+                                       ],
+                                       "id":0
+                                    }""")
+
+    println(jsonUser.toString())
+
+    val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonUser,_,_)
+    secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).flatMap { json =>
+
+      val result = (json \ "result").getOrElse(JsString("null")).toString()
+
+      if (result != "null")
+        Future{ Right(Success(Some("User modified"), Some("ok"))) }
+      else
+        Future { Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) ) }
+
+    }
+
+  }
+
+
   def deleteUser(userUid: String):Future[Either[Error,Success]]= {
 
 
@@ -228,9 +267,9 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
   }
 
-  def addUsersToGroup(group: String, userList: UserList):Future[Either[Error,Success]]= {
+  def addUsersToGroup(group: String, userList: Seq[String]):Future[Either[Error,Success]]= {
 
-    val jArrayStr = userList.users.get.mkString("\"","\",\"","\"")
+    val jArrayStr = userList.mkString("\"","\",\"","\"")
 
     val jsonAdd: JsValue = Json.parse(
                                 s"""{
@@ -262,9 +301,9 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
   }
 
-  def removeUsersFromGroup(group: String, userList: UserList):Future[Either[Error,Success]]= {
+  def removeUsersFromGroup(group: String, userList: Seq[String]):Future[Either[Error,Success]]= {
 
-    val jArrayStr = userList.users.get.mkString("\"","\",\"","\"")
+    val jArrayStr = userList.mkString("\"","\",\"","\"")
 
     val jsonAdd: JsValue = Json.parse(
       s"""{
@@ -488,35 +527,39 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
   }
 
+}
 
-  object ApiClientIPA {
 
-    val whiteList = Seq( Role.Admin.toString(), Role.Editor.toString(), Role.Viewer.toString() )
-    val blackList = Seq( Role.Admin.toString(), Role.Editor.toString(), Role.Viewer.toString(), "ipausers" )
 
-    def extractRole( in:Option[Seq[String]] ): Option[String] = {
+object ApiClientIPA {
 
-      if(in.isEmpty)
+  val whiteList = Seq( Role.Admin.toString(), Role.Editor.toString(), Role.Viewer.toString() )
+  val blackList = Seq( Role.Admin.toString(), Role.Editor.toString(), Role.Viewer.toString(), "ipausers" )
+
+  def extractRole( in:Option[Seq[String]] ): Option[String] = {
+
+    if(in.isEmpty)
+      None
+    else{
+      val out = in.get.filter(elem => whiteList.contains(elem))
+      if( out.isEmpty )
         None
-      else{
-        val out = in.get.filter(elem => whiteList.contains(elem))
-        if( out.isEmpty )
-          None
-        else
-          Option(out(0))
-      }
-
-    }
-
-    def extractOrgs( in:Option[Seq[String]]): Option[Seq[String]] = {
-
-      if(in.isEmpty)
-        in
       else
-        Option( in.get.filter(elem => !blackList.contains(elem)) )
+        Option(out(0))
     }
 
+  }
 
+  def extractOrgs( in:Option[Seq[String]]): Option[Seq[String]] = {
+
+    if(in.isEmpty)
+      in
+    else
+      Option( in.get.filter(elem => !blackList.contains(elem)) )
+  }
+
+  def isValidRole(role:String): Boolean = {
+    whiteList.contains(role)
   }
 
 

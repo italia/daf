@@ -126,7 +126,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
     val result = for {
       user <-  EitherT( apiClientIPA.findUserByUid(userName) )
-      a0 <- EitherT( apiClientIPA.addUsersToGroup(groupCn,UserList(Option(Seq(userName)))) )
+      a0 <- EitherT( apiClientIPA.addUsersToGroup(groupCn,Seq(userName)) )
       supersetUserInfo <- EitherT( supersetApiClient.findUser(userName) )
       roleIds <- EitherT( supersetApiClient.findRoleIds(toRoleName(groupCn)::supersetUserInfo._2.toList:_*) )
       a <- EitherT( supersetApiClient.deleteUser(supersetUserInfo._1) )
@@ -172,7 +172,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
         user <-  EitherT( apiClientIPA.findUserByUid(userName) )
         a0 <- EitherT( registrationService.testIfIsNotPredefinedUser(user) )// cannot remove predefined user
 
-        a1 <-  EitherT( apiClientIPA.removeUsersFromGroup(groupCn,UserList(Option(Seq(userName)))) )
+        a1 <-  EitherT( apiClientIPA.removeUsersFromGroup(groupCn,Seq(userName)) )
 
         supersetUserInfo <- EitherT( supersetApiClient.findUser(userName) )
         roleNames = supersetUserInfo._2.toList.filter( p=>(!p.equals(toRoleName(groupCn))) ); roleIds <- EitherT( supersetApiClient.findRoleIds(roleNames:_*) )

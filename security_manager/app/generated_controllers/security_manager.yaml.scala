@@ -38,7 +38,7 @@ import it.gov.daf.ftp.SftpHandler
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                                                                                                                                        
+                                                                                                                                                                                                                    
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -82,13 +82,15 @@ package security_manager.yaml {
         }
         val createIPAgroup = createIPAgroupAction { (group: Group) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.createIPAgroup
+            /*
             if(! WebServiceUtil.isDafAdmin(currentRequest) )
               CreateIPAgroup500( Error(Option(1),Some("Admin permissions required"),None) )
             else
               apiClientIPA.createGroup(group.cn) flatMap {
                 case Right(success) => CreateIPAgroup200(success)
                 case Left(err) => CreateIPAgroup500(err)
-              }
+              }*/
+            CreateIPAgroup500(Error(Option(1),Some("The service is deprecated"),None))
             // ----- End of unmanaged code area for action  Security_managerYaml.createIPAgroup
         }
         val createDAForganization = createDAForganizationAction { (organization: DafOrg) =>  
@@ -124,25 +126,30 @@ package security_manager.yaml {
         val addUserToIPAgroup = addUserToIPAgroupAction { input: (String, UserList) =>
             val (group, users) = input
             // ----- Start of unmanaged code area for action  Security_managerYaml.addUserToIPAgroup
+            /*
             if(! WebServiceUtil.isDafAdmin(currentRequest) )
               AddUserToIPAgroup500( Error(Option(1),Some("Admin permissions required"),None) )
             else
-              apiClientIPA.addUsersToGroup(group,users) flatMap {
+              apiClientIPA.addUsersToGroup(group,users.users.get) flatMap {
                 case Right(success) => AddUserToIPAgroup200(success)
                 case Left(err) => AddUserToIPAgroup500(err)
-              }
+              }*/
+            AddUserToIPAgroup500(Error(Option(1),Some("The service is deprecated"),None))
             // ----- End of unmanaged code area for action  Security_managerYaml.addUserToIPAgroup
         }
         val delUserToIPAgroup = delUserToIPAgroupAction { input: (String, UserList) =>
             val (group, users) = input
             // ----- Start of unmanaged code area for action  Security_managerYaml.delUserToIPAgroup
+            /*
             if(! WebServiceUtil.isDafAdmin(currentRequest) )
               DelUserToIPAgroup500( Error(Option(1),Some("Admin permissions required"),None) )
             else
-              apiClientIPA.removeUsersFromGroup(group,users) flatMap {
+              apiClientIPA.removeUsersFromGroup(group,users.users.get) flatMap {
               case Right(success) => DelUserToIPAgroup200(success)
               case Left(err) => DelUserToIPAgroup500(err)
-            }
+              }
+              */
+              DelUserToIPAgroup500(Error(Option(1),Some("The service is deprecated"),None))
             // ----- End of unmanaged code area for action  Security_managerYaml.delUserToIPAgroup
         }
         val sftp = sftpAction { input: (String, String) =>
@@ -163,6 +170,18 @@ package security_manager.yaml {
             case scala.util.Failure(ex) => Sftp500(Error(Some(404), Some(ex.getMessage), None))
           }
             // ----- End of unmanaged code area for action  Security_managerYaml.sftp
+        }
+        val updateDAFuser = updateDAFuserAction { input: (String, IpaUserMod) =>
+            val (uid, user) = input
+            // ----- Start of unmanaged code area for action  Security_managerYaml.updateDAFuser
+            if(! WebServiceUtil.isDafAdmin(currentRequest) )
+            UpdateDAFuser500( Error(Option(1),Some("Admin permissions required"),None) )
+          else
+            registrationService.updateUser(input._1,input._2.givenname,input._2.sn,input._2.role) flatMap {
+              case Right(success) => UpdateDAFuser200(success)
+              case Left(err) => UpdateDAFuser500(err)
+            }
+            // ----- End of unmanaged code area for action  Security_managerYaml.updateDAFuser
         }
         val token = tokenAction {  _ =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.token

@@ -3,11 +3,11 @@ package it.gov.daf.securitymanager.service
 import cats.data.EitherT
 import com.google.inject.{Inject, Singleton}
 import it.gov.daf.securitymanager.service.utilities.{AppConstants, BearerTokenGenerator, ConfigReader}
-import it.gov.daf.sso.ApiClientIPA
 import play.api.libs.json.{JsError, JsSuccess, JsValue}
 import security_manager.yaml.{Error, IpaUser, Success, UserList}
 import it.gov.daf.common.authentication.Role
 import cats.implicits._
+import it.gov.daf.sso.ApiClientIPA
 
 import scala.concurrent.Future
 
@@ -161,11 +161,11 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   def createUser(user:IpaUser, isPredefinedOrgUser:Boolean):Future[Either[Error,Success]] = {
 
-    val userId = UserList(Option(Seq(user.uid)))
+    //val userId = UserList(Option(Seq(user.uid)))
 
     val result = for {
       a <- EitherT( apiClientIPA.createUser(user, isPredefinedOrgUser) )
-      b <- EitherT( apiClientIPA.addUsersToGroup(user.role.getOrElse(Role.Viewer.toString()),userId) )
+      b <- EitherT( apiClientIPA.addUsersToGroup(user.role.getOrElse(Role.Viewer.toString()),Seq(user.uid)) )
       c <- EitherT( addNewUserToDefaultOrganization(user) )
     } yield c
 
@@ -178,18 +178,14 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   def createDefaultUser(user:IpaUser):Future[Either[Error,Success]] = {
 
-    val userId = UserList(Option(Seq(user.uid)))
-
     val result = for {
       a <- EitherT( apiClientIPA.createUser(user,true) )
-      b <- EitherT( apiClientIPA.addUsersToGroup(user.role.getOrElse(Role.Viewer.toString()),userId) )
+      b <- EitherT( apiClientIPA.addUsersToGroup(user.role.getOrElse(Role.Viewer.toString()),Seq(user.uid)) )
       c <- EitherT( addDefaultUserToDefaultOrganization(user) )
     } yield c
     result.value
 
   }
-
-
 
 
   def testIfIsNotPredefinedUser(user:IpaUser):Future[Either[Error,Success]] = {
@@ -212,6 +208,15 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   }
 
+  private def checkRole(role:String):Future[Either[Error,Success]] = {
+
+    if( ApiClientIPA.isValidRole(role) )
+      Future{Right( Success(Some("Ok"), Some("ok")))}
+    else
+      Future{Left(Error(Option(1), Some("Invalid role"), None))}
+
+  }
+
 
   def deleteUser(uid:String):Future[Either[Error,Success]] = {
 
@@ -229,16 +234,31 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   }
 
+  def updateUser(uid: String, givenname:String, sn:String, role:String ):Future[Either[Error,Success]]= {
+
+    val result = for {
+      a1 <- EitherT( checkRole(role) )
+      user <- EitherT( apiClientIPA.findUserByUid(uid) )
+      a <- EitherT( testIfIsNotPredefinedUser(user) )// cannot update predefined user
+
+      b <- EitherT( apiClientIPA.removeUsersFromGroup(user.role.get,Seq(uid)) )
+      b1 <- EitherT( apiClientIPA.addUsersToGroup(role,Seq(uid)) )
+      c<- EitherT( apiClientIPA.updateUser(uid,givenname,sn) )
+
+    } yield c
+
+    result.value
+  }
 
 
   private def addNewUserToDefaultOrganization(ipaUser:IpaUser):Future[Either[Error,Success]] = {
 
     require(ipaUser.userpassword.nonEmpty,"user password needed!")
 
-    val userId = UserList(Option(Seq(ipaUser.uid)))
+    //val userId = UserList(Option(Seq(ipaUser.uid)))
 
     val result = for {
-      a <- EitherT( apiClientIPA.addUsersToGroup(ConfigReader.defaultOrganization,userId) )
+      a <- EitherT( apiClientIPA.addUsersToGroup(ConfigReader.defaultOrganization,Seq(ipaUser.uid)) )
       roleIds <- EitherT( supersetApiClient.findRoleIds(ConfigReader.suspersetOrgAdminRole,IntegrationService.toRoleName(ConfigReader.defaultOrganization)) )
       b <- EitherT( supersetApiClient.createUserWithRoles(ipaUser,roleIds:_*) )
       //c <- EitherT( grafanaApiClient.addNewUserInOrganization(ConfigReader.defaultOrganization,ipaUser.uid,ipaUser.userpassword.get) ) TODO da riattivare
@@ -252,10 +272,10 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
     require(ipaUser.userpassword.nonEmpty,"user password needed!")
 
-    val userId = UserList(Option(Seq(ipaUser.uid)))
+    //val userId = UserList(Option(Seq(ipaUser.uid)))
 
     val result = for {
-      a <- EitherT( apiClientIPA.addUsersToGroup(ConfigReader.defaultOrganization,userId) )
+      a <- EitherT( apiClientIPA.addUsersToGroup(ConfigReader.defaultOrganization,Seq(ipaUser.uid)) )
       roleIds <- EitherT( supersetApiClient.findRoleIds(ConfigReader.suspersetOrgAdminRole,IntegrationService.toRoleName(ConfigReader.defaultOrganization)) )
       b <- EitherT( supersetApiClient.createUserWithRoles(ipaUser,roleIds:_*) )
       //c <- EitherT( grafanaApiClient.addNewUserInOrganization(ConfigReader.defaultOrganization,ipaUser.uid,ipaUser.userpassword.get) )

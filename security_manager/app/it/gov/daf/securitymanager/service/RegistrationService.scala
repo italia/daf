@@ -12,7 +12,7 @@ import cats.implicits._
 import scala.concurrent.Future
 
 @Singleton
-class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient: SupersetApiClient, grafanaApiClient: GrafanaApiClient) {
+class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient: SupersetApiClient, ckanApiClient: CkanApiClient, grafanaApiClient: GrafanaApiClient) {
 
   import security_manager.yaml.BodyReads._
   import scala.concurrent.ExecutionContext.Implicits._
@@ -169,7 +169,10 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
       c <- EitherT( addNewUserToDefaultOrganization(user) )
     } yield c
 
-    result.value
+    result.value.map{
+      case Right(r) => Right( Success(Some("User created"), Some("ok")) )
+      case Left(l) => Left(l)
+    }
 
   }
 
@@ -187,29 +190,39 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
   }
 
 
-  def testIfIsNotPredefinedUser(uid:String):Future[Either[Error,Success]] = {
-
-    apiClientIPA.findUserByUid(uid) map {
-
-        case Right(r) =>  if( r.title.isEmpty || (!r.title.get.equals(AppConstants.PredefinedOrgUserTitle)) )
-                            Right( Success(Some("Not a predefined user"), Some("ok")))
-                          else
-                            Left(Error(Option(1), Some("Predefined user"), None))
 
 
-        case Left(l) => Left(l)
+  def testIfIsNotPredefinedUser(user:IpaUser):Future[Either[Error,Success]] = {
 
-    }
+    if( user.title.isEmpty || (!user.title.get.equals(AppConstants.PredefinedOrgUserTitle)) )
+      Future{Right( Success(Some("Ok"), Some("ok")))}
+    else
+      Future{Left(Error(Option(1), Some("Predefined user"), None))}
+
+  }
+
+  private def testIfUserBelongsToGroup(user:IpaUser):Future[Either[Error,Success]] = {
+
+    if( user.organizations.isEmpty || user.organizations.get.isEmpty ||
+        user.organizations.get.filter( p => (!p.equals(ConfigReader.defaultOrganization)) ).isEmpty
+    )
+      Future{Right( Success(Some("Ok"), Some("ok")))}
+    else
+      Future{Left(Error(Option(1), Some("User belongs to organization"), None))}
+
   }
 
 
   def deleteUser(uid:String):Future[Either[Error,Success]] = {
 
     val result = for {
-      a <- EitherT( testIfIsNotPredefinedUser(uid) )// cannot cancel predefined user
+      user <- EitherT( apiClientIPA.findUserByUid(uid) )
+      a1 <- EitherT( testIfIsNotPredefinedUser(user) )// cannot cancel predefined user
+      a2 <- EitherT( testIfUserBelongsToGroup(user) )// cannot cancel user belonging to some orgs
       b <- EitherT( apiClientIPA.deleteUser(uid) )
       userInfo <- EitherT( supersetApiClient.findUser(uid) )
       c <- EitherT( supersetApiClient.deleteUser(userInfo._1) )
+      //d <- EitherT( ckanApiClient.deleteUser(uid) )
     } yield c
 
     result.value

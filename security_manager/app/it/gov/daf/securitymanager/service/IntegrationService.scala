@@ -4,7 +4,7 @@ import cats.data.EitherT
 import com.google.inject.{Inject, Singleton}
 import it.gov.daf.common.authentication.Role
 import it.gov.daf.sso.ApiClientIPA
-import security_manager.yaml.{DafOrg, Error, IpaUser, Success}
+import security_manager.yaml.{DafOrg, Error, IpaUser, Success, UserList}
 
 import scala.concurrent.Future
 import cats.implicits._
@@ -29,7 +29,6 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
                                           None,
                                           Option(Seq(dafOrg.groupCn)))
 
-
     val result = for {
       a <- EitherT( apiClientIPA.createGroup(dafOrg.groupCn) )
       b <- EitherT( registrationService.createUser(predefinedOrgIpaUser,true) )
@@ -41,7 +40,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
       */
       e <- EitherT( ckanApiClient.createOrganizationAsAdmin(groupCn) )
       //f <- EitherT( grafanaApiClient.createOrganization(groupCn) ) TODO da riabilitare
-      g <- EitherT( addUserToOrganizationAsAdmin(groupCn,predefinedOrgIpaUser.uid) )
+      g <- EitherT( addUserToOrganization(groupCn,predefinedOrgIpaUser.uid) )
       //g <- EitherT( grafanaApiClient.addUserInOrganization(groupCn,toUserName(groupCn)) )
     } yield g
 
@@ -85,13 +84,14 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
       case Left(l) => Left(l)
     }
 
-
   }
 
 
   def deleteDafOrganization(groupCn:String):Future[Either[Error,Success]] = {
 
     val result = for {
+
+      a0 <- EitherT( apiClientIPA.isEmptyGroup(groupCn) )
 
       dbId <- EitherT( supersetApiClient.findDatabaseId(toDataSource(groupCn)) )
       a1 <- EitherT( supersetApiClient.checkDbTables(dbId) )
@@ -122,8 +122,11 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
   def addUserToOrganization(groupCn:String, userName:String):Future[Either[Error,Success]] = {
 
+    //predefinedUserId = ; b1 <- EitherT( apiClientIPA.addUsersToGroup(groupCn,UserList(Option(Seq(userName)))) )
+
     val result = for {
       user <-  EitherT( apiClientIPA.findUserByUid(userName) )
+      a0 <- EitherT( apiClientIPA.addUsersToGroup(groupCn,UserList(Option(Seq(userName)))) )
       supersetUserInfo <- EitherT( supersetApiClient.findUser(userName) )
       roleIds <- EitherT( supersetApiClient.findRoleIds(toRoleName(groupCn)::supersetUserInfo._2.toList:_*) )
       a <- EitherT( supersetApiClient.deleteUser(supersetUserInfo._1) )
@@ -138,6 +141,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
     result.value
   }
 
+  /*
   def addUserToOrganizationAsAdmin(groupCn:String, userName:String):Future[Either[Error,Success]] = {
 
     val result = for {
@@ -154,7 +158,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
     } yield c
 
     result.value
-  }
+  }*/
 
 
   def removeUserFromOrganization(groupCn:String, userName:String):Future[Either[Error,Success]] = {
@@ -165,11 +169,13 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
     else{
 
       val result = for {
-        a <- EitherT( registrationService.testIfIsNotPredefinedUser(userName) )// cannot remove predefined user
         user <-  EitherT( apiClientIPA.findUserByUid(userName) )
+        a0 <- EitherT( registrationService.testIfIsNotPredefinedUser(user) )// cannot remove predefined user
+
+        a1 <-  EitherT( apiClientIPA.removeUsersFromGroup(groupCn,UserList(Option(Seq(userName)))) )
 
         supersetUserInfo <- EitherT( supersetApiClient.findUser(userName) )
-        roleNames = supersetUserInfo._2.toList.filter( p=>p.equals(toRoleName(groupCn)) ); roleIds <- EitherT( supersetApiClient.findRoleIds(roleNames:_*) )
+        roleNames = supersetUserInfo._2.toList.filter( p=>(!p.equals(toRoleName(groupCn))) ); roleIds <- EitherT( supersetApiClient.findRoleIds(roleNames:_*) )
         a <- EitherT( supersetApiClient.deleteUser(supersetUserInfo._1) )
         b <- EitherT( supersetApiClient.createUserWithRoles(user,roleIds:_*) )
 

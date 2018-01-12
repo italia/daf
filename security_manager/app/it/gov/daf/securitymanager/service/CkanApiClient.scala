@@ -97,6 +97,22 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
 
   }
 
+  def deleteUser(userUid:String):Future[Either[Error, Success]] = {
+
+    val jsonRequest: JsValue = Json.parse( s"""{"id" : "$userUid"}""" )
+
+    println("deleteUser request: " + jsonRequest.toString())
+
+
+    def serviceInvoke(cookie: String, wsClient: WSClient): Future[WSResponse] = {
+      val url = ConfigReader.ckanHost + "/api/3/action/user_delete"
+      wsClient.url(url).withHeaders("Cookie" -> cookie).post(jsonRequest)
+    }
+
+    secInvokeManager.manageServiceCall(ckanAdminLogin, serviceInvoke) map ( evaluateResult(_,"User deleted") )
+
+  }
+
   def purgeOrganization(groupCn:String):Future[Either[Error, Success]] = {
 
     val jsonRequest: JsValue = Json.parse( s"""{"id" : "$groupCn"}""" )

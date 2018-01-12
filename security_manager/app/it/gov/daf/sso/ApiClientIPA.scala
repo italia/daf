@@ -4,6 +4,7 @@ import com.google.inject.{Inject, Provides, Singleton}
 import it.gov.daf.common.authentication.Role
 import it.gov.daf.common.sso.common.{LoginInfo, SecuredInvocationManager}
 import it.gov.daf.common.utils.WebServiceUtil
+import it.gov.daf.securitymanager.service.IntegrationService
 import it.gov.daf.securitymanager.service.utilities.{AppConstants, ConfigReader}
 import org.apache.commons.lang3.StringEscapeUtils
 import play.api.libs.json._
@@ -149,6 +150,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
                                              "${group}"
                                           ],
                                           {
+                                             "all":true,
                                              "raw":false,
                                              "version": "2.213"
                                           }
@@ -177,6 +179,20 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
     }
 
   }
+
+  def isEmptyGroup(groupCn:String):Future[Either[Error,Success]] ={
+
+    showGroup(groupCn) map{
+      case Right(r) =>  if(r.member_user.nonEmpty && r.member_user.get.filter(p => !p.equals(IntegrationService.toUserName(groupCn))).nonEmpty)
+                          Left(Error(Option(1),Some("This group contains users"),None))
+                        else
+                          Right(Success(Some("Empty group"), Some("ok")))
+
+      case Left(l) => Left(l)
+    }
+
+  }
+
 
   def deleteGroup(group: String):Future[Either[Error,Success]]= {
 

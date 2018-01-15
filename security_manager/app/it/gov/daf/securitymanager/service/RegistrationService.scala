@@ -208,6 +208,17 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   }
 
+  def testIfUserBelongsToThisGroup(user:IpaUser,groupCn:String):Future[Either[Error,Success]] = {
+
+    if( user.organizations.isEmpty || user.organizations.get.isEmpty ||
+      (!user.organizations.get.contains(groupCn))
+    )
+      Future{Right( Success(Some("Ok"), Some("ok")))}
+    else
+      Future{Left(Error(Option(1), Some("User belongs to this organization"), None))}
+
+  }
+
   private def checkRole(role:String):Future[Either[Error,Success]] = {
 
     if( ApiClientIPA.isValidRole(role) )

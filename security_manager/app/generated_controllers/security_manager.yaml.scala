@@ -38,7 +38,7 @@ import it.gov.daf.ftp.SftpHandler
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                                                                                                                                                                    
+                                                                                                                                                                                                                                                                
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -106,8 +106,13 @@ package security_manager.yaml {
         }
         val findIpauserByName = findIpauserByNameAction { (userName: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.findIpauserByName
+            val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
+
             apiClientIPA.findUserByUid(userName) flatMap {
-              case Right(success) => FindIpauserByName200(success)
+              case Right(success) =>  if( success.uid == credentials._1.get || WebServiceUtil.isDafAdmin(currentRequest) )
+                                        FindIpauserByName200(success)
+                                      else
+                                        FindIpauserByName500( Error(Option(1),Some("Permissions required"),None) )
               case Left(err) => FindIpauserByName500(err)
             }
             // ----- End of unmanaged code area for action  Security_managerYaml.findIpauserByName
@@ -223,8 +228,15 @@ package security_manager.yaml {
         }
         val findIpauserByMail = findIpauserByMailAction { (mail: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.findIpauserByMail
+            val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
+
             apiClientIPA.findUserByMail(mail) flatMap {
-              case Right(success) => FindIpauserByMail200(success)
+
+              case Right(success) =>  if( success.uid == credentials._1.get || WebServiceUtil.isDafAdmin(currentRequest) )
+                                        FindIpauserByMail200(success)
+                                      else
+                                        FindIpauserByMail500( Error(Option(1),Some("Permissions required"),None) )
+
               case Left(err) => FindIpauserByMail500(err)
             }
             // ----- End of unmanaged code area for action  Security_managerYaml.findIpauserByMail

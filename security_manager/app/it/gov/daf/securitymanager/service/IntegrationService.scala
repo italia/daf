@@ -126,7 +126,8 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
     val result = for {
       user <-  EitherT( apiClientIPA.findUserByUid(userName) )
-      a0 <- EitherT( apiClientIPA.addUsersToGroup(groupCn,Seq(userName)) )
+      a0<-  EitherT( registrationService.testIfUserBelongsToThisGroup(user,groupCn) )
+      a1 <- EitherT( apiClientIPA.addUsersToGroup(groupCn,Seq(userName)) )
       supersetUserInfo <- EitherT( supersetApiClient.findUser(userName) )
       roleIds <- EitherT( supersetApiClient.findRoleIds(toRoleName(groupCn)::supersetUserInfo._2.toList:_*) )
       a <- EitherT( supersetApiClient.deleteUser(supersetUserInfo._1) )

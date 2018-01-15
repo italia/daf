@@ -637,6 +637,7 @@ definitions:
   Error:
     properties:
       code:
+        description: 0 for unmanaged errors, 1 for managed ones
         type: integer
         format: int32
       message:

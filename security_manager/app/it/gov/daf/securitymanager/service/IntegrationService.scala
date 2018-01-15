@@ -164,7 +164,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
   def removeUserFromOrganization(groupCn:String, userName:String):Future[Either[Error,Success]] = {
 
     if( groupCn.equals(ConfigReader.defaultOrganization) )
-      Future{ Left( Error(Option(0),Some("Cannot remove users from default organization"),None) ) }
+      Future{ Left( Error(Option(1),Some("Cannot remove users from default organization"),None) ) }
 
     else{
 

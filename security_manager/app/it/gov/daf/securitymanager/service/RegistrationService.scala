@@ -227,7 +227,9 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
       b <- EitherT( apiClientIPA.deleteUser(uid) )
       userInfo <- EitherT( supersetApiClient.findUser(uid) )
       c <- EitherT( supersetApiClient.deleteUser(userInfo._1) )
-      //d <- EitherT( ckanApiClient.deleteUser(uid) )
+      // Commented because ckan have problems to recreate again the same user TODO try to test a ckan config not create local users
+      //defOrg <- EitherT( ckanApiClient.getOrganizationAsAdmin(ConfigReader.defaultOrganization) )
+      //d <- EitherT( ckanApiClient.removeUserInOrganizationAsAdmin(uid,defOrg) )
     } yield c
 
     result.value

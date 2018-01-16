@@ -38,7 +38,7 @@ import it.gov.daf.ftp.SftpHandler
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                                                    
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -109,7 +109,7 @@ package security_manager.yaml {
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
 
             apiClientIPA.findUserByUid(userName) flatMap {
-              case Right(success) =>  if( success.uid == credentials._1.get || WebServiceUtil.isDafAdmin(currentRequest) )
+              case Right(success) =>  if( success.uid == credentials.username || WebServiceUtil.isDafAdmin(currentRequest) )
                                         FindIpauserByName200(success)
                                       else
                                         FindIpauserByName500( Error(Option(1),Some("Permissions required"),None) )
@@ -190,11 +190,9 @@ package security_manager.yaml {
         }
         val token = tokenAction {  _ =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.token
-            val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
-            //SsoServiceClient.registerInternal(credentials._1.get,credentials._2.get)
-
-            cacheWrapper.deleteCredentials(credentials._1.get)
-            cacheWrapper.putCredentials(credentials._1.get,credentials._2.get)
+            //val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
+            //cacheWrapper.deleteCredentials(credentials._1.get)
+            //cacheWrapper.putCredentials(credentials._1.get,credentials._2.get)
 
             Token200(Authentication.getStringToken(currentRequest, ConfigReader.tokenExpiration).getOrElse(""))
             // ----- End of unmanaged code area for action  Security_managerYaml.token
@@ -203,7 +201,7 @@ package security_manager.yaml {
             // ----- Start of unmanaged code area for action  Security_managerYaml.showipagroup
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
 
-            if( credentials._3.contains(cn) || WebServiceUtil.isDafAdmin(currentRequest) )
+            if( credentials.groups.contains(cn) || WebServiceUtil.isDafAdmin(currentRequest) )
               apiClientIPA.showGroup(cn) flatMap {
                 case Right(success) => Showipagroup200(success)
                 case Left(err) => Showipagroup500(err)
@@ -216,7 +214,7 @@ package security_manager.yaml {
             // ----- Start of unmanaged code area for action  Security_managerYaml.useraddDAForganization
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
 
-            if( (credentials._3.contains(payload.groupCn) && WebServiceUtil.isDafEditor(currentRequest) ) ||
+            if( (credentials.groups.contains(payload.groupCn) && WebServiceUtil.isDafEditor(currentRequest) ) ||
                 WebServiceUtil.isDafAdmin(currentRequest) )
               integrationService.addUserToOrganization( payload.groupCn, payload.userId )flatMap {
                 case Right(success) => UseraddDAForganization200(success)
@@ -232,7 +230,7 @@ package security_manager.yaml {
 
             apiClientIPA.findUserByMail(mail) flatMap {
 
-              case Right(success) =>  if( success.uid == credentials._1.get || WebServiceUtil.isDafAdmin(currentRequest) )
+              case Right(success) =>  if( success.uid == credentials.username.get || WebServiceUtil.isDafAdmin(currentRequest) )
                                         FindIpauserByMail200(success)
                                       else
                                         FindIpauserByMail500( Error(Option(1),Some("Permissions required"),None) )
@@ -275,7 +273,7 @@ package security_manager.yaml {
             // ----- Start of unmanaged code area for action  Security_managerYaml.userdelDAForganization
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
 
-          if( (credentials._3.contains(payload.groupCn) && WebServiceUtil.isDafEditor(currentRequest) ) ||
+          if( (credentials.groups.contains(payload.groupCn) && WebServiceUtil.isDafEditor(currentRequest) ) ||
             WebServiceUtil.isDafAdmin(currentRequest) )
             integrationService.removeUserFromOrganization( payload.groupCn, payload.userId )flatMap {
               case Right(success) => UserdelDAForganization200(success)

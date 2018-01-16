@@ -260,7 +260,10 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
     } yield c
 
-    result.value
+    result.value.map{
+      case Right(r) => Right( Success(Some("User modified"), Some("ok")) )
+      case Left(l) => Left(l)
+    }
   }
 
 

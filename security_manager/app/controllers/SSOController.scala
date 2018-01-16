@@ -3,7 +3,7 @@ package controllers
 import javax.inject.Inject
 
 import it.gov.daf.common.sso.common.{CacheWrapper, LoginInfo}
-import it.gov.daf.common.utils.WebServiceUtil
+import it.gov.daf.common.utils.{Credentials, WebServiceUtil}
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import it.gov.daf.sso.LoginClientLocal
 import org.apache.commons.lang3.StringEscapeUtils
@@ -27,12 +27,12 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider, cache
   // servono le credenziali da BA
   def register = Action { implicit request =>
 
-    val credentials = WebServiceUtil.readCredentialFromRequest(request)
+    val authHeader = request.headers.get("authorization").get.split(" ")
+    val authType = authHeader(0)
 
-    if( !credentials._2.isEmpty ) {
-      cacheWrapper.putCredentials(credentials._1.get, credentials._2.get)
+    if( authType.equalsIgnoreCase("basic") )
       Ok("Success")
-    }else
+    else
       InternalServerError("Basic Authentication required")
 
   }
@@ -41,7 +41,7 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider, cache
   // serve token JWT o BA
   def retriveCookie(appName:String) = Action.async { implicit request =>
 
-    val username = WebServiceUtil.readCredentialFromRequest(request)._1.get
+    val username = WebServiceUtil.readCredentialFromRequest(request).username
 
     val loginInfo = new LoginInfo(
                                   username,
@@ -60,7 +60,7 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider, cache
   // serve token JWT o BA
   def retriveCachedCookie(appName:String) = Action.async { implicit request =>
 
-    val username = WebServiceUtil.readCredentialFromRequest(request)._1.get
+    val username = WebServiceUtil.readCredentialFromRequest(request).username
 
     val cachedCookies = cacheWrapper.getCookies(appName, username)
 
@@ -89,7 +89,9 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider, cache
   // serve token JWT o BA
   def login(appName:String) = Action.async { implicit request =>
 
-    val username = WebServiceUtil.readCredentialFromRequest(request)._1.get
+    println("cacheWrapper2"+cacheWrapper);
+
+    val username = WebServiceUtil.readCredentialFromRequest(request).username
 
     val loginInfo = new LoginInfo(
                                   username,
@@ -107,7 +109,7 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider, cache
   // serve token JWT
   def test = Action { implicit request =>
 
-    val username = WebServiceUtil.readCredentialFromRequest(request)._1.get
+    val username = WebServiceUtil.readCredentialFromRequest(request).username
 
     if( cacheWrapper.getPwd(username).isEmpty ) {
       Unauthorized("JWT expired")

@@ -102,6 +102,8 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
       if (result != "null")
         Future{ Right(Success(Some("User modified"), Some("ok"))) }
+      else if( ((json \ "error")\"code").as[Long] == 4202 )
+        Future{ Right(Success(Some("User not modified"), Some("ok"))) }
       else
         Future { Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) ) }
 

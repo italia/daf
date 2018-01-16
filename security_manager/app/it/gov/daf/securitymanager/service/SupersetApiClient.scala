@@ -186,7 +186,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
       ).get
     }
 
-    println("findSupersetUserId username: " + username)
+    println("findUser username: " + username)
 
     secInvokeManager.manageServiceCall(loginAdminSuperset, serviceInvoke).map { json =>
 
@@ -296,7 +296,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
     secInvokeManager.manageServiceCall(loginAdminSuperset, serviceInvoke).map { json =>
 
       json(0).validate[JsValue] match {
-        case s: JsSuccess[JsValue] =>  Left(Error(Option(0), Some("Some tables on Superset founded. Please delete them before cancel datasource"), None))
+        case s: JsSuccess[JsValue] =>  Left(Error(Option(1), Some("Some tables on Superset founded. Please delete them before cancel datasource"), None))
         case e: JsError =>  Right(Success(Some("Tables not presents"), Some("ok")))
       }
 

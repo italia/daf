@@ -70,7 +70,7 @@ object KyloTrasformers {
   //"name": "default_org",
   //"systemName": "default_org"
 
-  def feedTrasform(metaCatalog: MetaCatalog, template :JsValue, templates : List[JsObject], inferJson :JsValue): Reads[JsObject] = __.json.update(
+  def feedTrasform(metaCatalog: MetaCatalog, template :JsValue, templates : List[JsObject], inferJson :JsValue, category :JsValue): Reads[JsObject] = __.json.update(
        ((__ \ 'feedName).json.put(JsString(metaCatalog.dcatapit.holder_identifier.get + "_o_" + metaCatalog.dcatapit.name)) and
         (__ \ 'description).json.put(JsString(metaCatalog.dcatapit.name)) and
          (__ \ 'systemFeedName).json.put(JsString(metaCatalog.dcatapit.holder_identifier.get + "_o_" + metaCatalog.dcatapit.name)) and
@@ -85,9 +85,9 @@ object KyloTrasformers {
          (((__ \ 'table) \ 'feedTableSchema) \ 'fields).json.put((inferJson \ "fields").as[JsArray]) and
          ((__ \ 'table) \ 'feedFormat).json.put(JsString((inferJson \ "hiveFormat").as[String])) and
          ((__ \ 'table) \ 'fieldPolicies).json.put(buildProfiling(inferJson)) and
-         (__ \ 'category).json.put(Json.obj("id" -> "6ef0ef5b-5c8f-42fc-9f0d-37f67430f1f5",
-                                      "name" ->  "default_org",
-                                      "systemName" -> "default_org")) and
+         (__ \ 'category).json.put(Json.obj("id" -> (category \ "id").as[String],
+                                      "name" ->  (category \ "name").as[String],
+                                      "systemName" -> (category \ "systemName").as[String])) and
          (__ \ 'dataOwner).json.put(JsString("default_org"))  //  and
 
          reduce)

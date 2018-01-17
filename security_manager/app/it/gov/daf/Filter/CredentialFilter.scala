@@ -12,13 +12,15 @@ class CredentialFilter@Inject() (implicit val mat: Materializer, ec: ExecutionCo
   def apply(nextFilter: RequestHeader => Future[Result])
            (requestHeader: RequestHeader): Future[Result] = {
 
-
-    WebServiceUtil.readBaCredentials(requestHeader) match{
-      case Credentials(u,p,g) => cacheWrapper.deleteCredentials(u);cacheWrapper.putCredentials(u,p)
-      case _ =>
+    if( requestHeader.headers.get("authorization").nonEmpty ) {
+      WebServiceUtil.readBaCredentials(requestHeader) match {
+        case Credentials(u, p, g) => cacheWrapper.deleteCredentials(u); cacheWrapper.putCredentials(u, p)
+        case _ =>
+      }
     }
 
     nextFilter(requestHeader)
+
   }
 
 

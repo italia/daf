@@ -1,0 +1,113 @@
+{
+  "id": null,
+  "versionName": null,
+  "feedName": "{DAF_DATASET_NAME}",
+  "description": "{DAF_DATASET_DESCRIPTION}",
+  "systemFeedName": "{DAF_NORMALIZED_DATASET_NAME}",
+  "templateId": "{DAF_TEMPLATE.id}",
+  "templateName": "{DAF_TEMPLATE.name}",
+  "inputProcessorType": "{DAF_TEMPLATE.inputProcessors[0].type}",
+  "inputProcessorName": "{DAF_TEMPLATE.inputProcessors[0].name}",
+  "properties": [
+    "{DAF_TEMPLATE.inputProcessors[0].properties[userEditable==true]}"
+  ],
+  "securityGroups": [],
+  "schedule": {
+    "schedulingPeriod": "10 sec",
+    "schedulingStrategy": "TIMER_DRIVEN",
+    "concurrentTasks": 1,
+    "schedulingStrategyTouched": true
+  },
+  "defineTable": true,
+  "allowPreconditions": false,
+  "dataTransformationFeed": false,
+  "table": {
+    "tableSchema": {
+      "name": "{DAF_TABLE_NAME}",
+      "fields": "{DAF_PARSER.fields}"
+    },
+    "sourceTableSchema": {
+      "name": null,
+      "tableSchema": null,
+      "fields": "{DAF_PARSER.fields}"
+    },
+    "feedTableSchema": {
+      "name": null,
+      "fields": "{DAF_PARSER.fields}"
+    },
+    "method": "SAMPLE_FILE",
+    "existingTableName": null,
+    "structured": false,
+    "targetMergeStrategy": "DEDUPE_AND_MERGE",
+    "feedFormat": "{DAF_PARSER.hiveFormat}",
+    "targetFormat": "STORED AS PARQUET",
+    "fieldPolicies": [
+      "{DAF_PROFILING.fields}"
+    ],
+    "partitions": [],
+    "options": {
+      "compress": false,
+      "compressionFormat": "SNAPPY",
+      "auditLogging": true,
+      "encrypt": false,
+      "trackHistory": false
+    },
+    "sourceTableIncrementalDateField": null
+  },
+  "category": {
+    "id": "{DAF_CATEGORY.id}",
+    "name": "{DAF_ORGANIZATION}",
+    "systemName": "{DAF_ORGANIZATION}"
+  },
+  "dataOwner": "{DAF_ORGANIZATION}",
+  "tags": [],
+  "reusableFeed": false,
+  "userProperties": [
+    {
+      "description": null,
+      "displayName": null,
+      "locked": false,
+      "order": 0,
+      "required": true,
+      "systemName": "daf_type",
+      "value": "{DAF_TYPE}",
+      "$error": {
+        "duplicate": false,
+        "missingName": false,
+        "missingValue": false
+      }
+    },
+    {
+      "description": null,
+      "displayName": null,
+      "locked": false,
+      "order": 1,
+      "required": true,
+      "systemName": "daf_domain",
+      "value": "{DAF_DOMAIN}",
+      "$error": {
+        "duplicate": false,
+        "missingName": false,
+        "missingValue": false
+      }
+    },
+    {
+      "description": null,
+      "displayName": null,
+      "locked": false,
+      "order": 2,
+      "required": true,
+      "systemName": "daf_subdomain",
+      "value": "{DAF_SUBDOMAIN}",
+      "$error": {
+        "duplicate": false,
+        "missingName": false,
+        "missingValue": false
+      }
+    }
+  ],
+  "options": {
+    "skipHeader": true
+  },
+  "active": true
+}

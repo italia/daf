@@ -74,7 +74,7 @@ object WebServiceUtil {
       val groups: Array[String] = ldapGroups.map( _.toString().split(",")(0).split("=")(1) )
 
       //{memberOf=[cn=daf_admins,cn=groups,cn=accounts,dc=example,dc=test, cn=ipausers,cn=groups,cn=accounts,dc=example,dc=test]}
-      println("-->"+ Authentication.getProfiles(requestHeader).head.getAttribute("memberOf") )
+      //println("-->"+ Authentication.getProfiles(requestHeader).head.getAttribute("memberOf") )
 
       Credentials(user, pwd, groups)
     }else

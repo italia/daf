@@ -38,7 +38,7 @@ import it.gov.daf.ftp.SftpHandler
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                                                                                                                                                                                                                                                                    
+                                                                                                                                                                                                                                                                                                                                            
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -230,7 +230,7 @@ package security_manager.yaml {
 
             apiClientIPA.findUserByMail(mail) flatMap {
 
-              case Right(success) =>  if( success.uid == credentials.username.get || WebServiceUtil.isDafAdmin(currentRequest) )
+              case Right(success) => if( success.uid == credentials.username || WebServiceUtil.isDafAdmin(currentRequest) )
                                         FindIpauserByMail200(success)
                                       else
                                         FindIpauserByMail500( Error(Option(1),Some("Permissions required"),None) )

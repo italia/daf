@@ -2,6 +2,12 @@
 
 curl -i -X POST \
   --url http://kong-admin.default.svc.cluster.local:8001/apis/ \
+  --data 'name=daf-dataset-manager' \
+  --data 'uris=/dataset-manager' \
+  --data 'upstream_url=http://storage-manager.default.svc.cluster.local:9000/dataset-manager'
+
+curl -i -X POST \
+  --url http://kong-admin.default.svc.cluster.local:8001/apis/ \
   --data 'name=daf-storage-manager' \
   --data 'uris=/storage-manager' \
   --data 'upstream_url=http://storage-manager.default.svc.cluster.local:9000/storage-manager'

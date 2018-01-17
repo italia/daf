@@ -32,6 +32,12 @@ import it.gov.daf.catalogmanager.service.VocServiceRegistry
 import play.api.libs.ws.WSClient
 import java.net.URLEncoder
 import it.gov.daf.catalogmanager.utilities.ConfigReader
+import play.api.libs.ws.WSResponse
+import play.api.libs.ws.WSAuthScheme
+import java.io.FileInputStream
+import play.Environment
+import it.gov.daf.catalogmanager.kylo.KyloTrasformers
+import catalog_manager.yaml
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -40,7 +46,7 @@ import it.gov.daf.catalogmanager.utilities.ConfigReader
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-            
+    
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -188,13 +194,13 @@ package catalog_manager.yaml {
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
             val created: Success = ServiceRegistry.catalogService.createCatalog(catalog, Option(credentials.username), ws )
             if (!created.message.toLowerCase.equals("error")) {
-                val logicalUri = created.message
+               /* val logicalUri = created.message
                 val logicalUriEncoded = URLEncoder.encode(logicalUri, "UTF-8")
                 val ingestionUrl = ConfigReader.ingestionUrl
                 val wsResponse = ws.url(ingestionUrl + "/ingestion-manager/v1/add-new-dataset/" + logicalUriEncoded)
                     .withHeaders(("authorization",currentRequest.headers.get("authorization").get))
                     .get()
-                wsResponse.map(x => println(x.body))
+                wsResponse.map(x => println(x.body)) */
              //   ingestionListener.addDirListener(catalog, logicalUri)
             }
            // ws.url("http://www.google.com").get().map( x => println(x.body))
@@ -232,6 +238,93 @@ package catalog_manager.yaml {
                 case e =>  Createckandataset401(Error(e,None,None))
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.createckandataset
+        }
+        val startKyloFedd = startKyloFeddAction { (feed: MetaCatalog) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.startKyloFedd
+            val SEC_MANAGER_HOST = config.get.getString("security.manager.host").get
+
+            // TODO choose templates by combinations of info
+            val templateById = ws.url("http://tba-kylo-services.default.svc.cluster.local:8420/api/v1/feedmgr/templates/registered/07b7509c-4916-48fe-9dd0-4e184ddcc4ec?allProperties=true&feedEdit=true")
+                .withAuth("dladmin","thinkbig", scheme = WSAuthScheme.BASIC)
+                .get()
+
+
+            val templateProperties: Future[(JsValue, List[JsObject])] = templateById.map { response =>
+                val templates = response.json
+                val templatesEditable = (templates \ "properties").as[List[JsValue]]
+                    .filter(x => { (x \ "userEditable").as[Boolean] })
+
+                //val templatesNew = templatesEditable.map( x => x.transform(transformTemplates(feed.operational.physical_uri.get)))
+
+                val template1 = templatesEditable(0).transform(KyloTrasformers.transformTemplates(KyloTrasformers.generateInputSftpPath(feed)))
+                // TODO check regex is correct
+                val template2 = templatesEditable(1).transform(KyloTrasformers.transformTemplates(".*csv"))
+
+                //logger.debug(List(template1,template2).toString())
+                (templates, List(template1.get, template2.get))
+
+            }
+
+            // TODO call categories now using an embedded one
+           // import play.Play
+
+           // Play.application().getFile("data/kylo/template.json")
+
+            val streamKyloTemplate = new FileInputStream(Environment.simple().getFile("/data/kylo/template.json"))
+
+            val kyloTemplate  = try {
+                    Json.parse(streamKyloTemplate)
+            } finally {
+                streamKyloTemplate.close()
+            }
+
+            val user = feed.operational.group_own
+            val domain = feed.operational.theme
+            val subDomain = feed.operational.subtheme
+            val dsName = feed.dcatapit.name
+
+            val sftPath =  URLEncoder.encode(s"/home/$user/$domain/$subDomain/$dsName", "UTF-8")
+
+            logger.info(currentRequest.headers.get("authorization").get)
+
+            val createDir = ws.url("http://security-manager.default.svc.cluster.local:9000/security-manager/v1/sftp/init/" + feed.operational.group_own + "/" + sftPath)
+                 .withHeaders(("authorization", currentRequest.headers.get("authorization").get))
+
+            //val trasformed = kyloTemplate.transform(KyloTrasformers.feedTrasform(feed))
+
+            val kyloSchema = feed.dataschema.kyloSchema.get
+            val inferJson = Json.parse(kyloSchema)
+
+            val feedCreation  = ws.url("http://tba-kylo-services.default.svc.cluster.local:8420/api/v1/feedmgr/feeds")
+              .withAuth("dladmin", "thinkbig", WSAuthScheme.BASIC)
+
+            val feedData = for {
+                (template, templates) <- templateProperties
+                created <-  createDir.get()
+                trasformed <-  Future(kyloTemplate.transform(KyloTrasformers.feedTrasform(feed, template, templates, inferJson)))
+            } yield trasformed
+
+            val createFeed: Future[WSResponse] = feedData.flatMap {
+                case s: JsSuccess[JsValue] => logger.debug(Json.stringify(s.get));feedCreation.post(s.get)
+                case e: JsError => throw new Exception(JsError.toJson(e).toString())
+            }
+
+            val test = createFeed.flatMap {
+                // Assuming status 200 (OK) is a valid result for you.
+                case resp : WSResponse if resp.status == 200 => logger.debug(Json.stringify(resp.json));StartKyloFedd200(yaml.Success("Feed started", Option(resp.body)))
+                case _ => StartKyloFedd401(Error("Feed not created", Option(401), None))
+            }
+
+           // val prova = for {
+           //     (template, templates) <- templateProperties
+           //     created <-  createDir.get()
+           //     trasformed <- Future(kyloTemplate.transform(KyloTrasformers.feedTrasform(feed, template, templates, inferJson)))
+           //     cf <- feedCreation.post(trasformed.get)
+           // } yield  cf
+
+          test
+           // NotImplementedYet
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.startKyloFedd
         }
         val getckandatasetListWithRes = getckandatasetListWithResAction { input: (ResourceSize, ResourceSize) =>
             val (limit, offset) = input

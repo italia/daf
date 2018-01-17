@@ -79,6 +79,9 @@ resolvers ++= Seq(
   "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/"
 )
 
+import com.typesafe.sbt.packager.MappingsHelper._
+mappings in Universal ++= directory(baseDirectory.value / "data")
+
 // Play provides two styles of routers, one expects its actions to be injected, the
 // other, legacy style, accesses its actions statically.
 routesGenerator := InjectedRoutesGenerator

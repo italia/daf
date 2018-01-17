@@ -31,18 +31,18 @@ class DafUriConverter(
 
   private val logicalUri = dsType match {
     case Standard =>
-      s"daf://dataset/standard/$theme/$subTheme/$dsName"
+      s"daf://dataset/standard/$theme" + "__" + s"$subTheme/$dsName"
     case Ordinary =>
-      s"daf://dataset/$organization/$theme/$subTheme/$dsName"
+      s"daf://dataset/$organization/$theme" + "__" + s"$subTheme/$dsName"
     case OpenData =>
       s"daf://opendata/$dsName"
   }
 
   private val physicalUri = dsType match {
     case Standard =>
-      s"/daf/standard/$theme/$subTheme/$dsName"
+      s"/daf/standard/$theme" + "__" + s"$subTheme/$dsName"
     case Ordinary =>
-      s"/daf/$organization/$theme/$subTheme/$dsName"
+      s"/daf/ordinary/$organization/$theme" + "__" + s"$subTheme/" + organization + "_o_" + dsName
     case OpenData =>
       s"/daf/opendata/$dsName"
   }

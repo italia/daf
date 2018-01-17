@@ -28,6 +28,7 @@ import play.api.libs.ws.WSClient
 import scala.concurrent.ExecutionContext
 import java.net.URLEncoder
 import it.gov.daf.securitymanager.client.Security_managerClient
+import it.gov.daf.common.utils.DafUriConverter
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -35,7 +36,9 @@ import it.gov.daf.securitymanager.client.Security_managerClient
  */
 
 package ingestion_manager.yaml {
-    // ----- Start of unmanaged code area for package Ingestion_managerYaml
+
+  import it.gov.daf.common.utils.{Ordinary, Standard}
+  // ----- Start of unmanaged code area for package Ingestion_managerYaml
         
     // ----- End of unmanaged code area for package Ingestion_managerYaml
     class Ingestion_managerYaml @Inject() (
@@ -76,7 +79,9 @@ package ingestion_manager.yaml {
             val domain = mc.operational.theme
             val subDomain = mc.operational.subtheme
             val dsName = mc.dcatapit.name
-            val path = URLEncoder.encode(s"/home/$user/$domain/$subDomain/$dsName", "UTF-8")
+
+
+            val path =  URLEncoder.encode(s"/home/$user/$domain/$subDomain/$dsName", "UTF-8")
 
             securityClient.sftp(auth,mc.operational.group_own, path)
               .map(res => mc)

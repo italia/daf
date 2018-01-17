@@ -46,7 +46,7 @@ import catalog_manager.yaml
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-    
+        
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -270,6 +270,17 @@ package catalog_manager.yaml {
 
            // Play.application().getFile("data/kylo/template.json")
 
+            val categoriesWs = ws.url("http://tba-kylo-services.default.svc.cluster.local:8420/api/v1/feedmgr/categories")
+              .withAuth("dladmin","thinkbig", scheme = WSAuthScheme.BASIC)
+              .get()
+
+            val categoryFuture = categoriesWs.map { x =>
+                val categoriesJson = x.json
+                val categories = categoriesJson.as[List[JsValue]]
+                val found =categories.filter(cat => {(cat \ "systemName").as[String].equals(feed.operational.group_own)})
+                found.head
+            }
+
             val streamKyloTemplate = new FileInputStream(Environment.simple().getFile("/data/kylo/template.json"))
 
             val kyloTemplate  = try {
@@ -301,7 +312,8 @@ package catalog_manager.yaml {
             val feedData = for {
                 (template, templates) <- templateProperties
                 created <-  createDir.get()
-                trasformed <-  Future(kyloTemplate.transform(KyloTrasformers.feedTrasform(feed, template, templates, inferJson)))
+                category <- categoryFuture
+                trasformed <-  Future(kyloTemplate.transform(KyloTrasformers.feedTrasform(feed, template, templates, inferJson, category)))
             } yield trasformed
 
             val createFeed: Future[WSResponse] = feedData.flatMap {
@@ -309,7 +321,7 @@ package catalog_manager.yaml {
                 case e: JsError => throw new Exception(JsError.toJson(e).toString())
             }
 
-            val test = createFeed.flatMap {
+            val result = createFeed.flatMap {
                 // Assuming status 200 (OK) is a valid result for you.
                 case resp : WSResponse if resp.status == 200 => logger.debug(Json.stringify(resp.json));StartKyloFedd200(yaml.Success("Feed started", Option(resp.body)))
                 case _ => StartKyloFedd401(Error("Feed not created", Option(401), None))
@@ -322,7 +334,7 @@ package catalog_manager.yaml {
            //     cf <- feedCreation.post(trasformed.get)
            // } yield  cf
 
-          test
+          result
            // NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.startKyloFedd
         }

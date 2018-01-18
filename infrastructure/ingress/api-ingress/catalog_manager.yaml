@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: catalog-ingress
+spec:
+  tls:
+  - hosts:
+    - catalog-manager.daf.teamdigitale.it
+  rules:
+  - host: catalog-manager.daf.teamdigitale.it
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: catalog-manager
+          servicePort: 9000

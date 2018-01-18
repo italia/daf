@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: datipubblici-ingress
+spec:
+  tls:
+  - hosts:
+    - datipubblici.daf.teamdigitale.it
+  rules:
+  - host: datipubblici.daf.teamdigitale.it
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: datipubblici
+          servicePort: 9000

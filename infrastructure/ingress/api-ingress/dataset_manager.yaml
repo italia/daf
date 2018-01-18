@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: dataset-ingress
+spec:
+  tls:
+  - hosts:
+    - dataset-manager.daf.teamdigitale.it
+  rules:
+  - host: dataset-manager.daf.teamdigitale.it
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: dataset-manager
+          servicePort: 9000

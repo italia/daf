@@ -12,5 +12,5 @@ spec:
       paths:
       - path: /
         backend:
-          serviceName: dataset-manager
+          serviceName: storage-manager
           servicePort: 9000

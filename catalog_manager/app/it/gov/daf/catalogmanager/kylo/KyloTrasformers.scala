@@ -88,7 +88,7 @@ object KyloTrasformers {
          (__ \ 'category).json.put(Json.obj("id" -> (category \ "id").as[String],
                                       "name" ->  (category \ "name").as[String],
                                       "systemName" -> (category \ "systemName").as[String])) and
-         (__ \ 'dataOwner).json.put(JsString("default_org"))  //  and
+         (__ \ 'dataOwner).json.put(JsString((category \ "systemName").as[String]))  //  and
 
          reduce)
   ) andThen (__ \ 'userProperties).json.update(

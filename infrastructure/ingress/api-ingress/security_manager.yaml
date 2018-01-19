@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: security-ingress
+spec:
+  tls:
+  - hosts:
+    - security-manager.daf.teamdigitale.it
+  rules:
+  - host: security-manager.daf.teamdigitale.it
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: security-manager
+          servicePort: 9000

@@ -14,3 +14,7 @@ spec:
         backend:
           serviceName: kong-proxy
           servicePort: 8000
+      - path: /stanbol
+        backend:
+          serviceName: ontonehub
+          servicePort: 8000

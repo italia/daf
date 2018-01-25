@@ -22,6 +22,8 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   def requestRegistration(userIn:IpaUser):Future[Either[String,MailService]] = {
 
+    println("requestRegistration")
+
     checkUserInfo(userIn) match{
 
       case Left(l) => Future {Left(l)}
@@ -54,6 +56,8 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
       Left("Password minimum length is 8 characters")
     else if( !user.userpassword.get.matches("^[a-zA-Z0-9%@#   &,;:_'/\\\\<\\\\(\\\\[\\\\{\\\\\\\\\\\\^\\\\-\\\\=\\\\$\\\\!\\\\|\\\\]\\\\}\\\\)\u200C\u200B\\\\?\\\\*\\\\+\\\\.\\\\>]*$") )
       Left("Invalid chars in password")
+    else if( !user.userpassword.get.matches("""^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$""") )
+      Left("Password must contain al least one digit and one capital letter")
     else if( user.uid != null && !user.uid.isEmpty && !user.uid.matches("^[a-z0-9_\\\\-]*$") )
       Left("Invalid chars in username")
     else if( !user.mail.matches("^[a-z0-9_@\\\\-\\\\.]*$") )

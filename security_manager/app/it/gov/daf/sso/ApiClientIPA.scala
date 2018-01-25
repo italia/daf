@@ -170,12 +170,22 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
       "referer" -> IPA_APP_ULR
     ).post(login)
 
-    println("login IPA: "+login)
+    println("login IPA (changePassword): "+login)
 
-    wsResponse.map( _.status match{
-      case 200 =>  Right(Success(Some("Password changed"), Some("ok")))
-      case _ => Left( Error(Option(0),Some("Error in changePassword"),None) )
-    } )
+    wsResponse.map{ response =>
+
+      response.status match{
+        case 200 =>   if( response.body.contains("change successful") )
+                        Right(Success(Some("Password changed"), Some("ok")))
+                      else{
+                        println( "response"+ response.body )
+                        Left( Error(Option(0),Some("Error in changePassword"),None) )
+                      }
+
+
+        case _ => println( "response"+ response.body ); Left( Error(Option(0),Some("Error in changePassword"),None) )
+      }
+    }
 
   }
 

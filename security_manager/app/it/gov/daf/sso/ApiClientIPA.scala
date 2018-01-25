@@ -1,20 +1,22 @@
 package it.gov.daf.sso
 
+import java.net.URLEncoder
+
 import com.google.inject.{Inject, Provides, Singleton}
 import it.gov.daf.common.authentication.Role
-import it.gov.daf.common.sso.common.{LoginInfo, SecuredInvocationManager}
+import it.gov.daf.common.sso.common.{CacheWrapper, LoginInfo, SecuredInvocationManager}
 import it.gov.daf.common.utils.WebServiceUtil
 import it.gov.daf.securitymanager.service.IntegrationService
 import it.gov.daf.securitymanager.service.utilities.{AppConstants, ConfigReader}
 import org.apache.commons.lang3.StringEscapeUtils
 import play.api.libs.json._
 import play.api.libs.ws.{WSClient, WSResponse}
-import security_manager.yaml.{Error, IpaGroup, IpaUser, Success, UserList}
+import security_manager.yaml.{Error, IpaGroup, IpaUser, Success}
 
 import scala.concurrent.Future
 
 @Singleton
-class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClientLocal: LoginClientLocal,wsClient: WSClient){
+class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClientLocal: LoginClientLocal,wsClient: WSClient, cacheWrapper: CacheWrapper){
 
   import scala.concurrent.ExecutionContext.Implicits._
 
@@ -23,6 +25,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
   def createUser(user: IpaUser, isPredefinedOrgUser:Boolean):Future[Either[Error,Success]]= {
 
+    //"userpassword":"${StringEscapeUtils.escapeJson(user.userpassword.get)}",
     val titleAttributeValue = if(isPredefinedOrgUser) AppConstants.PredefinedOrgUserTitle else ""
 
     val jsonUser: JsValue = Json.parse(
@@ -38,11 +41,11 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
                                              "givenname":"${user.givenname}",
                                              "sn":"${user.sn}",
                                              "mail":"${user.mail}",
-                                             "userpassword":"${StringEscapeUtils.escapeJson(user.userpassword.get)}",
+
                                              "title": "$titleAttributeValue",
                                              "no_members":false,
                                              "noprivate":false,
-                                             "random":false,
+                                             "random":true,
                                              "raw":false,
 
                                              "version": "2.213"
@@ -51,16 +54,18 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
                                        "id":0
                                     }""")
 
-    println(jsonUser.toString())
+    println("createUser: "+jsonUser.toString())
 
     val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonUser,_,_)
     secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).flatMap { json =>
 
       val result = (json \ "result").getOrElse(JsString("null")).toString()
 
-      if (result != "null") {
+
+      if(result != "null") {
         loginCkan(user.uid, user.userpassword.get).map { _ =>
-          Right(Success(Some("User created"), Some("ok")))
+          val randomPwd = (((json \ "result")\"result")\"randompassword").asOpt[String]
+          Right(Success(Some("User created"), randomPwd))
         }
       }
       else
@@ -110,6 +115,80 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
     }
 
   }
+
+
+  def passwd(userUid: String, oldPwd:String, newPwd:String):Future[Either[Error,Success]]= {
+
+    //val oldPwd = cacheWrapper.getPwd(userUid).get "principal": "password": "current_password":
+
+    val jsonUser: JsValue = Json.parse(
+      s"""{
+                                       "method":"passwd",
+                                       "params":[
+                                          [
+                                             "$userUid",
+                                             "$newPwd",
+                                             "$oldPwd"
+                                          ],
+                                          {
+                                             "version": "2.213"
+                                          }
+                                       ],
+                                       "id":0
+                                    }""")
+
+    println("passwd: "+jsonUser.toString())
+
+    //val currentUserLoginInfo = new LoginInfo(userUid, oldPwd, LoginClientLocal.FREE_IPA)
+    val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonUser,_,_)
+
+    secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).flatMap { json =>
+
+      val result = (json \ "result").getOrElse(JsString("null")).toString()
+
+      if (result != "null")
+        Future{ Right(Success(Some("Password changed"), Some("ok"))) }
+      //else if( ((json \ "error")\"code").as[Long] == 4202 )
+        //Future{ Right(Success(Some("User not modified"), Some("ok"))) }
+      else
+        Future { Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) ) }
+
+    }
+
+  }
+
+  private val IPA_URL = ConfigReader.ipaUrl
+  private val IPA_APP_ULR = IPA_URL + "/ipa"
+  private val IPA_CHPWD_ULR = IPA_URL + "/ipa/session/change_password"
+
+  def changePassword(userUid: String, oldPwd:String, newPwd:String):Future[Either[Error,Success]]= {
+
+    val login = s"user=$userUid&old_password=${URLEncoder.encode(oldPwd,"UTF-8")}&new_password=${URLEncoder.encode(newPwd,"UTF-8")}"
+
+    val wsResponse = wsClient.url(IPA_CHPWD_ULR).withHeaders("Content-Type" -> "application/x-www-form-urlencoded",
+      "Accept" -> "text/plain",
+      "referer" -> IPA_APP_ULR
+    ).post(login)
+
+    println("login IPA (changePassword): "+login)
+
+    wsResponse.map{ response =>
+
+      response.status match{
+        case 200 =>   if( response.body.contains("change successful") )
+                        Right(Success(Some("Password changed"), Some("ok")))
+                      else{
+                        println( "response"+ response.body )
+                        Left( Error(Option(0),Some("Error in changePassword"),None) )
+                      }
+
+
+        case _ => println( "response"+ response.body ); Left( Error(Option(0),Some("Error in changePassword"),None) )
+      }
+    }
+
+  }
+
 
 
   def deleteUser(userUid: String):Future[Either[Error,Success]]= {
@@ -476,6 +555,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
   }
 
+
   private def callIpaUrl( payload: JsValue, sessionCookie:String, cli:WSClient ): Future[WSResponse] = {
 
     cli.url(ConfigReader.ipaUrl+"/ipa/session/json").withHeaders( "Content-Type"->"application/json",
@@ -557,6 +637,7 @@ object ApiClientIPA {
     if(in.isEmpty)
       in
     else
+      //Option( in.get.filter(elem => show) )
       Option( in.get.filter(elem => !blackList.contains(elem)) )
   }
 

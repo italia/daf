@@ -5,8 +5,8 @@ Please follow their readme to setup the software. In the current installation we
 
 1. **Deploy a Kong supported database**
 
-    For PostgreSQL, use the `postgres.yaml` file from the kong-dist-kubernetes
-    repo to deploy a PostgreSQL `Service` and a `ReplicationController` in the
+    For PostgreSQL, use the `postgres.yaml` file from the [kong-dist-kubernetes
+    repo](https://github.com/Kong/kong-dist-kubernetes) to deploy a PostgreSQL `Service` and a `ReplicationController` in the
     cluster:
 
     ```bash

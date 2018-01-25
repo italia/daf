@@ -46,7 +46,7 @@ import catalog_manager.yaml
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-        
+            
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -277,7 +277,7 @@ package catalog_manager.yaml {
             val categoryFuture = categoriesWs.map { x =>
                 val categoriesJson = x.json
                 val categories = categoriesJson.as[List[JsValue]]
-                val found =categories.filter(cat => {(cat \ "systemName").as[String].equals(feed.operational.group_own)})
+                val found =categories.filter(cat => {(cat \ "systemName").as[String].equals(feed.dcatapit.owner_org.get)})
                 found.head
             }
 

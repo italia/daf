@@ -54,9 +54,9 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
       Left("Password minimum length is 8 characters")
     else if( !user.userpassword.get.matches("^[a-zA-Z0-9%@#   &,;:_'/\\\\<\\\\(\\\\[\\\\{\\\\\\\\\\\\^\\\\-\\\\=\\\\$\\\\!\\\\|\\\\]\\\\}\\\\)\u200C\u200B\\\\?\\\\*\\\\+\\\\.\\\\>]*$") )
       Left("Invalid chars in password")
-    else if( user.uid != null && !user.uid.isEmpty && !user.uid.matches("^[a-zA-Z0-9_\\\\-]*$") )
+    else if( user.uid != null && !user.uid.isEmpty && !user.uid.matches("^[a-z0-9_\\\\-]*$") )
       Left("Invalid chars in username")
-    else if( !user.mail.matches("^[a-zA-Z0-9_@\\\\-\\\\.]*$") )
+    else if( !user.mail.matches("^[a-z0-9_@\\\\-\\\\.]*$") )
       Left("Invalid chars in mail")
     else
       Right("ok")

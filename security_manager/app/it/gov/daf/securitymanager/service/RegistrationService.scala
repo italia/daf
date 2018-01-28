@@ -22,6 +22,8 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   def requestRegistration(userIn:IpaUser):Future[Either[String,MailService]] = {
 
+    println("requestRegistration")
+
     checkUserInfo(userIn) match{
 
       case Left(l) => Future {Left(l)}
@@ -54,9 +56,11 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
       Left("Password minimum length is 8 characters")
     else if( !user.userpassword.get.matches("^[a-zA-Z0-9%@#   &,;:_'/\\\\<\\\\(\\\\[\\\\{\\\\\\\\\\\\^\\\\-\\\\=\\\\$\\\\!\\\\|\\\\]\\\\}\\\\)\u200C\u200B\\\\?\\\\*\\\\+\\\\.\\\\>]*$") )
       Left("Invalid chars in password")
-    else if( user.uid != null && !user.uid.isEmpty && !user.uid.matches("^[a-zA-Z0-9_\\\\-]*$") )
+    else if( !user.userpassword.get.matches("""^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$""") )
+      Left("Password must contain al least one digit and one capital letter")
+    else if( user.uid != null && !user.uid.isEmpty && !user.uid.matches("^[a-z0-9_\\\\-]*$") )
       Left("Invalid chars in username")
-    else if( !user.mail.matches("^[a-zA-Z0-9_@\\\\-\\\\.]*$") )
+    else if( !user.mail.matches("^[a-z0-9_@\\\\-\\\\.]*$") )
       Left("Invalid chars in mail")
     else
       Right("ok")
@@ -165,6 +169,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
     val result = for {
       a <- EitherT( apiClientIPA.createUser(user, isPredefinedOrgUser) )
+      a1 <- EitherT( apiClientIPA.changePassword(user.uid,a.fields.get,user.userpassword.get) )
       b <- EitherT( apiClientIPA.addUsersToGroup(user.role.getOrElse(Role.Viewer.toString()),Seq(user.uid)) )
       c <- EitherT( addNewUserToDefaultOrganization(user) )
     } yield c
@@ -275,7 +280,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
     val result = for {
       a <- EitherT( apiClientIPA.addUsersToGroup(ConfigReader.defaultOrganization,Seq(ipaUser.uid)) )
-      roleIds <- EitherT( supersetApiClient.findRoleIds(ConfigReader.suspersetOrgAdminRole,IntegrationService.toRoleName(ConfigReader.defaultOrganization)) )
+      roleIds <- EitherT( supersetApiClient.findRoleIds(ConfigReader.suspersetOrgAdminRole,IntegrationService.toSupersetRole(ConfigReader.defaultOrganization)) )
       b <- EitherT( supersetApiClient.createUserWithRoles(ipaUser,roleIds:_*) )
       //c <- EitherT( grafanaApiClient.addNewUserInOrganization(ConfigReader.defaultOrganization,ipaUser.uid,ipaUser.userpassword.get) ) TODO da riattivare
     } yield b
@@ -292,7 +297,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
     val result = for {
       a <- EitherT( apiClientIPA.addUsersToGroup(ConfigReader.defaultOrganization,Seq(ipaUser.uid)) )
-      roleIds <- EitherT( supersetApiClient.findRoleIds(ConfigReader.suspersetOrgAdminRole,IntegrationService.toRoleName(ConfigReader.defaultOrganization)) )
+      roleIds <- EitherT( supersetApiClient.findRoleIds(ConfigReader.suspersetOrgAdminRole,IntegrationService.toSupersetRole(ConfigReader.defaultOrganization)) )
       b <- EitherT( supersetApiClient.createUserWithRoles(ipaUser,roleIds:_*) )
       //c <- EitherT( grafanaApiClient.addNewUserInOrganization(ConfigReader.defaultOrganization,ipaUser.uid,ipaUser.userpassword.get) )
     } yield b

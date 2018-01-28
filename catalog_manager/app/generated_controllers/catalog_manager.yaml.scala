@@ -46,7 +46,7 @@ import catalog_manager.yaml
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-            
+                
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -289,7 +289,8 @@ package catalog_manager.yaml {
                 streamKyloTemplate.close()
             }
 
-            val user = feed.operational.group_own
+            val user = WebServiceUtil.readCredentialFromRequest(currentRequest).username
+
             val domain = feed.operational.theme
             val subDomain = feed.operational.subtheme
             val dsName = feed.dcatapit.name
@@ -298,7 +299,7 @@ package catalog_manager.yaml {
 
             logger.info(currentRequest.headers.get("authorization").get)
 
-            val createDir = ws.url("http://security-manager.default.svc.cluster.local:9000/security-manager/v1/sftp/init/" + feed.operational.group_own + "/" + sftPath)
+            val createDir = ws.url("http://security-manager.default.svc.cluster.local:9000/security-manager/v1/sftp/init/" + sftPath)
                  .withHeaders(("authorization", currentRequest.headers.get("authorization").get))
 
             //val trasformed = kyloTemplate.transform(KyloTrasformers.feedTrasform(feed))

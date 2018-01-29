@@ -75,7 +75,7 @@ libraryDependencies ++= Seq(
   "it.gov.daf" %% "daf-security-manager-client" % dafSecurityVersion,
   specs2 % Test,
   "me.lessis" %% "base64" % "0.2.0",
-  "it.gov.daf" %% "common" % "1.0.2-SNAPSHOT" excludeAll (ExclusionRule(organization = "org.apache.hadoop.common")),
+  "it.gov.daf" %% "common" % "1.0.3-SNAPSHOT" excludeAll (ExclusionRule(organization = "org.apache.hadoop.common")),
   "org.scalatest" %% "scalatest" % "3.0.4" % Test,
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.0" % Test,
   "org.scalacheck" %% "scalacheck" % "1.13.5" % Test,

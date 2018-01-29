@@ -8,5 +8,5 @@ object Versions {
 
   val dafCatalogVersion = sys.env.getOrElse("CATALOG_MANAGER_VERSION", "1.0.0-SNAPSHOT")
 
-  val dafSecurityVersion = sys.env.getOrElse("SECURITY_MANAGER_VERSION", "1.0.0-SNAPSHOT")
+  val dafSecurityVersion = sys.env.getOrElse("SECURITY_MANAGER_VERSION", "1.0.1-SNAPSHOT")
 }

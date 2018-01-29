@@ -82,7 +82,7 @@ resolvers ++= Seq(
   "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos/",
   "lightshed-maven" at "http://dl.bintray.com/content/lightshed/maven",
   Resolver.mavenLocal,
-  "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/"
+  "daf repo" at "http://nexus.daf.teamdigitale.it/repository/maven-public/"
 )
 
 // Play provides two styles of routers, one expects its actions to be injected, the
@@ -109,10 +109,10 @@ dockerCommands := dockerCommands.value.flatMap {
 }
 dockerEntrypoint := Seq(s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
 dockerExposedPorts := Seq(9000)
-dockerRepository := Option("10.98.74.120:5000")
+dockerRepository := Option("registry.daf.teamdigitale.it")
 
 publishTo in ThisBuild := {
-  val nexus = "http://nexus.default.svc.cluster.local:8081/repository/"
+  val nexus = "http://nexus.daf.teamdigitale.it/repository/"
   if (isSnapshot.value)
     Some("snapshots" at nexus + "maven-snapshots/")
   else

@@ -2,9 +2,9 @@ package it.gov.daf.catalogmanager.utilities
 
 import catalog_manager.yaml.{MetaCatalog, StdSchema}
 import it.gov.daf.catalogmanager.utilities.uri.UriDataset
+import it.gov.daf.common.utils.{DafUriConverter, OpenData, Ordinary, Standard}
 import play.api.Logger
 import play.api.libs.json.Json
-
 
 import scala.util.{Failure, Success, Try}
 
@@ -85,7 +85,11 @@ object CatalogManager {
     }
   }
 
+
+  // TODO Old depracated
   def writeOrdinary(metaCatalogOrdinary: MetaCatalog): Option[MetaCatalog] = {
+
+
     val toSave: Option[MetaCatalog] = for {
       uriDataset <- Option(UriDataset.convertToUriDataset(metaCatalogOrdinary))
       logicalUri <- Option(uriDataset.getUri())
@@ -97,6 +101,7 @@ object CatalogManager {
     toSave
   }
 
+  // TODO Old depracated
   def writeStandard(metaCatalogOrdinary: MetaCatalog) : Option[MetaCatalog] = {
     val toSave: Option[MetaCatalog] = for {
       uriDataset <- Option(UriDataset.convertToUriDataset(metaCatalogOrdinary))
@@ -104,6 +109,36 @@ object CatalogManager {
       physicalUri <- Option(uriDataset.getUrl())
       operational <- Option(metaCatalogOrdinary.operational.copy(logical_uri = logicalUri, physical_uri = Some(physicalUri)))
       newSchema <- Option(metaCatalogOrdinary.copy( operational = operational))
+    } yield newSchema
+
+    //savoAsFile(save)
+    toSave
+  }
+
+
+  def writeOrdAndStd(metaCatalog: MetaCatalog) : Option[MetaCatalog] = {
+
+    val datasetType = if (metaCatalog.operational.is_std)
+      Standard
+    else if (metaCatalog.dcatapit.owner_org.get.equals("open_data"))
+      OpenData
+    else
+      Ordinary
+
+    val datasetConverter = new DafUriConverter(
+      datasetType,
+      metaCatalog.dcatapit.holder_identifier.get,
+      metaCatalog.operational.theme,
+      metaCatalog.operational.subtheme,
+      metaCatalog.dcatapit.name
+    )
+
+    val toSave: Option[MetaCatalog] = for {
+      uriDataset <- Option(datasetConverter)
+      logicalUri <- Option(uriDataset.toLogicalUri)
+      physicalUri <- Option(uriDataset.toPhysicalUri())
+      operational <- Option(metaCatalog.operational.copy(logical_uri = logicalUri, physical_uri = Some(physicalUri)))
+      newSchema <- Option(metaCatalog.copy( operational = operational))
     } yield newSchema
 
     //savoAsFile(save)

@@ -1,24 +1,26 @@
 # Digital Certificates Documentation #
 
-This documentation explains how to generate and install the digital certificates needed to operate the public DAF endpoints under HTTPS
+This documentation explains how to generate and install the digital certificates needed to operate the public DAF endpoints under HTTPS:
 
-## Certificate authority ##
+## HowTo
 
-DAF uses [Let’s Encrypt](https://letsencrypt.org "Let’s Encrypt") as Certificate Authority and [Certbot](https://certbot.eff.org) as ACME client to generate and deploy the certificates.
+### create new certificates
 
-## HowTo ##
+To create new certificates run the script `sh create_new_certificate_teamdigitale.sh`. It will ask your username to connect to edge1 and renew the certificates.
+This script does the following steps:
 
-Certbot needs to be launched from the server associated to the domain to validate.
-
-To ease this activity, a Docker image has been created containing the Certbot tool and a Bash script is used to automate the operation.
-
-The script executes the following steps:
+In general, the script executes the following steps:
  * Delete the pre-existing Kubernetes Ingress controller
  * Open a ssh session to the server to be validated
  * Launch a docker run command to generate the certificates through Certbot
  * Delete the pre-existings secret on kubernetes
  * Create the new secret with the fresh certificates
  * Recreate the Kubernetes Ingress controller
+
+### Renew the certificates [NOT Sure Revised by Fabio Fumarola but now sure if it works]
+
+1. execute the script `./scripts/renew_certificate.sh`
+
 
 ## Notes ##
 
@@ -36,7 +38,7 @@ Everything is summarized in the following table:
 | Stable       | ``teamdigitale.governo.it`` | ``create_new_certificate.sh``              | ``tls-daf-secret``              | ``/glusterfs/volume1/certbot/conf``             |
 |              |                             |                                            |                                 |                                                 |
 
-Given that certificates are already generated and stored in Kubernetes, when the domain need to be changed the following steps will be needed:
-  * Delete the preexisting Kubernetes Ingress controller
-  * Adapt the ``daf/ingress/nginx-ingress-controller.yml`` file changing the secret name to be used (at the file bottom)
-  * Recreate the Kubernetes Ingress controller
+
+## Certificate authority ##
+
+DAF uses [Let’s Encrypt](https://letsencrypt.org "Let’s Encrypt") as Certificate Authority and [Certbot](https://certbot.eff.org) as ACME client to generate and deploy the certificates.

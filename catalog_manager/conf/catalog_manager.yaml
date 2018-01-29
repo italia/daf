@@ -1012,6 +1012,38 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  "/kylo/feed":
+    post:
+      #security:
+      #- basicAuth: []
+      tags:
+        - Kylo
+      description:
+      operationId: startKyloFedd
+      produces:
+      - application/json
+      parameters:
+      - name: feed
+        in: body
+        description: Information to start a kylo feed
+        required: true
+        schema:
+          #$ref: "./imports/dataset.yaml#/definitions/Dataset"
+          $ref: '#/definitions/MetaCatalog'
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            $ref: '#/definitions/Success'
+        401:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
 
 definitions:
   KeyValue:
@@ -1074,6 +1106,9 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/FlatSchema'
+      kyloSchema:
+        type: string
+        description: String representing json value from kylo infer
   Avro:
       required:
         - namespace

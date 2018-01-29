@@ -13,7 +13,7 @@ val playVersion = "2.5.14"
 
 Seq(gitStampSettings: _*)
 
-version in ThisBuild := sys.env.getOrElse("CATALOG_MANAGER_VERSION", "1.0.0-SNAPSHOT")
+version in ThisBuild := sys.env.getOrElse("CATALOG_MANAGER_VERSION", "1.0.1-SNAPSHOT")
 
 
 lazy val client = (project in file("client")).
@@ -78,6 +78,9 @@ resolvers ++= Seq(
   "lightshed-maven" at "http://dl.bintray.com/content/lightshed/maven",
   "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/"
 )
+
+import com.typesafe.sbt.packager.MappingsHelper._
+mappings in Universal ++= directory(baseDirectory.value / "data")
 
 // Play provides two styles of routers, one expects its actions to be injected, the
 // other, legacy style, accesses its actions statically.

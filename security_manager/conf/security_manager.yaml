@@ -42,7 +42,7 @@ consumes:
     #type: basic
     #description: HTTP Basic Authentication. Works over `HTTP` and `HTTPS`
 paths:
-  /sftp/init/{user_id}/{path_to_create}:
+  /sftp/init/{path_to_create}:
     get:
       summary: inits sftp folder
       description: |
@@ -53,12 +53,6 @@ paths:
 #      security:
 #       - basicAuth: []
       parameters:
-        - name: user_id
-          in: path
-          description: the name of the user
-          required: true
-          type: string
-          format: string
         - name: path_to_create
           in: path
           description: the path of the folder to create
@@ -94,12 +88,12 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  "/ipa/user":
+  "/daf/user":
     post:
       tags:
         - IPA
       description: Create a user
-      operationId: createIPAuser
+      operationId: createDAFuser
       produces:
       - application/json
       parameters:
@@ -120,6 +114,39 @@ paths:
           description: Error Message
           schema:
             $ref: '#/definitions/Error'
+
+  "/daf/user/{uid}":
+    put:
+      tags:
+        - IPA
+      description: Update a user
+      operationId: updateDAFuser
+      produces:
+      - application/json
+      parameters:
+      - name: uid
+        in: path
+        type: string
+        description: User id
+        required: true
+      - name: user
+        in: body
+        description: User
+        required: true
+        schema:
+          #type: object
+          $ref: '#/definitions/IpaUserMod'
+      responses:
+        200:
+          description: Success
+          schema:
+            #type: object
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+
   "/ipa/group":
     post:
       tags:
@@ -254,12 +281,12 @@ paths:
           description: Error Message
           schema:
             $ref: '#/definitions/Error'
-  "/ipa/user/{mail}":
+  "/ipa/userbymail/{mail}":
     get:
       tags:
         - IPA
       description: Show user info
-      operationId: showipauser
+      operationId: findIpauserByMail
       produces:
       - application/json
       parameters:
@@ -274,6 +301,72 @@ paths:
           schema:
             type: object
             $ref: '#/definitions/IpaUser'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+  "/ipa/userbyname/{userName}":
+    get:
+      tags:
+        - IPA
+      description: Show user info
+      operationId: findIpauserByName
+      produces:
+      - application/json
+      parameters:
+      - name: userName
+        in: path
+        description: User uid
+        required: true
+        type: string
+      responses:
+        200:
+          description: IPA User
+          schema:
+            type: object
+            $ref: '#/definitions/IpaUser'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+  "/ipa/group/{cn}":
+    get:
+      tags:
+        - IPA
+      description: Show grpup info
+      operationId: showipagroup
+      produces:
+      - application/json
+      parameters:
+      - name: cn
+        in: path
+        description: Group cn
+        required: true
+        type: string
+      responses:
+        200:
+          description: IPA Group
+          schema:
+            type: object
+            $ref: '#/definitions/IpaGroup'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+  "/daf/organizations":
+    get:
+      tags:
+        - DAF
+      description: List  DAF organizations
+      operationId: listDAForganization
+      produces:
+      - application/json
+#      parameters:
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/OrgList'
         500:
           description: Error Message
           schema:
@@ -350,6 +443,30 @@ paths:
           description: Error Message
           schema:
             $ref: '#/definitions/Error'
+  "/daf/organization/userdel":
+    put:
+      tags:
+        - DAF
+      description: Delete a user from DAF organization
+      operationId: userdelDAForganization
+      produces:
+      - application/json
+      parameters:
+      - name: payload
+        in: body
+        description: Username and groupCn
+        required: true
+        schema:
+          $ref: '#/definitions/UserAndGroup'
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
   "/daf/organization/{orgName}":
     delete:
       tags:
@@ -362,6 +479,29 @@ paths:
       - name: orgName
         in: path
         description: group Cn
+        required: true
+        type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+  "/daf/user/{userName}":
+    delete:
+      tags:
+        - DAF
+      description: delete DAF user
+      operationId: deleteDAFuser
+      produces:
+      - application/json
+      parameters:
+      - name: userName
+        in: path
+        description: user uid
         required: true
         type: string
       responses:
@@ -395,12 +535,44 @@ definitions:
         type: string
       userpassword:
         type: string
+      title:
+        type: string
       organizations:
         type: array
         items:
           type: string
       role:
         type: string
+  IpaUserMod:
+    type: object
+    required:
+      - givenname
+      - sn
+      - role
+    properties:
+      givenname:
+        description: First name
+        type: string
+      sn:
+        description: Last name
+        type: string
+      role:
+        type: string
+  IpaGroup:
+    type: object
+    required:
+      - dn
+    properties:
+      dn:
+        description: group dn
+        type: string
+      gidnumber:
+        description: group gid number
+        type: string
+      member_user:
+        type: array
+        items:
+          type: string
   Group:
     type: object
     required:
@@ -418,17 +590,28 @@ definitions:
         type: array
         items:
           type: string
+  OrgList:
+    type: object
+    required:
+      - orgs
+    properties:
+      orgs:
+        type: array
+        items:
+          type: string
   DafOrg:
     type: object
     required:
       - groupCn
-      - defaultUserPwd
+      - predefinedUserPwd
       - supSetConnectedDbName
     properties:
       groupCn:
         description: group cn
         type: string
-      defaultUserPwd:
+      predefinedUserMail:
+        type: string
+      predefinedUserPwd:
         type: string
       supSetConnectedDbName:
         description: Superset connected DB name
@@ -448,6 +631,7 @@ definitions:
   Error:
     properties:
       code:
+        description: 0 for unmanaged errors, 1 for managed ones
         type: integer
         format: int32
       message:

@@ -18,23 +18,64 @@ kind: Deployment
 metadata:
   name: catalog-manager-deployment
 spec:
-  replicas: 3
+  replicas: 1
   template:
     metadata:
       labels:
         app: catalog-manager
     spec:
+      hostAliases:
+      - ip: "192.168.0.23"
+        hostnames:
+          - "master.platform.daf.gov.it"
+          - "master"
+      - ip: "192.168.0.22"
+        hostnames:
+          - "slave1.platform.daf.gov.it"
+          - "slave1"
+      - ip: "192.168.0.24"
+        hostnames:
+          - "slave2.platform.daf.gov.it"
+          - "slave2"
+      - ip: "192.168.0.36"
+        hostnames:
+          - "slave3.platform.daf.gov.it"
+          - "slave3"
+      - ip: "192.168.0.26"
+        hostnames:
+          - "slave4.platform.daf.gov.it"
+          - "slave4"
+      - ip: "192.168.0.26"
+        hostnames:
+          - "slave4.platform.daf.gov.it"
+          - "slave4"
+      - ip: "192.168.0.20"
+        hostnames:
+          - "edge1.platform.daf.gov.it"
+          - "edge1"
+      - ip: "192.168.0.21"
+        hostnames:
+          - "edge2.platform.daf.gov.it"
+          - "edge2"
+      - ip: "192.168.0.27"
+        hostnames:
+          - "edge3.platform.daf.gov.it"
+          - "edge3"
+      - ip: "192.168.0.29"
+        hostnames:
+          - "idm.daf.gov.it"
+          - "idm"
       containers:
       - name: catalog-manager
-        image: 10.98.74.120:5000/daf-catalog-manager:1.0.0-SNAPSHOT
+        image: 10.98.74.120:5000/daf-catalog-manager:1.0.1-SNAPSHOT
         env:
         - name: JAVA_OPTS
           value: "-server -XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:+PerfDisableSharedMem -XX:+ParallelRefProcEnabled -Xmx2g -Xms2g -XX:MaxPermSize=1024m"
         imagePullPolicy: Always
-        lifecycle:
-          postStart:
-            exec:
-             command: ["/bin/sh", "-c", "cat /etc/extra_hosts >> /etc/hosts"]
+        #lifecycle:
+        #  postStart:
+        #    exec:
+        #     command: ["/bin/sh", "-c", "cat /etc/extra_hosts >> /etc/hosts"]
         ports:
         - name: client
           containerPort: 9000

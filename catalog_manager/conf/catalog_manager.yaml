@@ -1741,7 +1741,7 @@ definitions:
         $ref: '#/definitions/Organization'
       owner_org:
         type: string
-      #privatex:
+      #private:
         #type: boolean
       publisher_identifier:
         type: string

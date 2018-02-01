@@ -1174,29 +1174,49 @@ definitions:
      #   $ref: '#/definitions/Lang'
      # metadata_format:
      #   type: string
+      title:
+        type: string
+        description: Human readable name or title for the column.
       desc:
         type: string
+        description: Description of the content of the column.
       field_type:
         type: string
+        description: It specifies if the field is a dimension, a metric (numeric attribute) or a descriptive attribute.
+      required:
+        type: integer
+        description: It specifies if the field must be valorized or can be null.
+        format: int32
+      uniq_dim:
+        type: boolean
+        description: checked if the column is part of the list of dimensions that make the row unique, such that there will not be two rows with the same values for the columns checked as uniq_dim.
       #desc_lang:
       #  $ref: '#/definitions/Lang'
       cat:
-        description: Main tag in the tag list
         type: string
+        description: Main tag in the category list. This will be supported by an appropriate service managing categories.
       tag:
         type: array
+        description: Main tag in the tag list. This will be supported by an appropriate service managing tag.
         items:
           type: string
-      required:
-        type: integer
-        format: int32
       semantics:
         type: object
+        description: info on semantics annotation
         $ref: '#/definitions/Semantic'
       constr:
         type: array
+        description: (key value) to add constraints to the content of the column
         items:
           $ref: '#/definitions/Constr'
+      personal:
+        type: object
+        description: tells if the column contains personal data, if so of what kind
+        $ref: '#/definitions/Personal'
+      format_std:
+        type: object
+        description: Add info about the specific format used for the column
+        $ref: '#/definitions/FormatStd'
   Lang:
     type: object
     properties:
@@ -1211,10 +1231,16 @@ definitions:
     properties:
       id:
         type: string
-      context:
-        #type: array
-        #items:
+        description: Semantic tag from OntonetHub, describing the conventional triplet to uniquely identify an attribute of an entity of a given ontology.
+      subject:
         type: string
+        description: Semantic annotation from OntonetHub, containing info to identify a concept the data refers to.
+      predicate:
+        type: string
+        description: Semantic annotation of the action the subject performs on the content of the column.
+      voc:
+        type: string
+        description: semantic tag associating the column to a given controlled vocabulary, if it exists. This tag contains also info about the hierarchy of the vocabulary used.
   Constr:
     type: object
     properties:
@@ -1239,6 +1265,28 @@ definitions:
    #   owl:datatypeProp:
    #     type: string
    #     description: Uri of the simple predicate
+  Personal:
+    type: object
+    required:
+      - ispersonal
+    properties:
+      ispersonal:
+        type: boolean
+        description: It tells if the column contains personal information.
+      cat:
+        type: string
+        description: It contains the type of personal data
+  FormatStd:
+    type: object
+    required:
+      - name
+    properties:
+      name:
+        type: string
+        description: Name of the standard format used
+      param:
+        type: string
+        description: It contains the type of personal data
   Operational:
     required:
       - logical_uri
@@ -1669,8 +1717,8 @@ definitions:
         #type: string
       license_id:
         type: string
-      license_title:
-        type: string
+      #license_title:
+        #type: string
       #maintainer:
         #type: string
       #maintainer_email:
@@ -1693,8 +1741,8 @@ definitions:
         $ref: '#/definitions/Organization'
       owner_org:
         type: string
-      #private:
-        #type: boolean
+      privatex:
+        type: boolean
       publisher_identifier:
         type: string
       publisher_name:

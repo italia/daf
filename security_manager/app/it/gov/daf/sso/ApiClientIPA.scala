@@ -57,10 +57,9 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
     println("createUser: "+jsonUser.toString())
 
     val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonUser,_,_)
-    secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).flatMap { json =>
 
+    def handleJson(json:JsValue) = {
       val result = (json \ "result").getOrElse(JsString("null")).toString()
-
 
       if(result != "null") {
         loginCkan(user.uid, user.userpassword.get).map { _ =>
@@ -70,8 +69,14 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
       }
       else
         Future { Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) ) }
-
     }
+
+
+    secInvokeManager.manageRestServiceCall(loginInfo,serviceInvoke,200).flatMap {
+      case Right(json) => handleJson(json)
+      case Left(l) =>  Future { Left( Error(Option(0),Some(l),None) ) }
+    }
+
 
   }
 
@@ -88,7 +93,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
                                           {
                                              "cn":"${givenname + " " + sn}",
                                              "displayname":"${givenname + " " + sn}",
-                                             "givenname":"${givenname}",
+                                             "givenname":"$givenname",
                                              "sn":"$sn",
 
                                              "raw":false,
@@ -101,8 +106,8 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
     println(jsonUser.toString())
 
     val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonUser,_,_)
-    secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).flatMap { json =>
 
+    def handleJson(json:JsValue) = {
       val result = (json \ "result").getOrElse(JsString("null")).toString()
 
       if (result != "null")
@@ -111,8 +116,13 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
         Future{ Right(Success(Some("User not modified"), Some("ok"))) }
       else
         Future { Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) ) }
-
     }
+
+    secInvokeManager.manageRestServiceCall(loginInfo,serviceInvoke,200).flatMap {
+      case Right(json) => handleJson(json)
+      case Left(l) =>  Future { Left( Error(Option(0),Some(l),None) ) }
+    }
+
 
   }
 
@@ -142,17 +152,20 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
     //val currentUserLoginInfo = new LoginInfo(userUid, oldPwd, LoginClientLocal.FREE_IPA)
     val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonUser,_,_)
 
-    secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).flatMap { json =>
-
+    def handleJson(json:JsValue) = {
       val result = (json \ "result").getOrElse(JsString("null")).toString()
 
       if (result != "null")
         Future{ Right(Success(Some("Password changed"), Some("ok"))) }
       //else if( ((json \ "error")\"code").as[Long] == 4202 )
-        //Future{ Right(Success(Some("User not modified"), Some("ok"))) }
+      //Future{ Right(Success(Some("User not modified"), Some("ok"))) }
       else
         Future { Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) ) }
+    }
 
+    secInvokeManager.manageRestServiceCall(loginInfo,serviceInvoke,200).flatMap {
+      case Right(json) => handleJson(json)
+      case Left(l) =>  Future { Left( Error(Option(0),Some(l),None) ) }
     }
 
   }
@@ -199,7 +212,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
                                        "method":"user_del",
                                        "params":[
                                           [
-                                             "${userUid}"
+                                             "$userUid"
                                           ],
                                           {
                                              "continue":false,
@@ -212,14 +225,21 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
     println("deleteUser: "+jsonDelete.toString())
 
     val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonDelete,_,_)
-    secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).flatMap { json =>
 
+
+    def handleJson(json:JsValue) = {
       val result = (json \ "result").getOrElse(JsString("null")).toString()
 
       if (result != "null")
         Future.successful( Right(Success(Some("User deleted"), Some("ok"))) )
       else
         Future.successful( Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) ) )
+    }
+
+
+    secInvokeManager.manageRestServiceCall(loginInfo,serviceInvoke,200).flatMap {
+      case Right(json) => handleJson(json)
+      case Left(l) =>  Future { Left( Error(Option(0),Some(l),None) ) }
 
     }
 
@@ -233,7 +253,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
                                        "method":"group_add",
                                        "params":[
                                           [
-                                             "${group}"
+                                             "$group"
                                           ],
                                           {
                                              "description":"${AppConstants.OrganizationIpaGroupDescription}",
@@ -247,7 +267,25 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
     println("createGroup: "+ jsonGroup.toString())
 
     val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonGroup,_,_)
-    secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).map { json =>
+
+    def handleJson(json:JsValue) = {
+      val result = (json \ "result") \"result"
+
+      if( result.isInstanceOf[JsUndefined] )
+        Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
+      else
+        Right( Success(Some("Group created"), Some("ok")) )
+    }
+
+    secInvokeManager.manageRestServiceCall(loginInfo,serviceInvoke,200).map {
+      case Right(json) => handleJson(json)
+      case Left(l) =>  Left( Error(Option(0),Some(l),None) )
+    }
+
+
+
+    /*
+    secInvokeManager.manageRestServiceCall(loginInfo,serviceInvoke,200).map { json =>
 
       val result = ((json \ "result") \"result")
 
@@ -256,7 +294,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
       else
         Right( Success(Some("Group created"), Some("ok")) )
 
-    }
+    }*/
 
   }
 
@@ -267,7 +305,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
                                        "method":"group_show",
                                        "params":[
                                           [
-                                             "${group}"
+                                             "$group"
                                           ],
                                           {
                                              "all":true,
@@ -281,9 +319,33 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
     println("showGroup: "+ jsonGroup.toString())
 
     val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonGroup,_,_)
-    secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).map { json =>
 
-      val result = ((json \ "result") \"result")//.getOrElse(JsString("null")).toString()
+    def handleJson(json:JsValue) = {
+      val result = (json \ "result") \"result"
+
+      if( result.isInstanceOf[JsUndefined] )
+
+        Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
+      else
+        Right(
+          IpaGroup(
+            (result \ "dn").asOpt[String].getOrElse(""),
+            (result \ "gidnumber") (0).asOpt[String],
+            (result \ "member_user").asOpt[Seq[String]]
+          )
+        )
+    }
+
+    secInvokeManager.manageRestServiceCall(loginInfo,serviceInvoke,200).map {
+      case Right(json) => handleJson(json)
+      case Left(l) =>  Left( Error(Option(0),Some(l),None) )
+    }
+
+
+    /*
+    secInvokeManager.manageRestServiceCall(loginInfo,serviceInvoke,200).map { json =>
+
+      val result = ((json \ "result") \"result")
 
       if( result == "null" || result.isInstanceOf[JsUndefined] )
 
@@ -296,7 +358,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
             (result \ "member_user").asOpt[Seq[String]]
           )
         )
-    }
+    }*/
 
   }
 
@@ -322,7 +384,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
                                        "method":"group_del",
                                        "params":[
                                           [
-                                             "${group}"
+                                             "$group"
                                           ],
                                           {
                                              "continue":false,
@@ -335,6 +397,24 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
     println("deleteGroup: "+jsonDelete.toString())
 
     val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonDelete,_,_)
+
+    def handleJson(json:JsValue) = {
+      val result = (json \ "result").getOrElse(JsString("null")).toString()
+
+      if (result != "null")
+        Future.successful( Right(Success(Some("Group deleted"), Some("ok"))) )
+      else
+        Future.successful(Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) ) )
+    }
+
+    secInvokeManager.manageRestServiceCall(loginInfo,serviceInvoke,200).flatMap {
+      case Right(json) => handleJson(json)
+      case Left(l) =>  Future { Left( Error(Option(0),Some(l),None) ) }
+
+    }
+
+
+    /*
     secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).flatMap { json =>
 
       val result = (json \ "result").getOrElse(JsString("null")).toString()
@@ -344,7 +424,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
       else
         Future.successful(Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) ) )
 
-    }
+    }*/
 
   }
 
@@ -371,6 +451,23 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
     println("addUsersToGroup: "+ jsonAdd.toString())
 
     val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonAdd,_,_)
+
+    def handleJson(json:JsValue) = {
+      val result = (json \ "result") \"result"
+
+      if( result.isInstanceOf[JsUndefined] )
+        Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
+      else
+        Right(Success(Some("Users added"), Some("ok")))
+    }
+
+    secInvokeManager.manageRestServiceCall(loginInfo,serviceInvoke,200).map {
+      case Right(json) => handleJson(json)
+      case Left(l) =>  Left( Error(Option(0),Some(l),None) )
+    }
+
+
+    /*
     secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).map { json =>
       val result = ((json \ "result") \"result")
 
@@ -378,7 +475,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
         Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
       else
         Right(Success(Some("Users added"), Some("ok")))
-    }
+    }*/
 
   }
 
@@ -405,6 +502,25 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
     println("removeUsersToGroup: "+ jsonAdd.toString())
 
     val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonAdd,_,_)
+
+
+    def handleJson(json:JsValue) = {
+      val result = (json \ "result") \"result"
+
+      if( result.isInstanceOf[JsUndefined] )
+        Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
+      else
+        Right(Success(Some("Users removed"), Some("ok")))
+    }
+
+
+    secInvokeManager.manageRestServiceCall(loginInfo,serviceInvoke,200).map {
+      case Right(json) => handleJson(json)
+      case Left(l) =>  Left( Error(Option(0),Some(l),None) )
+    }
+
+
+    /*
     secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).map { json =>
       val result = ((json \ "result") \"result")
 
@@ -412,7 +528,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
         Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
       else
         Right(Success(Some("Users removed"), Some("ok")))
-    }
+    }*/
 
   }
 
@@ -435,6 +551,42 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
     println("findUserByUid request: "+jsonRequest.toString())
 
     val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonRequest,_,_)
+
+
+    def handleJson(json:JsValue) = {
+      val count = ((json \ "result") \ "count").asOpt[Int].getOrElse(-1)
+      val result = (json \ "result") \"result"
+
+      if(count==0)
+        Left( Error(Option(1),Some("No user found"),None) )
+
+      if( result.isInstanceOf[JsUndefined] )
+
+        Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
+
+      else
+        Right(
+          IpaUser(
+            sn = (result \ "sn") (0).asOpt[String].getOrElse(""),
+            givenname = (result \ "givenname") (0).asOpt[String].getOrElse(""),
+            mail = (result \ "mail") (0).asOpt[String].getOrElse(""),
+            uid = (result \ "uid") (0).asOpt[String].getOrElse(""),
+            role = ApiClientIPA.extractRole( (result \ "memberof_group").asOpt[Seq[String]] ),
+            title = (result \ "title") (0).asOpt[String],
+            userpassword = None,
+            organizations = ApiClientIPA.extractOrgs( (result \ "memberof_group").asOpt[Seq[String]] )
+          )
+        )
+    }
+
+
+    secInvokeManager.manageRestServiceCall(loginInfo,serviceInvoke,200).map {
+      case Right(json) => handleJson(json)
+      case Left(l) =>  Left( Error(Option(0),Some(l),None) )
+    }
+
+
+    /*
     secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).map { json =>
 
       val count = ((json \ "result") \ "count").asOpt[Int].getOrElse(-1)
@@ -461,7 +613,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
           )
         )
 
-    }
+    }*/
 
   }
 
@@ -484,6 +636,40 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
     println("findUserByMail request: "+ jsonRequest.toString())
 
     val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonRequest,_,_)
+
+    def handleJson(json:JsValue) = {
+
+      val count = ((json \ "result") \ "count").asOpt[Int].getOrElse(-1)
+      val result = ((json \ "result") \"result")(0)//.getOrElse(JsString("null")).toString()
+
+      if(count==0)
+        Left( Error(Option(1),Some("No user found"),None) )
+
+      else if( result.isInstanceOf[JsUndefined]  )
+        Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
+
+      else
+        Right(
+          IpaUser(
+            sn = (result \ "sn") (0).asOpt[String].getOrElse(""),
+            givenname = (result \ "givenname") (0).asOpt[String].getOrElse(""),
+            mail = (result \ "mail") (0).asOpt[String].getOrElse(""),
+            uid = (result \ "uid") (0).asOpt[String].getOrElse(""),
+            role = ApiClientIPA.extractRole( (result \ "memberof_group").asOpt[Seq[String]] ),
+            title = (result \ "title") (0).asOpt[String],
+            userpassword = None,
+            organizations = ApiClientIPA.extractOrgs( (result \ "memberof_group").asOpt[Seq[String]] )
+          )
+        )
+    }
+
+    secInvokeManager.manageRestServiceCall(loginInfo,serviceInvoke,200).map {
+      case Right(json) => handleJson(json)
+      case Left(l) =>  Left( Error(Option(0),Some(l),None) )
+    }
+
+
+    /*
     secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).map { json =>
 
       val count = ((json \ "result") \ "count").asOpt[Int].getOrElse(-1)
@@ -509,7 +695,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
           )
         )
 
-    }
+    }*/
 
   }
 
@@ -532,9 +718,34 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
     println("findUserByMail request: "+ jsonRequest.toString())
 
     val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonRequest,_,_)
-    secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).map { json =>
 
-      //Right(Success(Some("ok"), Some("ok")))
+
+    def handleJson(json:JsValue) = {
+
+      val count = ((json \ "result") \ "count").asOpt[Int].getOrElse(-1)
+      val result = (json \ "result") \"result"
+
+      if(count==0)
+        Left( Error(Option(1),Some("No organization founded"),None) )
+
+      else if(  result.isInstanceOf[JsUndefined]  )
+        Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
+
+      else
+        Right(
+          result.asOpt[Seq[JsObject]].get map{ el => (el \"cn")(0).asOpt[String].get }
+        )
+    }
+
+
+    secInvokeManager.manageRestServiceCall(loginInfo,serviceInvoke,200).map {
+      case Right(json) => handleJson(json)
+      case Left(l) =>  Left( Error(Option(0),Some(l),None) )
+    }
+
+
+    /*
+    secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).map { json =>
 
       val count = ((json \ "result") \ "count").asOpt[Int].getOrElse(-1)
       val result = ((json \ "result") \"result")
@@ -551,7 +762,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
         )
 
 
-    }
+    }*/
 
   }
 
@@ -577,27 +788,6 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
     wsResponse.map(_=>"ok")
   }
 
-  /*
-  private def bindDefaultOrg(userName:String):Future[String] = {
-
-    val wsClient = AhcWSClient()
-
-    println("bind default organization")
-
-    wsClient.url()
-
-    wsResponse.map({ response =>
-
-      if( response != null  )
-        "ok"
-      else
-        throw new Exception("Failed to login to ckan")
-
-
-    }).andThen { case _ => wsClient.close() }
-      .andThen { case _ => system.terminate() }
-
-  }*/
 
   private def readIpaErrorMessage( json:JsValue )={
 
@@ -627,7 +817,7 @@ object ApiClientIPA {
       if( out.isEmpty )
         None
       else
-        Option(out(0))
+        Option(out.head)
     }
 
   }

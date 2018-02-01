@@ -194,6 +194,23 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
   }
 
 
+  def createSupersetTable(dbName:String, schema:Option[String], tableName:String):Future[Either[Error,Success]] = {
+
+    val result = for {
+      dbId <-  EitherT( supersetApiClient.findDatabaseId(dbName) )
+      a <-  EitherT( supersetApiClient.createTable(dbId,schema,tableName) )
+      b <- EitherT( supersetApiClient.checkTable(dbId,schema,tableName) )
+    } yield b
+
+
+    result.value.map{
+      case Right(r) => Right( Success(Some("Table created"), Some("ok")) )
+      case Left(l) => Left(l)
+    }
+
+  }
+
+
   private def clearSupersetPermissions(dbId:Long,dbName:String):Future[Either[Error,Success]] = {
 
     val permName = s"[$dbName].(id:$dbId)"

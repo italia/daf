@@ -11,6 +11,8 @@ import play.api.libs.functional.syntax._
 
 import scala.concurrent.Future
 
+
+
 class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheWrapper:CacheWrapper){
 
   import scala.concurrent.ExecutionContext.Implicits._
@@ -53,7 +55,7 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
       wsClient.url(ConfigReader.ckanHost + "/api/3/action/organization_create").withHeaders("Cookie" -> cookie).post(jsonRequest)
     }
 
-    secInvokeManager.manageServiceCall(new LoginInfo(userName, userPwd, "ckan"), serviceInvoke) map ( evaluateResult(_,"Organization created") )
+    secInvokeManager.manageRestServiceCall(new LoginInfo(userName, userPwd, "ckan"), serviceInvoke, 200) map ( evaluateResult(_,"Organization created") )
 
   }
 
@@ -76,7 +78,7 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
       wsClient.url(ConfigReader.ckanHost + "/api/3/action/organization_create").withHeaders("Cookie" -> cookie).post(jsonRequest)
     }
 
-    secInvokeManager.manageServiceCall(ckanAdminLogin, serviceInvoke) map ( evaluateResult(_,"Organization created") )
+    secInvokeManager.manageRestServiceCall(ckanAdminLogin, serviceInvoke, 200) map ( evaluateResult(_,"Organization created") )
 
   }
 
@@ -93,7 +95,7 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
       wsClient.url(url).withHeaders("Cookie" -> cookie).post(jsonRequest)
     }
 
-    secInvokeManager.manageServiceCall(ckanAdminLogin, serviceInvoke) map ( evaluateResult(_,"Organization deleted") )
+    secInvokeManager.manageRestServiceCall(ckanAdminLogin, serviceInvoke, 200) map ( evaluateResult(_,"Organization deleted") )
 
   }
 
@@ -109,7 +111,7 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
       wsClient.url(url).withHeaders("Cookie" -> cookie).post(jsonRequest)
     }
 
-    secInvokeManager.manageServiceCall(ckanAdminLogin, serviceInvoke) map ( evaluateResult(_,"User deleted") )
+    secInvokeManager.manageRestServiceCall(ckanAdminLogin, serviceInvoke, 200) map ( evaluateResult(_,"User deleted") )
 
   }
 
@@ -125,7 +127,7 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
       wsClient.url(url).withHeaders("Cookie" -> cookie).post(jsonRequest)
     }
 
-    secInvokeManager.manageServiceCall(ckanAdminLogin, serviceInvoke) map ( evaluateResult(_,"Organization deleted") )
+    secInvokeManager.manageRestServiceCall(ckanAdminLogin, serviceInvoke, 200) map ( evaluateResult(_,"Organization deleted") )
 
   }
 
@@ -153,7 +155,7 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
     }
 
     val ckanLogin =  new LoginInfo(loggedUserName, cacheWrapper.getPwd(loggedUserName).get , "ckan")
-    secInvokeManager.manageServiceCall( ckanLogin, serviceInvoke) map ( evaluateResult(_,"User added") )
+    secInvokeManager.manageRestServiceCall( ckanLogin, serviceInvoke, 200) map ( evaluateResult(_,"User added") )
 
   }
 
@@ -170,7 +172,7 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
       wsClient.url(ConfigReader.ckanHost + "/api/3/action/organization_patch?id=" + updatedCkanOrg.name).withHeaders("Cookie" -> cookie).post(jsonRequest)
     }
 
-    secInvokeManager.manageServiceCall( ckanAdminLogin, serviceInvoke) map ( evaluateResult(_,"User added") )
+    secInvokeManager.manageRestServiceCall( ckanAdminLogin, serviceInvoke, 200) map ( evaluateResult(_,"User added") )
 
   }
 
@@ -187,7 +189,7 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
       wsClient.url(ConfigReader.ckanHost + "/api/3/action/organization_patch?id=" + updatedCkanOrg.name).withHeaders("Cookie" -> cookie).post(jsonRequest)
     }
 
-    secInvokeManager.manageServiceCall( ckanAdminLogin, serviceInvoke) map ( evaluateResult(_,"User removed") )
+    secInvokeManager.manageRestServiceCall( ckanAdminLogin, serviceInvoke, 200) map ( evaluateResult(_,"User removed") )
 
   }
 
@@ -205,9 +207,10 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
 
     val ckanLogin =  new LoginInfo(loggedUserName, cacheWrapper.getPwd(loggedUserName).get , "ckan")
 
-    secInvokeManager.manageServiceCall(ckanLogin, serviceInvoke) map getOrgFromJson
+    secInvokeManager.manageRestServiceCall(ckanLogin, serviceInvoke, 200) map getOrgFromJson
 
   }
+
 
   def getOrganizationAsAdmin( groupCn:String):Future[Either[Error, CkanOrg]] = {
 
@@ -219,22 +222,40 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
       wsClient.url(url).withHeaders("Cookie" -> cookie).get
     }
 
-    secInvokeManager.manageServiceCall(ckanAdminLogin, serviceInvoke) map getOrgFromJson
+    secInvokeManager.manageRestServiceCall(ckanAdminLogin, serviceInvoke, 200) map getOrgFromJson
 
   }
 
 
-  private def evaluateResult(json:JsValue, okMessage:String ):Either[Error, Success]={
+  private def evaluateResult(jsonE:Either[String,JsValue], okMessage:String):Either[Error, Success]={
 
-    val resultJson = (json \ "success").toOption
-
-    if( !resultJson.isEmpty && resultJson.get.toString().equals("true") )
-      Right( Success(Some(okMessage), Some("ok")) )
-    else
-      Left(Error(Option(0), Some(WebServiceUtil.getMessageFromCkanError(json) ), None))
+    jsonE match {
+      case Right(json) => evaluateResult(json, okMessage)
+      case Left(msg) => Left( Error(Option(0), Some(msg), None) )
+    }
 
   }
 
+  private def evaluateResult(json:JsValue, okMessage:String):Either[Error, Success]={
+
+      val resultJson = (json \ "success").toOption
+
+      if( !resultJson.isEmpty && resultJson.get.toString().equals("true") )
+        Right( Success(Some(okMessage), Some("ok")) )
+      else
+        Left(Error(Option(0), Some(WebServiceUtil.getMessageFromCkanError(json) ), None))
+
+
+  }
+
+  private def getOrgFromJson(jsonE:Either[String,JsValue]):Either[Error, CkanOrg]={
+
+    jsonE match {
+      case Right(json) => getOrgFromJson(json)
+      case Left(msg) =>Left(Error(Option(0),Some( msg ), None))
+    }
+
+  }
 
   private def getOrgFromJson(json:JsValue):Either[Error, CkanOrg]={
 
@@ -252,22 +273,6 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
 
   }
 
-  /*
-  private def getUsersFromJson(json:JsValue):Either[Error, Seq[CkanOrgUser]]={
-
-    val resultJson = (json \ "success").toOption
-
-    if( !resultJson.isEmpty && resultJson.get.toString() == "true" ) {
-
-      ((json \ "result") \ "users").validate[Seq[CkanOrgUser]] match{
-        case s: JsSuccess[Seq[CkanOrgUser]] => Right(s.get)
-        case e: JsError => Left( Error(Option(0), Some(WebServiceUtil.getMessageFromJsError(e) ), None) )
-      }
-
-    }else
-      Left(Error(Option(0), Some(WebServiceUtil.getMessageFromCkanError(json) ), None))
-
-  }*/
 
 
 }

@@ -513,6 +513,30 @@ paths:
           description: Error Message
           schema:
             $ref: '#/definitions/Error'
+  "/internal/superset/table":
+    post:
+      tags:
+        - Superset
+      description: create a a table in superset
+      operationId: createSupersetTable
+      produces:
+      - application/json
+      parameters:
+      - name: payload
+        in: body
+        description: Superset Table
+        required: true
+        schema:
+          $ref: '#/definitions/SupersetTable'
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
 definitions:
   IpaUser:
     type: object
@@ -627,6 +651,21 @@ definitions:
         type: string
       userId:
         description: username
+        type: string
+  SupersetTable:
+    type: object
+    required:
+      - dbName
+      - tableName
+    properties:
+      dbName:
+        description: superset connection name
+        type: string
+      schema:
+        description: schema name
+        type: string
+      tableName:
+        description: table name
         type: string
   Error:
     properties:

@@ -736,7 +736,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/KeyValue'
+              $ref: ./swagger_yaml/ref_generics.yaml#/KeyValue
         401:
           description: Error Message
           schema:
@@ -790,7 +790,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/KeyValue'
+              $ref: ./swagger_yaml/ref_generics.yaml#/KeyValue
         401:
           description: Error Message
           schema:
@@ -821,7 +821,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/KeyValue'
+              $ref: ./swagger_yaml/ref_generics.yaml#/KeyValue
         401:
           description: Error Message
           schema:
@@ -882,7 +882,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/KeyValue'
+              $ref: ./swagger_yaml/ref_generics.yaml#/KeyValue
         401:
           description: Error Message
           schema:
@@ -936,7 +936,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/KeyValue'
+              $ref: ./swagger_yaml/ref_generics.yaml#/KeyValue
         401:
           description: Error Message
           schema:
@@ -967,7 +967,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/KeyValue'
+              $ref: ./swagger_yaml/ref_generics.yaml#/KeyValue
         401:
           description: Error Message
           schema:
@@ -1046,17 +1046,6 @@ paths:
             $ref: '#/definitions/Error'
 
 definitions:
-  KeyValue:
-    type: object
-    required:
-      - key
-      - value
-    description: Generic Key/Value pair object
-    properties:
-      key:
-        type: string
-      value:
-        type: string
 
   VocKeyValueSubtheme:
       type: object

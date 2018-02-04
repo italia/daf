@@ -38,7 +38,7 @@ import it.gov.daf.ftp.SftpHandler
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -257,6 +257,14 @@ package security_manager.yaml {
             case scala.util.Failure(ex) => Sftp500(Error(Some(404), Some(ex.getMessage), None))
           }
             // ----- End of unmanaged code area for action  Security_managerYaml.sftp
+        }
+        val findSupersetOrgTables = findSupersetOrgTablesAction { (orgName: String) =>  
+            // ----- Start of unmanaged code area for action  Security_managerYaml.findSupersetOrgTables
+            integrationService.getSupersetOrgTables(orgName)flatMap {
+              case Right(success) => FindSupersetOrgTables200(SupersetTables(Some(success)))
+              case Left(err) => FindSupersetOrgTables500(err)
+            }
+            // ----- End of unmanaged code area for action  Security_managerYaml.findSupersetOrgTables
         }
         val listDAForganization = listDAForganizationAction {  _ =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.listDAForganization

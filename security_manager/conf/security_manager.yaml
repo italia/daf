@@ -537,6 +537,29 @@ paths:
           description: Error Message
           schema:
             $ref: '#/definitions/Error'
+  "/internal/superset/find_orgtables/{orgName}":
+    get:
+      tags:
+        - Superset
+      description: find superset organization tables
+      operationId: findSupersetOrgTables
+      produces:
+      - application/json
+      parameters:
+      - name: orgName
+        in: path
+        description: Organization name
+        required: true
+        type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/SupersetTables'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
 definitions:
   IpaUser:
     type: object
@@ -611,6 +634,13 @@ definitions:
       - uid
     properties:
       users:
+        type: array
+        items:
+          type: string
+  SupersetTables:
+    type: object
+    properties:
+      tables:
         type: array
         items:
           type: string

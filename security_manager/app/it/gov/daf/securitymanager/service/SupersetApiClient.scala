@@ -18,38 +18,12 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
   private val loginAdminSuperset = new LoginInfo(ConfigReader.suspersetAdminUser, ConfigReader.suspersetAdminPwd, "superset")
 
 
-  def handleServiceCall(serviceInvoke:(String,WSClient)=> Future[WSResponse], handleJson:(JsValue)=> Either[Error, Success] )={
+  def handleServiceCall[A](serviceInvoke:(String,WSClient)=> Future[WSResponse], handleJson:(JsValue)=> Either[Error, A] )={
 
     secInvokeManager.manageRestServiceCall(loginAdminSuperset, serviceInvoke,200).map {
-        case Right(json) => handleJson(json)
-        case Left(l) =>  Left( Error(Option(0),Some(l),None) )
+      case Right(json) => handleJson(json)
+      case Left(l) =>  Left( Error(Option(0),Some(l),None) )
     }
-  }
-
-  def handleServiceCall_Long(serviceInvoke:(String,WSClient)=> Future[WSResponse], handleJson:(JsValue)=> Either[Error,Long] )={
-
-    secInvokeManager.manageRestServiceCall(loginAdminSuperset, serviceInvoke,200).map {
-        case Right(json) => handleJson(json)
-        case Left(l) =>  Left( Error(Option(0),Some(l),None) )
-    }
-  }
-
-  def handleServiceCall_SupersetUserInfo(serviceInvoke:(String,WSClient)=> Future[WSResponse], handleJson:(JsValue)=> Either[Error,SupersetUserInfo] )={
-
-    secInvokeManager.manageRestServiceCall(loginAdminSuperset, serviceInvoke,200).map {
-        case Right(json) => handleJson(json)
-        case Left(l) =>  Left( Error(Option(0),Some(l),None) )
-
-    }
-  }
-
-  def handleServiceCall_OptionLong(serviceInvoke:(String,WSClient)=> Future[WSResponse], handleJson:(JsValue)=> Either[Error,Array[Option[Long]]] )={
-
-    secInvokeManager.manageRestServiceCall(loginAdminSuperset, serviceInvoke,200).map {
-        case Right(json) => handleJson(json)
-        case Left(l) =>  Left( Error(Option(0),Some(l),None) )
-      }
-
   }
 
 
@@ -157,7 +131,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
       }
     }
 
-    handleServiceCall_Long(serviceInvoke,handleJson)
+    handleServiceCall(serviceInvoke,handleJson)
 
 
     /*
@@ -244,7 +218,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
       }
     }
 
-    handleServiceCall_Long(serviceInvoke,handleJson)
+    handleServiceCall(serviceInvoke,handleJson)
 
     /*
     secInvokeManager.manageServiceCall(loginAdminSuperset, serviceInvoke).map { json =>
@@ -285,7 +259,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
       }
     }
 
-    handleServiceCall_SupersetUserInfo(serviceInvoke,handleJson)
+    handleServiceCall(serviceInvoke,handleJson)
 
     /*
     secInvokeManager.manageServiceCall(loginAdminSuperset, serviceInvoke).map { json =>
@@ -448,6 +422,32 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
   }
 
+  def findDbTables(dbId:Long):Future[Either[Error,Seq[String]]] = {
+
+    def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
+
+      wSClient.url(ConfigReader.supersetUrl + s"/tablemodelview/api/readvalues?_flt_0_database=$dbId").withHeaders("Content-Type" -> "application/json",
+        "Accept" -> "application/json",
+        "Cookie" -> sessionCookie
+      ).get
+    }
+
+    println("findDbTables id: " + dbId)
+
+
+    def handleJson(json:JsValue)={
+
+      json.validate[Seq[JsObject]] match {
+        case JsSuccess(value,pth) => Right( value.map{ elem => (elem \ "text").as[String]} )
+        case JsError(e) => Right(Seq())
+      }
+    }
+
+    handleServiceCall(serviceInvoke,handleJson)
+
+  }
+
+
 
   def checkTable(dbId:Long, schema:Option[String], tableName:String):Future[Either[Error,Success]] = {
 
@@ -503,8 +503,8 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
         "Accept-Language" -> "en-US,en;q=0.5",
         "Accept" -> "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "User-Agent" -> """Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:58.0) Gecko/20100101 Firefox/58.0""",
-        "Host" -> "superset.daf.test.it",
-        "Referer" -> "http://superset.daf.test.it/tablemodelview/add",
+        //"Host" -> ConfigReader.supersetUrl,
+        //"Referer" -> (ConfigReader.supersetUrl + "/tablemodelview/add"),
         "Content-Length" -> postData.length.toString,
         "Connection" -> "keep-alive",
         "Upgrade-Insecure-Requests" -> "1",
@@ -517,12 +517,45 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
       if(response.status == 302)
         Right(Success(Some("Table created"), Some("ok")))
       else
-        Left(Error(Option(0), Some("Error in createSupersetTable"), None))
+        Left(Error(Option(0), Some("Error in create superset table"), None))
     }
 
   }
 
 
+  // TODO not a service for now, due to Superset issue
+  def updateUser(user:IpaUser, userId:Long, roles:List[Long]): Future[Either[Error, Success]] = {
+
+    val postDataRoles = roles.foldLeft("")( (a,b)=>a+"&roles="+b )
+    val postData = s"first_name=${user.givenname}&last_name=${user.sn}&username=${user.uid}&active=y&email=${user.mail}$postDataRoles"
+
+    def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
+
+      println("updateUser request: " + postData)
+
+
+      wSClient.url(ConfigReader.supersetUrl + s"/users/edit/$userId").withHeaders(
+        "Content-Type" -> """application/x-www-form-urlencoded""",
+        "Accept-Encoding" -> "gzip, deflate, br",
+        "Accept-Language" -> "en-US,en;q=0.5",
+        "Accept" -> "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "User-Agent" -> """Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:58.0) Gecko/20100101 Firefox/58.0""",
+        "Content-Length" -> postData.length.toString,
+        "Connection" -> "keep-alive",
+        "Upgrade-Insecure-Requests" -> "1",
+        "Cookie" -> sessionCookie
+      ).withFollowRedirects(false).post(postData)
+    }
+
+
+    secInvokeManager.manageServiceCall(loginAdminSuperset, serviceInvoke).map{ response=>
+      if(response.status == 302)
+        Right(Success(Some("User edited"), Some("ok")))
+      else
+        Left(Error(Option(0), Some("Error in update superset user"), None))
+    }
+
+  }
   def findPermissionViewIds(view_menu_id:Long):Future[Either[Error,Array[Option[Long]]]] = {
 
     def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
@@ -551,7 +584,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
       }
     }
 
-    handleServiceCall_OptionLong(serviceInvoke,handleJson)
+    handleServiceCall(serviceInvoke,handleJson)
 
     /*
     secInvokeManager.manageServiceCall(loginAdminSuperset, serviceInvoke).map { json =>
@@ -593,7 +626,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
       }
     }
 
-    handleServiceCall_Long(serviceInvoke,handleJson)
+    handleServiceCall(serviceInvoke,handleJson)
 
     /*
     secInvokeManager.manageServiceCall(loginAdminSuperset, serviceInvoke).map { json =>

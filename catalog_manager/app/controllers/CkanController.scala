@@ -370,7 +370,7 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
 
     val user = request.headers.get(USER_ID_HEADER).getOrElse("")
 
-    val params= Map( ("q",q), ("sort",sort), ("rows",rows), ("start",start) )
+    val params= Map( ("q",q), ("sort",sort), ("rows",rows), ("start",start), ("include_private","true") )
     val queryString = WebServiceUtil.buildEncodedQueryString(params)
 
     def callSearchDataset( cookie: String, wsClient: WSClient ):Future[WSResponse] = {

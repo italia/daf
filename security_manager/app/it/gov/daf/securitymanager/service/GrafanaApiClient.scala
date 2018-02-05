@@ -2,15 +2,13 @@ package it.gov.daf.securitymanager.service
 
 import cats.data.EitherT
 import com.google.inject.{Inject, Singleton}
-import it.gov.daf.common.sso.common.{CacheWrapper, LoginInfo, SecuredInvocationManager}
+import it.gov.daf.common.sso.common.{LoginInfo, SecuredInvocationManager}
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import play.api.libs.json._
 import play.api.libs.ws.{WSClient, WSResponse}
 import security_manager.yaml.{Error, Success}
 import cats.implicits._
 import it.gov.daf.sso.LoginClientLocal
-import play.api.mvc.Cookie
-
 import scala.concurrent.Future
 
 @Singleton
@@ -48,14 +46,18 @@ class GrafanaApiClient @Inject()(secInvokeManager: SecuredInvocationManager,logi
     }
 
 
-    secInvokeManager.manageServiceCall(loginAdminGrafana, serviceInvoke).map { json =>
+    secInvokeManager.manageRestServiceCall(loginAdminGrafana, serviceInvoke,200).map {
 
-      (json \ "orgId").validate[Long] match {
-        case s: JsSuccess[Long] => Right(Success(Some("Organization created"), Some("ok")))
-        case e: JsError => Left(Error(Option(0), Some("Error in create grafana organization"), None))
-      }
+        case Right(json) =>
+          (json \ "orgId").validate[Long] match {
+            case s: JsSuccess[Long] => Right(Success(Some("Organization created"), Some("ok")))
+            case e: JsError => Left(Error(Option(0), Some("Error in create grafana organization"), None))
+          }
 
+
+        case Left(msg) => Left(Error(Option(0), Some(msg), None))
     }
+
 
 
   }
@@ -119,23 +121,29 @@ class GrafanaApiClient @Inject()(secInvokeManager: SecuredInvocationManager,logi
     }
 
 
-    secInvokeManager.manageServiceCall(loginAdminGrafana, serviceInvoke).map { json =>
+    secInvokeManager.manageRestServiceCall(loginAdminGrafana, serviceInvoke, 200).map {
 
-      (json \ "message").validate[String] match {
+      case Right(json) =>
 
-        case s: JsSuccess[String] => s.asOpt match {
-          case Some(i) => if( i.contains("Organization deleted") )
-            Right(Success(Some("Organization deleted"), Some("ok")))
-          else
-            Left(Error(Option(0), Some("Error in grafana deleteOrganization"), None))
+        (json \ "message").validate[String] match {
 
-          case None => Left(Error(Option(0), Some("Error in grafana deleteOrganization"), None))
+          case s: JsSuccess[String] => s.asOpt match {
+            case Some(i) => if (i.contains("Organization deleted"))
+              Right(Success(Some("Organization deleted"), Some("ok")))
+            else
+              Left(Error(Option(0), Some("Error in grafana deleteOrganization"), None))
+
+            case None => Left(Error(Option(0), Some("Error in grafana deleteOrganization"), None))
+          }
+
+          case e: JsError => Left(Error(Option(0), Some("Error in grafana deleteOrganization"), None))
         }
 
-        case e: JsError => Left(Error(Option(0), Some("Error in grafana deleteOrganization"), None))
-      }
 
+
+      case Left(msg) => Left(Error(Option(0), Some(msg), None))
     }
+
 
   }
 
@@ -159,18 +167,19 @@ class GrafanaApiClient @Inject()(secInvokeManager: SecuredInvocationManager,logi
     }
 
 
-    secInvokeManager.manageServiceCall(loginAdminGrafana, serviceInvoke).map { json =>
+    secInvokeManager.manageRestServiceCall(loginAdminGrafana, serviceInvoke, 200).map {
 
-      (json \ "id").validate[Long] match {
-        case s: JsSuccess[Long] => s.asOpt match {
-          case Some(i) => Right(i)
-          case None => Left(Error(Option(0), Some("Error in grafana getOrganizationId"), None))
+      case Right(json) =>
+        (json \ "id").validate[Long] match {
+          case s: JsSuccess[Long] => s.asOpt match {
+            case Some(i) => Right(i)
+            case None => Left(Error(Option(0), Some("Error in grafana getOrganizationId"), None))
+          }
+          case e: JsError => Left(Error(Option(0), Some("Error in grafana getOrganizationId"), None))
         }
-        case e: JsError => Left(Error(Option(0), Some("Error in grafana getOrganizationId"), None))
-      }
 
+      case Left(msg) => Left(Error(Option(0), Some(msg), None))
     }
-
 
   }
 
@@ -196,21 +205,25 @@ class GrafanaApiClient @Inject()(secInvokeManager: SecuredInvocationManager,logi
     }
 
 
-    secInvokeManager.manageServiceCall(loginAdminGrafana, serviceInvoke).map { json =>
+    secInvokeManager.manageRestServiceCall(loginAdminGrafana, serviceInvoke, 200).map {
 
-      (json \ "message").validate[String] match {
+      case Right(json) =>
 
-        case s: JsSuccess[String] => s.asOpt match {
-          case Some(i) => if( i.contains("User added") )
-                            Right(Success(Some("User added"), Some("ok")))
-                          else
-                            Left(Error(Option(0), Some("Error in grafana getOrganizationId"), None))
+        (json \ "message").validate[String] match {
+          case s: JsSuccess[String] => s.asOpt match {
+            case Some(i) => if( i.contains("User added") )
+              Right(Success(Some("User added"), Some("ok")))
+            else
+              Left(Error(Option(0), Some("Error in grafana getOrganizationId"), None))
 
-          case None => Left(Error(Option(0), Some("Error in grafana getOrganizationId"), None))
+            case None => Left(Error(Option(0), Some("Error in grafana getOrganizationId"), None))
+          }
+          case e: JsError => Left(Error(Option(0), Some("Error in grafana addUserInOrganization"), None))
         }
 
-        case e: JsError => Left(Error(Option(0), Some("Error in grafana addUserInOrganization"), None))
-      }
+
+
+      case Left(msg) => Left(Error(Option(0), Some(msg), None))
 
     }
 

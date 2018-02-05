@@ -47,10 +47,6 @@ spec:
         hostnames:
           - "slave4.platform.daf.gov.it"
           - "slave4"
-      - ip: "192.168.0.26"
-        hostnames:
-          - "slave4.platform.daf.gov.it"
-          - "slave4"
       - ip: "192.168.0.20"
         hostnames:
           - "edge1.platform.daf.gov.it"

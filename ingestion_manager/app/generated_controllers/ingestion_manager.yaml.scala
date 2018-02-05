@@ -83,7 +83,8 @@ package ingestion_manager.yaml {
 
             val path =  URLEncoder.encode(s"/home/$user/$domain/$subDomain/$dsName", "UTF-8")
 
-            securityClient.sftp(auth,mc.operational.group_own, path)
+            //securityClient.sftp(auth,mc.operational.group_own, path) //TODO there is one too much of an argument
+            securityClient.sftp(auth, path)
               .map(res => mc)
           }
           .flatMap(mc => NifiProcessor(mc).createDataFlow())

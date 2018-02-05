@@ -1669,8 +1669,8 @@ definitions:
         #type: string
       license_id:
         type: string
-      license_title:
-        type: string
+      #license_title:
+        #type: string
       #maintainer:
         #type: string
       #maintainer_email:
@@ -1693,8 +1693,8 @@ definitions:
         $ref: '#/definitions/Organization'
       owner_org:
         type: string
-      #private:
-        #type: boolean
+      privatex:
+        type: boolean
       publisher_identifier:
         type: string
       publisher_name:

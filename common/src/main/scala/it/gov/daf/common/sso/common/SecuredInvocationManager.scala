@@ -16,6 +16,8 @@
 
 package it.gov.daf.common.sso.common
 
+import java.io.{PrintWriter, StringWriter}
+
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import com.google.inject.{Inject, Singleton}
@@ -25,11 +27,15 @@ import play.api.libs.ws.{WSClient, WSResponse}
 import play.api.libs.ws.ahc.AhcWSClient
 
 import scala.concurrent.Future
+import scala.util.{Failure, Success, Try}
 
 @SuppressWarnings(
   Array(
     "org.wartremover.warts.NonUnitStatements",
-    "org.wartremover.warts.OptionPartial"
+    "org.wartremover.warts.OptionPartial",
+    "org.wartremover.warts.Throw",
+    "org.wartremover.warts.Nothing"
+
   )
 )
 @Singleton
@@ -77,10 +83,32 @@ class SecuredInvocationManager @Inject()(loginClient:LoginClient, cacheWrapper: 
 
   }
 
+  def manageRestServiceCall( loginInfo:LoginInfo, serviceFetch:ServiceFetch, acceptableHttpCodes:Int* ) : Future[Either[String,JsValue]] = {
 
-  def manageServiceCall( loginInfo:LoginInfo, serviceFetch:ServiceFetch ) : Future[JsValue] = {
+    tryManageRestServiceCall ( loginInfo, serviceFetch, acceptableHttpCodes:_* ) map {
+      case Success(s) => Right(s)
+      case Failure(e) =>
+        val sw = new StringWriter()
+        e.printStackTrace(new PrintWriter(sw))
+        Left(sw.toString)
+    }
 
-    //val wsClient = AhcWSClient(sslconfig)
+  }
+
+  private def tryManageRestServiceCall( loginInfo:LoginInfo, serviceFetch:ServiceFetch, acceptableHttpCodes:Int* ) : Future[Try[JsValue]] = {
+
+    manageServiceCall(loginInfo,serviceFetch) map { response =>
+      Try{
+        if( acceptableHttpCodes.contains(response.status) )
+          response.json
+        else
+          throw new Exception(s"Error while invoking the service. Http code: ${response.status}")
+      }
+    }
+
+  }
+
+  def manageServiceCall( loginInfo:LoginInfo, serviceFetch:ServiceFetch ) : Future[WSResponse] = {
 
     println(s"manageServiceCall ($loginInfo)")
 
@@ -92,54 +120,17 @@ class SecuredInvocationManager @Inject()(loginClient:LoginClient, cacheWrapper: 
       if(response.status == 401){
         println("Unauthorized!!")
         cacheWrapper.deleteCookie(loginInfo.appName,loginInfo.user)
-        callService(loginInfo,serviceFetch).map(_.json)
+        callService(loginInfo,serviceFetch)
       }else
-        Future{ response.json }
+        Future{ response }
 
     }
 
   }
 
-/*
-  // default cache wrapper only contain session per 30 minutes
-  private def getCacheWrapper = if(CacheWrapper.isInitialized)
-                                  CacheWrapper.instance
-                                else
-                                  CacheWrapper.init(30L,0L)
-*/
+
 
 }
-/*
-@SuppressWarnings(
-  Array(
-    "org.wartremover.warts.Throw",
-    "org.wartremover.warts.Var",
-    "org.wartremover.warts.Null"
-  )
-)
-object SecuredInvocationManager{
 
-  private var _instance : SecuredInvocationManager = null
-
-  def init(loginClient:LoginClient):SecuredInvocationManager = {
-    if (_instance == null) {
-      _instance = new SecuredInvocationManager(loginClient: LoginClient)
-      _instance
-    }else if(_instance.loginClient == loginClient )
-      _instance
-    else
-      throw new Exception("SecuredInvocationManager is already initialized with different parameters")
-
-  }
-
-  def instance():SecuredInvocationManager = {
-
-    if(_instance != null)
-      _instance
-    else
-      throw new Exception("SecuredInvocationManager not initialized")
-  }
-
-}*/
 
 

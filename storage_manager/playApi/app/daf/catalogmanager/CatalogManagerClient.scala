@@ -26,7 +26,7 @@ import scalaj.http.Http
 class CatalogManagerClient(serviceUrl: String)(implicit val ec: ExecutionContext) {
   import json._
 
-  def datasetCatalogByUid(authorization: String, catalogId: String): Future[MetaCatalog] = Future {
+  def datasetCatalogByUid(authorization: String, catalogId: String): MetaCatalog =  {
     val resp = Http(s"$serviceUrl/catalog-manager/v1/catalog-ds/get/${URLEncoder.encode(catalogId,"UTF-8")}")
       .header("Authorization", authorization)
       .asString

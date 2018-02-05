@@ -37,37 +37,34 @@ class DatasetService(
 
   private val log = Logger(this.getClass)
 
-  def schema(auth: String, uri: String): Future[StructType] = {
-    catalogClient.datasetCatalogByUid(auth, uri)
-      .map { mc =>
-        log.debug(s"dataset catalog result $mc")
-        mc
-      }
-      .flatMap(c => extractParamsF(c).map(_ + ("limit" -> "1")))
-      .flatMap(params => Future.fromTry(storageClient.get(params)))
-      .map(_.schema)
+  def schema(auth: String, uri: String): Try[StructType] = {
+//    catalogClient.datasetCatalogByUid(auth, uri)
+//      .map { mc =>
+//        log.debug(s"dataset catalog result $mc")
+//        mc
+//      }
+//      .flatMap(c => extractParamsF(c).map(_ + ("limit" -> "1")))
+//      .flatMap(params => Future.fromTry(storageClient.get(params)))
+//      .map(_.schema)
+
+
+    val mc = catalogClient.datasetCatalogByUid(auth, uri)
+    log.debug(s"dataset catalog result $mc")
+
+    extractParams(mc).map( _ + ("limit" -> "1")).flatMap(x => storageClient.get(x)).map(x => x.schema)
   }
 
-  def data(auth: String, uri: String): Future[DataFrame] = {
-    catalogClient.datasetCatalogByUid(auth, uri)
-      .map { mc =>
-        log.debug(s"dataset catalog result $mc")
-        mc
-      }
-      .flatMap(extractParamsF)
-      .flatMap(params => Future.fromTry(storageClient.get(params)))
+  def data(auth: String, uri: String): Try[DataFrame] = {
+    val mc = catalogClient.datasetCatalogByUid(auth, uri)
+    log.debug(s"dataset catalog result $mc")
+    extractParams(mc).flatMap(params => storageClient.get(params))
   }
 
-  def query(auth: String, uri: String, query: Query): Future[DataFrame] = {
-    val result = catalogClient.datasetCatalogByUid(auth, uri)
-      .map { mc =>
-        log.debug(s"dataset catalog result $mc")
-        mc
-      }
-      .flatMap(extractParamsF)
-      .map(params => storageClient.get(params))
-      .map { tryDf =>
+  def query(auth: String, uri: String, query: Query): Try[DataFrame] = {
+    val mc = catalogClient.datasetCatalogByUid(auth, uri)
 
+    log.debug(s"dataset catalog result $mc")
+    val tryDf = extractParams(mc).flatMap(params => storageClient.get(params))
         //applying select and where
         val df = for {
           selectDf <- DatasetOperations.select(tryDf, query.select.getOrElse(List.empty))
@@ -77,18 +74,10 @@ class DatasetService(
         //applying groupBy
         query.groupBy match {
           case Some(GroupBy(groupColumn, conditions)) =>
-            val conditionsMap = conditions
-              .map(c => c.column -> c.aggregationFunction)
+            val conditionsMap = conditions.map(c => c.column -> c.aggregationFunction)
             DatasetOperations.groupBy(df, groupColumn, conditionsMap: _*)
           case None => df
         }
-      }
-
-    //to flatten Future[Try[Df]] to Future[Df]
-    result.flatMap {
-      case Success(df) => Future.successful(df)
-      case Failure(ex) => Future.failed(ex)
-    }
   }
 
   private def extractParamsF(catalog: MetaCatalog): Future[Map[String, String]] =

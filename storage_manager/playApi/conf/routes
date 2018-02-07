@@ -19,9 +19,9 @@ GET         /storage-manager/swagger.json                       controllers.With
 
 # Home page
 GET         /                                                   controllers.Application.index
-POST        /storage-manager/v1/physical-datasets               controllers.StorageController.getDataset
+#POST        /storage-manager/v1/physical-datasets               controllers.StorageController.getDataset
 #(params: Map[String, String])
-POST        /storage-manager/v1/physical-datasets/schema        controllers.StorageController.getDatasetSchema
+#POST        /storage-manager/v1/physical-datasets/schema        controllers.StorageController.getDatasetSchema
 
 ### NoDocs ###
 GET         /storage-manager/docs/swagger-ui/*file              controllers.Assets.at(path:String="/public/lib/swagger-ui", file:String)

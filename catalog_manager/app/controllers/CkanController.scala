@@ -90,6 +90,8 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
 
     val json:JsValue = request.body.asJson.get
 
+    //println("---->"+json)
+
     if(ENV == "dev"){
       CkanRegistry.ckanService.createDataset(json,Option(""))
 
@@ -101,8 +103,9 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
 
       val user = request.headers.get(USER_ID_HEADER).getOrElse("")
 
+      val jsonString = json.toString().replace("privatex","private")// Temporary PATCH for swagger libs issues
       def callCreateDataset(cookie: String,wsClient: WSClient):Future[WSResponse] = {
-        wsClient.url(CKAN_URL + "/api/3/action/package_create").withHeaders("Cookie" -> cookie).post(json)
+        wsClient.url(CKAN_URL + "/api/3/action/package_create").withHeaders("Cookie" -> cookie).post(jsonString)
       }
 
       secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callCreateDataset)map { Ok(_) }
@@ -367,7 +370,7 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
 
     val user = request.headers.get(USER_ID_HEADER).getOrElse("")
 
-    val params= Map( ("q",q), ("sort",sort), ("rows",rows), ("start",start) )
+    val params= Map( ("q",q), ("sort",sort), ("rows",rows), ("start",start), ("include_private","true") )
     val queryString = WebServiceUtil.buildEncodedQueryString(params)
 
     def callSearchDataset( cookie: String, wsClient: WSClient ):Future[WSResponse] = {

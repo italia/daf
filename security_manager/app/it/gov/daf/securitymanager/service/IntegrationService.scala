@@ -32,7 +32,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
     val result = for {
       a <- EitherT( apiClientIPA.createGroup(dafOrg.groupCn) )
       b <- EitherT( registrationService.createUser(predefinedOrgIpaUser,true) )
-      c <- EitherT( supersetApiClient.createDatabase(toDataSource(groupCn),predefinedOrgIpaUser.uid,dafOrg.predefinedUserPwd,dafOrg.supSetConnectedDbName) )
+      c <- EitherT( supersetApiClient.createDatabase(toSupersetDS(groupCn),predefinedOrgIpaUser.uid,dafOrg.predefinedUserPwd,dafOrg.supSetConnectedDbName) )
       /*
       orgAdminRoleId <- EitherT( supersetApiClient.findRoleId(ConfigReader.suspersetOrgAdminRole) )
       dataOrgRoleId <- EitherT( supersetApiClient.findRoleId(toRoleName(groupCn)) )
@@ -71,7 +71,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
     val result = for {
       a <- EitherT( apiClientIPA.createGroup(dafOrg.groupCn) )
       b <- EitherT( registrationService.createDefaultUser(defaultOrgIpaUser) )
-      c <- EitherT( supersetApiClient.createDatabase(toDataSource(groupCn),defaultOrgIpaUser.uid,dafOrg.predefinedUserPwd,dafOrg.supSetConnectedDbName) )
+      c <- EitherT( supersetApiClient.createDatabase(toSupersetDS(groupCn),defaultOrgIpaUser.uid,dafOrg.predefinedUserPwd,dafOrg.supSetConnectedDbName) )
       //e <- EitherT( ckanApiClient.createOrganizationAsAdmin(groupCn) )
       //f <- EitherT( grafanaApiClient.createOrganization(groupCn) )
       //g <- EitherT( addUserToOrganizationAsAdmin(groupCn,defaultOrgIpaUser.uid) )
@@ -93,7 +93,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
       a0 <- EitherT( apiClientIPA.isEmptyGroup(groupCn) )
 
-      dbId <- EitherT( supersetApiClient.findDatabaseId(toDataSource(groupCn)) )
+      dbId <- EitherT( supersetApiClient.findDatabaseId(toSupersetDS(groupCn)) )
       a1 <- EitherT( supersetApiClient.checkDbTables(dbId) )
 
       a <- EitherT( apiClientIPA.deleteGroup(groupCn) )
@@ -102,12 +102,12 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
       userInfo <- EitherT( supersetApiClient.findUser(toUserName(groupCn)) )
       c <- EitherT( supersetApiClient.deleteUser(userInfo._1) )
 
-      roleId <- EitherT( supersetApiClient.findRoleId(toRoleName(groupCn)) )
+      roleId <- EitherT( supersetApiClient.findRoleId(toSupersetRole(groupCn)) )
       d <- EitherT( supersetApiClient.deleteRole(roleId) )
 
       //dbId <- EitherT( supersetApiClient.findDatabaseId(toDataSource(groupCn)) )
       e <- EitherT( supersetApiClient.deleteDatabase(dbId) )
-      f <- EitherT( clearSupersetPermissions(dbId, toDataSource(groupCn)) )
+      f <- EitherT( clearSupersetPermissions(dbId, toSupersetDS(groupCn)) )
 
 
       g <- EitherT( ckanApiClient.deleteOrganization(groupCn) )
@@ -130,10 +130,13 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
       a1<-  EitherT( registrationService.testIfUserBelongsToThisGroup(user,groupCn) )
       a2 <- EitherT( apiClientIPA.addUsersToGroup(groupCn,Seq(userName)) )
       supersetUserInfo <- EitherT( supersetApiClient.findUser(userName) )
-      roleIds <- EitherT( supersetApiClient.findRoleIds(toRoleName(groupCn)::supersetUserInfo._2.toList:_*) )
+      roleIds <- EitherT( supersetApiClient.findRoleIds(toSupersetRole(groupCn)::supersetUserInfo._2.toList:_*) )
+
+      a <- EitherT( supersetApiClient.updateUser(user,supersetUserInfo._1,roleIds) )
+      /*
       a <- EitherT( supersetApiClient.deleteUser(supersetUserInfo._1) )
       b <- EitherT( supersetApiClient.createUserWithRoles(user,roleIds:_*) )
-
+      */
       org <- EitherT( ckanApiClient.getOrganizationAsAdmin(groupCn) )
       c <- EitherT( ckanApiClient.putUserInOrganizationAsAdmin(userName,org) )
 
@@ -142,25 +145,6 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
     result.value
   }
-
-  /*
-  def addUserToOrganizationAsAdmin(groupCn:String, userName:String):Future[Either[Error,Success]] = {
-
-    val result = for {
-      user <-  EitherT( apiClientIPA.findUserByUid(userName) )
-      supersetUserInfo <- EitherT( supersetApiClient.findUser(userName) )
-      roleIds <- EitherT( supersetApiClient.findRoleIds(toRoleName(groupCn)::supersetUserInfo._2.toList:_*) )
-      a <- EitherT( supersetApiClient.deleteUser(supersetUserInfo._1) )
-      b <- EitherT( supersetApiClient.createUserWithRoles(user,roleIds:_*) )
-
-      org <- EitherT( ckanApiClient.getOrganizationAsAdmin(groupCn) )
-      c <- EitherT( ckanApiClient.putUserInOrganizationAsAdmin(userName,org) )
-
-      //d <- EitherT( grafanaApiClient.addUserInOrganization(groupCn,userName) ) TODO da riabilitare
-    } yield c
-
-    result.value
-  }*/
 
 
   def removeUserFromOrganization(groupCn:String, userName:String):Future[Either[Error,Success]] = {
@@ -177,9 +161,12 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
         a1 <-  EitherT( apiClientIPA.removeUsersFromGroup(groupCn,Seq(userName)) )
 
         supersetUserInfo <- EitherT( supersetApiClient.findUser(userName) )
-        roleNames = supersetUserInfo._2.toList.filter( p=>(!p.equals(toRoleName(groupCn))) ); roleIds <- EitherT( supersetApiClient.findRoleIds(roleNames:_*) )
+        roleNames = supersetUserInfo._2.toList.filter( p=>(!p.equals(toSupersetRole(groupCn))) ); roleIds <- EitherT( supersetApiClient.findRoleIds(roleNames:_*) )
+
+        a <- EitherT( supersetApiClient.updateUser(user,supersetUserInfo._1,roleIds) )
+        /*
         a <- EitherT( supersetApiClient.deleteUser(supersetUserInfo._1) )
-        b <- EitherT( supersetApiClient.createUserWithRoles(user,roleIds:_*) )
+        b <- EitherT( supersetApiClient.createUserWithRoles(user,roleIds:_*) )*/
 
         org <- EitherT( ckanApiClient.getOrganizationAsAdmin(groupCn) )
         c <- EitherT( ckanApiClient.removeUserInOrganizationAsAdmin(userName,org) )
@@ -193,6 +180,33 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
   }
 
+
+  def createSupersetTable(dbName:String, schema:Option[String], tableName:String):Future[Either[Error,Success]] = {
+
+    val result = for {
+      dbId <-  EitherT( supersetApiClient.findDatabaseId(dbName) )
+      a <-  EitherT( supersetApiClient.createTable(dbId,schema,tableName) )
+      b <- EitherT( supersetApiClient.checkTable(dbId,schema,tableName) )
+    } yield b
+
+
+    result.value.map{
+      case Right(r) => Right( Success(Some("Table created"), Some("ok")) )
+      case Left(l) => Left(l)
+    }
+
+  }
+
+  def getSupersetOrgTables(orgName:String):Future[Either[Error,Seq[String]]] = {
+
+    val result = for {
+      dbId <-  EitherT( supersetApiClient.findDatabaseId(toSupersetDS(orgName)) )
+      a <-  EitherT( supersetApiClient.findDbTables(dbId) )
+    } yield a
+
+    result.value
+
+  }
 
   private def clearSupersetPermissions(dbId:Long,dbName:String):Future[Either[Error,Success]] = {
 
@@ -212,8 +226,10 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
 
 object IntegrationService {
-  def toDataSource(groupCn:String)=s"$groupCn-db"
-  def toRoleName(groupCn:String)=s"datarole-$groupCn-db"
+  def toEditorGroupName(groupCn:String)=s"$groupCn-edit"
+  def toViewerGroupName(groupCn:String)=s"$groupCn-view"
+  def toSupersetDS(groupCn:String)=s"$groupCn-db"
+  def toSupersetRole(groupCn:String)=s"datarole-$groupCn-db"
   def toUserName(groupCn:String)=groupCn+"_default_admin"
   def toMail(groupCn:String)=s"$groupCn@default.it"
 }

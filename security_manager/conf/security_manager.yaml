@@ -42,7 +42,7 @@ consumes:
     #type: basic
     #description: HTTP Basic Authentication. Works over `HTTP` and `HTTPS`
 paths:
-  /sftp/init/{user_id}/{path_to_create}:
+  /sftp/init/{path_to_create}:
     get:
       summary: inits sftp folder
       description: |
@@ -53,12 +53,6 @@ paths:
 #      security:
 #       - basicAuth: []
       parameters:
-        - name: user_id
-          in: path
-          description: the name of the user
-          required: true
-          type: string
-          format: string
         - name: path_to_create
           in: path
           description: the path of the folder to create
@@ -519,6 +513,53 @@ paths:
           description: Error Message
           schema:
             $ref: '#/definitions/Error'
+  "/internal/superset/table":
+    post:
+      tags:
+        - Superset
+      description: create a a table in superset
+      operationId: createSupersetTable
+      produces:
+      - application/json
+      parameters:
+      - name: payload
+        in: body
+        description: Superset Table
+        required: true
+        schema:
+          $ref: '#/definitions/SupersetTable'
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+  "/internal/superset/find_orgtables/{orgName}":
+    get:
+      tags:
+        - Superset
+      description: find superset organization tables
+      operationId: findSupersetOrgTables
+      produces:
+      - application/json
+      parameters:
+      - name: orgName
+        in: path
+        description: Organization name
+        required: true
+        type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/SupersetTables'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
 definitions:
   IpaUser:
     type: object
@@ -596,6 +637,13 @@ definitions:
         type: array
         items:
           type: string
+  SupersetTables:
+    type: object
+    properties:
+      tables:
+        type: array
+        items:
+          type: string
   OrgList:
     type: object
     required:
@@ -633,6 +681,21 @@ definitions:
         type: string
       userId:
         description: username
+        type: string
+  SupersetTable:
+    type: object
+    required:
+      - dbName
+      - tableName
+    properties:
+      dbName:
+        description: superset connection name
+        type: string
+      schema:
+        description: schema name
+        type: string
+      tableName:
+        description: table name
         type: string
   Error:
     properties:

@@ -38,7 +38,7 @@ import it.gov.daf.ftp.SftpHandler
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                                                                                                                                                                                                                                                                                            
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -157,24 +157,13 @@ package security_manager.yaml {
               DelUserToIPAgroup500(Error(Option(1),Some("The service is deprecated"),None))
             // ----- End of unmanaged code area for action  Security_managerYaml.delUserToIPAgroup
         }
-        val sftp = sftpAction { input: (String, String) =>
-            val (user_id, path_to_create) = input
-            // ----- Start of unmanaged code area for action  Security_managerYaml.sftp
-            val tryPwd: Try[String]= cacheWrapper.getPwd(user_id) match {
-            case Some(path) => scala.util.Success(path)
-            case None => scala.util.Failure(new Throwable(s"cannot find user id $user_id"))
-          }
-
-          val result = tryPwd.flatMap { pwd =>
-            val sftp = new SftpHandler(user_id, pwd, sftpHost)
-            sftp.mkdir(path_to_create)
-          }
-
-          result match {
-            case scala.util.Success(path) => Sftp200(path)
-            case scala.util.Failure(ex) => Sftp500(Error(Some(404), Some(ex.getMessage), None))
-          }
-            // ----- End of unmanaged code area for action  Security_managerYaml.sftp
+        val createSupersetTable = createSupersetTableAction { (payload: SupersetTable) =>  
+            // ----- Start of unmanaged code area for action  Security_managerYaml.createSupersetTable
+            integrationService.createSupersetTable(payload.dbName,payload.schema,payload.tableName)flatMap {
+              case Right(success) => CreateSupersetTable200(success)
+              case Left(err) => CreateSupersetTable500(err)
+            }
+            // ----- End of unmanaged code area for action  Security_managerYaml.createSupersetTable
         }
         val updateDAFuser = updateDAFuserAction { input: (String, IpaUserMod) =>
             val (uid, user) = input
@@ -249,6 +238,33 @@ package security_manager.yaml {
                 case Left(err) => CreateDefaultDAForganization500(err)
               }
             // ----- End of unmanaged code area for action  Security_managerYaml.createDefaultDAForganization
+        }
+        val sftp = sftpAction { (path_to_create: String) =>  
+            // ----- Start of unmanaged code area for action  Security_managerYaml.sftp
+            val user_id = WebServiceUtil.readCredentialFromRequest(currentRequest).username
+            val tryPwd: Try[String]= cacheWrapper.getPwd(user_id) match {
+            case Some(path) => scala.util.Success(path)
+            case None => scala.util.Failure(new Throwable(s"cannot find user id $user_id"))
+          }
+
+          val result = tryPwd.flatMap { pwd =>
+            val sftp = new SftpHandler(user_id, pwd, sftpHost)
+            sftp.mkdir(path_to_create)
+          }
+
+          result match {
+            case scala.util.Success(path) => Sftp200(path)
+            case scala.util.Failure(ex) => Sftp500(Error(Some(404), Some(ex.getMessage), None))
+          }
+            // ----- End of unmanaged code area for action  Security_managerYaml.sftp
+        }
+        val findSupersetOrgTables = findSupersetOrgTablesAction { (orgName: String) =>  
+            // ----- Start of unmanaged code area for action  Security_managerYaml.findSupersetOrgTables
+            integrationService.getSupersetOrgTables(orgName)flatMap {
+              case Right(success) => FindSupersetOrgTables200(SupersetTables(Some(success)))
+              case Left(err) => FindSupersetOrgTables500(err)
+            }
+            // ----- End of unmanaged code area for action  Security_managerYaml.findSupersetOrgTables
         }
         val listDAForganization = listDAForganizationAction {  _ =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.listDAForganization

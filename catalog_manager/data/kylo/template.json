@@ -9,7 +9,7 @@
   "inputProcessorType": "{DAF_TEMPLATE.inputProcessors[0].type}",
   "inputProcessorName": "{DAF_TEMPLATE.inputProcessors[0].name}",
   "properties": [
-    "{DAF_TEMPLATE.inputProcessors[0].properties[userEditable==true]}"
+    {DAF_TEMPLATE.inputProcessors[0].properties[userEditable==true]}
   ],
   "securityGroups": [],
   "schedule": {
@@ -24,16 +24,16 @@
   "table": {
     "tableSchema": {
       "name": "{DAF_TABLE_NAME}",
-      "fields": "{DAF_PARSER.fields}"
+      "fields": {DAF_PARSER.fields}
     },
     "sourceTableSchema": {
       "name": null,
       "tableSchema": null,
-      "fields": "{DAF_PARSER.fields}"
+      "fields": {DAF_PARSER.fields}
     },
     "feedTableSchema": {
       "name": null,
-      "fields": "{DAF_PARSER.fields}"
+      "fields": {DAF_PARSER.fields}
     },
     "method": "SAMPLE_FILE",
     "existingTableName": null,
@@ -42,7 +42,7 @@
     "feedFormat": "{DAF_PARSER.hiveFormat}",
     "targetFormat": "STORED AS PARQUET",
     "fieldPolicies": [
-      "{DAF_PROFILING.fields}"
+      {DAF_PROFILING.fields}
     ],
     "partitions": [],
     "options": {
@@ -99,6 +99,20 @@
       "required": true,
       "systemName": "daf_subdomain",
       "value": "{DAF_SUBDOMAIN}",
+      "$error": {
+        "duplicate": false,
+        "missingName": false,
+        "missingValue": false
+      }
+    },
+    {
+      "description": null,
+      "displayName": null,
+      "locked": false,
+      "order": 2,
+      "required": true,
+      "systemName": "daf_format",
+      "value": "{DAF_FORMAT}",
       "$error": {
         "duplicate": false,
         "missingName": false,

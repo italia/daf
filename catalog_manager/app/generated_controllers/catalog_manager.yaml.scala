@@ -46,7 +46,7 @@ import catalog_manager.yaml
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                        
+                                    
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -445,7 +445,7 @@ package catalog_manager.yaml {
                 case "json" => false
             }
 
-            // TODO choose templates by combinations of info
+            // TODO choose templates by combinations of info Dataset Ingest or Webservice Ingest
             val templateById = ws.url(KYLOURL + "/api/v1/feedmgr/templates/registered/07b7509c-4916-48fe-9dd0-4e184ddcc4ec?allProperties=true&feedEdit=true")
                 .withAuth("dladmin","thinkbig", scheme = WSAuthScheme.BASIC)
                 .get()
@@ -460,7 +460,8 @@ package catalog_manager.yaml {
 
                 val template1 = templatesEditable(0).transform(KyloTrasformers.transformTemplates(KyloTrasformers.generateInputSftpPath(feed)))
                 // TODO check regex is correct
-                val template2 = templatesEditable(1).transform(KyloTrasformers.transformTemplates(".*csv"))
+
+                val template2 = templatesEditable(1).transform(KyloTrasformers.transformTemplates(".*" + file_type))
 
                 //logger.debug(List(template1,template2).toString())
                 (templates, List(template1.get, template2.get))

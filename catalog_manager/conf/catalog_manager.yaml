@@ -1012,7 +1012,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  "/kylo/feed":
+  "/kylo/feed/{file_type}":
     post:
       #security:
       #- basicAuth: []
@@ -1023,6 +1023,11 @@ paths:
       produces:
       - application/json
       parameters:
+      - name: file_type
+        in: path
+        description: File type default csv. json and csv at the moment available as options
+        required: true
+        type: string
       - name: feed
         in: body
         description: Information to start a kylo feed

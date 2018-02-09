@@ -130,7 +130,6 @@ class CatalogRepositoryMongo extends  CatalogRepository{
       //TODO Review logic
       val stdCatalot: MetaCatalog = catalog(stdUri).get
       val res: Option[MetaCatalog] = CatalogManager.writeOrdinaryWithStandard(metaCatalog, stdCatalot)
-
       val message = res match {
         case Some(meta) =>
           val json: JsValue = MetaCatalogWrites.writes(meta)

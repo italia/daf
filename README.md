@@ -2,7 +2,7 @@
 
 Welcome to the project homepage.
 
-* [Documentation for developers](https://developers.italia.it/it/daf/#documentazione)
+* [Documentation for developers](https://daf-docs.readthedocs.io/en/latest/)
 * [User Manual](docs-usr)
 
 ## Infrastructure setup

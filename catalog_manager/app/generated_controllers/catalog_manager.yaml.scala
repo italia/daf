@@ -47,7 +47,7 @@ import it.gov.daf.catalogmanager.kylo.Kylo
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                                                                    
+
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -521,7 +521,7 @@ package catalog_manager.yaml {
            // NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.startKyloFedd
         }
-        val datasetcatalogbytitle = datasetcatalogbytitleAction { (title: String) =>  
+        val datasetcatalogbytitle = datasetcatalogbytitleAction { (title: String) =>
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbytitle
             val catalog = ServiceRegistry.catalogService.catalogBytitle(title)
 

@@ -17,15 +17,9 @@
 package it.gov.daf.common.sso.common
 
 import java.io.{PrintWriter, StringWriter}
-
-import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
 import com.google.inject.{Inject, Singleton}
-import org.asynchttpclient.DefaultAsyncHttpClientConfig
 import play.api.libs.json._
 import play.api.libs.ws.{WSClient, WSResponse}
-import play.api.libs.ws.ahc.AhcWSClient
-
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
@@ -43,11 +37,6 @@ class SecuredInvocationManager @Inject()(loginClient:LoginClient, cacheWrapper: 
 
   import scala.concurrent.ExecutionContext.Implicits._
 
-  /*
-  private implicit val system = ActorSystem()
-  private implicit val materializer = ActorMaterializer()
-  private val sslconfig = new DefaultAsyncHttpClientConfig.Builder().setAcceptAnyCertificate(true).build
-  */
 
   type ServiceFetch = (String,WSClient)=> Future[WSResponse]
 
@@ -102,11 +91,12 @@ class SecuredInvocationManager @Inject()(loginClient:LoginClient, cacheWrapper: 
         if( acceptableHttpCodes.contains(response.status) )
           response.json
         else
-          throw new Exception(s"Error while invoking the service. Http code: ${response.status}")
+          throw new Exception(s"Error while invoking the service. Unespected http code returned: ${response.status}")
       }
     }
 
   }
+
 
   def manageServiceCall( loginInfo:LoginInfo, serviceFetch:ServiceFetch ) : Future[WSResponse] = {
 

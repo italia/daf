@@ -2,25 +2,34 @@ package controllers
 
 import javax.inject.Inject
 
-import it.gov.daf.common.sso.common.{CacheWrapper, LoginInfo}
-import it.gov.daf.common.utils.{Credentials, WebServiceUtil}
-import it.gov.daf.securitymanager.service.utilities.ConfigReader
+import it.gov.daf.common.sso.common.{CacheWrapper, CredentialManager, LoginInfo}
+import it.gov.daf.common.utils.Credentials
+
 import it.gov.daf.sso.LoginClientLocal
-import org.apache.commons.lang3.StringEscapeUtils
 import play.api.inject.ConfigurationProvider
-import play.api.libs.json.{JsArray, JsValue, Json}
+import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
-import play.api.mvc.{Action, Controller, Cookie}
+import play.api.mvc._
 
 import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
 
-class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider, cacheWrapper:CacheWrapper, loginClientLocal:LoginClientLocal) extends Controller {
+class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider, credentialManager:CredentialManager, cacheWrapper: CacheWrapper, loginClientLocal:LoginClientLocal) extends Controller {
 
   import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
   implicit val cookieWrites = Json.writes[Cookie]
 
+
+  private def doWithCredentials(request:RequestHeader, f:(Credentials)=> Future[Result]):Future[Result]={
+
+    credentialManager.getCredentials(request) match{
+      case Success(crd) => f(crd)
+      case Failure(thw) => Future{InternalServerError(thw.getMessage)}
+    }
+
+  }
 
   //----------------SECURED API---------------------------------------
 
@@ -37,22 +46,20 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider, cache
 
   }
 
-
   // serve token JWT o BA
   def retriveCookie(appName:String) = Action.async { implicit request =>
 
-    val username = WebServiceUtil.readCredentialFromRequest(request).username
 
-    val loginInfo = new LoginInfo(
-                                  username,
-                                  cacheWrapper.getPwd(username).get,
-                                  appName)
+    def callService(crd:Credentials):Future[Result] = {
 
+      val loginInfo = new LoginInfo(crd.username, crd.password, appName)
+      loginClientLocal.loginFE(loginInfo, ws).map{ cookies =>
+        Ok(Json.toJson(cookies.map(Json.toJson(_))))
+      }
 
-    loginClientLocal.loginFE(loginInfo, ws).map{ cookies =>
-      //val json=s"""{"result":"${StringEscapeUtils.escapeJson(cookie)}"}"""
-      Ok(Json.toJson(cookies.map(Json.toJson(_))))
     }
+
+    doWithCredentials(request,callService)
 
   }
 
@@ -60,56 +67,47 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider, cache
   // serve token JWT o BA
   def retriveCachedCookie(appName:String) = Action.async { implicit request =>
 
-    val username = WebServiceUtil.readCredentialFromRequest(request).username
 
-    val cachedCookies = cacheWrapper.getCookies(appName, username)
+    def callService(crd:Credentials):Future[Result] = {
 
-    if (!cachedCookies.isEmpty) {
+      cacheWrapper.getCookies(appName, crd.username) match {
 
-      //val json =s"""{"result":"${StringEscapeUtils.escapeJson(cachedCookie.get)}"}"""
-      Future{ Ok(Json.toJson(cachedCookies.get.map(Json.toJson(_))))}
+        case Some(cachedCookies) => Future{ Ok(Json.toJson(cachedCookies.map(Json.toJson(_))))}
 
-    }else {
-
-      val loginInfo = new LoginInfo(
-        username,
-        cacheWrapper.getPwd(username).get,
-        appName)
-
-
-      loginClientLocal.loginFE(loginInfo, ws).map { cookies =>
-        cacheWrapper.putCookies(appName,username,cookies)
-        //val json =s"""{"result":"${StringEscapeUtils.escapeJson(cookie)}"}"""
-        Ok(Json.toJson(cookies.map(Json.toJson(_))))
+        case None =>  val loginInfo = new LoginInfo(crd.username,crd.password, appName)
+                      loginClientLocal.loginFE(loginInfo, ws).map { cookies =>
+                        cacheWrapper.putCookies(appName,crd.username,cookies)
+                        Ok(Json.toJson(cookies.map(Json.toJson(_))))
+                      }
       }
+
     }
+
+    doWithCredentials(request,callService)
 
   }
 
   // serve token JWT o BA
   def login(appName:String) = Action.async { implicit request =>
 
-    println("cacheWrapper2"+cacheWrapper);
 
-    val username = WebServiceUtil.readCredentialFromRequest(request).username
+    def callService(crd:Credentials):Future[Result] = {
 
-    val loginInfo = new LoginInfo(
-                                  username,
-                                  cacheWrapper.getPwd(username).get,
-                                  appName)
+      val loginInfo = new LoginInfo(crd.username, crd.password, appName)
+      loginClientLocal.loginFE(loginInfo, ws).map{ cookies =>
+        Ok("Success").withCookies(cookies:_*)
+      }
 
-    loginClientLocal.loginFE(loginInfo, ws).map{ cookies =>
-      //val cookieDetail = cookie.split("=")
-      //val cookieWeb = Cookie( cookieDetail(0),cookieDetail(1), None, "/", None)
-      Ok("Success").withCookies(cookies:_*)
     }
+
+    doWithCredentials(request,callService)
 
   }
 
   // serve token JWT
   def test = Action { implicit request =>
 
-    val username = WebServiceUtil.readCredentialFromRequest(request).username
+    val username = credentialManager.readCredentialFromRequest(request).username
 
     if( cacheWrapper.getPwd(username).isEmpty ) {
       Unauthorized("JWT expired")

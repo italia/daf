@@ -7,6 +7,7 @@ import play.api.libs.json.{JsError, JsSuccess, JsValue}
 import security_manager.yaml.{Error, IpaUser, Success, UserList}
 import it.gov.daf.common.authentication.Role
 import cats.implicits._
+import it.gov.daf.common.utils.Credentials
 import it.gov.daf.sso.ApiClientIPA
 
 import scala.concurrent.Future
@@ -15,8 +16,7 @@ import scala.concurrent.Future
 class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient: SupersetApiClient, ckanApiClient: CkanApiClient, grafanaApiClient: GrafanaApiClient) {
 
   import security_manager.yaml.BodyReads._
-  import scala.concurrent.ExecutionContext.Implicits._
-
+  import play.api.libs.concurrent.Execution.Implicits._
   private val tokenGenerator = new BearerTokenGenerator
 
 

@@ -15,7 +15,7 @@ import scala.concurrent.Future
 
 class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheWrapper:CacheWrapper){
 
-  import scala.concurrent.ExecutionContext.Implicits._
+  import play.api.libs.concurrent.Execution.Implicits._
 
   implicit val userFormat = Json.format[CkanOrgUser]
   implicit val orgFormat = Json.format[CkanOrg]
@@ -133,15 +133,6 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
 
 
   def putUserInOrganization(loggedUserName:String, userName:String, ckanOrg:CkanOrg):Future[Either[Error, Success]] = {
-
-    /*
-    val jsonUsers = Json.(orgUsers).toString()
-    val jsonRequest: JsValue = Json.parse(
-      s"""{
-           "name": "$groupCn",
-           "users": $jsonUsers
-         }""")
-    */
 
     val updatedCkanOrg = ckanOrg.copy( users=ckanOrg.users :+ CkanOrgUser(userName,"admin") )
 

@@ -47,7 +47,7 @@ import it.gov.daf.catalogmanager.kylo.Kylo
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                    
+
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -66,6 +66,10 @@ package catalog_manager.yaml {
 
         val GENERIC_ERROR=Error("An Error occurred", None,None)
         Authentication(configuration, playSessionStore)
+        val SEC_MANAGER_HOST = config.get.getString("security.manager.host").get
+        val KYLOURL = config.get.getString("kylo.url").get
+        val KYLOUSER = config.get.getString("kylo.user").getOrElse("dladmin")
+        val KYLOPWD = config.get.getString("kylo.password").getOrElse("XXXXXXXXXXX")
 
         // ----- End of unmanaged code area for constructor Catalog_managerYaml
         val autocompletedummy = autocompletedummyAction { (autocompRes: AutocompRes) =>  
@@ -439,18 +443,20 @@ package catalog_manager.yaml {
         val startKyloFedd = startKyloFeddAction { input: (String, MetaCatalog) =>
             val (file_type, feed) = input
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.startKyloFedd
-            val SEC_MANAGER_HOST = config.get.getString("security.manager.host").get
-            val KYLOURL = config.get.getString("kylo.url").get
 
             val skipHeader = file_type match {
                 case "csv" => true
                 case "json" => false
             }
 
-            // TODO use variable coming from metadata
-            val manualTest = "file"
 
-            val templateProperties = manualTest match {
+            // TODO use only one match case
+            val ingest = feed.operational.input_src.sftp match {
+                case None => "ws"
+                case Some(_) => "file"
+            }
+
+            val templateProperties = ingest match {
                 case "file" => kylo.datasetIngest(file_type, feed)
                 case "ws" => kylo.wsIngest(file_type, feed)
             }
@@ -484,7 +490,7 @@ package catalog_manager.yaml {
             val inferJson = Json.parse(kyloSchema)
 
             val feedCreation  = ws.url(KYLOURL + "/api/v1/feedmgr/feeds")
-              .withAuth("dladmin", "thinkbig", WSAuthScheme.BASIC)
+              .withAuth(KYLOUSER, KYLOPWD, WSAuthScheme.BASIC)
 
             val feedData = for {
                 (template, templates) <- templateProperties
@@ -535,141 +541,6 @@ package catalog_manager.yaml {
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbytitle
         }
-    
-     // Dead code for absent methodCatalog_managerYaml.createIPAuser
-     /*
-            // ----- Start of unmanaged code area for action  Catalog_managerYaml.createIPAuser
-            ApiClientIPA.createUser(user) flatMap {
-                case Right(success) => CreateIPAuser200(success)
-                case Left(err) => CreateIPAuser500(err)
-            }
-            // ----- End of unmanaged code area for action  Catalog_managerYaml.createIPAuser
-     */
-
-    
-     // Dead code for absent methodCatalog_managerYaml.voc_dcatap2dafsubtheme
-     /*
-            // ----- Start of unmanaged code area for action  Catalog_managerYaml.voc_dcatap2dafsubtheme
-            val themeList: Seq[VocKeyValueSubtheme] = VocServiceRegistry.vocRepository.dcatapit2DafSubtheme(input._1, input._2)
-            Voc_dcatap2dafsubtheme200(themeList)
-            // ----- End of unmanaged code area for action  Catalog_managerYaml.voc_dcatap2dafsubtheme
-     */
-
-    
-     // Dead code for absent methodCatalog_managerYaml.inferschema
-     /*
-            // ----- Start of unmanaged code area for action  Catalog_managerYaml.inferschema
-            NotImplementedYet
-            // ----- End of unmanaged code area for action  Catalog_managerYaml.inferschema
-     */
-
-    
-     // Dead code for absent methodCatalog_managerYaml.voc_dcatapitthemegetall
-     /*
-            // ----- Start of unmanaged code area for action  Catalog_managerYaml.voc_dcatapitthemegetall
-            NotImplementedYet
-            // ----- End of unmanaged code area for action  Catalog_managerYaml.voc_dcatapitthemegetall
-     */
-
-    
-     // Dead code for absent methodCatalog_managerYaml.voc_daf2dcataptheme
-     /*
-            // ----- Start of unmanaged code area for action  Catalog_managerYaml.voc_daf2dcataptheme
-            val subthemeList: Seq[KeyValue] = VocServiceRegistry.vocRepository.daf2dcatapitTheme(themeid)
-            Voc_daf2dcataptheme200(subthemeList)
-            // ----- End of unmanaged code area for action  Catalog_managerYaml.voc_daf2dcataptheme
-     */
-
-    
-     // Dead code for absent methodCatalog_managerYaml.voc_dcatap2Daftheme
-     /*
-            // ----- Start of unmanaged code area for action  Catalog_managerYaml.voc_dcatap2Daftheme
-            val themeList: Seq[KeyValue] = VocServiceRegistry.vocRepository.dcatapit2DafTheme(themeid)
-            Voc_dcatap2Daftheme200(themeList)
-            // ----- End of unmanaged code area for action  Catalog_managerYaml.voc_dcatap2Daftheme
-     */
-
-    
-     // Dead code for absent methodCatalog_managerYaml.registrationconfirm
-     /*
-            // ----- Start of unmanaged code area for action  Catalog_managerYaml.registrationconfirm
-            RegistrationService.createUser(token) flatMap {
-                case Right(success) => Registrationconfirm200(success)
-                case Left(err) => Registrationconfirm500(err)
-            }
-            // ----- End of unmanaged code area for action  Catalog_managerYaml.registrationconfirm
-     */
-
-    
-     // Dead code for absent methodCatalog_managerYaml.tempo
-     /*
-            // ----- Start of unmanaged code area for action  Catalog_managerYaml.tempo
-            NotImplementedYet
-            // ----- End of unmanaged code area for action  Catalog_managerYaml.tempo
-     */
-
-    
-     // Dead code for absent methodCatalog_managerYaml.addDataset
-     /*
-            // ----- Start of unmanaged code area for action  Catalog_managerYaml.addDataset
-            NotImplementedYet
-            // ----- End of unmanaged code area for action  Catalog_managerYaml.addDataset
-     */
-
-    
-     // Dead code for absent methodCatalog_managerYaml.registrationrequest
-     /*
-            // ----- Start of unmanaged code area for action  Catalog_managerYaml.registrationrequest
-            val reg = RegistrationService.requestRegistration(user) flatMap {
-                case Right(mailService) => mailService.sendMail()
-                case Left(msg) => Future {Left(msg)}
-            }
-
-            reg flatMap {
-                case Right(msg) => Registrationrequest200(Success(Some("Success"), Some(msg)))
-                case Left(msg) => Registrationrequest500(Error(None, Option(msg), None))
-            }
-            // ----- End of unmanaged code area for action  Catalog_managerYaml.registrationrequest
-     */
-
-    
-     // Dead code for absent methodCatalog_managerYaml.voc_daf2dcatapsubtheme
-     /*
-            // ----- Start of unmanaged code area for action  Catalog_managerYaml.voc_daf2dcatapsubtheme
-            val subthemeList: Seq[VocKeyValueSubtheme] = VocServiceRegistry.vocRepository.daf2dcatapitSubtheme(input._1, input._2)
-            Voc_daf2dcatapsubtheme200(subthemeList)
-            // ----- End of unmanaged code area for action  Catalog_managerYaml.voc_daf2dcatapsubtheme
-     */
-
-    
-     // Dead code for absent methodCatalog_managerYaml.showipauser
-     /*
-            // ----- Start of unmanaged code area for action  Catalog_managerYaml.showipauser
-            ApiClientIPA.showUser(uid) flatMap {
-                case Right(success) => Showipauser200(success)
-                case Left(err) => Showipauser500(err)
-            }
-            // ----- End of unmanaged code area for action  Catalog_managerYaml.showipauser
-     */
-
-    
-     // Dead code for absent methodCatalog_managerYaml.ckandatasetbyid
-     /*
-                  // ----- Start of unmanaged code area for action  Catalog_managerYaml.ckandatasetbyid
-                  val dataset: Future[Dataset] = ServiceRegistry.catalogService.getDataset(dataset_id)
-                  Ckandatasetbyid200(dataset)
-                  //NotImplementedYet
-                  // ----- End of unmanaged code area for action  Catalog_managerYaml.ckandatasetbyid
-     */
-
-    
-     // Dead code for absent methodCatalog_managerYaml.showIPAuser
-     /*
-            // ----- Start of unmanaged code area for action  Catalog_managerYaml.showIPAuser
-            NotImplementedYet
-            // ----- End of unmanaged code area for action  Catalog_managerYaml.showIPAuser
-     */
-
     
     }
 }

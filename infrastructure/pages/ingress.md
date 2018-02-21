@@ -8,6 +8,8 @@ The Ingress setup for Daf can be done by executing the following steps
 
 1. Prerequisites
 
+This is mandatory for production, but not need for test
+
 At the bottom of the `nginx-ingress-controller.yml` file there is a reference to the tls secret with the certificates needed for TLS.
 Before executing the next steps, be sure to have the correct certificates in place, as explained in `infrastructure/certbot/README.md`
 

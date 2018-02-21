@@ -1,6 +1,6 @@
 package it.gov.daf.catalogmanager.kylo
 
-import catalog_manager.yaml.MetaCatalog
+import catalog_manager.yaml.{InputSrcSrv_pullOpt, MetaCatalog}
 import play.api.libs.json.{JsObject, JsResult, JsValue}
 import play.api.libs.ws.{WSAuthScheme, WSClient, WSResponse}
 import com.google.inject.{Inject, Singleton}
@@ -18,7 +18,7 @@ class Kylo @Inject()(ws :WSClient, config: ConfigurationProvider){
 
   private def templateIdByName(templateName :String): Future[Option[String]] = {
     ws.url(KYLOURL + "/api/v1/feedmgr/templates/registered")
-      .withAuth("dladmin", "thinkbig", scheme = WSAuthScheme.BASIC)
+      .withAuth("dladmin", "Th1nkB1g", scheme = WSAuthScheme.BASIC)
       .get()
       .map { resp =>
         val js: JsValue = resp.json
@@ -38,7 +38,7 @@ class Kylo @Inject()(ws :WSClient, config: ConfigurationProvider){
     val idExt = id.getOrElse("")
     val url = s"/api/v1/feedmgr/templates/registered/$idExt?allProperties=true&feedEdit=true"
     ws.url(KYLOURL + url)
-      .withAuth("dladmin", "thinkbig", scheme = WSAuthScheme.BASIC)
+      .withAuth("dladmin", "Th1nkB1g", scheme = WSAuthScheme.BASIC)
       .get().map { resp =>
       val templates = resp.json
       val templatesEditable = (templates \ "properties").as[List[JsValue]]
@@ -55,10 +55,10 @@ class Kylo @Inject()(ws :WSClient, config: ConfigurationProvider){
   = {
     val idExt = id.getOrElse("")
     val url = s"/api/v1/feedmgr/templates/registered/$idExt?allProperties=true&feedEdit=true"
-    val testWs = "http://opservice.regione.basilicata.it/opendata/dataset/PG_RegistroSpecialejsn.json"
+    val testWs  = feed.operational.input_src.srv_pull.get.head.url
     val nameExp = feed.dcatapit.name + """_${now():format('yyyyMMddHHmmss')}"""
     ws.url(KYLOURL + url)
-      .withAuth("dladmin", "thinkbig", scheme = WSAuthScheme.BASIC)
+      .withAuth("dladmin", "Th1nkB1g", scheme = WSAuthScheme.BASIC)
       .get().map { resp =>
       val templates = resp.json
       val templatesEditable  = (templates \ "properties").as[List[JsValue]]
@@ -95,7 +95,7 @@ class Kylo @Inject()(ws :WSClient, config: ConfigurationProvider){
 
   def categoryFuture(meta :MetaCatalog): Future[JsValue] = {
     val categoriesWs = ws.url(KYLOURL + "/api/v1/feedmgr/categories")
-      .withAuth("dladmin","thinkbig", scheme = WSAuthScheme.BASIC)
+      .withAuth("dladmin","Th1nkB1g", scheme = WSAuthScheme.BASIC)
       .get()
 
     val categoryFuture = categoriesWs.map { x =>

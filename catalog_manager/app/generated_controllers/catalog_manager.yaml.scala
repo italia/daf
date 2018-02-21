@@ -47,7 +47,7 @@ import it.gov.daf.catalogmanager.kylo.Kylo
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                                                            
+                                                                                    
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -447,10 +447,14 @@ package catalog_manager.yaml {
                 case "json" => false
             }
 
-            // TODO use variable coming from metadata
-            val manualTest = "file"
 
-            val templateProperties = manualTest match {
+            // TODO use only one match case
+            val ingest = feed.operational.input_src.sftp match {
+                case None => "ws"
+                case Some(_) => "file"
+            }
+
+            val templateProperties = ingest match {
                 case "file" => kylo.datasetIngest(file_type, feed)
                 case "ws" => kylo.wsIngest(file_type, feed)
             }
@@ -484,7 +488,7 @@ package catalog_manager.yaml {
             val inferJson = Json.parse(kyloSchema)
 
             val feedCreation  = ws.url(KYLOURL + "/api/v1/feedmgr/feeds")
-              .withAuth("dladmin", "thinkbig", WSAuthScheme.BASIC)
+              .withAuth("dladmin", "Th1nkB1g", WSAuthScheme.BASIC)
 
             val feedData = for {
                 (template, templates) <- templateProperties

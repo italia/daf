@@ -48,6 +48,10 @@ private class AppConfig @Inject()(playConfig: Configuration) {
 
   val defaultOrganization:Option[String] = playConfig.getString("default.organization")
 
+  val kyloUrl :Option[String] = playConfig.getString("kylo.url")
+  val kyloUser :Option[String] = playConfig.getString("kylo.user")
+  val kyloUserPwd :Option[String] = playConfig.getString("kylo.userpwd")
+
 
 }
 
@@ -65,6 +69,10 @@ object ConfigReader {
   require(config.ckanAdminPwd.nonEmpty,"A ckan admin password must be specified")
   require(config.grafanaAdminUser.nonEmpty,"A grafana admin must be specified")
   require(config.grafanaAdminPwd.nonEmpty,"A grafana admin password must be specified")
+
+  require(config.kyloUrl.nonEmpty,"A kylo url must be specified")
+  require(config.kyloUser.nonEmpty,"A kylo user must be specified")
+  require(config.kyloUserPwd.nonEmpty,"A kylo user password must be specified")
 
 
   //def userIdHeader: String = config.userIdHeader.getOrElse("userid")
@@ -106,6 +114,10 @@ object ConfigReader {
   def cookieExpiration:Long = config.cookieExpiration.getOrElse(30L)// 30 min by default
 
   def defaultOrganization:String = config.defaultOrganization.get
+
+  def kyloUrl :String = config.kyloUrl.get
+  def kyloUser :String = config.kyloUser.get
+  def kyloUserPwd :String = config.kyloUserPwd.get
 
 }
 

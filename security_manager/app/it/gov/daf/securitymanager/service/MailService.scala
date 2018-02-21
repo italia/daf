@@ -10,7 +10,7 @@ import it.gov.daf.securitymanager.service.utilities.ConfigReader
 
 class MailService(to:String,token:String) {
 
-  import scala.concurrent.ExecutionContext.Implicits._
+  import play.api.libs.concurrent.Execution.Implicits._
 
   def sendMail():Future[Either[String,String]]={
 

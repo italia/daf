@@ -13,14 +13,14 @@ import scala.concurrent.Future
 @Singleton
 class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
-  import scala.concurrent.ExecutionContext.Implicits._
+  import play.api.libs.concurrent.Execution.Implicits._
 
   private val loginAdminSuperset = new LoginInfo(ConfigReader.suspersetAdminUser, ConfigReader.suspersetAdminPwd, "superset")
 
 
-  def handleServiceCall[A](serviceInvoke:(String,WSClient)=> Future[WSResponse], handleJson:(JsValue)=> Either[Error, A] )={
+  private def handleServiceCall[A](serviceInvoke:(String,WSClient)=> Future[WSResponse], handleJson:(JsValue)=> Either[Error, A] )={
 
-    secInvokeManager.manageRestServiceCall(loginAdminSuperset, serviceInvoke,200).map {
+    secInvokeManager.manageRestServiceCall(loginAdminSuperset, serviceInvoke,200,500).map {
       case Right(json) => handleJson(json)
       case Left(l) =>  Left( Error(Option(0),Some(l),None) )
     }
@@ -75,21 +75,6 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
     handleServiceCall(serviceInvoke,handleJson)
 
 
-
-    /*
-    secInvokeManager.manageServiceCall(loginAdminSuperset, serviceInvoke).map { json =>
-
-      ((json \ "item") \ "perm").validate[String] match {
-        case s: JsSuccess[String] => s.asOpt match {
-          case None | Some("None") | Some("") => Left(Error(Option(0), Some("Error in createSuspersetDatabase"), None))
-          case _ => Right(Success(Some("Connection created"), Some("ok")))
-        }
-        case e: JsError => Left(Error(Option(0), Some("Error in createSuspersetDatabase"), None))
-      }
-
-    }*/
-
-
   }
 
 
@@ -134,17 +119,6 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
     handleServiceCall(serviceInvoke,handleJson)
 
 
-    /*
-    secInvokeManager.manageServiceCall(loginAdminSuperset, serviceInvoke).map { json =>
-
-      (json \ "pks") (0).validate[Long] match {
-        case s: JsSuccess[Long] => Right(s.value)
-        case e: JsError => Left(Error(Option(0), Some("Error in findSupersetRoleId"), None))
-      }
-
-    }*/
-
-
   }
 
 
@@ -184,15 +158,6 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
     handleServiceCall(serviceInvoke,handleJson)
 
-    /*
-    secInvokeManager.manageServiceCall(loginAdminSuperset, serviceInvoke).map { json =>
-
-      ((json \ "item") \ "username").validate[String] match {
-        case s: JsSuccess[String] => Right(Success(Some("Connection created"), Some("ok")))
-        case e: JsError => Left(Error(Option(0), Some("Error in createSupersetUserWithRole"), None))
-      }
-
-    }*/
 
   }
 
@@ -219,16 +184,6 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
     }
 
     handleServiceCall(serviceInvoke,handleJson)
-
-    /*
-    secInvokeManager.manageServiceCall(loginAdminSuperset, serviceInvoke).map { json =>
-
-      (json \ "pks") (0).validate[Long] match {
-        case s: JsSuccess[Long] => Right(s.value)
-        case e: JsError => Left(Error(Option(0), Some("Error in findSupersetDatabaseId"), None))
-      }
-
-    }*/
 
   }
 
@@ -261,18 +216,6 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
     handleServiceCall(serviceInvoke,handleJson)
 
-    /*
-    secInvokeManager.manageServiceCall(loginAdminSuperset, serviceInvoke).map { json =>
-
-      (json \ "pks") (0).validate[Long] match {
-        case s: JsSuccess[Long] => ((json \ "result") (0) \ "roles").validate[Array[String]] match {
-          case s2: JsSuccess[Array[String]] => Right((s.value, s2.value))
-          case e2: JsError => println("Error response: " + json); Left(Error(Option(0), Some("Error in findSupersetUserId"), None))
-        }
-        case e: JsError => Left(Error(Option(0), Some("Error in findSupersetUserId"), None))
-      }
-
-    }*/
 
   }
 
@@ -301,15 +244,6 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
     handleServiceCall(serviceInvoke,handleJson)
 
-    /*
-    secInvokeManager.manageServiceCall(loginAdminSuperset, serviceInvoke).map { json =>
-
-      (json \ "message").validate[String] match {
-        case s: JsSuccess[String] => Right(Success(Some("User deleted"), Some("ok")))
-        case e: JsError => Left(Error(Option(0), Some("Error in deleteSupersetUser"), None))
-      }
-
-    }*/
 
   }
 
@@ -338,15 +272,6 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
     handleServiceCall(serviceInvoke,handleJson)
 
-    /*
-    secInvokeManager.manageServiceCall(loginAdminSuperset, serviceInvoke).map { json =>
-
-      (json \ "message").validate[String] match {
-        case s: JsSuccess[String] => Right(Success(Some("Role deleted"), Some("ok")))
-        case e: JsError => Left(Error(Option(0), Some("Error in deleteSupersetRole"), None))
-      }
-
-    }*/
 
   }
 
@@ -374,15 +299,6 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
     handleServiceCall(serviceInvoke,handleJson)
 
-    /*
-    secInvokeManager.manageServiceCall(loginAdminSuperset, serviceInvoke).map { json =>
-
-      (json \ "message").validate[String] match {
-        case s: JsSuccess[String] => Right(Success(Some("Db deleted"), Some("ok")))
-        case e: JsError => Left(Error(Option(0), Some("Error in deleteSupersetDatabase"), None))
-      }
-
-    }*/
 
   }
 
@@ -410,15 +326,6 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
     handleServiceCall(serviceInvoke,handleJson)
 
-    /*
-    secInvokeManager.manageServiceCall(loginAdminSuperset, serviceInvoke).map { json =>
-
-      json(0).validate[JsValue] match {
-        case s: JsSuccess[JsValue] =>  Left(Error(Option(1), Some("Some tables on Superset founded. Please delete them before cancel datasource"), None))
-        case e: JsError =>  Right(Success(Some("Tables not presents"), Some("ok")))
-      }
-
-    }*/
 
   }
 
@@ -474,15 +381,6 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
     handleServiceCall(serviceInvoke,handleJson)
 
-    /*
-    secInvokeManager.manageServiceCall(loginAdminSuperset, serviceInvoke).map { json =>
-
-      json(0).validate[JsValue] match {
-        case s: JsSuccess[JsValue] =>  Right(Success(Some("Tables presents"), Some("ok")))
-        case e: JsError =>  Left(Error(Option(1), Some("Table does not exists"), None))
-      }
-
-    }*/
 
   }
 
@@ -586,22 +484,6 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
     handleServiceCall(serviceInvoke,handleJson)
 
-    /*
-    secInvokeManager.manageServiceCall(loginAdminSuperset, serviceInvoke).map { json =>
-
-      json.validate[Array[JsValue]] match {
-        case s: JsSuccess[Array[JsValue]] =>  Right(
-          s.value.map{ jsval =>
-            (jsval \ "id").validate[Long] match {
-              case si: JsSuccess[Long] => Some(si.value)
-              case ei: JsError =>  None
-            }
-          }
-        )
-        case e: JsError => Left(Error(Option(0), Some("Error in findPermissionViewIds"), None))
-      }
-
-    }*/
 
   }
 
@@ -628,15 +510,6 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
     handleServiceCall(serviceInvoke,handleJson)
 
-    /*
-    secInvokeManager.manageServiceCall(loginAdminSuperset, serviceInvoke).map { json =>
-
-      (json \ "pks") (0).validate[Long] match {
-        case s: JsSuccess[Long] => Right(s.value)
-        case e: JsError => Left(Error(Option(0), Some("Error in findViewId"), None))
-      }
-
-    }*/
 
   }
 
@@ -665,15 +538,6 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
     handleServiceCall(serviceInvoke,handleJson)
 
-    /*
-    secInvokeManager.manageServiceCall(loginAdminSuperset, serviceInvoke).map { json =>
-
-      (json \ "message").validate[String] match {
-        case s: JsSuccess[String] => Right(Success(Some("view deleted"), Some("ok")))
-        case e: JsError => Left(Error(Option(0), Some("Error in deleteView"), None))
-      }
-
-    }*/
 
   }
 
@@ -730,15 +594,6 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
     handleServiceCall(serviceInvoke,handleJson)
 
-    /*
-    secInvokeManager.manageServiceCall(loginAdminSuperset, serviceInvoke).map { json =>
-
-      (json \ "message").validate[String] match {
-        case s: JsSuccess[String] => Right(Success(Some("permission-view deleted"), Some("ok")))
-        case e: JsError => Left(Error(Option(0), Some("Error in deletePermissionView"), None))
-      }
-
-    }*/
 
   }
 

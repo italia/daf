@@ -2,13 +2,13 @@ package it.gov.daf.sso
 
 import java.net.URLEncoder
 
-import com.google.inject.{Inject, Provides, Singleton}
+import com.google.inject.{Inject, Singleton}
 import it.gov.daf.common.authentication.Role
-import it.gov.daf.common.sso.common.{CacheWrapper, LoginInfo, SecuredInvocationManager}
+import it.gov.daf.common.sso.common.{LoginInfo, SecuredInvocationManager}
 import it.gov.daf.common.utils.WebServiceUtil
 import it.gov.daf.securitymanager.service.IntegrationService
 import it.gov.daf.securitymanager.service.utilities.{AppConstants, ConfigReader}
-import org.apache.commons.lang3.StringEscapeUtils
+import org.slf4j.MDC
 import play.api.libs.json._
 import play.api.libs.ws.{WSClient, WSResponse}
 import security_manager.yaml.{Error, IpaGroup, IpaUser, Success}
@@ -16,16 +16,16 @@ import security_manager.yaml.{Error, IpaGroup, IpaUser, Success}
 import scala.concurrent.Future
 
 @Singleton
-class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClientLocal: LoginClientLocal,wsClient: WSClient, cacheWrapper: CacheWrapper){
+class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClientLocal: LoginClientLocal,wsClient: WSClient){
 
-  import scala.concurrent.ExecutionContext.Implicits._
+  import play.api.libs.concurrent.Execution.Implicits._
 
   private val loginInfo = new LoginInfo(ConfigReader.ipaUser, ConfigReader.ipaUserPwd, LoginClientLocal.FREE_IPA)
 
-
+  // only sysadmin and ipaAdmin
   def createUser(user: IpaUser, isPredefinedOrgUser:Boolean):Future[Either[Error,Success]]= {
 
-    //"userpassword":"${StringEscapeUtils.escapeJson(user.userpassword.get)}",
+
     val titleAttributeValue = if(isPredefinedOrgUser) AppConstants.PredefinedOrgUserTitle else ""
 
     val jsonUser: JsValue = Json.parse(
@@ -80,7 +80,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
   }
 
-
+  // only sysadmin
   def updateUser(userUid: String, givenname:String, sn:String):Future[Either[Error,Success]]= {
 
     val jsonUser: JsValue = Json.parse(
@@ -126,7 +126,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
   }
 
-
+  // NOT USED FOR NOW
   def passwd(userUid: String, oldPwd:String, newPwd:String):Future[Either[Error,Success]]= {
 
     //val oldPwd = cacheWrapper.getPwd(userUid).get "principal": "password": "current_password":
@@ -174,6 +174,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
   private val IPA_APP_ULR = IPA_URL + "/ipa"
   private val IPA_CHPWD_ULR = IPA_URL + "/ipa/session/change_password"
 
+  // only sysadmin and ipaAdmin
   def changePassword(userUid: String, oldPwd:String, newPwd:String):Future[Either[Error,Success]]= {
 
     val login = s"user=$userUid&old_password=${URLEncoder.encode(oldPwd,"UTF-8")}&new_password=${URLEncoder.encode(newPwd,"UTF-8")}"
@@ -203,7 +204,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
   }
 
 
-
+  // only sysadmin
   def deleteUser(userUid: String):Future[Either[Error,Success]]= {
 
 
@@ -245,7 +246,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
   }
 
-
+  // only sysadmin
   def createGroup(group: String):Future[Either[Error,Success]]= {
 
     val jsonGroup: JsValue = Json.parse(
@@ -283,21 +284,9 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
     }
 
 
-
-    /*
-    secInvokeManager.manageRestServiceCall(loginInfo,serviceInvoke,200).map { json =>
-
-      val result = ((json \ "result") \"result")
-
-      if( result == "null" || result.isInstanceOf[JsUndefined] )
-        Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
-      else
-        Right( Success(Some("Group created"), Some("ok")) )
-
-    }*/
-
   }
 
+  // all users
   def showGroup(group: String):Future[Either[Error,IpaGroup]]= {
 
     val jsonGroup: JsValue = Json.parse(
@@ -342,30 +331,12 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
     }
 
 
-    /*
-    secInvokeManager.manageRestServiceCall(loginInfo,serviceInvoke,200).map { json =>
-
-      val result = ((json \ "result") \"result")
-
-      if( result == "null" || result.isInstanceOf[JsUndefined] )
-
-        Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
-      else
-        Right(
-          IpaGroup(
-            (result \ "dn").asOpt[String].getOrElse(""),
-            (result \ "gidnumber") (0).asOpt[String],
-            (result \ "member_user").asOpt[Seq[String]]
-          )
-        )
-    }*/
-
   }
 
   def isEmptyGroup(groupCn:String):Future[Either[Error,Success]] ={
 
     showGroup(groupCn) map{
-      case Right(r) =>  if(r.member_user.nonEmpty && r.member_user.get.filter(p => !p.equals(IntegrationService.toUserName(groupCn))).nonEmpty)
+      case Right(r) =>  if( r.member_user.nonEmpty && r.member_user.get.exists(p => !p.equals(IntegrationService.toUserName(groupCn))) )
                           Left(Error(Option(1),Some("This group contains users"),None))
                         else
                           Right(Success(Some("Empty group"), Some("ok")))
@@ -413,19 +384,6 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
     }
 
-
-    /*
-    secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).flatMap { json =>
-
-      val result = (json \ "result").getOrElse(JsString("null")).toString()
-
-      if (result != "null")
-        Future.successful( Right(Success(Some("Group deleted"), Some("ok"))) )
-      else
-        Future.successful(Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) ) )
-
-    }*/
-
   }
 
   def addUsersToGroup(group: String, userList: Seq[String]):Future[Either[Error,Success]]= {
@@ -466,16 +424,6 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
       case Left(l) =>  Left( Error(Option(0),Some(l),None) )
     }
 
-
-    /*
-    secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).map { json =>
-      val result = ((json \ "result") \"result")
-
-      if( result == "null" || result.isInstanceOf[JsUndefined] )
-        Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
-      else
-        Right(Success(Some("Users added"), Some("ok")))
-    }*/
 
   }
 
@@ -520,20 +468,11 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
     }
 
 
-    /*
-    secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).map { json =>
-      val result = ((json \ "result") \"result")
-
-      if( result == "null" || result.isInstanceOf[JsUndefined] )
-        Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
-      else
-        Right(Success(Some("Users removed"), Some("ok")))
-    }*/
-
   }
 
   def findUserByUid(userId: String):Future[Either[Error,IpaUser]]={
 
+    println("------------------->>>>"+MDC.get("user-id") )
     val jsonRequest:JsValue = Json.parse(s"""{
                                              "id": 0,
                                              "method": "user_show/1",
@@ -554,6 +493,9 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
 
     def handleJson(json:JsValue) = {
+
+      println("------------------->>>>>>"+MDC.get("user-id") )
+
       val count = ((json \ "result") \ "count").asOpt[Int].getOrElse(-1)
       val result = (json \ "result") \"result"
 
@@ -585,35 +527,6 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
       case Left(l) =>  Left( Error(Option(0),Some(l),None) )
     }
 
-
-    /*
-    secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).map { json =>
-
-      val count = ((json \ "result") \ "count").asOpt[Int].getOrElse(-1)
-      val result = ((json \ "result") \"result")
-
-      if(count==0)
-        Left( Error(Option(1),Some("No user found"),None) )
-
-      if( result == "null" || result.isInstanceOf[JsUndefined] )
-
-        Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
-
-      else
-        Right(
-          IpaUser(
-            sn = (result \ "sn") (0).asOpt[String].getOrElse(""),
-            givenname = (result \ "givenname") (0).asOpt[String].getOrElse(""),
-            mail = (result \ "mail") (0).asOpt[String].getOrElse(""),
-            uid = (result \ "uid") (0).asOpt[String].getOrElse(""),
-            role = ApiClientIPA.extractRole( (result \ "memberof_group").asOpt[Seq[String]] ),
-            title = (result \ "title") (0).asOpt[String],
-            userpassword = None,
-            organizations = ApiClientIPA.extractOrgs( (result \ "memberof_group").asOpt[Seq[String]] )
-          )
-        )
-
-    }*/
 
   }
 
@@ -669,34 +582,6 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
     }
 
 
-    /*
-    secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).map { json =>
-
-      val count = ((json \ "result") \ "count").asOpt[Int].getOrElse(-1)
-      val result = ((json \ "result") \"result")(0)//.getOrElse(JsString("null")).toString()
-
-      if(count==0)
-        Left( Error(Option(1),Some("No user found"),None) )
-
-      else if( result == "null" || result.isInstanceOf[JsUndefined]  )
-        Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
-
-      else
-        Right(
-          IpaUser(
-            sn = (result \ "sn") (0).asOpt[String].getOrElse(""),
-            givenname = (result \ "givenname") (0).asOpt[String].getOrElse(""),
-            mail = (result \ "mail") (0).asOpt[String].getOrElse(""),
-            uid = (result \ "uid") (0).asOpt[String].getOrElse(""),
-            role = ApiClientIPA.extractRole( (result \ "memberof_group").asOpt[Seq[String]] ),
-            title = (result \ "title") (0).asOpt[String],
-            userpassword = None,
-            organizations = ApiClientIPA.extractOrgs( (result \ "memberof_group").asOpt[Seq[String]] )
-          )
-        )
-
-    }*/
-
   }
 
   def organizationList():Future[Either[Error,Seq[String]]]={
@@ -743,26 +628,6 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
       case Left(l) =>  Left( Error(Option(0),Some(l),None) )
     }
 
-
-    /*
-    secInvokeManager.manageServiceCall(loginInfo,serviceInvoke).map { json =>
-
-      val count = ((json \ "result") \ "count").asOpt[Int].getOrElse(-1)
-      val result = ((json \ "result") \"result")
-
-      if(count==0)
-        Left( Error(Option(1),Some("No organization founded"),None) )
-
-      else if( result == "null" || result.isInstanceOf[JsUndefined]  )
-        Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
-
-      else
-        Right(
-          result.asOpt[Seq[JsObject]].get map{ el => ((el \"cn")(0)).asOpt[String].get }
-        )
-
-
-    }*/
 
   }
 

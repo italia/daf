@@ -14,7 +14,7 @@ import scala.concurrent.Future
 @Singleton
 class GrafanaApiClient @Inject()(secInvokeManager: SecuredInvocationManager,loginClientLocal: LoginClientLocal,wSClient: WSClient){
 
-  import scala.concurrent.ExecutionContext.Implicits._
+  import play.api.libs.concurrent.Execution.Implicits._
 
   private val loginAdminGrafana = new LoginInfo(ConfigReader.grafanaAdminUser, ConfigReader.grafanaAdminPwd, "grafana")
   //private val grafanaAuthUrl = createGrafanaAuthUrl()
@@ -25,6 +25,14 @@ class GrafanaApiClient @Inject()(secInvokeManager: SecuredInvocationManager,logi
     grafanaModUrl.insert(ConfigReader.grafanaUrl.indexOf("""//""")+2 ,s"${ConfigReader.grafanaAdminUser}:${ConfigReader.grafanaAdminPwd}@")
     grafanaModUrl.toString()
   }*/
+
+  private def handleServiceCall[A](serviceInvoke:(String,WSClient)=> Future[WSResponse], handleJson:(JsValue)=> Either[Error, A] )={
+
+    secInvokeManager.manageRestServiceCall(loginAdminGrafana, serviceInvoke,200).map {
+      case Right(json) => handleJson(json)
+      case Left(l) =>  Left( Error(Option(0),Some(l),None) )
+    }
+  }
 
   def createOrganization(orgName:String): Future[Either[Error, Success]] = {
 
@@ -46,21 +54,19 @@ class GrafanaApiClient @Inject()(secInvokeManager: SecuredInvocationManager,logi
     }
 
 
-    secInvokeManager.manageRestServiceCall(loginAdminGrafana, serviceInvoke,200).map {
+    def handleJson(json:JsValue)= {
 
-        case Right(json) =>
-          (json \ "orgId").validate[Long] match {
-            case s: JsSuccess[Long] => Right(Success(Some("Organization created"), Some("ok")))
-            case e: JsError => Left(Error(Option(0), Some("Error in create grafana organization"), None))
-          }
+      (json \ "orgId").validate[Long] match {
+        case s: JsSuccess[Long] => Right(Success(Some("Organization created"), Some("ok")))
+        case e: JsError => Left(Error(Option(0), Some("Error in create grafana organization"), None))
+      }
 
-
-        case Left(msg) => Left(Error(Option(0), Some(msg), None))
     }
 
-
+    handleServiceCall(serviceInvoke,handleJson)
 
   }
+
 
   def logNewUser(username:String, pwd:String): Future[Either[Error, Success]] = {
 
@@ -93,8 +99,6 @@ class GrafanaApiClient @Inject()(secInvokeManager: SecuredInvocationManager,logi
 
   }
 
-
-
   def deleteOrganization(orgName:String): Future[Either[Error, Success]] = {
 
     val result = for {
@@ -121,29 +125,26 @@ class GrafanaApiClient @Inject()(secInvokeManager: SecuredInvocationManager,logi
     }
 
 
-    secInvokeManager.manageRestServiceCall(loginAdminGrafana, serviceInvoke, 200).map {
 
-      case Right(json) =>
+    def handleJson(json:JsValue)= {
 
-        (json \ "message").validate[String] match {
+      (json \ "message").validate[String] match {
 
-          case s: JsSuccess[String] => s.asOpt match {
-            case Some(i) => if (i.contains("Organization deleted"))
-              Right(Success(Some("Organization deleted"), Some("ok")))
-            else
-              Left(Error(Option(0), Some("Error in grafana deleteOrganization"), None))
+        case s: JsSuccess[String] => s.asOpt match {
+          case Some(i) => if (i.contains("Organization deleted"))
+            Right(Success(Some("Organization deleted"), Some("ok")))
+          else
+            Left(Error(Option(0), Some("Error in grafana deleteOrganization"), None))
 
-            case None => Left(Error(Option(0), Some("Error in grafana deleteOrganization"), None))
-          }
-
-          case e: JsError => Left(Error(Option(0), Some("Error in grafana deleteOrganization"), None))
+          case None => Left(Error(Option(0), Some("Error in grafana deleteOrganization"), None))
         }
 
+        case e: JsError => Left(Error(Option(0), Some("Error in grafana deleteOrganization"), None))
+      }
 
-
-      case Left(msg) => Left(Error(Option(0), Some(msg), None))
     }
 
+    handleServiceCall(serviceInvoke,handleJson)
 
   }
 
@@ -167,19 +168,19 @@ class GrafanaApiClient @Inject()(secInvokeManager: SecuredInvocationManager,logi
     }
 
 
-    secInvokeManager.manageRestServiceCall(loginAdminGrafana, serviceInvoke, 200).map {
+    def handleJson(json:JsValue)= {
 
-      case Right(json) =>
-        (json \ "id").validate[Long] match {
-          case s: JsSuccess[Long] => s.asOpt match {
-            case Some(i) => Right(i)
-            case None => Left(Error(Option(0), Some("Error in grafana getOrganizationId"), None))
-          }
-          case e: JsError => Left(Error(Option(0), Some("Error in grafana getOrganizationId"), None))
+      (json \ "id").validate[Long] match {
+        case s: JsSuccess[Long] => s.asOpt match {
+          case Some(i) => Right(i)
+          case None => Left(Error(Option(0), Some("Error in grafana getOrganizationId"), None))
         }
+        case e: JsError => Left(Error(Option(0), Some("Error in grafana getOrganizationId"), None))
+      }
 
-      case Left(msg) => Left(Error(Option(0), Some(msg), None))
     }
+
+    handleServiceCall(serviceInvoke,handleJson)
 
   }
 
@@ -205,27 +206,24 @@ class GrafanaApiClient @Inject()(secInvokeManager: SecuredInvocationManager,logi
     }
 
 
-    secInvokeManager.manageRestServiceCall(loginAdminGrafana, serviceInvoke, 200).map {
+    def handleJson(json:JsValue)= {
 
-      case Right(json) =>
+      (json \ "message").validate[String] match {
+        case s: JsSuccess[String] => s.asOpt match {
+          case Some(i) => if( i.contains("User added") )
+            Right(Success(Some("User added"), Some("ok")))
+          else
+            Left(Error(Option(0), Some("Error in grafana getOrganizationId"), None))
 
-        (json \ "message").validate[String] match {
-          case s: JsSuccess[String] => s.asOpt match {
-            case Some(i) => if( i.contains("User added") )
-              Right(Success(Some("User added"), Some("ok")))
-            else
-              Left(Error(Option(0), Some("Error in grafana getOrganizationId"), None))
-
-            case None => Left(Error(Option(0), Some("Error in grafana getOrganizationId"), None))
-          }
-          case e: JsError => Left(Error(Option(0), Some("Error in grafana addUserInOrganization"), None))
+          case None => Left(Error(Option(0), Some("Error in grafana getOrganizationId"), None))
         }
-
-
-
-      case Left(msg) => Left(Error(Option(0), Some(msg), None))
+        case e: JsError => Left(Error(Option(0), Some("Error in grafana addUserInOrganization"), None))
+      }
 
     }
+
+    handleServiceCall(serviceInvoke,handleJson)
+
 
   }
 

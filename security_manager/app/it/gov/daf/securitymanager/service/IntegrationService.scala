@@ -4,7 +4,7 @@ import cats.data.EitherT
 import com.google.inject.{Inject, Singleton}
 import it.gov.daf.common.authentication.Role
 import it.gov.daf.sso.ApiClientIPA
-import security_manager.yaml.{DafOrg, Error, IpaUser, Success, UserList}
+import security_manager.yaml.{DafOrg, Error, IpaUser, Success}
 
 import scala.concurrent.Future
 import cats.implicits._
@@ -12,9 +12,9 @@ import IntegrationService._
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
 
 @Singleton
-class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient: SupersetApiClient, ckanApiClient: CkanApiClient, grafanaApiClient:GrafanaApiClient, registrationService: RegistrationService){
+class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient: SupersetApiClient, ckanApiClient: CkanApiClient, grafanaApiClient:GrafanaApiClient, registrationService: RegistrationService,kyloApiClient:KyloApiClient){
 
-  import scala.concurrent.ExecutionContext.Implicits._
+  import play.api.libs.concurrent.Execution.Implicits._
 
   def createDafOrganization(dafOrg:DafOrg):Future[Either[Error,Success]] = {
 
@@ -33,6 +33,8 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
       a <- EitherT( apiClientIPA.createGroup(dafOrg.groupCn) )
       b <- EitherT( registrationService.createUser(predefinedOrgIpaUser,true) )
       c <- EitherT( supersetApiClient.createDatabase(toSupersetDS(groupCn),predefinedOrgIpaUser.uid,dafOrg.predefinedUserPwd,dafOrg.supSetConnectedDbName) )
+      c1<- EitherT( kyloApiClient.createCategory(dafOrg.groupCn) )
+
       /*
       orgAdminRoleId <- EitherT( supersetApiClient.findRoleId(ConfigReader.suspersetOrgAdminRole) )
       dataOrgRoleId <- EitherT( supersetApiClient.findRoleId(toRoleName(groupCn)) )

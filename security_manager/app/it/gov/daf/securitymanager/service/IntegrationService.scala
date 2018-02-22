@@ -10,6 +10,7 @@ import scala.concurrent.Future
 import cats.implicits._
 import IntegrationService._
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
+import ProcessHandler._
 
 @Singleton
 class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient: SupersetApiClient, ckanApiClient: CkanApiClient, grafanaApiClient:GrafanaApiClient, registrationService: RegistrationService,kyloApiClient:KyloApiClient){
@@ -18,7 +19,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
   def createDafOrganization(dafOrg:DafOrg):Future[Either[Error,Success]] = {
 
-    //sn: String, givenname: String, mail: String, uid: String, role: SuccessMessage, userpassword: SuccessMessage, title: SuccessMessage, organizations: IpaGroupMember_user
+
     val groupCn = dafOrg.groupCn
     val predefinedOrgIpaUser = new IpaUser(groupCn,
                                           "predefined organization user",
@@ -29,30 +30,39 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
                                           None,
                                           Option(Seq(dafOrg.groupCn)))
 
-    val result = for {
-      a <- EitherT( apiClientIPA.createGroup(dafOrg.groupCn) )
-      b <- EitherT( registrationService.createUser(predefinedOrgIpaUser,true) )
-      c <- EitherT( supersetApiClient.createDatabase(toSupersetDS(groupCn),predefinedOrgIpaUser.uid,dafOrg.predefinedUserPwd,dafOrg.supSetConnectedDbName) )
-      c1<- EitherT( kyloApiClient.createCategory(dafOrg.groupCn) )
 
-      /*
-      orgAdminRoleId <- EitherT( supersetApiClient.findRoleId(ConfigReader.suspersetOrgAdminRole) )
-      dataOrgRoleId <- EitherT( supersetApiClient.findRoleId(toRoleName(groupCn)) )
-      d <- EitherT( supersetApiClient.createUserWithRoles(defaultOrgIpaUser,orgAdminRoleId,dataOrgRoleId) )
-      */
-      e <- EitherT( ckanApiClient.createOrganizationAsAdmin(groupCn) )
+    val result = for {
+      a <- step( apiClientIPA.createGroup(dafOrg.groupCn ) )
+      b <- step( a, registrationService.createUser(predefinedOrgIpaUser,true) )
+      c <- step( b, supersetApiClient.createDatabase(toSupersetDS(groupCn),predefinedOrgIpaUser.uid,dafOrg.predefinedUserPwd,dafOrg.supSetConnectedDbName) )
+      d <- stepOver( c, kyloApiClient.createCategory(dafOrg.groupCn) )
+
+      e <- step( c, ckanApiClient.createOrganizationAsAdmin(groupCn) )
       //f <- EitherT( grafanaApiClient.createOrganization(groupCn) ) TODO da riabilitare
-      g <- EitherT( addUserToOrganization(groupCn,predefinedOrgIpaUser.uid) )
+      g <- step( e, addUserToOrganization(groupCn,predefinedOrgIpaUser.uid) )
       //g <- EitherT( grafanaApiClient.addUserInOrganization(groupCn,toUserName(groupCn)) )
     } yield g
 
+    // 5 step
 
     result.value.map{
       case Right(r) => Right( Success(Some("Organization created"), Some("ok")) )
-      case Left(l) => Left(l)
+      case Left(l) => if( l.steps !=0 ) {
+                        hardDeleteDafOrganization(groupCn).onSuccess { case e =>
+
+                          val steps = e.fold(ll=>ll.steps,rr=>rr.steps)
+                          if( l.steps != steps)
+                            throw new Exception( s"CreateDafOrganization rollback issue: process steps=${l.steps} rollback steps=$steps" )
+
+                        }
+
+                      }
+                      Left(l.error)
     }
 
+
   }
+
 
   // only setup freeIPA and Superset
   def createDefaultDafOrganization(passwd:String):Future[Either[Error,Success]] = {
@@ -93,27 +103,45 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
     val result = for {
 
-      a0 <- EitherT( apiClientIPA.isEmptyGroup(groupCn) )
+      a <- stepOver( apiClientIPA.isEmptyGroup(groupCn) )
+      dbId <- stepOverF( supersetApiClient.findDatabaseId(toSupersetDS(groupCn)) )
+      b <- stepOver( supersetApiClient.checkDbTables(dbId) )
+      c <- EitherT( hardDeleteDafOrganization(groupCn) )
 
-      dbId <- EitherT( supersetApiClient.findDatabaseId(toSupersetDS(groupCn)) )
-      a1 <- EitherT( supersetApiClient.checkDbTables(dbId) )
-
-      a <- EitherT( apiClientIPA.deleteGroup(groupCn) )
-      b <- EitherT( apiClientIPA.deleteUser(toUserName(groupCn)) )
-
-      userInfo <- EitherT( supersetApiClient.findUser(toUserName(groupCn)) )
-      c <- EitherT( supersetApiClient.deleteUser(userInfo._1) )
-
-      roleId <- EitherT( supersetApiClient.findRoleId(toSupersetRole(groupCn)) )
-      d <- EitherT( supersetApiClient.deleteRole(roleId) )
-
-      //dbId <- EitherT( supersetApiClient.findDatabaseId(toDataSource(groupCn)) )
-      e <- EitherT( supersetApiClient.deleteDatabase(dbId) )
-      f <- EitherT( clearSupersetPermissions(dbId, toSupersetDS(groupCn)) )
+    } yield c
 
 
-      g <- EitherT( ckanApiClient.deleteOrganization(groupCn) )
-      h <- EitherT( ckanApiClient.purgeOrganization(groupCn) )
+    result.value.map{
+      case Right(r) => Right( Success(Some("Organization created"), Some("ok")) )
+      case Left(l) => if( l.steps == 0 )
+                        Left(l.error)
+                      else
+                        throw new Exception( s"DeleteDafOrganization process issue: process steps=${l.steps}" )
+
+    }
+  }
+
+
+  private def hardDeleteDafOrganization(groupCn:String):Future[Either[ErrorWrapper,SuccessWrapper]] = {
+
+    val result = for {
+
+      a <- step( apiClientIPA.deleteGroup(groupCn) )
+      b <- step( a, apiClientIPA.deleteUser(toUserName(groupCn)) )
+
+      userInfo <- stepOverF(a, supersetApiClient.findUser(toUserName(groupCn)) )
+      c <- step( b, supersetApiClient.deleteUser(userInfo._1) )
+
+      roleId <- stepOverF(c, supersetApiClient.findRoleId(toSupersetRole(groupCn)) )
+      d <- stepOver( c, supersetApiClient.deleteRole(roleId) )
+
+      dbId <- stepOverF(c, supersetApiClient.findDatabaseId(toSupersetDS(groupCn)) )
+      e <- stepOver(c, supersetApiClient.deleteDatabase(dbId) )
+      f <- step(c, clearSupersetPermissions(dbId, toSupersetDS(groupCn)) )
+
+
+      g <- stepOver( f, ckanApiClient.deleteOrganization(groupCn) )
+      h <- step( f, ckanApiClient.purgeOrganization(groupCn) )
 
       //i <- EitherT( grafanaApiClient.deleteOrganization(groupCn) ) TODO da riabilitare
     } yield h

@@ -47,7 +47,7 @@ import it.gov.daf.catalogmanager.kylo.Kylo
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-
+    
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -198,20 +198,23 @@ package catalog_manager.yaml {
         val createdatasetcatalog = createdatasetcatalogAction { (catalog: MetaCatalog) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalog
             val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
-            val created: Success = ServiceRegistry.catalogService.createCatalog(catalog, Option(credentials.username), ws )
-            if (!created.message.toLowerCase.equals("error")) {
-               /* val logicalUri = created.message
+            if( WebServiceUtil.isDafEditor(currentRequest) || WebServiceUtil.isDafAdmin(currentRequest) ) {
+                val created: Success = ServiceRegistry.catalogService.createCatalog(catalog, Option(credentials.username), ws)
+                if (!created.message.toLowerCase.equals("error")) {
+                    /* val logicalUri = created.message
                 val logicalUriEncoded = URLEncoder.encode(logicalUri, "UTF-8")
                 val ingestionUrl = ConfigReader.ingestionUrl
                 val wsResponse = ws.url(ingestionUrl + "/ingestion-manager/v1/add-new-dataset/" + logicalUriEncoded)
                     .withHeaders(("authorization",currentRequest.headers.get("authorization").get))
                     .get()
                 wsResponse.map(x => println(x.body)) */
-             //   ingestionListener.addDirListener(catalog, logicalUri)
-            }
-           // ws.url("http://www.google.com").get().map( x => println(x.body))
+                    //   ingestionListener.addDirListener(catalog, logicalUri)
+                }
+                // ws.url("http://www.google.com").get().map( x => println(x.body))
 
-            Createdatasetcatalog200(created)
+                Createdatasetcatalog200(created)
+            }else
+                Createdatasetcatalog401("Admin or editor permissions required")
             //NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalog
         }
@@ -443,7 +446,6 @@ package catalog_manager.yaml {
         val startKyloFedd = startKyloFeddAction { input: (String, MetaCatalog) =>
             val (file_type, feed) = input
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.startKyloFedd
-
             val skipHeader = file_type match {
                 case "csv" => true
                 case "json" => false
@@ -523,7 +525,7 @@ package catalog_manager.yaml {
            // NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.startKyloFedd
         }
-        val datasetcatalogbytitle = datasetcatalogbytitleAction { (title: String) =>
+        val datasetcatalogbytitle = datasetcatalogbytitleAction { (title: String) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbytitle
             val catalog = ServiceRegistry.catalogService.catalogBytitle(title)
 

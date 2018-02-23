@@ -37,7 +37,7 @@ import it.gov.daf.common.sso.common.CredentialManager
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -241,21 +241,19 @@ package security_manager.yaml {
         val sftp = sftpAction { (path_to_create: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.sftp
             val credentials = credentialManager.getCredentials(currentRequest)
-          /*
-            val tryPwd: Try[String]= cacheWrapper.getPwd(user_id) match {
-            case Some(path) => scala.util.Success(path)
-            case None => scala.util.Failure(new Throwable(s"cannot find user id $user_id"))
-          }*/
 
-          val result = credentials.flatMap { crd =>
-            val sftp = new SftpHandler(crd.username, crd.password, sftpHost)
-            sftp.mkdir(path_to_create)
-          }
+            if( credentialManager.isDafAdmin(currentRequest) || credentialManager.isDafEditor(currentRequest) ) {
+              val result = credentials.flatMap { crd =>
+                val sftp = new SftpHandler(crd.username, crd.password, sftpHost)
+                sftp.mkdir(path_to_create)
+              }
 
-          result match {
-            case scala.util.Success(path) => Sftp200(path)
-            case scala.util.Failure(ex) => Sftp500(Error(Some(404), Some(ex.getMessage), None))
-          }
+              result match {
+                case scala.util.Success(path) => Sftp200(path)
+                case scala.util.Failure(ex) => Sftp500(Error(Some(404), Some(ex.getMessage), None))
+              }
+            }else
+              Sftp500( Error(Option(1),Some("Permissions required"),None) )
             // ----- End of unmanaged code area for action  Security_managerYaml.sftp
         }
         val findSupersetOrgTables = findSupersetOrgTablesAction { (orgName: String) =>  

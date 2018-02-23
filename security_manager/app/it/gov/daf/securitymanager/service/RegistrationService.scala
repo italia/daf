@@ -4,13 +4,15 @@ import cats.data.EitherT
 import com.google.inject.{Inject, Singleton}
 import it.gov.daf.securitymanager.service.utilities.{AppConstants, BearerTokenGenerator, ConfigReader}
 import play.api.libs.json.{JsError, JsSuccess, JsValue}
-import security_manager.yaml.{Error, IpaUser, Success, UserList}
+import security_manager.yaml.{Error, IpaUser, Success}
 import it.gov.daf.common.authentication.Role
 import cats.implicits._
-import it.gov.daf.common.utils.Credentials
 import it.gov.daf.sso.ApiClientIPA
 
 import scala.concurrent.Future
+import ProcessHandler._
+
+import scala.util.Try
 
 @Singleton
 class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient: SupersetApiClient, ckanApiClient: CkanApiClient, grafanaApiClient: GrafanaApiClient) {
@@ -168,15 +170,66 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
     //val userId = UserList(Option(Seq(user.uid)))
 
     val result = for {
-      a <- EitherT( apiClientIPA.createUser(user, isPredefinedOrgUser) )
-      a1 <- EitherT( apiClientIPA.changePassword(user.uid,a.fields.get,user.userpassword.get) )
-      b <- EitherT( apiClientIPA.addUsersToGroup(user.role.getOrElse(Role.Viewer.toString()),Seq(user.uid)) )
-      c <- EitherT( addNewUserToDefaultOrganization(user) )
+      a <- step( Try{apiClientIPA.createUser(user, isPredefinedOrgUser)} )
+      a1 <- stepOver( Try{apiClientIPA.changePassword(user.uid,a.success.fields.get,user.userpassword.get)} )
+      b <- stepOver( Try{apiClientIPA.addUsersToGroup(user.role.getOrElse(Role.Viewer.toString()),Seq(user.uid))} )
+      c <- step( a, Try{addNewUserToDefaultOrganization(user)} )
     } yield c
 
     result.value.map{
       case Right(r) => Right( Success(Some("User created"), Some("ok")) )
-      case Left(l) => Left(l)
+      case Left(l) => if( l.steps !=0 ) {
+        hardDeleteUser(user.uid).onSuccess { case e =>
+
+          val steps = e.fold(ll=>ll.steps,rr=>rr.steps)
+          if( l.steps != steps)
+            throw new Exception( s"CreateUser rollback issue: process steps=${l.steps} rollback steps=$steps" )
+
+        }
+
+      }
+        Left(l.error)
+    }
+
+  }
+
+  private def hardDeleteUser(uid:String):Future[Either[ErrorWrapper,SuccessWrapper]] = {
+
+    val result = for {
+
+      b <- step( Try{apiClientIPA.deleteUser(uid)} )
+      userInfo <- stepOverF( Try{supersetApiClient.findUser(uid)} )
+      c <- step( Try{supersetApiClient.deleteUser(userInfo._1)} )
+      // Commented because ckan have problems to recreate again the same user TODO try to test a ckan config not create local users
+      //defOrg <- EitherT( ckanApiClient.getOrganizationAsAdmin(ConfigReader.defaultOrganization) )
+      //d <- EitherT( ckanApiClient.removeUserInOrganizationAsAdmin(uid,defOrg) )
+    } yield c
+
+    result.value
+
+  }
+
+  def deleteUser(uid:String):Future[Either[Error,Success]] = {
+
+    val result = for {
+      user <- stepOverF( Try{apiClientIPA.findUserByUid(uid)} )
+      a1 <- stepOver( Try{testIfIsNotPredefinedUser(user)} )// cannot cancel predefined user
+      a2 <- stepOver( Try{testIfUserBelongsToGroup(user)} )// cannot cancel user belonging to some orgs
+
+      b <- EitherT( hardDeleteUser(uid) )
+
+      // Commented because ckan have problems to recreate again the same user TODO try to test a ckan config not create local users
+      //defOrg <- EitherT( ckanApiClient.getOrganizationAsAdmin(ConfigReader.defaultOrganization) )
+      //d <- EitherT( ckanApiClient.removeUserInOrganizationAsAdmin(uid,defOrg) )
+    } yield b
+
+    result.value.map{
+      case Right(r) => Right( Success(Some("User deleted"), Some("ok")) )
+      case Left(l) => if( l.steps == 0 )
+        Left(l.error)
+      else
+        throw new Exception( s"DeleteUser process issue: process steps=${l.steps}" )
+
     }
 
   }
@@ -233,24 +286,6 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   }
 
-
-  def deleteUser(uid:String):Future[Either[Error,Success]] = {
-
-    val result = for {
-      user <- EitherT( apiClientIPA.findUserByUid(uid) )
-      a1 <- EitherT( testIfIsNotPredefinedUser(user) )// cannot cancel predefined user
-      a2 <- EitherT( testIfUserBelongsToGroup(user) )// cannot cancel user belonging to some orgs
-      b <- EitherT( apiClientIPA.deleteUser(uid) )
-      userInfo <- EitherT( supersetApiClient.findUser(uid) )
-      c <- EitherT( supersetApiClient.deleteUser(userInfo._1) )
-      // Commented because ckan have problems to recreate again the same user TODO try to test a ckan config not create local users
-      //defOrg <- EitherT( ckanApiClient.getOrganizationAsAdmin(ConfigReader.defaultOrganization) )
-      //d <- EitherT( ckanApiClient.removeUserInOrganizationAsAdmin(uid,defOrg) )
-    } yield c
-
-    result.value
-
-  }
 
   def updateUser(uid: String, givenname:String, sn:String, role:String ):Future[Either[Error,Success]]= {
 

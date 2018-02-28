@@ -1,16 +1,17 @@
-package it.teamdigitale.baseSpec
+package it.teamdigitale.miniclusters
 
 import better.files.File
-import org.slf4j.{Logger, LoggerFactory}
+import org.apache.logging.log4j.LogManager
 import org.apache.hadoop.hdfs.HdfsConfiguration
 import org.apache.hadoop.test.PathUtils
 import org.apache.hadoop.fs.FileSystem
 import org.apache.hadoop.hdfs.{HdfsConfiguration, MiniDFSCluster}
 import better.files._
+
 import scala.util.{Failure, Try}
 
 class HDFSMiniCluster extends AutoCloseable {
-  val alogger: Logger = LoggerFactory.getLogger(this.getClass)
+  val alogger = LogManager.getLogger(this.getClass)
 
   var hdfsCluster: Try[MiniDFSCluster] = Failure[MiniDFSCluster](new Exception)
   var fileSystem: Try[FileSystem] = Failure[FileSystem](new Exception)

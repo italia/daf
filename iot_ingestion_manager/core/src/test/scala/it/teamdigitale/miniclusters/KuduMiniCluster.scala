@@ -1,4 +1,4 @@
-package it.teamdigitale.baseSpec
+package it.teamdigitale.miniclusters
 
 import org.apache.kudu.client.{KuduClient, MiniKuduCluster}
 import org.apache.kudu.client.KuduClient.KuduClientBuilder
@@ -7,10 +7,10 @@ import org.apache.kudu.spark.kudu.KuduContext
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.{SparkConf, SparkContext}
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
-import org.slf4j.{Logger, LoggerFactory}
+import org.apache.logging.log4j.LogManager
 
-class KuduMiniCluster extends AutoCloseable{
-  val alogger: Logger = LoggerFactory.getLogger(this.getClass)
+class KuduMiniCluster extends AutoCloseable {
+  val alogger = LogManager.getLogger(this.getClass)
 
   var kuduMiniCluster: MiniKuduCluster = _
   var kuduClient: KuduClient = _
@@ -47,3 +47,22 @@ class KuduMiniCluster extends AutoCloseable{
     sparkSession.close()
   }
 }
+
+  object KuduMiniCluster {
+
+    def main(args: Array[String]): Unit = {
+
+      try {
+        val kudu = new KuduMiniCluster()
+        kudu.start()
+
+        println(s"MASTER KUDU ${kudu.kuduMiniCluster.getMasterAddresses}")
+        while(true){
+
+        }
+      }
+    }
+
+
+  }
+

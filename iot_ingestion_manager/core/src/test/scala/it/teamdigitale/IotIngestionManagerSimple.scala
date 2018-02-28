@@ -1,4 +1,4 @@
-package it.teamdigitale.managers
+package it.teamdigitale
 
 import com.typesafe.config.Config
 import it.gov.daf.iotingestion.event.Event
@@ -9,28 +9,23 @@ import it.teamdigitale.events.SerializerDeserializer
 import it.teamdigitale.storage.{HdfsEventsHandler, KuduEventsHandler}
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kudu.spark.kudu.KuduContext
-import org.apache.logging.log4j.LogManager
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.kafka010.LocationStrategies.PreferConsistent
 import org.apache.spark.streaming.kafka010.{ConsumerStrategies, KafkaUtils}
 import org.apache.spark.streaming.{Seconds, StreamingContext}
+import org.slf4j.LoggerFactory
 
 import scala.util.{Failure, Try}
 
 
-object IotIngestionManager  {
-  implicit private val alogger = LogManager.getLogger(this.getClass)
+object IotIngestionManagerSimple  {
+  implicit private val alogger = LoggerFactory.getLogger(this.getClass)
 
-  def run(
-           streamingContext : StreamingContext,
+  def run( streamingContext : StreamingContext,
            sc: SparkSession,
-           kuduContext: KuduContext,
            kafkaconfig: KafkaConfig,
-           kuduConfig: KuduConfig,
            hdfsConfig: HdfsConfig): Unit = {
-
-    KuduEventsHandler.getOrCreateTable(kuduContext, kuduConfig)
 
 
     val kafkaParams = kafkaconfig.getParams()
@@ -46,32 +41,24 @@ object IotIngestionManager  {
       val tryEvents = rdd.map(x => SerializerDeserializer.deserialize(x.value()))
       val (metricsRDD, genericEventsRDD) = filterEvents(tryEvents)
 
-      val metricsDF = sc.createDataFrame(metricsRDD)
-      kuduContext.insertIgnoreRows(metricsDF, kuduConfig.eventsTableName)
-
       val genericEventsDF = sc.createDataFrame(genericEventsRDD)
       HdfsEventsHandler.write(genericEventsDF, hdfsConfig)
 
-      streamingContext.start()
-      streamingContext.awaitTermination()
     }
   }
 
-    /**
+  /**
     * Start the kafka stream and store metric events (i.e. events having event_type_id != 2)
     * on Kudu and generic events (i.e. events having event_type_id == 2) on HDFS
     */
-  def run(
-           streamingContext : StreamingContext,
-           sc: SparkSession,
-           configuration: Config): Unit  = {
+  def run(streamingContext : StreamingContext, sc: SparkSession, configuration: Config): Unit  = {
 
     val kafkaconfig = IotIngestionManagerConfig.getKafkaConfig(configuration)
     val kuduConfig = IotIngestionManagerConfig.getKuduConfig(configuration)
     val hdfsConfig = IotIngestionManagerConfig.getHdfSConfig(configuration)
-    val kuduContext = new KuduContext(kuduConfig.masterAdresses, sc.sparkContext)
 
-    run(streamingContext, sc, kuduContext, kafkaconfig, kuduConfig, hdfsConfig)
+    run(streamingContext, sc, kafkaconfig, hdfsConfig)
+
 
   }
 
@@ -96,6 +83,5 @@ object IotIngestionManager  {
 
     (metricsRDD, genericEventsRDD)
   }
-
 
 }

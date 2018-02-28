@@ -9,12 +9,12 @@ implicit class RichConfig(val configuration: Config) {
   def getStringOrException(path: String): String = {
     if (configuration.hasPath(path))
       configuration.getString(path)
-    throw new RuntimeException(s"Missing path $path")
+    else throw new RuntimeException(s"Missing path $path")
   }
   def getOptionalString(path: String): Option[String] = {
     if (configuration.hasPath(path))
       Some(configuration.getString(path))
-    None
+    else None
   }
 
 

@@ -1,9 +1,9 @@
 package it.teamdigitale.config
 
 import com.typesafe.config.Config
-import it.teamdigitale.managers.IotIngestionManager
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
-import org.slf4j.LoggerFactory
+import org.apache.logging.log4j.LogManager
+
 
 /**
   * This class handle all configurations.
@@ -14,12 +14,9 @@ object IotIngestionManagerConfig {
 
   import RichConfig._
 
-  implicit private val alogger = LoggerFactory.getLogger(this.getClass)
+  implicit private val alogger = LogManager.getLogger(this.getClass)
 
-  //case class KafkaConfig(brokers: String, groupId: String, topic: String, kafkaZkQuorum: String, kafkaZkRootDir: Option[String]) {
   case class KafkaConfig(brokers: String, groupId: String, topic: String) {
-
-
 
     def getParams() = {
       Map[String, AnyRef](
@@ -43,35 +40,27 @@ object IotIngestionManagerConfig {
     val table = configuration.getStringOrException("kudu.events.table.name")
     val buckets = configuration.getStringOrException("kudu.events.table.numberOfBuckets").toInt
 
-    //val offsetConfig = getKuduOffsetTableConfig(configuration)
-
     KuduConfig(masterAddresses, table, buckets)
 
   }
 
   def getKafkaConfig(configuration: Config): KafkaConfig = {
-    val brokers = configuration.getStringOrException("bootstrap.servers")
+    val brokers = configuration.getStringOrException("kafka.bootstrap.servers")
     alogger.info(s"Brokers: $brokers")
 
-    val groupId = configuration.getStringOrException("group.id")
+    val groupId = configuration.getStringOrException("kafka.group.id")
     alogger.info(s"GroupdId: $groupId")
 
-    val topic = configuration.getStringOrException("topic")
+    val topic = configuration.getStringOrException("kafka.topic")
     alogger.info(s"Topics: $topic")
-
-//    val kafkaZkQuorum = configuration.getStringOrException("kafka.zookeeper.quorum")
-//    alogger.info(s"Kafka Zk Quorum: $kafkaZkQuorum")
-//
-//    val kafkaZkRootDir = configuration.getOptionalString("kafka.zookeeper.root")
-//    alogger.info(s"Kafka Zk Root Dir: $kafkaZkRootDir")
 
     KafkaConfig(brokers, groupId, topic)
 
   }
 
   def getHdfSConfig(configuration: Config): HdfsConfig = {
-    val filename = configuration.getStringOrException("hdfs.filename")
-    alogger.info(s"HDFS filename: $filename")
+    val filename = configuration.getStringOrException("hdfs.path")
+    alogger.info(s"HDFS path: $filename")
     HdfsConfig(filename)
   }
 

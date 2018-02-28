@@ -6,7 +6,7 @@ import org.apache.kudu.client.{CreateTableOptions, KuduException}
 import org.apache.kudu.spark.kudu.KuduContext
 import org.apache.kudu.{Schema, Type}
 import org.apache.spark.sql.Encoders
-import org.slf4j.LoggerFactory
+import org.apache.logging.log4j.LogManager
 
 import scala.collection.convert.decorateAsJava._
 
@@ -14,7 +14,7 @@ import scala.collection.convert.decorateAsJava._
   * Handles the storage of metric events on KUDU
   */
 object KuduEventsHandler {
-  implicit private val alogger = LoggerFactory.getLogger(this.getClass)
+  implicit private val alogger = LogManager.getLogger(this.getClass)
 
   val primaryKeys =  List("source", "ts", "id")
 
@@ -34,8 +34,7 @@ object KuduEventsHandler {
 
       } catch {
         case ex: KuduException if ex.getStatus.isAlreadyPresent => alogger.error(ex.getMessage)
-        case ex =>
-          alogger.error(ex.getMessage)
+        case ex: Throwable => alogger.error(ex.getMessage)
       }
     }
   }

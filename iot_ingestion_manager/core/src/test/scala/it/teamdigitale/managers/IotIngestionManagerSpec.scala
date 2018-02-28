@@ -5,7 +5,7 @@ import java.net.URLEncoder
 import java.util.concurrent.TimeUnit
 
 import it.gov.daf.iotingestion.event.Event
-import it.teamdigitale.baseSpec.{HDFSMiniCluster, KafkaLocalServer, KuduMiniCluster}
+import it.teamdigitale.miniclusters.{HDFSMiniCluster, KafkaLocalServer, KuduMiniCluster}
 import it.teamdigitale.config.IotIngestionManagerConfig.{HdfsConfig, KafkaConfig, KuduConfig}
 import it.teamdigitale.events.SerializerDeserializer
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}

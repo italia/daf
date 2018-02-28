@@ -10,5 +10,9 @@ object HdfsEventsHandler{
 
   val partitionList: List[String] = List("source", "day")
 
-  def write(genericEventsDF: DataFrame, hdfsConfig: HdfsConfig): Unit = genericEventsDF.write.partitionBy(partitionList: _*).mode(SaveMode.Append).parquet(hdfsConfig.filename)
+  def write(genericEventsDF: DataFrame, hdfsConfig: HdfsConfig): Unit =
+    genericEventsDF.write.
+    partitionBy(partitionList: _*).
+    mode(SaveMode.Append).
+    parquet(hdfsConfig.filename)
 }

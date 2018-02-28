@@ -1,4 +1,4 @@
-package it.teamdigitale.baseSpec
+package it.teamdigitale.miniclusters
 
 import java.io.File
 import java.net.InetSocketAddress
@@ -11,12 +11,12 @@ import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, Produce
 import kafka.server.{KafkaConfig, KafkaServer}
 import org.apache.commons.io.FileUtils
 import org.apache.zookeeper.server.{ServerCnxnFactory, ZooKeeperServer}
-import org.slf4j.LoggerFactory
+import org.apache.logging.log4j.LogManager
 
 class KafkaLocalServer  extends AutoCloseable {
   var zkServer: Option[ServerCnxnFactory] = None
   var kafkaServer: Option[KafkaServer] = None
-  val logger = LoggerFactory.getLogger(this.getClass)
+  val logger = LogManager.getLogger(this.getClass)
 
   private val ip = "127.0.0.1"
   private val port = "9092"

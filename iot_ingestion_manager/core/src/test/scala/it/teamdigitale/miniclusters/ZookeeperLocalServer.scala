@@ -1,4 +1,4 @@
-package it.teamdigitale.baseSpec
+package it.teamdigitale.miniclusters
 
 import java.io.File
 import java.net.InetSocketAddress

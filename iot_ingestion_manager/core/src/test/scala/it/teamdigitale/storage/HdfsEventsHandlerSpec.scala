@@ -4,7 +4,7 @@ import java.io.File
 import java.net.URLEncoder
 import java.util.concurrent.TimeUnit
 
-import it.teamdigitale.baseSpec.HDFSMiniCluster
+import it.teamdigitale.miniclusters.HDFSMiniCluster
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
 import it.gov.daf.iotingestion.event.Event
 import it.teamdigitale.config.IotIngestionManagerConfig.HdfsConfig

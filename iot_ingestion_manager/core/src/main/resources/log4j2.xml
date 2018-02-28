@@ -8,8 +8,8 @@
         </Console>
 
         <!-- This logs all log messages -->
-        <RollingFile name="File" fileName="logs/INFO.iotIngestionManager.${date:yyyyMMdd-HHmmss}.log"
-                     filePattern="logs/INFO.iotIngestionManager.${date:yyyyMMdd-HHmmss}.-%i.log.gz" append="false">
+        <RollingFile name="File" fileName="logs/INFO.iotIngestion.${date:yyyyMMdd-HHmmss}.log"
+                     filePattern="logs/INFO.${date:yyyyMMdd-HHmmss}.-%i.log.gz" append="false">
             <PatternLayout pattern="%d{yyyy MMM dd HH:mm:ss.SSS Z}  -  [%t] %-5p %c - %m%ex%n"/>
             <Policies>
                 <SizeBasedTriggeringPolicy size="100 MB"/>
@@ -17,8 +17,8 @@
             <DefaultRolloverStrategy max="5"/>
         </RollingFile>
 
-        <RollingFile name="FileError" fileName="logs/ERROR.iotIngestionManager.${date:yyyyMMdd-HHmmss}.log"
-                     filePattern="logs/ERROR.iotIngestionManager.${date:yyyyMMdd-HHmmss}-%i.log.gz" append="false">
+        <RollingFile name="FileError" fileName="logs/ERROR.iotIngestion.${date:yyyyMMdd-HHmmss}.log"
+                     filePattern="logs/ERROR.iotIngestion.${date:yyyyMMdd-HHmmss}-%i.log.gz" append="false">
             <PatternLayout pattern="%d{yyyy MMM dd HH:mm:ss.SSS Z}  -  [%t] %-5p %c - %m%ex%n"/>
             <Policies>
                 <SizeBasedTriggeringPolicy size="100 MB"/>
@@ -28,7 +28,7 @@
 
     </Appenders>
     <Loggers>
-        <Root level="info">
+        <Root name="it.teamdigitale" level="info">
             <AppenderRef ref="File"/>
             <AppenderRef ref="FileError" level="error"/>
             <AppenderRef ref="Console"/>

@@ -1,6 +1,6 @@
 package it.teamdigitale.localconsumer
 
-import it.teamdigitale.baseSpec.{HDFSMiniCluster, KuduMiniCluster}
+import it.teamdigitale.miniclusters.{HDFSMiniCluster, KuduMiniCluster}
 import it.teamdigitale.config.IotIngestionManagerConfig.{HdfsConfig, KafkaConfig, KuduConfig}
 import it.teamdigitale.managers.{IotIngestionManager, IotIngestionManagerSpec}
 import org.apache.kudu.spark.kudu.KuduContext

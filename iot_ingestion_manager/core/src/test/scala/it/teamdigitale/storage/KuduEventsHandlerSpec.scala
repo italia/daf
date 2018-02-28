@@ -3,7 +3,7 @@ package it.teamdigitale.storage
 import java.io.File
 import java.util.concurrent.TimeUnit
 import org.apache.kudu.spark.kudu._
-import it.teamdigitale.baseSpec.KuduMiniCluster
+import it.teamdigitale.miniclusters.KuduMiniCluster
 import it.teamdigitale.config.IotIngestionManagerConfig.KuduConfig
 import it.teamdigitale.managers.IotIngestionManager
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}

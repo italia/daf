@@ -27,8 +27,8 @@ trait CatalogServiceComponent {
       catalogRepository.catalog(catalogId)
     }
 
-    def catalogBytitle(title :String): Option[MetaCatalog] = {
-      catalogRepository.catalogByTitle(title)
+    def catalogByName(name :String): Option[MetaCatalog] = {
+      catalogRepository.catalogByName(name)
     }
 
     def createCatalog(metaCatalog: MetaCatalog, callingUserid :MetadataCat, ws :WSClient) :Success = {

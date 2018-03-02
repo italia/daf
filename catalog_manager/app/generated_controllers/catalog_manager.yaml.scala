@@ -17,6 +17,33 @@ import scala.util._
 
 import javax.inject._
 
+import play.api.mvc.{Action,Controller}
+import play.api.data.validation.Constraint
+import play.api.i18n.MessagesApi
+import play.api.inject.{ApplicationLifecycle,ConfigurationProvider}
+import de.zalando.play.controllers._
+import PlayBodyParsing._
+import PlayValidations._
+import scala.util._
+import javax.inject._
+import play.api.mvc.{Action,Controller}
+import play.api.data.validation.Constraint
+import play.api.i18n.MessagesApi
+import play.api.inject.{ApplicationLifecycle,ConfigurationProvider}
+import de.zalando.play.controllers._
+import PlayBodyParsing._
+import PlayValidations._
+import scala.util._
+import javax.inject._
+import play.api.mvc.{Action,Controller}
+import play.api.data.validation.Constraint
+import play.api.i18n.MessagesApi
+import play.api.inject.{ApplicationLifecycle,ConfigurationProvider}
+import de.zalando.play.controllers._
+import PlayBodyParsing._
+import PlayValidations._
+import scala.util._
+import javax.inject._
 import java.io.File
 import de.zalando.play.controllers.PlayBodyParsing._
 import it.gov.daf.catalogmanager.listeners.IngestionListenerImpl
@@ -47,7 +74,7 @@ import it.gov.daf.catalogmanager.kylo.Kylo
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-
+                
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -175,6 +202,24 @@ package catalog_manager.yaml {
             Standardsuri200(Seq(StdUris(Some("ale"), Some("test"))))
             // NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.standardsuri
+        }
+        val datasetcatalogbyname = datasetcatalogbynameAction { (name: String) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbyname
+            val catalog = ServiceRegistry.catalogService.catalogByName(name)
+
+            /*
+            val resutl  = catalog match {
+                case MetaCatalog(None,None,None) => Datasetcatalogbyid401("Error no data with that logical_uri")
+                case  _ =>  Datasetcatalogbyid200(catalog)
+            }
+            resutl
+            */
+
+            catalog match {
+                case Some(c) => Datasetcatalogbyname200(c)
+                case None => Datasetcatalogbyname401("Error")
+            }
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbyname
         }
         val autocompletedataset = autocompletedatasetAction { input: (MetadataCat, ResourceSize) =>
             val (q, limit) = input
@@ -443,7 +488,6 @@ package catalog_manager.yaml {
         val startKyloFedd = startKyloFeddAction { input: (String, MetaCatalog) =>
             val (file_type, feed) = input
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.startKyloFedd
-
             val skipHeader = file_type match {
                 case "csv" => true
                 case "json" => false
@@ -523,7 +567,9 @@ package catalog_manager.yaml {
            // NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.startKyloFedd
         }
-        val datasetcatalogbytitle = datasetcatalogbytitleAction { (title: String) =>
+    
+     // Dead code for absent methodCatalog_managerYaml.datasetcatalogbytitle
+     /*
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbytitle
             val catalog = ServiceRegistry.catalogService.catalogBytitle(title)
 
@@ -540,7 +586,8 @@ package catalog_manager.yaml {
                 case None => Datasetcatalogbytitle401("Error")
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbytitle
-        }
+     */
+
     
     }
 }

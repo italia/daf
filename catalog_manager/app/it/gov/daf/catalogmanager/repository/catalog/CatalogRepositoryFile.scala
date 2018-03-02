@@ -130,8 +130,8 @@
     }
 
 
-    def catalogByTitle(title :String): Option[MetaCatalog] = {
-      println(title)
+    def catalogByName(name :String): Option[MetaCatalog] = {
+      println(name)
       println("####################")
       val file: File = Environment.simple().getFile("data/data-mgt/data_test.json")
       val lines = scala.io.Source.fromFile(file).getLines()
@@ -151,7 +151,7 @@
 
       }).toList.filter( x =>
         x match {
-          case Some(s) => s.dcatapit.title.equals(title)
+          case Some(s) => s.dcatapit.title.equals(name)
           case None => false
         })
 

@@ -35,6 +35,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala, ApiFirstCore, Ap
 
 scalaVersion in ThisBuild := "2.11.8"
 
+
 libraryDependencies ++= Seq(
   jdbc,
   cache,

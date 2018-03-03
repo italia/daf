@@ -48,7 +48,7 @@ import it.gov.daf.common.sso.common.CredentialManager
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                
+                    
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -177,6 +177,24 @@ package catalog_manager.yaml {
             Standardsuri200(Seq(StdUris(Some("ale"), Some("test"))))
             // NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.standardsuri
+        }
+        val datasetcatalogbyname = datasetcatalogbynameAction { (name: String) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbyname
+            val catalog = ServiceRegistry.catalogService.catalogByName(name)
+
+            /*
+            val resutl  = catalog match {
+                case MetaCatalog(None,None,None) => Datasetcatalogbyid401("Error no data with that logical_uri")
+                case  _ =>  Datasetcatalogbyid200(catalog)
+            }
+            resutl
+            */
+
+            catalog match {
+                case Some(c) => Datasetcatalogbyname200(c)
+                case None => Datasetcatalogbyname401("Error")
+            }
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbyname
         }
         val autocompletedataset = autocompletedatasetAction { input: (MetadataCat, ResourceSize) =>
             val (q, limit) = input
@@ -523,24 +541,6 @@ package catalog_manager.yaml {
           result
            // NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.startKyloFedd
-        }
-        val datasetcatalogbytitle = datasetcatalogbytitleAction { (title: String) =>  
-            // ----- Start of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbytitle
-            val catalog = ServiceRegistry.catalogService.catalogBytitle(title)
-
-            /*
-            val resutl  = catalog match {
-                case MetaCatalog(None,None,None) => Datasetcatalogbyid401("Error no data with that logical_uri")
-                case  _ =>  Datasetcatalogbyid200(catalog)
-            }
-            resutl
-            */
-
-            catalog match {
-                case Some(c) => Datasetcatalogbytitle200(c)
-                case None => Datasetcatalogbytitle401("Error")
-            }
-            // ----- End of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbytitle
         }
     
     }

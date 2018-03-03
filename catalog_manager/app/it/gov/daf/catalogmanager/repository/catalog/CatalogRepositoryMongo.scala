@@ -86,9 +86,9 @@ class CatalogRepositoryMongo extends  CatalogRepository{
     metaCatalog
   }
 
-  def catalogByTitle(title :String): Option[MetaCatalog] = {
+  def catalogByName(name :String): Option[MetaCatalog] = {
     //val objectId : ObjectId = new ObjectId(catalogId)
-    val query = MongoDBObject("dcatapit.title" -> title)
+    val query = MongoDBObject("dcatapit.name" -> name)
     // val mongoClient = MongoClient(mongoHost, mongoPort)
     val mongoClient = MongoClient(server, List(credentials))
     val db = mongoClient(source)

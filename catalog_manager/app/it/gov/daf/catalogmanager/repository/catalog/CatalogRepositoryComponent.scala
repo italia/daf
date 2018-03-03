@@ -14,7 +14,7 @@ trait CatalogRepository {
 
     def listCatalogs(page :Option[Int], limit :Option[Int]) :Seq[MetaCatalog]
     def catalog(catalogId :String): Option[MetaCatalog]
-    def catalogByTitle(title :String): Option[MetaCatalog]
+    def catalogByName(name :String): Option[MetaCatalog]
     def createCatalog(metaCatalog: MetaCatalog,callingUserid :MetadataCat, ws :WSClient) :Success
     def standardUris() : List[String]
 

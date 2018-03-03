@@ -35,6 +35,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala, ApiFirstCore, Ap
 
 scalaVersion in ThisBuild := "2.11.8"
 
+
 libraryDependencies ++= Seq(
   jdbc,
   cache,
@@ -54,6 +55,7 @@ libraryDependencies ++= Seq(
   "com.sksamuel.avro4s" %% "avro4s-core" % "1.1.3",
   "com.sksamuel.avro4s" %% "avro4s-json" % "1.1.3",
   "com.sksamuel.avro4s" %% "avro4s-generator" % "1.1.3"
+
 
   //"com.github.cb372" %% "scalacache-guava" % "0.9.4"
   //"com.unboundid" % "unboundid-ldapsdk" % "4.0.0"
@@ -95,6 +97,7 @@ headers := Map(
   "conf" -> Apache2_0("2017", "TEAM PER LA TRASFORMAZIONE DIGITALE", "#"),
   "properties" -> Apache2_0("2017", "TEAM PER LA TRASFORMAZIONE DIGITALE", "#"),
   "yaml" -> Apache2_0("2017", "TEAM PER LA TRASFORMAZIONE DIGITALE", "#")
+
 )
 
 dockerBaseImage := "anapsix/alpine-java:8_jdk_unlimited"

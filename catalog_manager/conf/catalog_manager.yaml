@@ -208,6 +208,10 @@ paths:
           schema:
             type: object
             $ref: '#/definitions/Success'
+        401:
+          description: Error Message
+          schema:
+            type: string
         default:
           description: Unexpected error
           schema:

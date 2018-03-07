@@ -37,7 +37,7 @@ import it.gov.daf.common.sso.common.CredentialManager
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+                                
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -78,6 +78,14 @@ package security_manager.yaml {
               case Left(err) => CreateDAFuser500(err)
             }
             // ----- End of unmanaged code area for action  Security_managerYaml.createDAFuser
+        }
+        val resetpwdconfirm = resetpwdconfirmAction { (resetinfo: ConfirmResetPwdPayload) =>  
+            // ----- Start of unmanaged code area for action  Security_managerYaml.resetpwdconfirm
+            registrationService.resetPassword(resetinfo.token,resetinfo.newpwd) flatMap {
+              case Right(success) => Resetpwdconfirm200(success)
+              case Left(err) => Resetpwdconfirm500(err)
+            }
+            // ----- End of unmanaged code area for action  Security_managerYaml.resetpwdconfirm
         }
         val createIPAgroup = createIPAgroupAction { (group: Group) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.createIPAgroup
@@ -241,21 +249,19 @@ package security_manager.yaml {
         val sftp = sftpAction { (path_to_create: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.sftp
             val credentials = credentialManager.getCredentials(currentRequest)
-          /*
-            val tryPwd: Try[String]= cacheWrapper.getPwd(user_id) match {
-            case Some(path) => scala.util.Success(path)
-            case None => scala.util.Failure(new Throwable(s"cannot find user id $user_id"))
-          }*/
 
-          val result = credentials.flatMap { crd =>
-            val sftp = new SftpHandler(crd.username, crd.password, sftpHost)
-            sftp.mkdir(path_to_create)
-          }
+            if( credentialManager.isDafAdmin(currentRequest) || credentialManager.isDafEditor(currentRequest) ) {
+              val result = credentials.flatMap { crd =>
+                val sftp = new SftpHandler(crd.username, crd.password, sftpHost)
+                sftp.mkdir(path_to_create)
+              }
 
-          result match {
-            case scala.util.Success(path) => Sftp200(path)
-            case scala.util.Failure(ex) => Sftp500(Error(Some(404), Some(ex.getMessage), None))
-          }
+              result match {
+                case scala.util.Success(path) => Sftp200(path)
+                case scala.util.Failure(ex) => Sftp500(Error(Some(404), Some(ex.getMessage), None))
+              }
+            }else
+              Sftp500( Error(Option(1),Some("Permissions required"),None) )
             // ----- End of unmanaged code area for action  Security_managerYaml.sftp
         }
         val findSupersetOrgTables = findSupersetOrgTablesAction { (orgName: String) =>  
@@ -265,6 +271,17 @@ package security_manager.yaml {
               case Left(err) => FindSupersetOrgTables500(err)
             }
             // ----- End of unmanaged code area for action  Security_managerYaml.findSupersetOrgTables
+        }
+        val resetpwdrequest = resetpwdrequestAction { (resetMail: ResetPwdPayload) =>  
+            // ----- Start of unmanaged code area for action  Security_managerYaml.resetpwdrequest
+            registrationService.requestResetPwd(resetMail.mail) flatMap {
+            case Right(mailService) => mailService.sendResetPwdMail()
+            case Left(e) => Future {Left(e)}
+          } flatMap {
+            case Right(s) => Resetpwdrequest200(s)
+            case Left(err) => Resetpwdrequest500(err)
+          }
+            // ----- End of unmanaged code area for action  Security_managerYaml.resetpwdrequest
         }
         val listDAForganization = listDAForganizationAction {  _ =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.listDAForganization
@@ -301,14 +318,12 @@ package security_manager.yaml {
         }
         val registrationrequest = registrationrequestAction { (user: IpaUser) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.registrationrequest
-            val reg = registrationService.requestRegistration(user) flatMap {
-              case Right(mailService) => mailService.sendMail()
-              case Left(msg) => Future {Left(msg)}
-            }
-
-            reg flatMap {
-              case Right(msg) => Registrationrequest200(Success(Some("Success"), Some(msg)))
-              case Left(msg) => Registrationrequest500(Error(Option(1), Option(msg), None))
+            registrationService.requestRegistration(user) flatMap {
+              case Right(mailService) => mailService.sendRegistrationMail()
+              case Left(e) => Future {Left(e)}
+            } flatMap {
+              case Right(s) => Registrationrequest200(s)
+              case Left(err) => Registrationrequest500(err)
             }
             // ----- End of unmanaged code area for action  Security_managerYaml.registrationrequest
         }

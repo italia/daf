@@ -37,8 +37,13 @@ object IotIngestionManagerConfig {
   def getKuduConfig(configuration: Config): KuduConfig = {
 
     val masterAddresses = configuration.getStringOrException("kudu.master.addresses")
+    alogger.info(s"KUDU Master Address: $masterAddresses")
+
     val table = configuration.getStringOrException("kudu.events.table.name")
+    alogger.info(s"KUDU table: $table")
+
     val buckets = configuration.getStringOrException("kudu.events.table.numberOfBuckets").toInt
+    alogger.info(s"KUDU buckets: $buckets")
 
     KuduConfig(masterAddresses, table, buckets)
 

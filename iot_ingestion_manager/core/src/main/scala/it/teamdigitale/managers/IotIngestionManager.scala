@@ -38,7 +38,6 @@ object IotIngestionManager  {
     alogger.info(s"Starting Streaming without information on kafka partitioning")
     val stream = KafkaUtils.createDirectStream[Array[Byte], Array[Byte]](streamingContext, PreferConsistent, ConsumerStrategies.Subscribe[Array[Byte], Array[Byte]](Set(kafkaconfig.topic), kafkaParams))
 
-
     stream.print(10)
 
     stream.foreachRDD{ rdd =>
@@ -52,8 +51,6 @@ object IotIngestionManager  {
       val genericEventsDF = sc.createDataFrame(genericEventsRDD)
       HdfsEventsHandler.write(genericEventsDF, hdfsConfig)
 
-      streamingContext.start()
-      streamingContext.awaitTermination()
     }
   }
 

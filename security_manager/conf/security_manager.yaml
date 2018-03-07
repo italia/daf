@@ -281,6 +281,56 @@ paths:
           description: Error Message
           schema:
             $ref: '#/definitions/Error'
+
+  "/ipa/resetpwd/request":
+    post:
+      tags:
+        - IPA
+      description: Handle a password reset request
+      operationId: resetpwdrequest
+      produces:
+      - application/json
+      parameters:
+      - name: resetMail
+        in: body
+        description: user email
+        required: true
+        schema:
+          $ref: '#/definitions/ResetPwdPayload'
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+  "/ipa/resetpwd/confirm":
+    post:
+      tags:
+        - IPA
+      description: Confirm password reset
+      operationId: resetpwdconfirm
+      produces:
+      - application/json
+      parameters:
+      - name: resetinfo
+        in: body
+        description: token and new password
+        required: true
+        schema:
+          $ref: '#/definitions/ConfirmResetPwdPayload'
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+
   "/ipa/userbymail/{mail}":
     get:
       tags:
@@ -696,6 +746,26 @@ definitions:
         type: string
       tableName:
         description: table name
+        type: string
+  ResetPwdPayload:
+    type: object
+    required:
+      - mail
+    properties:
+      mail:
+        description: user mail address
+        type: string
+  ConfirmResetPwdPayload:
+    type: object
+    required:
+      - token
+      - newpwd
+    properties:
+      token:
+        description: reset password token
+        type: string
+      newpwd:
+        description: user new password
         type: string
   Error:
     properties:

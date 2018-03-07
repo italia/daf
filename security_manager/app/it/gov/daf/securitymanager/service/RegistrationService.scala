@@ -21,7 +21,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
   import play.api.libs.concurrent.Execution.Implicits._
   private val tokenGenerator = new BearerTokenGenerator
 
-
+/*
   def requestRegistration(userIn:IpaUser):Future[Either[String,MailService]] = {
 
     println("requestRegistration")
@@ -41,16 +41,66 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
     }
 
-  }
+  }*/
 
-  def checkUserNcreate(userIn:IpaUser):Future[Either[Error,Success]] = {
-
-    checkUserInfo(userIn) match{
-      case Left(l) => Future {Left( Error(Option(1),Some(l),None) )}
-      case Right(r) => checkMailUidNcreateUser(userIn)
+  private def adapt1[T](in:Either[String,T]):Future[Either[Error,T]]={
+    in match {
+      case Right(r) => Future{ Right(r) }
+      case Left(l) => Future{ Left( Error(Option(1),Some(l),None) )}
     }
 
   }
+
+  private def adapt0[T](in:Either[String,T]):Future[Either[Error,T]]={
+    in match {
+      case Right(r) => Future{ Right(r) }
+      case Left(l) => Future{ Left( Error(Option(0),Some(l),None) )}
+    }
+
+  }
+
+  def requestRegistration(userIn:IpaUser):Future[Either[Error,MailService]] = {
+
+    println("requestRegistration")
+
+    val result = for {
+      a <- EitherT( adapt1(checkUserInfo(userIn)) )
+      user = formatRegisteredUser(userIn)
+      b <- EitherT( checkRegistration(user.uid) )
+      c <- EitherT( checkUser(user) )
+      d <- EitherT( checkMail(user) )
+      f <- EitherT( adapt0(writeRequestNsendMail(user)(MongoService.writeUserData)) )
+    } yield f
+
+    result.value
+
+  }
+
+
+  def requestResetPwd(mail:String):Future[Either[Error,MailService]] = {
+
+    println("requestResetPwd")
+
+    val result = for {
+      user <- EitherT( apiClientIPA.findUserByMail(mail) )
+      b <- EitherT( checkResetPwd(mail) )
+      c <- EitherT( adapt0(writeRequestNsendMail(user)(MongoService.writeResetPwdData)) )
+    } yield c
+
+    result.value
+
+  }
+
+  private def checkResetPwd( mail:String ) = {
+
+    val result = MongoService.findResetPwdByMail(mail) match {
+      case Right(o) => Left("Reset password already requested")
+      case Left(o) => Right("Ok: not found")
+    }
+
+    adapt1(result)
+  }
+
 
   private def checkUserInfo(user:IpaUser):Either[String,String] ={
 
@@ -81,6 +131,26 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
   }
 
 
+  private def checkRegistration( uid:String ) = {
+
+    val result = MongoService.findUserByUid(uid) match {
+      case Right(o) => Left("Username already requested")
+      case Left(o) => Right("Ok: not found")
+    }
+
+    adapt1(result)
+  }
+
+  private def checkUser(user:IpaUser):Future[Either[Error,String]] = {
+
+    apiClientIPA.findUserByUid(user.uid) map {
+        case Right(r) => Left( Error(Option(1),Some("Username already registered"),None) )
+        case Left(l) => Right("ok")
+      }
+
+  }
+
+  /*
   private def checkUserNregister(user:IpaUser):Future[Either[String,MailService]] = {
 
     apiClientIPA.findUserByUid(user.uid) flatMap { result =>
@@ -92,33 +162,52 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
     }
 
+  }*/
+
+  private def checkMail(user:IpaUser):Future[Either[Error,String]] = {
+
+    apiClientIPA.findUserByMail(user.mail)  map {
+      case Right(r) => Left( Error(Option(1),Some("Mail already registered"),None) )
+      case Left(l) => Right("ok")
+    }
+
   }
 
-
+  /*
   private def checkMailNregister(user:IpaUser):Future[Either[String,MailService]] = {
 
     apiClientIPA.findUserByMail(user.mail) flatMap { result =>
 
       result match{
         case Right(r) => Future { Left("Mail already registered") }
-        case Left(l) => Future { Right(registration(user)) }
+        case Left(l) => Future { writeRequest(user)(MongoService.writeUserData) }
       }
 
     }
 
-  }
+  }*/
 
 
-  private def registration(user:IpaUser):MailService = {
+  private def writeRequestNsendMail(user:IpaUser)(writeData:(IpaUser,String)=>Either[String,String]) : Either[String,MailService] = {
 
+    println("writeRequestNsendMail")
     val token = tokenGenerator.generateMD5Token(user.uid)
 
-    MongoService.writeUserData(user,token)
-
-    new MailService(user.mail,token)
+    writeData(user,token) match{
+      case Right(r) => Right(new MailService(user.mail,token))
+      case Left(l) => Left("Error writing in mongodb ")
+    }
 
   }
 
+  def checkUserNcreate(userIn:IpaUser):Future[Either[Error,Success]] = {
+
+    checkUserInfo(userIn) match{
+      case Left(l) => Future {Left( Error(Option(1),Some(l),None) )}
+      case Right(r) => checkMailUidNcreateUser(userIn)
+    }
+
+  }
 
   def createUser(token:String): Future[Either[Error,Success]] = {
 
@@ -129,12 +218,35 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   }
 
+  def resetPassword(token:String,newPassword:String): Future[Either[Error,Success]] = {
+
+    val result = for {
+      uid <- EitherT( readUidFromResetPwdRequest(token) )
+      resetResult <- EitherT( apiClientIPA.resetPwd(uid))
+      c <- EitherT( apiClientIPA.changePassword(uid,resetResult.fields.get,newPassword) )
+    } yield c
+
+    result.value
+
+  }
+
+  private def readUidFromResetPwdRequest(token:String) : Future[Either[Error,String]] = {
+    MongoService.findAndRemoveResetPwdByToken(token) match{
+      case Right(json) => (json \ "uid").asOpt[String] match {
+        case Some(u) => Future{Right(u)}
+        case None => Future{ Left( Error(Option(0),Some("Reset password: error in data reading "),None) )}
+      }
+      case Left(l) => Future{ Left( Error(Option(1),Some("Reset password request not found"),None) )}
+    }
+  }
+
   private def checkNcreateUser(json:JsValue):Future[Either[Error,Success]] = {
 
+    println("checkNcreateUser input json: "+json)
     val result = json.validate[IpaUser]
     result match {
       case s: JsSuccess[IpaUser] =>  checkMailUidNcreateUser(s.get)
-      case e: JsError => Future{ Left( Error(Option(0),Some("Error during user data conversion"),None) )}
+      case e: JsError => println("data conversion errors"+e.errors); Future{ Left( Error(Option(0),Some("Error during user data conversion"),None) )}
     }
 
   }

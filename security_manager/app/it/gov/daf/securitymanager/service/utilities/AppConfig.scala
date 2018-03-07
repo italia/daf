@@ -19,6 +19,7 @@ private class AppConfig @Inject()(playConfig: Configuration) {
   //val localUrl :Option[String] = playConfig.getString("app.local.url")
 
   val registrationUrl :Option[String] = playConfig.getString("app.registration.url")
+  val resetPwdUrl :Option[String] = playConfig.getString("app.resetpwd.url")
   val ipaUrl :Option[String] = playConfig.getString("ipa.url")
   val ipaUser :Option[String] = playConfig.getString("ipa.user")
   val ipaUserPwd :Option[String] = playConfig.getString("ipa.userpwd")
@@ -70,6 +71,9 @@ object ConfigReader {
   require(config.grafanaAdminUser.nonEmpty,"A grafana admin must be specified")
   require(config.grafanaAdminPwd.nonEmpty,"A grafana admin password must be specified")
 
+  require(config.registrationUrl.nonEmpty,"A registration url must be specified")
+  require(config.resetPwdUrl.nonEmpty,"A reset password url must be specified")
+
   require(config.kyloUrl.nonEmpty,"A kylo url must be specified")
   require(config.kyloUser.nonEmpty,"A kylo user must be specified")
   require(config.kyloUserPwd.nonEmpty,"A kylo user password must be specified")
@@ -84,9 +88,9 @@ object ConfigReader {
   def database :String = config.database.getOrElse("security_manager")
   def password :String = config.password.getOrElse("")
   def userName :String = config.userName.getOrElse("")
-  //def localUrl :String = config.localUrl.getOrElse("http://localhost:9001")
 
-  def registrationUrl :String = config.registrationUrl.getOrElse("http://localhost:3000/confirmregistration?t=")
+  def registrationUrl :String = config.registrationUrl.get
+  def resetPwdUrl :String = config.resetPwdUrl.get
   def ipaUrl :String = config.ipaUrl.getOrElse("xxx")
   def ipaUser :String = config.ipaUser.getOrElse("xxx")
   def ipaUserPwd :String = config.ipaUserPwd.getOrElse("xxx")

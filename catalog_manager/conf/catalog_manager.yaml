@@ -151,7 +151,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  "/catalog-ds/getbytitle/{title}":
+  "/catalog-ds/getbyname/{name}":
     get:
       #security:
       #- basicAuth: []
@@ -160,13 +160,13 @@ paths:
         DatasetCatalog data
       tags:
         - DatasetCatalog
-      operationId: datasetcatalogbytitle
+      operationId: datasetcatalogbyname
       parameters:
-            - name: title
-              in: path
-              description: Name of catalog
-              required: true
-              type: string
+        - name: name
+          in: path
+          description: Name of catalog
+          required: true
+          type: string
       responses:
         200:
           description: A Catalog

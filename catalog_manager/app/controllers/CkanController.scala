@@ -108,7 +108,7 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
         wsClient.url(CKAN_URL + "/api/3/action/package_create").withHeaders("Cookie" -> cookie).post(jsonString)
       }
 
-      secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callCreateDataset)map { Ok(_) }
+      secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callCreateDataset).map { r => Ok(r.body) }
 
     }
   }
@@ -125,7 +125,7 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
       wsClient.url(CKAN_URL + "/api/3/action/package_update?id=" + datasetId).withHeaders("Cookie" -> cookie).post(json)
     }
 
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callUpdateDataset)map { Ok(_) }
+    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callUpdateDataset)map { r => Ok(r.body) }
 
   }
 
@@ -143,7 +143,7 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
 
     }
 
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callDeleteDataset)map { Ok(_) }
+    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callDeleteDataset)map { r => Ok(r.body) }
 
   }
 
@@ -161,7 +161,7 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
       wsClient.url(url).withHeaders("Cookie" -> cookie).post(body)
     }
 
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callPurgeDataset)map { Ok(_) }
+    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callPurgeDataset)map { r => Ok(r.body) }
   }
 
 
@@ -179,7 +179,7 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
       wsClient.url(CKAN_URL + "/api/3/action/organization_create").withHeaders("Cookie" -> cookie).post(json)
     }
 
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callCreateOrganization)map { Ok(_) }
+    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callCreateOrganization)map { r => Ok(r.body) }
 
   }
 
@@ -206,7 +206,7 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
       wsClient.url(CKAN_URL + "/api/3/action/user_create").withHeaders("Cookie" -> cookie).post(json)
     }
 
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callCreateUser)map { Ok(_) }
+    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callCreateUser)map { r => Ok(r.body) }
 
   }
 
@@ -220,7 +220,7 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
       wsClient.url(url).withHeaders("Cookie" -> cookie).get
     }
 
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callGetUser)map { Ok(_) }
+    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callGetUser)map { r => Ok(r.body) }
 
   }
 
@@ -238,7 +238,7 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
       wsClient.url(url).withHeaders("Cookie" -> cookie).get
     }
 
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callGetUserOrganizations)map { Ok(_) }
+    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callGetUserOrganizations)map { r => Ok(r.body) }
 
   }
 
@@ -252,7 +252,7 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
       wsClient.url(url).withHeaders("Cookie" -> cookie).get
     }
 
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callGetOrganization)map { Ok(_) }
+    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callGetOrganization)map { r => Ok(r.body) }
 
   }
 
@@ -269,7 +269,7 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
       wsClient.url(url).withHeaders("Cookie" -> cookie).post(json)
     }
 
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callUpdateOrganization)map { Ok(_) }
+    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callUpdateOrganization)map { r => Ok(r.body) }
 
   }
 
@@ -285,7 +285,7 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
       wsClient.url(url).withHeaders("Cookie" -> cookie).post(json)
     }
 
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callPatchOrganization)map { Ok(_) }
+    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callPatchOrganization)map { r => Ok(r.body) }
 
   }
 
@@ -303,7 +303,7 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
       wsClient.url(url).withHeaders("Cookie" -> cookie).post(body)
     }
 
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callDeleteOrganization)map { Ok(_) }
+    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callDeleteOrganization)map { r => Ok(r.body) }
   }
 
 
@@ -319,7 +319,7 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
       wsClient.url(url).withHeaders("Cookie" -> cookie).post(body)
     }
 
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callPurgeOrganization)map { Ok(_) }
+    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callPurgeOrganization)map { r => Ok(r.body) }
   }
 
 
@@ -331,7 +331,7 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
       wsClient.url(CKAN_URL + "/api/3/action/package_list").withHeaders("Cookie" -> cookie).get
     }
 
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callGetDatasetList)map { Ok(_) }
+    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callGetDatasetList)map { r => Ok(r.body) }
   }
 
 
@@ -349,7 +349,7 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
       wsClient.url(url).withHeaders("Cookie" -> cookie).get
     }
 
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callDatasetListWithResources)map { Ok(_) }
+    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callDatasetListWithResources)map { r => Ok(r.body) }
   }
 
 
@@ -361,7 +361,7 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
       wsClient.url(CKAN_URL + "/api/3/action/organization_list").withHeaders("Cookie" -> cookie).get
     }
 
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callGetOrganizationList)map { Ok(_) }
+    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callGetOrganizationList)map { r => Ok(r.body) }
 
   }
 
@@ -378,7 +378,7 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
       wsClient.url(url).withHeaders("Cookie" -> cookie).get
     }
 
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callSearchDataset)map { Ok(_) }
+    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callSearchDataset)map { r => Ok(r.body) }
 
   }
 
@@ -394,7 +394,7 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
       wsClient.url(url).withHeaders("Cookie" -> cookie).get
     }
 
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), autocompleteDataset)map { Ok(_) }
+    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), autocompleteDataset)map { r => Ok(r.body) }
 
   }
 
@@ -408,7 +408,7 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
       wsClient.url(url).withHeaders("Cookie" -> cookie).get
     }
 
-    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callGetOganizationRevisionList)map { Ok(_) }
+    secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callGetOganizationRevisionList)map { r => Ok(r.body) }
   }
 
 
@@ -431,7 +431,7 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
         wsClient.url(url).withHeaders("Cookie" -> cookie).get
       }
 
-      secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callGetDataset)map { Ok(_) }
+      secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callGetDataset)map { r => Ok(r.body) }
     }
 
   }

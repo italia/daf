@@ -21,27 +21,6 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
   import play.api.libs.concurrent.Execution.Implicits._
   private val tokenGenerator = new BearerTokenGenerator
 
-/*
-  def requestRegistration(userIn:IpaUser):Future[Either[String,MailService]] = {
-
-    println("requestRegistration")
-
-    checkUserInfo(userIn) match{
-
-      case Left(l) => Future {Left(l)}
-      case Right(r) => {
-
-        val user = formatRegisteredUser(userIn)
-        MongoService.findUserByUid(user.uid) match {
-          case Right(o) => Future{Left("Username already requested")}
-          case Left(o) => checkUserNregister(user)
-        }
-
-      }
-
-    }
-
-  }*/
 
   private def adapt1[T](in:Either[String,T]):Future[Either[Error,T]]={
     in match {
@@ -150,19 +129,6 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   }
 
-  /*
-  private def checkUserNregister(user:IpaUser):Future[Either[String,MailService]] = {
-
-    apiClientIPA.findUserByUid(user.uid) flatMap { result =>
-
-      result match{
-        case Right(r) => Future { Left("Username already registered") }
-        case Left(l) => checkMailNregister(user)
-      }
-
-    }
-
-  }*/
 
   private def checkMail(user:IpaUser):Future[Either[Error,String]] = {
 
@@ -172,20 +138,6 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
     }
 
   }
-
-  /*
-  private def checkMailNregister(user:IpaUser):Future[Either[String,MailService]] = {
-
-    apiClientIPA.findUserByMail(user.mail) flatMap { result =>
-
-      result match{
-        case Right(r) => Future { Left("Mail already registered") }
-        case Left(l) => Future { writeRequest(user)(MongoService.writeUserData) }
-      }
-
-    }
-
-  }*/
 
 
   private def writeRequestNsendMail(user:IpaUser)(writeData:(IpaUser,String)=>Either[String,String]) : Either[String,MailService] = {
@@ -257,27 +209,27 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
       result match{
         case Right(r) => Future {Left(Error(Option(1), Some("Username already registered"), None))}
-        case Left(l) => checkMailNcreateUser(user)
+        case Left(l) => checkMailNcreateUser(user,false)
       }
 
     }
   }
 
 
-  private def checkMailNcreateUser(user:IpaUser):Future[Either[Error,Success]] = {
+  def checkMailNcreateUser(user:IpaUser,isPredefinedOrgUser:Boolean):Future[Either[Error,Success]] = {
 
     apiClientIPA.findUserByMail(user.mail) flatMap { result =>
 
       result match{
         case Right(r) => Future {Left(Error(Option(1), Some("Mail address already registered"), None))}
-        case Left(l) =>  createUser(user,false)
+        case Left(l) =>  createUser(user,isPredefinedOrgUser)
       }
 
     }
   }
 
 
-  def createUser(user:IpaUser, isPredefinedOrgUser:Boolean):Future[Either[Error,Success]] = {
+  private def createUser(user:IpaUser, isPredefinedOrgUser:Boolean):Future[Either[Error,Success]] = {
 
     //val userId = UserList(Option(Seq(user.uid)))
 

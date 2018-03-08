@@ -34,7 +34,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
     val result = for {
       a <- step( Try{apiClientIPA.createGroup(dafOrg.groupCn)} )
-      b <- step( a, Try{registrationService.createUser(predefinedOrgIpaUser,true)} )
+      b <- step( a, Try{registrationService.checkMailNcreateUser(predefinedOrgIpaUser,true)} )
       c <- step( b, Try{supersetApiClient.createDatabase(toSupersetDS(groupCn),predefinedOrgIpaUser.uid,dafOrg.predefinedUserPwd,dafOrg.supSetConnectedDbName)} )
       d <- stepOver( c, Try{kyloApiClient.createCategory(dafOrg.groupCn)} )
 

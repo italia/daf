@@ -80,7 +80,7 @@ package object EventModel {
         version = a.version,
         id = a.id,
         ts = a.ts,
-        day = TimeUnit.MILLISECONDS.toDays(a.ts),
+        day = new SimpleDateFormat("ddMMyyyy").format(new Date(a.ts)),
         temporal_granularity = a.temporal_granularity,
         event_certainty = a.event_certainty,
         event_type_id = a.event_type_id,

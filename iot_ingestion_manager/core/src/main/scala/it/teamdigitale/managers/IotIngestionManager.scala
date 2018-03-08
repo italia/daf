@@ -84,7 +84,7 @@ object IotIngestionManager  {
 
     tryIterator.filter(x => x.isFailure).take(10).foreach{case Failure(error) => alogger.error(error.getMessage)}
 
-    val cachedRDD = tryIterator.flatMap(_.toOption).cache()
+    //val cachedRDD = tryIterator.flatMap(_.toOption).cache()
     val metricsRDD = cachedRDD.filter(_.event_type_id != 2)
 
     // filter generic events

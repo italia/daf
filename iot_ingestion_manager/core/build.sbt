@@ -71,34 +71,7 @@ libraryDependencies ++= Seq(
 avroSpecificScalaSource in Compile := new java.io.File(s"${baseDirectory.value}/src/generated/scala")
 sourceGenerators in Compile += (avroScalaGenerateSpecific in Compile).taskValue
 
-enablePlugins(UniversalPlugin)
-enablePlugins(JavaAppPackaging)
+enablePlugins(UniversalPlugin, JavaAppPackaging)
 
-//universal plugin setting
-//name in Universal := name.value
-
-
-// docker building info
-//dockerBaseImage := "anapsix/alpine-java:8_jdk_unlimited"
-//
-//dockerCommands := dockerCommands.value.flatMap {
-//  case cmd@Cmd("FROM", _) => List(cmd,
-//    Cmd("RUN", "apk update && apk add bash krb5-libs krb5"),
-//    Cmd("RUN", "ln -sf /etc/krb5.conf /opt/jdk/jre/lib/security/krb5.conf")
-//  )
-//  case other => List(other)
-//}
-//
-//dockerEntrypoint := Seq(s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
-//
-//dockerRepository := Option("10.98.74.120:5000")
-//
-//publishTo in ThisBuild := {
-//  val nexus = "http://nexus.default.svc.cluster.local:8081/repository/"
-//  if (isSnapshot.value)
-//    Some("snapshots" at nexus + "maven-snapshots/")
-//  else
-//    Some("releases" at nexus + "maven-releases/")
-//}
 
 credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")

@@ -14,15 +14,27 @@ curl -i -X POST \
 
 curl -i -X POST \
   --url http://kong-admin.default.svc.cluster.local:8001/apis/ \
-  --data 'name=daf-security-manager' \
-  --data 'uris=/security-manager' \
-  --data 'upstream_url=http://security-manager.default.svc.cluster.local:9000/security-manager'
+  --data 'name=daf-security-manager-ipa' \
+  --data 'uris=/security-manager/v1/ipa' \
+  --data 'upstream_url=http://security-manager.default.svc.cluster.local:9000/security-manager/v1/ipa'
+
+curl -i -X POST \
+  --url http://kong-admin.default.svc.cluster.local:8001/apis/ \
+  --data 'name=daf-security-manager-daf' \
+  --data 'uris=/security-manager/v1/daf' \
+  --data 'upstream_url=http://security-manager.default.svc.cluster.local:9000/security-manager/v1/daf'
+
+curl -i -X POST \
+  --url http://kong-admin.default.svc.cluster.local:8001/apis/ \
+  --data 'name=daf-security-manager-token' \
+  --data 'uris=/security-manager/v1/token' \
+  --data 'upstream_url=http://security-manager.default.svc.cluster.local:9000/security-manager/v1/token'
 
  curl -i -X POST \
  --url http://kong-admin.default.svc.cluster.local:8001/apis/ \
  --data 'name=daf-sso-manager' \
- --data 'uris=/sso-manager' \
- --data 'upstream_url=http://security-manager.default.svc.cluster.local:9000/sso-manager'
+ --data 'uris=/sso-manager/secured' \
+ --data 'upstream_url=http://security-manager.default.svc.cluster.local:9000/sso-manager/secured'
 
  curl -i -X POST \
  --url http://kong-admin.default.svc.cluster.local:8001/apis/ \

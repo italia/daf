@@ -48,7 +48,7 @@ import it.gov.daf.common.sso.common.CredentialManager
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-
+    
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -178,7 +178,7 @@ package catalog_manager.yaml {
             // NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.standardsuri
         }
-        val datasetcatalogbyname = datasetcatalogbynameAction { (name: String) =>
+        val datasetcatalogbyname = datasetcatalogbynameAction { (name: String) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbyname
             val catalog = ServiceRegistry.catalogService.catalogByName(name)
 
@@ -454,7 +454,6 @@ package catalog_manager.yaml {
         val startKyloFedd = startKyloFeddAction { input: (String, MetaCatalog) =>
             val (file_type, feed) = input
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.startKyloFedd
-
             val skipHeader = file_type match {
                 case "csv" => true
                 case "json" => false

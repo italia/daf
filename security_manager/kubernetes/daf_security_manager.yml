@@ -85,9 +85,6 @@ spec:
           mountPath: /opt/docker/conf/production.conf
           subPath: security-manager/conf/production.conf
           readOnly: true
-          mountPath: /opt/docker/conf/prodBase.conf
-          subPath: security-manager/conf/prodBase.conf
-          readOnly: true
         #- name: hosts
           #mountPath: /etc/extra_hosts
         - name: krb5conf

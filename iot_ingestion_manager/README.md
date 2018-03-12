@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-This project  ingests IoT data from a Kafka queue and store them into HDFS and KUDU. All data coming from Kafka are represented as  `Event` and are stored in HDFS, KUSU as  [`HdfsEvent`](), [`KuduEvent`]() (respectively).
+This project  ingests IoT data from a Kafka queue and store them into HDFS and KUDU. All data coming from Kafka are represented as  `Event` and are stored in HDFS, KUSU as  [`HdfsEvent`](https://github.com/italia/daf/blob/master/iot_ingestion_manager/src/main/scala/it/teamdigitale/events/package.scala), [`KuduEvent`](https://github.com/italia/daf/blob/master/iot_ingestion_manager/src/main/scala/it/teamdigitale/events/package.scala) (respectively).
 
 The ingestion is processed real time using Spark Streaming .
 
@@ -54,7 +54,7 @@ export SPARK_KAFKA_VERSION=0.10
  --jars $JARS it.teamdigitale.iotingestionmanager-2.0.0.jar
 ```
 Note that:
-* *--properties-file* option set extra Spark properties. [Here]() an example of spark property file; 
+* *--properties-file* option set extra Spark properties. [Here](https://github.com/italia/daf/blob/master/iot_ingestion_manager/src/main/resources/spark.conf) an example of spark property file; 
 * *--files* option distributes input files on driver and executor machines
 * *--jars* is a comma-separated list of local jars to include on the driver’s and executors' classpaths
 

@@ -99,8 +99,8 @@ In the following we describe common query that user can do on the Event table:
 * Get all events in a given temporal range;
 
 To optimize the above query we identify the following primary keys:
-*	source: id of the entity that originated this event (e.g. url of web service). 
-*	event_subtype_id: It's an additional field that can be used to additionally qualify the event. It is used with source attribute for identifying uniquely a timeseries.
-*	ts: epoch timestamp in milliseconds. 
+*	`source`: id of the entity that originated this event (e.g. url of web service). 
+*	`event_subtype_id`: It's an additional field that can be used to additionally qualify the event. It is used with source attribute for identifying uniquely a timeseries.
+*	`ts`: epoch timestamp in milliseconds. 
 
 Finally we use source and ts as indices.

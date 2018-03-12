@@ -1,29 +1,6 @@
-resolvers += Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns)
+addSbtPlugin("com.julianpeeters" % "sbt-avrohugger" % "2.0.0-RC2")
 
-resolvers += "zalando-bintray"  at "https://dl.bintray.com/zalando/maven"
+addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.3.2")
 
-resolvers += "scalaz-bintray"   at "http://dl.bintray.com/scalaz/releases"
+addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.9.0")
 
-resolvers += Resolver.url("hmrc-sbt-plugin-releases", url("https://dl.bintray.com/hmrc/sbt-plugin-releases"))(Resolver.ivyStylePatterns)
-
-addSbtPlugin("uk.gov.hmrc" % "sbt-git-stamp" % "5.3.0")
-
-addSbtPlugin("com.typesafe.play" % "sbt-plugin"  % "2.5.16")
-
-addSbtPlugin("de.zalando" % "sbt-api-first-hand" % "0.2.3")
-
-addSbtPlugin("eu.unicredit" % "sbt-swagger-codegen" % "0.0.9")
-
-addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.2.0-M9")
-
-addSbtPlugin("org.wartremover" % "sbt-wartremover" % "2.0.3")
-
-addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.3.0")
-
-addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.8.2")
-
-addSbtPlugin("de.heikoseeberger" % "sbt-header" % "2.0.0")
-
-addSbtPlugin("com.julianpeeters" % "sbt-avrohugger" % "0.16.0")
-
-addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.5")

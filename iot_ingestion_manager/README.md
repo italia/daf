@@ -78,12 +78,32 @@ The IoT Ingestion Manager handles all IoT events ingested within DAF. In particu
 - a changing state event (e.g. event on/off of a sensor) 
 - a generic event (e.g. unstructured information send by a sensor). 
 
-All events coming from Kafka have a common structure: `Event`. Then, they are processed and transformed to the appropriate format for HDFS and KUDU.
+All events coming from Kafka have a common structure: `Event`. In the following we describe its schema:
+
+| Name        | Description           | Type  |  Optional  |
+| ------------- |:-------------:| -----:|-----:|
+| version      | Version of this schema | Long | No
+| id      | A globally unique identifier for an event      |   String | No
+| ts      | Epoch timestamp in milliseconds      |   Long | No
+| temporal_granularity | Measurement unit (e.g. second, minute, hour, day)  | String|    Yes |
+| event_certainty | estimation of the certainty of this particular event \[0,1\]   | Double  |    Yes |
+| source | Name of the entity that originated this event|    String | No
+| event_type_id | Type of event: *0* for metric event; *1* for changing state events; *2* for generic events     |Integer|    No|
+| event_subtype_id |  It is used with *source* attribute for identifying uniquely a timeseries      |    String | Yes
+| event_annotation | free-text explanation of what happened in this particular event| String|  Yes |
+| location | Location from which the event was generated (i.e. lat-lng)  |    String | No
+| body | Raw event content in bytes     |Bytes|    Yes |
+| attributes |Event type-specific key/value pairs   | Map |  No |
+
+
+
+
+When a event is ingested, it is processed and transformed to the appropriate format for HDFS and KUDU.
 
 Finally, users can analyze stored data via Impala and Spark.
 
 ### HDFS Schema Design
-All IoT events are stored in HDFS, In particular, they are partitioned by `source` and `day`.  This improves query performance based on these fields.
+All IoT events are stored in HDFS, In particular, they are partitioned by `source` and `day` (generated from `ts` field).  This improves query performance based on these fields.
 
 ### Kudu Schema Design
 Kudu tables have a structured data model similar to tables in a traditional RDBMS. Our Event Table is designed considering the following best practices:

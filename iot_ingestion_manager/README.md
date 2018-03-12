@@ -61,9 +61,13 @@ Note that:
 ## Technologies involved
 
 **Apache Kudu** does incremental inserts of the events. Its aim is to provide a hybrid storage layer between HDFS (leveraging its very fast scans of large datasets) and HBase (leveraging its fast primary key inserts/lookups). Kudu can provide much faster scans of data for analytics, compliments of its columnar storage architecture.
+
 **Apache HDFS** all IoT data are stored into HDFS.
+
 **Apache Kafka** allows us to abstract the data ingestion in a scalable way, versus tightly. coupling it to the Spark streaming framework (which would have allowed only a single purpose). Kafka is attractive for its ability to scale to millions of events per second, and its ability to integrate well with many technologies like Spark Streaming.
+
 **Spark Streaming** is able to represent complex event processing workflows with very few lines of code (in this case using Scala).
+
 **Impala** enables us to easily analyze data that is being used in an ad-hoc manner. I used it as a query engine to directly query the data that I had loaded into Kudu to help understand the patterns I could use to build a model. 
 
 

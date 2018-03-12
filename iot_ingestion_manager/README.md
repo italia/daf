@@ -70,6 +70,7 @@ Note that:
 
 **Impala** enables us to easily analyze data that is being used in an ad-hoc manner. I used it as a query engine to directly query the data that I had loaded into Kudu to help understand the patterns I could use to build a model. 
 
+![alt text](https://github.com/italia/daf/blob/master/iot_ingestion_manager/doc/technologies.png)
 
 ## Data Flow Description
 The IoT Ingestion Manager handles all IoT events ingested within DAF. In particular, each IoT event could be:

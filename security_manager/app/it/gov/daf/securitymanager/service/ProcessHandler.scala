@@ -5,13 +5,13 @@ import security_manager.yaml.{Error, Success}
 
 import scala.concurrent.Future
 import scala.util.Try
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 case class SuccessWrapper(success:Success, steps:Int )
 case class ErrorWrapper(error:Error, steps:Int)
 
-package object ProcessHandler {
 
-  import play.api.libs.concurrent.Execution.Implicits._
+package object ProcessHandler {
 
 
   def step( tryresp:Try[Future[Either[Error,Success]]] ): EitherT[Future,ErrorWrapper,SuccessWrapper] = step(SuccessWrapper(Success(None,None),0),tryresp)

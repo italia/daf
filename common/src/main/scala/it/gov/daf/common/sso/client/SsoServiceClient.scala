@@ -16,15 +16,14 @@
 
 package it.gov.daf.common.sso.client
 
-  import akka.actor.ActorSystem
-  import akka.stream.ActorMaterializer
+
   import it.gov.daf.common.utils.WebServiceUtil
   import play.api.libs.json._
   import play.api.libs.ws.WSClient
-  import play.api.libs.ws.ahc.AhcWSClient
   import play.api.mvc.Cookie
 
   import scala.concurrent.Future
+  import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
   @SuppressWarnings(
     Array(
@@ -34,35 +33,9 @@ package it.gov.daf.common.sso.client
   )
   object SsoServiceClient {
 
-    import scala.concurrent.ExecutionContext.Implicits._
-
-    /*
-    private implicit val system = ActorSystem()
-    private implicit val materializer = ActorMaterializer()
-    */
 
     private implicit val cookieReads = Json.reads[Cookie]
 
-  /*
-    def registerInternal(host:String, username:String, password:String):Future[String]= {
-
-      val wsClient = AhcWSClient()
-      registerInternal(host,username,password,wsClient)
-        .andThen { case _ => wsClient.close() }
-        .andThen { case _ => system.terminate() }
-
-    }
-
-
-    def retriveCookieInternal(host:String, username:String,appName:String):Future[Cookie] =  {
-
-      val wsClient = AhcWSClient()
-      retriveCookieInternal(host,username,appName,wsClient)
-        .andThen { case _ => wsClient.close() }
-        .andThen { case _ => system.terminate() }
-
-    }
-  */
 
     def registerInternal(host:String, username:String, password:String, wsClient:WSClient):Future[String]= {
 

@@ -8,5 +8,5 @@ object Versions {
 
   val betterFilesVersion = "2.17.1"
 
-  val dafCommonVersion = sys.env.get("COMMON_VERSION").getOrElse("1.0.5-SNAPSHOT")
+  val dafCommonVersion = sys.env.get("COMMON_VERSION").getOrElse("1.0.6-SNAPSHOT")
 }

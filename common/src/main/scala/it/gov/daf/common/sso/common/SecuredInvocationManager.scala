@@ -22,6 +22,7 @@ import play.api.libs.json._
 import play.api.libs.ws.{WSClient, WSResponse}
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
+import play.api.Logger
 
 @SuppressWarnings(
   Array(
@@ -35,14 +36,14 @@ import scala.util.{Failure, Success, Try}
 @Singleton
 class SecuredInvocationManager @Inject()(loginClient:LoginClient, cacheWrapper: CacheWrapper, wsCli: WSClient ) {
 
-  import scala.concurrent.ExecutionContext.Implicits._
+  import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 
   type ServiceFetch = (String,WSClient)=> Future[WSResponse]
 
   private def callService(loginInfo:LoginInfo, serviceFetch:ServiceFetch):Future[WSResponse] = {
 
-    println(s"callService ($loginInfo)")
+    Logger.logger.debug(s"callService ($loginInfo)")
 
     val cookieOpt = cacheWrapper.getCookie(loginInfo.appName,loginInfo.user)
 
@@ -53,20 +54,20 @@ class SecuredInvocationManager @Inject()(loginClient:LoginClient, cacheWrapper: 
         cacheWrapper.putCookie(loginInfo.appName,loginInfo.user,cookie)
 
         val cookieString = cookie.name+"="+cookie.value
-        serviceFetch(cookieString, wsCli).map{ response =>
-          println(s"RESPONSE1 ($loginInfo):${response.body}")
+        serviceFetch(cookieString, wsCli)/*.map{ response =>
+          Logger.logger.debug(s"RESPONSE1 ($loginInfo):${response.body}")
           response
-        }
+        }*/
 
       }
 
     else {
 
       val cookieString = cookieOpt.get.name+"="+cookieOpt.get.value
-      serviceFetch(cookieString, wsCli).map { response =>
-        println(s"RESPONSE2 ($loginInfo): ${response.body}")
+      serviceFetch(cookieString, wsCli)/*.map { response =>
+        Logger.logger.debug(s"RESPONSE2 ($loginInfo): ${response.body}")
         response
-      }
+      }*/
 
     }
 
@@ -100,15 +101,15 @@ class SecuredInvocationManager @Inject()(loginClient:LoginClient, cacheWrapper: 
 
   def manageServiceCall( loginInfo:LoginInfo, serviceFetch:ServiceFetch ) : Future[WSResponse] = {
 
-    println(s"manageServiceCall ($loginInfo)")
+    Logger.logger.debug(s"manageServiceCall ($loginInfo)")
 
     callService(loginInfo,serviceFetch) flatMap {response =>
 
-      println(s"RESPONSE STATUS($loginInfo): ${response.status}")
-      println(s"RESPONSE BODY ($loginInfo) ${response.body}")
+      Logger.logger.debug(s"RESPONSE STATUS(Applicazione:${loginInfo.appName}): ${response.status}")
+      Logger.logger.debug(s"RESPONSE BODY (Applicazione:${loginInfo.appName}) ${response.body}")
 
       if(response.status == 401){
-        println("Unauthorized!!")
+        Logger.logger.warn("Unauthorized!!")
         cacheWrapper.deleteCookie(loginInfo.appName,loginInfo.user)
         callService(loginInfo,serviceFetch)
       }else

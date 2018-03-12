@@ -13,12 +13,14 @@ import scala.concurrent.Future
 class Kylo @Inject()(ws :WSClient, config: ConfigurationProvider){
 
   val KYLOURL = config.get.getString("kylo.url").get
+  val KYLOUSER = config.get.getString("kylo.user").getOrElse("dladmin")
+  val KYLOPWD = config.get.getString("kylo.password").getOrElse("XXXXXXXXXXX")
 
   import scala.concurrent.ExecutionContext.Implicits._
 
   private def templateIdByName(templateName :String): Future[Option[String]] = {
     ws.url(KYLOURL + "/api/v1/feedmgr/templates/registered")
-      .withAuth("dladmin", "Th1nkB1g", scheme = WSAuthScheme.BASIC)
+      .withAuth(KYLOUSER, KYLOPWD, scheme = WSAuthScheme.BASIC)
       .get()
       .map { resp =>
         val js: JsValue = resp.json
@@ -38,7 +40,7 @@ class Kylo @Inject()(ws :WSClient, config: ConfigurationProvider){
     val idExt = id.getOrElse("")
     val url = s"/api/v1/feedmgr/templates/registered/$idExt?allProperties=true&feedEdit=true"
     ws.url(KYLOURL + url)
-      .withAuth("dladmin", "Th1nkB1g", scheme = WSAuthScheme.BASIC)
+      .withAuth(KYLOUSER, KYLOPWD, scheme = WSAuthScheme.BASIC)
       .get().map { resp =>
       val templates = resp.json
       val templatesEditable = (templates \ "properties").as[List[JsValue]]
@@ -51,14 +53,16 @@ class Kylo @Inject()(ws :WSClient, config: ConfigurationProvider){
     }
   }
 
-  private def webServiceTemplates(id :Option[String], fileType: String, feed :MetaCatalog): Future[(JsValue, List[JsObject])]
+  private def webServiceTemplates(id :Option[String],
+                                  fileType: String,
+                                  feed :MetaCatalog): Future[(JsValue, List[JsObject])]
   = {
     val idExt = id.getOrElse("")
     val url = s"/api/v1/feedmgr/templates/registered/$idExt?allProperties=true&feedEdit=true"
     val testWs  = feed.operational.input_src.srv_pull.get.head.url
     val nameExp = feed.dcatapit.name + """_${now():format('yyyyMMddHHmmss')}"""
     ws.url(KYLOURL + url)
-      .withAuth("dladmin", "Th1nkB1g", scheme = WSAuthScheme.BASIC)
+      .withAuth(KYLOUSER, KYLOPWD, scheme = WSAuthScheme.BASIC)
       .get().map { resp =>
       val templates = resp.json
       val templatesEditable  = (templates \ "properties").as[List[JsValue]]
@@ -70,6 +74,34 @@ class Kylo @Inject()(ws :WSClient, config: ConfigurationProvider){
           case "Filename" => temp.transform(KyloTrasformers.transformTemplates(nameExp)).get
           case "Username" => temp.transform(KyloTrasformers.transformTemplates("dsda")).get
           case "Password" => temp.transform(KyloTrasformers.transformTemplates("dasds")).get
+        }
+        transTemplate
+      }
+
+      (templates, modifiedTemplates)
+    }
+  }
+
+  private def sftpTemplates(id :Option[String],
+                            fileType: String,
+                            feed :MetaCatalog): Future[(JsValue, List[JsObject])]
+  = {
+    val idExt = id.getOrElse("")
+    val url = s"/api/v1/feedmgr/templates/registered/$idExt?allProperties=true&feedEdit=true"
+    val sftpRemote  = feed.operational.input_src.sftp.get.head
+    ws.url(KYLOURL + url)
+      .withAuth(KYLOUSER, KYLOPWD, scheme = WSAuthScheme.BASIC)
+      .get().map { resp =>
+      val templates = resp.json
+      val templatesEditable  = (templates \ "properties").as[List[JsValue]]
+        .filter(x => { (x \ "userEditable").as[Boolean] })
+      val modifiedTemplates: List[JsObject] = templatesEditable.map { temp =>
+        val key = (temp \ "key").as[String]
+        val transTemplate = key match {
+          case "Hostname" => temp.transform(KyloTrasformers.transformTemplates(sftpRemote.url.get)).get
+          case "Username" => temp.transform(KyloTrasformers.transformTemplates(sftpRemote.username.get)).get
+          case "Password" => temp.transform(KyloTrasformers.transformTemplates("{cypher}" + sftpRemote.password.get)).get
+          case "Remote Path" => temp.transform(KyloTrasformers.transformTemplates(sftpRemote.param.get)).get
         }
         transTemplate
       }
@@ -93,9 +125,17 @@ class Kylo @Inject()(ws :WSClient, config: ConfigurationProvider){
     } yield templates
   }
 
+  def sftpRemoteIngest(fileType: String, meta: MetaCatalog): Future[(JsValue, List[JsObject])] = {
+    for {
+      idOpt <- templateIdByName("Sftp Ingest")
+      templates <- sftpTemplates(idOpt, fileType, meta)
+    } yield templates
+  }
+
+
   def categoryFuture(meta :MetaCatalog): Future[JsValue] = {
     val categoriesWs = ws.url(KYLOURL + "/api/v1/feedmgr/categories")
-      .withAuth("dladmin","Th1nkB1g", scheme = WSAuthScheme.BASIC)
+      .withAuth(KYLOUSER, KYLOPWD, scheme = WSAuthScheme.BASIC)
       .get()
 
     val categoryFuture = categoriesWs.map { x =>

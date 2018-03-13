@@ -1254,6 +1254,9 @@ definitions:
       id:
         type: string
         description: Semantic tag from OntonetHub, describing the conventional triplet to uniquely identify an attribute of an entity of a given ontology.
+      context:
+        type: string
+        description: it gives context information.
       rdf_subject:
         type: string
         description: it is used to give a better context to the info contained in the column. Technically, it is a tag for a concept described into an ontology. In most cases, it can be seen as the subject that makes an action, derived from the id attribute.
@@ -1397,13 +1400,13 @@ definitions:
         description: Information on the storage to be used to save the dataset.
         type: object
         $ref: '#/definitions/StorageInfo'
+      dataset_type:
+        type: string
+        description: It tells whether the dataset is at rest ('batch') or realtime stream ('stream') and, orthogonally, if it is of type 'opendata' (from  national catalogue), in which case it will have a suffix '_opendata'.
       partitions:
         type: object
         description: it tells if the dataset is partitioned, and what the partitions are.
         $ref: '#/definitions/Partitions'
-      dataset_type:
-        type: string
-        description: It tells whether the dataset is at rest ('batch') or realtime stream ('stream') and, orthogonally, if it is of type 'opendata' (from  national catalogue), in which case it will have a suffix '_opendata'.
       dataset_proc:
         type: object
         description: It has info about how to process and store internally the dataset. Such info includes partitioning, merge strategy, etc.
@@ -1650,9 +1653,11 @@ definitions:
         description: the formula to be applied to the field to get the partition value.
   DatasetProc:
     type: object
-    description: bbb
+    description: It contains procedural info that helps to manage the ingestion and egestion of the dataset.
     required:
-      - name
+      - dataset_type
+      - read_type
+      - merge_strategy
     properties:
       dataset_type:
         type: string

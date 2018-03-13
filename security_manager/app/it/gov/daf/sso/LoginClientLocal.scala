@@ -7,21 +7,15 @@ import akka.stream.ActorMaterializer
 import com.google.inject.Singleton
 import it.gov.daf.common.sso.common.{LoginClient, LoginInfo}
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
+import play.api.Logger
 import play.api.libs.json.Json
-import play.api.libs.ws.{WSClient, WSCookie, WSResponse}
+import play.api.libs.ws.{WSClient, WSResponse}
 import play.api.mvc.Cookie
-
+import play.api.libs.concurrent.Execution.Implicits._
 import scala.concurrent.Future
 
 @Singleton
 class LoginClientLocal() extends LoginClient {
-
-  implicit val system = ActorSystem()
-  implicit val materializer = ActorMaterializer()
-
-  import scala.concurrent.ExecutionContext.Implicits._
-
-  //private val CKAN_URL = "http://localhost:5000"
 
   private val CKAN = "ckan"
   private val FREE_IPA = "freeIPA"
@@ -76,7 +70,6 @@ class LoginClientLocal() extends LoginClient {
 
     val host = CKAN_URL.split(":")(1).replaceAll("""//""", "")
 
-    //println("HOST-->"+host)
 
     val url = wsClient.url(CKAN_URL + "/ldap_login_handler")
       .withHeaders("host" -> host,
@@ -91,11 +84,10 @@ class LoginClientLocal() extends LoginClient {
         "Upgrade-Insecure-Requests" -> "1"
       ).withFollowRedirects(false)
 
-    //println(">>>>"+url.headers)
 
     val wsResponse = url.post(login)
 
-    println("login ckan2")
+    Logger.logger.info("login ckan2")
 
     wsResponse.map(getCookies(_).head)
 
@@ -119,7 +111,7 @@ class LoginClientLocal() extends LoginClient {
 
     val wsResponse = url.post(login)
 
-    println("login jupyter")
+    Logger.logger.info("login jupyter")
 
     wsResponse.map(getCookies(_).head)
 
@@ -134,7 +126,7 @@ class LoginClientLocal() extends LoginClient {
       "referer" -> IPA_APP_ULR
     ).post(login)
 
-    println("login IPA")
+    Logger.logger.info("login IPA")
 
     wsResponse.map(getCookies(_).head)
 
@@ -150,7 +142,7 @@ class LoginClientLocal() extends LoginClient {
     //val sessionFuture: Future[String] = ws.url(local + "/superset/session").get().map(_.body)
     val wsResponse: Future[WSResponse] = wsClient.url(SUPERSET_URL + "/login/").withHeaders("Content-Type" -> "application/json").post(data)
 
-    println("login superset")
+    Logger.logger.info("login superset")
 
     wsResponse.map(getCookies(_).head)
 
@@ -165,13 +157,13 @@ class LoginClientLocal() extends LoginClient {
     )
 
 
-    println("login metabase")
+    Logger.logger.info("login metabase")
 
     val responseWs: Future[WSResponse] = wsClient.url(METABASE_URL + "/api/session").withHeaders("Content-Type" -> "application/json").post(data)
     responseWs.map { response =>
 
       val cookie = (response.json \ "id").as[String]
-      println("COOKIE(metabase): " + cookie)
+      Logger.logger.debug("COOKIE(metabase): " + cookie)
       Cookie("metabase.SESSION_ID",cookie)
     }
 
@@ -187,7 +179,7 @@ class LoginClientLocal() extends LoginClient {
 
     val wsResponse: Future[WSResponse] = wsClient.url(GRAFANA_URL + "/login/").withHeaders("Content-Type" -> "application/json").post(data)
 
-    println("login grafana")
+    Logger.logger.info("login grafana")
 
     wsResponse.map(getCookies)
 
@@ -203,11 +195,11 @@ class LoginClientLocal() extends LoginClient {
 
   private def getCookies(response:WSResponse):Seq[Cookie]={
 
-    println("RESPONSE IN GET COOKIES: "+response)
+    Logger.logger.debug("RESPONSE IN GET COOKIES: "+response)
     response.header("Set-Cookie").getOrElse(throw new Exception("Set-Cookie header not found"))
 
     //Cookie(name: String, value: String, maxAge: Option[Int] = None, path: String = "/", domain: Option[String] = None, secure: Boolean = false, httpOnly: Boolean = true)
-    println("cookies-->"+response.cookies)
+    Logger.logger.debug("cookies-->"+response.cookies)
 
     response.cookies.map{ wscookie =>
 

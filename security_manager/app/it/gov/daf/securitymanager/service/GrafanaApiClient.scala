@@ -9,6 +9,8 @@ import play.api.libs.ws.{WSClient, WSResponse}
 import security_manager.yaml.{Error, Success}
 import cats.implicits._
 import it.gov.daf.sso.LoginClientLocal
+import play.api.Logger
+
 import scala.concurrent.Future
 
 @Singleton
@@ -45,7 +47,7 @@ class GrafanaApiClient @Inject()(secInvokeManager: SecuredInvocationManager,logi
 
       val jsonRequest: JsValue = Json.parse(stringRequest)
 
-      println("create grafana organization request: " + jsonRequest.toString())
+      Logger.logger.debug("create grafana organization request: " + jsonRequest.toString())
 
       wSClient.url(ConfigReader.grafanaUrl+ "/api/orgs").withHeaders( "Content-Type" -> "application/json",
                                                                       "Accept" -> "application/json",
@@ -70,7 +72,7 @@ class GrafanaApiClient @Inject()(secInvokeManager: SecuredInvocationManager,logi
 
   def logNewUser(username:String, pwd:String): Future[Either[Error, Success]] = {
 
-    println("logNewUser:"+username)
+    Logger.logger.info("logNewUser:"+username)
     loginClientLocal.login(new LoginInfo(username,pwd,"grafana"),wSClient).map{ _ => Right(Success(Some("Logged"), Some("ok"))) }
 
   }
@@ -116,7 +118,7 @@ class GrafanaApiClient @Inject()(secInvokeManager: SecuredInvocationManager,logi
 
     def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
 
-      println("grafana deleteOrganization orgId: "+orgId)
+      Logger.logger.debug("grafana deleteOrganization orgId: "+orgId)
 
       wSClient.url(ConfigReader.grafanaUrl+ s"/api/orgs/$orgId").withHeaders( "Content-Type" -> "application/json",
         "Accept" -> "application/json",
@@ -156,9 +158,9 @@ class GrafanaApiClient @Inject()(secInvokeManager: SecuredInvocationManager,logi
 
     def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
 
-      println(" grafana getOrganizationId orgName: "+orgName)
+      Logger.logger.debug(" grafana getOrganizationId orgName: "+orgName)
 
-      println("sessionCookie:"+sessionCookie)
+      Logger.logger.debug("sessionCookie:"+sessionCookie)
 
       wSClient.url(ConfigReader.grafanaUrl+ s"/api/orgs/name/$orgName").withHeaders( "Content-Type" -> "application/json",
         "Accept" -> "application/json",
@@ -197,7 +199,7 @@ class GrafanaApiClient @Inject()(secInvokeManager: SecuredInvocationManager,logi
 
       val jsonRequest: JsValue = Json.parse(stringRequest)
 
-      println("grafana addUserInOrganization request: " + jsonRequest.toString())
+      Logger.logger.debug("grafana addUserInOrganization request: " + jsonRequest.toString())
 
       wSClient.url(ConfigReader.grafanaUrl+ s"/api/orgs/$orgId/users").withHeaders( "Content-Type" -> "application/json",
         "Accept" -> "application/json",

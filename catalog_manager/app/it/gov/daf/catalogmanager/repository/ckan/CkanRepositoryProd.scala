@@ -9,6 +9,7 @@ import com.mongodb.casbah.commons.MongoDBObject
 import play.api.libs.ws.ahc.AhcWSClient
 import it.gov.daf.catalogmanager.utilities.{ConfigReader, SecurePasswordHashing}
 import it.gov.daf.common.utils.WebServiceUtil
+import play.api.Logger
 import play.api.libs.json._
 
 import scala.concurrent.Future
@@ -38,7 +39,7 @@ class CkanRepositoryProd extends CkanRepository{
 
   private def writeMongo(json: JsValue, collectionName: String): Boolean = {
 
-    println("write mongo: "+json.toString())
+    Logger.debug("write mongo: "+json.toString())
     //val mongoClient = MongoClient(mongoHost, mongoPort)
     val mongoClient = MongoClient(server, List(credentials))
     val db = mongoClient(dbName)
@@ -146,7 +147,7 @@ class CkanRepositoryProd extends CkanRepository{
   def createUser(jsonUser: JsValue, callingUserid :MetadataCat): Future[String] = {
 
     val password = (jsonUser \ "password").get.as[String]
-    println("PWD -->"+password+"<")
+
     val hashedPassword = SecurePasswordHashing.hashPassword( password )
     val updatedJsonUser = jsonUser.as[JsObject] + ("password" -> JsString(hashedPassword) )
 

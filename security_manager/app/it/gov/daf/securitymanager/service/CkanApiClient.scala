@@ -4,6 +4,7 @@ import com.google.inject.Inject
 import it.gov.daf.common.sso.common.{CacheWrapper, LoginInfo, SecuredInvocationManager}
 import it.gov.daf.common.utils.WebServiceUtil
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
+import play.api.Logger
 import play.api.libs.json._
 import play.api.libs.ws.{WSClient, WSResponse}
 import security_manager.yaml.{Error, Success}
@@ -48,7 +49,7 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
            "type": "organization"
          }""")
 
-    println("createOrganization request: " + jsonRequest.toString())
+    Logger.logger.debug("createOrganization request: " + jsonRequest.toString())
 
 
     def serviceInvoke(cookie: String, wsClient: WSClient): Future[WSResponse] = {
@@ -71,7 +72,7 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
            "type": "organization"
          }""")
 
-    println("createOrganization request: " + jsonRequest.toString())
+    Logger.logger.debug("createOrganization request: " + jsonRequest.toString())
 
 
     def serviceInvoke(cookie: String, wsClient: WSClient): Future[WSResponse] = {
@@ -87,7 +88,7 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
 
     val jsonRequest: JsValue = Json.parse( s"""{"id" : "$groupCn"}""" )
 
-    println("deleteOrganization request: " + jsonRequest.toString())
+    Logger.logger.debug("deleteOrganization request: " + jsonRequest.toString())
 
 
     def serviceInvoke(cookie: String, wsClient: WSClient): Future[WSResponse] = {
@@ -103,7 +104,7 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
 
     val jsonRequest: JsValue = Json.parse( s"""{"id" : "$userUid"}""" )
 
-    println("deleteUser request: " + jsonRequest.toString())
+    Logger.logger.debug("deleteUser request: " + jsonRequest.toString())
 
 
     def serviceInvoke(cookie: String, wsClient: WSClient): Future[WSResponse] = {
@@ -119,7 +120,7 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
 
     val jsonRequest: JsValue = Json.parse( s"""{"id" : "$groupCn"}""" )
 
-    println("purgeOrganization request: " + jsonRequest.toString())
+    Logger.logger.debug("purgeOrganization request: " + jsonRequest.toString())
 
 
     def serviceInvoke(cookie: String, wsClient: WSClient): Future[WSResponse] = {
@@ -138,7 +139,7 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
 
     val jsonRequest: JsValue = Json.toJson(updatedCkanOrg)
 
-    println("putUsersInOrganization request: " + jsonRequest.toString())
+    Logger.logger.debug("putUsersInOrganization request: " + jsonRequest.toString())
 
 
     def serviceInvoke(cookie: String, wsClient: WSClient): Future[WSResponse] = {
@@ -156,7 +157,7 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
 
     val jsonRequest: JsValue = Json.toJson(updatedCkanOrg)
 
-    println("putUsersInOrganization request: " + jsonRequest.toString())
+    Logger.logger.debug("putUsersInOrganization request: " + jsonRequest.toString())
 
 
     def serviceInvoke(cookie: String, wsClient: WSClient): Future[WSResponse] = {
@@ -173,7 +174,7 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
 
     val jsonRequest: JsValue = Json.toJson(updatedCkanOrg)
 
-    println("removeUsersInOrganization request: " + jsonRequest.toString())
+    Logger.logger.debug("removeUsersInOrganization request: " + jsonRequest.toString())
 
 
     def serviceInvoke(cookie: String, wsClient: WSClient): Future[WSResponse] = {
@@ -187,7 +188,7 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
 
   def getOrganization(loggedUserName:String, groupCn:String):Future[Either[Error, CkanOrg]] = {
 
-    println("getUsersOfOrganization groupCn: " + groupCn)
+    Logger.logger.info("getUsersOfOrganization groupCn: " + groupCn)
 
 
     def serviceInvoke( cookie: String, wsClient: WSClient ):Future[WSResponse] ={
@@ -205,7 +206,7 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
 
   def getOrganizationAsAdmin( groupCn:String):Future[Either[Error, CkanOrg]] = {
 
-    println("getUsersOfOrganization groupCn: " + groupCn)
+    Logger.logger.info("getUsersOfOrganization groupCn: " + groupCn)
 
 
     def serviceInvoke( cookie: String, wsClient: WSClient ):Future[WSResponse] ={

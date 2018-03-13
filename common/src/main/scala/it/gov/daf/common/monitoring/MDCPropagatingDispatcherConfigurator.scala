@@ -75,6 +75,7 @@ class MDCPropagatingDispatcher(_configurator: MessageDispatcherConfigurator,
   override def prepare(): ExecutionContext = new ExecutionContext {
     // capture the MDC
     val mdcContext = MDC.getCopyOfContextMap
+    //val parent = Thread.currentThread().getId
 
     def execute(r: Runnable) = self.execute(new Runnable {
       def run() = {
@@ -83,11 +84,14 @@ class MDCPropagatingDispatcher(_configurator: MessageDispatcherConfigurator,
 
         // Run the runnable with the captured context
         setContextMap(mdcContext)
+        //println(s"setto ${Thread.currentThread().getId} - $mdcContext - from $parent")
         try {
           r.run()
         } finally {
           // restore the callee MDC context
+
           setContextMap(oldMDCContext)
+          //println(s"ripristino ${Thread.currentThread().getId} - $oldMDCContext - from $parent")
         }
       }
     })

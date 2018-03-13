@@ -8,6 +8,8 @@ import play.api.libs.ws.{WSClient, WSResponse}
 import security_manager.yaml.{Error, IpaUser, Success}
 import cats.implicits._
 import org.apache.commons.lang3.StringEscapeUtils
+import play.api.Logger
+
 import scala.concurrent.Future
 
 @Singleton
@@ -53,7 +55,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
       val jsonRequest: JsValue = Json.parse(stringRequest)
 
-      println("createSuspersetDatabase request: " + jsonRequest.toString())
+      Logger.logger.debug("createSuspersetDatabase request: " + jsonRequest.toString())
 
       wSClient.url(ConfigReader.supersetUrl + "/databaseview/api/create").withHeaders("Content-Type" -> "application/json",
         "Accept" -> "application/json",
@@ -106,7 +108,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
     }
 
 
-    println("findSupersetRoleId roleName: " + roleName)
+    Logger.logger.debug("findSupersetRoleId roleName: " + roleName)
 
     def handleJson(json:JsValue)={
 
@@ -139,7 +141,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
                                                 }""")
 
 
-      println("createSupersetUserWithRole request: " + jsonRequest.toString())
+      Logger.logger.debug("createSupersetUserWithRole request: " + jsonRequest.toString())
 
       wSClient.url(ConfigReader.supersetUrl + "/users/api/create").withHeaders("Content-Type" -> "application/json",
         "Accept" -> "application/json",
@@ -173,7 +175,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
       ).get
     }
 
-    println("findSupersetDatabaseId dbName: " + dbName)
+    Logger.logger.debug("findSupersetDatabaseId dbName: " + dbName)
 
     def handleJson(json:JsValue)={
 
@@ -201,7 +203,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
       ).get
     }
 
-    println("findUser username: " + username)
+    Logger.logger.debug("findUser username: " + username)
 
     def handleJson(json:JsValue)={
 
@@ -224,7 +226,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
     def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
 
-      println("deleteSupersetUser userId: " + userId)
+      Logger.logger.debug("deleteSupersetUser userId: " + userId)
 
       wSClient.url(ConfigReader.supersetUrl + s"/users/api/delete/$userId").withHeaders("Content-Type" -> "application/json",
         "Accept" -> "application/json",
@@ -232,7 +234,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
       ).delete()
     }
 
-    println("deleteSupersetUser userId: " + userId)
+    Logger.logger.debug("deleteSupersetUser userId: " + userId)
 
     def handleJson(json:JsValue)={
 
@@ -252,7 +254,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
     def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
 
-      println("deleteSupersetRole roleId: " + roleId)
+      Logger.logger.debug("deleteSupersetRole roleId: " + roleId)
 
       wSClient.url(ConfigReader.supersetUrl + s"/roles/api/delete/$roleId").withHeaders("Content-Type" -> "application/json",
         "Accept" -> "application/json",
@@ -260,7 +262,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
       ).delete()
     }
 
-    println("deleteSupersetRole roleId: " + roleId)
+    Logger.logger.debug("deleteSupersetRole roleId: " + roleId)
 
     def handleJson(json:JsValue)={
 
@@ -279,7 +281,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
     def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
 
-      println("deleteSupersetDatabase dbId: " + dbId)
+      Logger.logger.debug("deleteSupersetDatabase dbId: " + dbId)
 
       wSClient.url(ConfigReader.supersetUrl + s"/databaseview/api/delete/$dbId").withHeaders("Content-Type" -> "application/json",
         "Accept" -> "application/json",
@@ -287,7 +289,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
       ).delete()
     }
 
-    println("deleteSupersetDatabase dbId: " + dbId)
+    Logger.logger.debug("deleteSupersetDatabase dbId: " + dbId)
 
     def handleJson(json:JsValue)={
 
@@ -313,7 +315,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
       ).get
     }
 
-    println("checkDbTables id: " + dbId)
+    Logger.logger.debug("checkDbTables id: " + dbId)
 
 
     def handleJson(json:JsValue)={
@@ -339,7 +341,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
       ).get
     }
 
-    println("findDbTables id: " + dbId)
+    Logger.logger.debug("findDbTables id: " + dbId)
 
 
     def handleJson(json:JsValue)={
@@ -363,7 +365,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
       val schemaParam= if(schema.nonEmpty) s"&_flt_3_schema=${schema.get}" else ""
       val url = ConfigReader.supersetUrl + s"/tablemodelview/api/readvalues?_flt_0_database=$dbId&_flt_3_table_name=$tableName$schemaParam"
 
-      println("checkTable url: " + url)
+      Logger.logger.debug("checkTable url: " + url)
 
       wSClient.url(url).withHeaders("Content-Type" -> "application/json",
         "Accept" -> "application/json",
@@ -392,7 +394,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
     def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
 
-      println("createTable request: " + postData)
+      Logger.logger.debug("createTable request: " + postData)
 
 
       wSClient.url(ConfigReader.supersetUrl + "/tablemodelview/add").withHeaders(
@@ -429,7 +431,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
     def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
 
-      println("updateUser request: " + postData)
+      Logger.logger.debug("updateUser request: " + postData)
 
 
       wSClient.url(ConfigReader.supersetUrl + s"/users/edit/$userId").withHeaders(
@@ -465,7 +467,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
     }
 
 
-    println("findPermissionViewIds view_menu_id: " + view_menu_id)
+    Logger.logger.debug("findPermissionViewIds view_menu_id: " + view_menu_id)
 
     def handleJson(json:JsValue)={
 
@@ -498,7 +500,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
       ).get
     }
 
-    println("findViewId permName: " + permName)
+    Logger.logger.debug("findViewId permName: " + permName)
 
     def handleJson(json:JsValue):Either[Error,Long]={
 
@@ -518,7 +520,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
     def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
 
-      println("deleteView id: " + id)
+      Logger.logger.debug("deleteView id: " + id)
 
       wSClient.url(ConfigReader.supersetUrl + s"/viewmenus/api/delete/$id").withHeaders("Content-Type" -> "application/json",
         "Accept" -> "application/json",
@@ -526,7 +528,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
       ).delete()
     }
 
-    println("deleteSupersetDatabase id: " + id)
+    Logger.logger.debug("deleteSupersetDatabase id: " + id)
 
     def handleJson(json:JsValue)={
 
@@ -573,7 +575,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
     def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
 
-      println("deleteView id: " + id)
+      Logger.logger.debug("deleteView id: " + id)
 
       wSClient.url(ConfigReader.supersetUrl + s"/permissionviews/api/delete/$id").withHeaders("Content-Type" -> "application/json",
         "Accept" -> "application/json",
@@ -581,7 +583,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
       ).delete()
     }
 
-    println("deletePermissionView id: " + id)
+    Logger.logger.debug("deletePermissionView id: " + id)
 
     def handleJson(json:JsValue)={
 

@@ -6,6 +6,7 @@ import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.{BasicDBObject, ServerAddress}
 import com.mongodb.casbah.{MongoClient, MongoCredential}
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
+import play.api.Logger
 import play.api.libs.json.{JsValue, Json}
 import security_manager.yaml.IpaUser
 
@@ -67,13 +68,13 @@ object MongoService {
     if(coll.isEmpty) {
       try
         coll.underlying.createIndex(new BasicDBObject("createdOn", 1), new BasicDBObject("expireAfterSeconds", ttl))
-      catch{ case e:Exception => println("Indice già creato") }
+      catch{ case e:Exception => Logger.logger.error("Indice già creato") }
     }
 
     val inserted = coll.insert(document)
     mongoClient.close()
 
-    println( "mongo write result: "+inserted )
+    Logger.logger.debug( "mongo write result: "+inserted )
 
     if(! inserted.isUpdateOfExisting )
       Right("ok")

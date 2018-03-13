@@ -8,17 +8,17 @@ import security_manager.yaml.{Error, IpaUser, Success}
 import it.gov.daf.common.authentication.Role
 import cats.implicits._
 import it.gov.daf.sso.ApiClientIPA
-
+import play.api.Logger
 import scala.concurrent.Future
 import ProcessHandler._
-
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.util.Try
 
 @Singleton
 class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient: SupersetApiClient, ckanApiClient: CkanApiClient, grafanaApiClient: GrafanaApiClient) {
 
   import security_manager.yaml.BodyReads._
-  import play.api.libs.concurrent.Execution.Implicits._
+
   private val tokenGenerator = new BearerTokenGenerator
 
 
@@ -40,7 +40,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   def requestRegistration(userIn:IpaUser):Future[Either[Error,MailService]] = {
 
-    println("requestRegistration")
+    Logger.logger.info("requestRegistration")
 
     val result = for {
       a <- EitherT( adapt1(checkUserInfo(userIn)) )
@@ -58,7 +58,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   def requestResetPwd(mail:String):Future[Either[Error,MailService]] = {
 
-    println("requestResetPwd")
+    Logger.logger.info("requestResetPwd")
 
     val result = for {
       user <- EitherT( apiClientIPA.findUserByMail(mail) )
@@ -101,7 +101,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   private def formatRegisteredUser(user: IpaUser): IpaUser = {
 
-    println("uid-->"+user.uid)
+
     if (user.uid == null || user.uid.isEmpty )
       user.copy( uid = user.mail.replaceAll("[@]", "_").replaceAll("[.]", "-"), role = Option(Role.Viewer.toString()) )
     else
@@ -142,7 +142,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   private def writeRequestNsendMail(user:IpaUser)(writeData:(IpaUser,String)=>Either[String,String]) : Either[String,MailService] = {
 
-    println("writeRequestNsendMail")
+    Logger.logger.info("writeRequestNsendMail")
     val token = tokenGenerator.generateMD5Token(user.uid)
 
     writeData(user,token) match{
@@ -194,11 +194,12 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   private def checkNcreateUser(json:JsValue):Future[Either[Error,Success]] = {
 
-    println("checkNcreateUser input json: "+json)
+    Logger.logger.debug("checkNcreateUser input json: "+json)
+
     val result = json.validate[IpaUser]
     result match {
       case s: JsSuccess[IpaUser] =>  checkMailUidNcreateUser(s.get)
-      case e: JsError => println("data conversion errors"+e.errors); Future{ Left( Error(Option(0),Some("Error during user data conversion"),None) )}
+      case e: JsError => Logger.logger.error("data conversion errors"+e.errors); Future{ Left( Error(Option(0),Some("Error during user data conversion"),None) )}
     }
 
   }
@@ -231,7 +232,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   private def createUser(user:IpaUser, isPredefinedOrgUser:Boolean):Future[Either[Error,Success]] = {
 
-    //val userId = UserList(Option(Seq(user.uid)))
+    Logger.logger.info("createUser")
 
     val result = for {
       a <- step( Try{apiClientIPA.createUser(user, isPredefinedOrgUser)} )
@@ -274,6 +275,8 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
   }
 
   def deleteUser(uid:String):Future[Either[Error,Success]] = {
+
+    Logger.logger.info("deleteUser")
 
     val result = for {
       user <- stepOverF( Try{apiClientIPA.findUserByUid(uid)} )

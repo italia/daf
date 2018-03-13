@@ -17,6 +17,7 @@ import it.gov.daf.catalogmanager.service.CkanRegistry
 import it.gov.daf.common.sso.client.LoginClientRemote
 import it.gov.daf.common.sso.common.{LoginInfo, SecuredInvocationManager}
 import it.gov.daf.common.utils.WebServiceUtil
+import play.api.Logger
 //import play.api.libs.ws.ahc.AhcWSClient
 
 
@@ -43,9 +44,9 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
     orgs.map( item => {
       val messages  = (item.json \ "result" \\ "message").map(_.as[String]).toList
       val datasetIds :List[String]= messages.filterNot(_.isEmpty) map { message =>
-        println(message)
+        Logger.debug(message)
         val datasetId = message.split("object")(1).trim
-        println(datasetId)
+        Logger.debug(datasetId)
         datasetId
       }
       datasetIds
@@ -55,9 +56,9 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
   private def getOrgDatasets(datasetIds : List[String]): Future[Seq[JsValue]] = {
     val datasetResponses: Seq[Future[JsValue]] = datasetIds.map(datasetId => {
       val response = wsc.url(LOCAL_URL + "/ckan/dataset/" + datasetId).get
-      println(datasetId)
+      Logger.debug(datasetId)
       response map { x =>
-        println(x.json.toString)
+        Logger.debug(x.json.toString)
         (x.json \ "result").getOrElse(JsNull)
       }
     })
@@ -89,8 +90,6 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
     //val AUTH_TOKEN:String = config.get.getString("app.ckan.auth.token").get
 
     val json:JsValue = request.body.asJson.get
-
-    //println("---->"+json)
 
     if(ENV == "dev"){
       CkanRegistry.ckanService.createDataset(json,Option(""))
@@ -234,7 +233,7 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
 
     def callGetUserOrganizations( cookie: String, wsClient: WSClient ):Future[WSResponse] ={
       val url = CKAN_URL + "/api/3/action/organization_list_for_user?id="+userId
-      println("organization_list_for_user URL " + url)
+      Logger.debug("organization_list_for_user URL " + url)
       wsClient.url(url).withHeaders("Cookie" -> cookie).get
     }
 

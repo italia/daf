@@ -34,6 +34,7 @@ import org.pac4j.ldap.profile.service.LdapProfileService
 import org.pac4j.play.http.DefaultHttpActionAdapter
 import org.pac4j.play.store.{PlayCacheSessionStore, PlaySessionStore}
 import play.api.{Configuration, Environment}
+import play.api.Logger
 
 
 @SuppressWarnings(
@@ -54,7 +55,7 @@ class SecurityModule(environment: Environment, configuration: Configuration) ext
     dnResolver.setFormat("uid=%s,cn=users,cn=accounts,dc=example,dc=test")
     */
 
-    println("Common Lib v.1.0.5-SNAPSHOT")
+    Logger.logger.info("Common Lib v.1.0.6-SNAPSHOT")
     val connectionConfig = new ConnectionConfig
     connectionConfig.setConnectTimeout(Duration.ofMillis(configuration.getLong("pac4j.ldap.connect_timeout").getOrElse(500)))
     connectionConfig.setResponseTimeout(Duration.ofMillis(configuration.getLong("pac4j.ldap.response_timeout").getOrElse(1000)))

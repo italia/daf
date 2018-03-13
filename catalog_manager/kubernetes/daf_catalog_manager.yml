@@ -91,6 +91,9 @@ spec:
           mountPath: /opt/docker/conf/logback.xml
           subPath: catalog-manager/conf/logback.xml
           readOnly: true
+        - name: glusterfsvol
+          mountPath: /opt/docker/logs
+          subPath: catalog-manager/logs
         - name: hosts
           mountPath: /etc/extra_hosts
         - name: krb5conf

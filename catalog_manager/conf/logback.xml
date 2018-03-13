@@ -8,11 +8,27 @@
     </encoder>
   </appender>
 
+  <appender name="TIME_BASED_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>./logs/catalog_manager.log</file>
+
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>./logs/catalog_manager.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <maxHistory>3</maxHistory>
+    </rollingPolicy>
+
+    <encoder>
+      <pattern>%coloredLevel - %logger - %message%n%xException</pattern>
+    </encoder>
+
+  </appender>
+
+
   <logger name="play" level="INFO" />
   <logger name="application" level="DEBUG" />
 
   <root level="DEBUG">
     <appender-ref ref="STDOUT" />
+    <appender-ref ref="TIME_BASED_FILE" />
   </root>
 
 </configuration>

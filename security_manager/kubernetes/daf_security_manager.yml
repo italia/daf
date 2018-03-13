@@ -84,7 +84,13 @@ spec:
         - name: glusterfsvol
           mountPath: /opt/docker/conf/production.conf
           subPath: security-manager/conf/production.conf
+        - name: glusterfsvol
+          mountPath: /opt/docker/conf/logback.conf
+          subPath: security-manager/conf/logback.conf
           readOnly: true
+        - name: glusterfsvol
+          mountPath: /opt/docker/logs
+          subPath: security-manager/logs
         #- name: hosts
           #mountPath: /etc/extra_hosts
         - name: krb5conf

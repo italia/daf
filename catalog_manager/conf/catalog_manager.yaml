@@ -64,9 +64,9 @@ paths:
       tags:
         - DatasetCatalog
       parameters:
-        - name: page
+        - name: offset
           in: query
-          description: number of the page
+          description: number of the page or offset to retrieve
           required: false
           type: integer
           format: int32

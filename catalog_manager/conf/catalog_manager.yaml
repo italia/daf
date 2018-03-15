@@ -70,14 +70,8 @@ paths:
           required: false
           type: integer
           format: int32
-        - name: limit
-          in: query
-          description: maximum number of results to return
-          required: false
-          type: integer
-          format: int32
-          minimum: 1
-          maximum: 500
+        - $ref: 'https://raw.githubusercontent.com/ioggstream/openapi-samples/master/openapi-v2/schema/components.yaml#/x-components/parameters/offset'
+
       operationId: datasetcatalogs
       responses:
         200:
@@ -504,14 +498,9 @@ paths:
       produces:
       - application/json
       parameters:
-      - name: limit
-        in: query
-        description: If given, the list of datasets will be broken into pages
-        type: integer
-      - name: offset
-        in: query
-        description: When limit is given, the offset to start returning packages from
-        type: integer
+        - $ref: 'https://raw.githubusercontent.com/ioggstream/openapi-samples/master/openapi-v2/schema/components.yaml#/x-components/parameters/limit'
+        - $ref: 'https://raw.githubusercontent.com/ioggstream/openapi-samples/master/openapi-v2/schema/components.yaml#/x-components/parameters/offset'
+
       responses:
         200:
           description: List of datasets. The list is sorted most-recently-modified first.
@@ -542,10 +531,7 @@ paths:
         in: query
         description: The solr query
         type: string
-      - name: sort
-        in: query
-        description: Sorting of the search results
-        type: string
+      - $ref: 'https://raw.githubusercontent.com/ioggstream/openapi-samples/master/openapi-v2/schema/components.yaml#/x-components/parameters/sort'
       - name: rows
         in: query
         description: The number of matching rows to return
@@ -584,10 +570,9 @@ paths:
         in: query
         description: query
         type: string
-      - name: limit
-        in: query
-        description: The max number results returned
-        type: integer
+      - $ref: 'https://raw.githubusercontent.com/ioggstream/openapi-samples/master/openapi-v2/schema/components.yaml#/x-components/parameters/limit'
+
+
       responses:
         200:
           description: List of results.

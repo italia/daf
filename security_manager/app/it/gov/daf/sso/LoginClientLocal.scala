@@ -64,7 +64,7 @@ class LoginClientLocal() extends LoginClient {
 
   private def loginCkan(userName: String, pwd: String, wsClient: WSClient): Future[Cookie] = {
 
-    val login = s"login=$userName&password=${URLEncoder.encode(pwd,"UTF-8")}"
+    val login = s"login=$userName&password=${URLEncoder.encode(pwd, "UTF-8")}"
 
     //println("we"+CKAN_URL.split(":")(1))
 
@@ -95,7 +95,7 @@ class LoginClientLocal() extends LoginClient {
 
   private def loginJupyter(userName: String, pwd: String, wsClient: WSClient): Future[Cookie] = {
 
-    val login = s"username=$userName&password=${URLEncoder.encode(pwd,"UTF-8")}"
+    val login = s"username=$userName&password=${URLEncoder.encode(pwd, "UTF-8")}"
 
     val host = JUPYTER_URL.split(":")(1).replaceAll("""//""", "")
 
@@ -119,7 +119,7 @@ class LoginClientLocal() extends LoginClient {
 
   private def loginIPA(userName: String, pwd: String, wsClient: WSClient): Future[Cookie] = {
 
-    val login = s"user=$userName&password=${URLEncoder.encode(pwd,"UTF-8")}"
+    val login = s"user=$userName&password=${URLEncoder.encode(pwd, "UTF-8")}"
 
     val wsResponse = wsClient.url(IPA_LOGIN_ULR).withHeaders("Content-Type" -> "application/x-www-form-urlencoded",
       "Accept" -> "text/plain",
@@ -140,7 +140,7 @@ class LoginClientLocal() extends LoginClient {
       "password" -> pwd
     )
     //val sessionFuture: Future[String] = ws.url(local + "/superset/session").get().map(_.body)
-    val wsResponse: Future[WSResponse] = wsClient.url(SUPERSET_URL + "/login/").withHeaders("Content-Type" -> "application/json").post(data)
+    val wsResponse: Future[WSResponse] = wsClient.url(SUPERSET_URL + "/login/").withHeaders("Content-Type" -> "application/json").withFollowRedirects(false).post(data)
 
     Logger.logger.info("login superset")
 
@@ -159,12 +159,12 @@ class LoginClientLocal() extends LoginClient {
 
     Logger.logger.info("login metabase")
 
-    val responseWs: Future[WSResponse] = wsClient.url(METABASE_URL + "/api/session").withHeaders("Content-Type" -> "application/json").post(data)
+    val responseWs: Future[WSResponse] = wsClient.url(METABASE_URL + "/api/session").withHeaders("Content-Type" -> "application/json").withFollowRedirects(false).post(data)
     responseWs.map { response =>
 
       val cookie = (response.json \ "id").as[String]
       Logger.logger.debug("COOKIE(metabase): " + cookie)
-      Cookie("metabase.SESSION_ID",cookie)
+      Cookie("metabase.SESSION_ID", cookie)
     }
 
   }
@@ -177,7 +177,7 @@ class LoginClientLocal() extends LoginClient {
       "password" -> pwd
     )
 
-    val wsResponse: Future[WSResponse] = wsClient.url(GRAFANA_URL + "/login/").withHeaders("Content-Type" -> "application/json").post(data)
+    val wsResponse: Future[WSResponse] = wsClient.url(GRAFANA_URL + "/login/").withHeaders("Content-Type" -> "application/json").withFollowRedirects(false).post(data)
 
     Logger.logger.info("login grafana")
 
@@ -187,34 +187,37 @@ class LoginClientLocal() extends LoginClient {
 
   private def loginGrafana(userName: String, pwd: String, wsClient: WSClient): Future[Cookie] = {
 
-    loginGrafanaFE(userName, pwd, wsClient).map(_.find(_.name=="grafana_sess").get )
+    loginGrafanaFE(userName, pwd, wsClient).map(_.find(_.name == "grafana_sess").get)
 
   }
 
 
+  private def getCookies(response: WSResponse): Seq[Cookie] = {
 
-  private def getCookies(response:WSResponse):Seq[Cookie]={
+    Logger.logger.debug("RESPONSE IN GET COOKIES: " + response)
 
-    Logger.logger.debug("RESPONSE IN GET COOKIES: "+response)
-    response.header("Set-Cookie").getOrElse(throw new Exception("Set-Cookie header not found"))
+    val result = response.header("Set-Cookie")
 
-    //Cookie(name: String, value: String, maxAge: Option[Int] = None, path: String = "/", domain: Option[String] = None, secure: Boolean = false, httpOnly: Boolean = true)
-    Logger.logger.debug("cookies-->"+response.cookies)
+    response.header("Set-Cookie") match{
 
-    response.cookies.map{ wscookie =>
+      case Some(x) => Logger.logger.debug("cookies-->" + response.cookies)
 
-      Cookie( wscookie.name.get,
-              wscookie.value.getOrElse(""),
-              wscookie.maxAge.map(_.toInt),
-              wscookie.path,
-              Option(wscookie.domain),
-              wscookie.secure)
+                      response.cookies.map { wscookie =>
 
+                        Cookie(wscookie.name.get,
+                          wscookie.value.getOrElse(""),
+                          wscookie.maxAge.map(_.toInt),
+                          wscookie.path,
+                          Option(wscookie.domain),
+                          wscookie.secure)
+
+                      }
+
+      case None =>  Logger.logger.error("ERROR IN GET COOKIES: " + response.body)
+                    throw new Exception("Set-Cookie header not found")
     }
 
   }
-
-
 }
 
 

@@ -1,0 +1,3 @@
+export NEXUS_URL=nexus.teamdigitale.test:8081
+export CONFIGFILE=productionNew.conf
+export DOCKER_REPOSITORY=nexus.teamdigitale.test

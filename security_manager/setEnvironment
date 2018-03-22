@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -e
+
+env=$1"Environment"
+kubernetes=$1"Kubernetes.yml"
+
+. ../bin/$env
+
+cp templates/$kubernetes kubernetes/daf_security_manager.yml
+envsubst < templates/build.temp > build.sbt

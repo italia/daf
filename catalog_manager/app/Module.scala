@@ -20,7 +20,7 @@ class Module (environment: Environment, configuration: Configuration) extends Ab
     bind(classOf[LoginClient]).to(classOf[LoginClientRemote])// for the initialization of SecuredInvocationManager
 
     val securityManHost :Option[String] = configuration.getString("security.manager.host")
-    require(!securityManHost.isEmpty)
+    require(!securityManHost.isEmpty,"security.manager.host entry not provided")
 
     val loginClientRemote = new LoginClientRemote(securityManHost.get)
     bind(classOf[LoginClientRemote]).toInstance(loginClientRemote)

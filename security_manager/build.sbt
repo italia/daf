@@ -115,6 +115,7 @@ dockerExposedPorts := Seq(9000)
 dockerRepository := Option("nexus.teamdigitale.test")
 
 publishTo in ThisBuild := {
+  //  val nexus = "http://nexus.default.svc.cluster.local:8081/repository/"
   val nexus = "http://nexus.teamdigitale.test:8081/repository/"
   if (isSnapshot.value)
     Some("snapshots" at nexus + "maven-snapshots/")

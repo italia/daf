@@ -2,7 +2,8 @@ import com.google.inject.{AbstractModule, Singleton}
 import it.gov.daf.common.sso.common.{CacheWrapper, LoginClient}
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import it.gov.daf.sso.LoginClientLocal
-import play.api.{Configuration, Environment}
+import play.api.{Configuration, Environment, Logger}
+
 import scala.sys.process._
 
 @Singleton
@@ -11,15 +12,16 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
 
   def configure(): Unit ={
 
-    println("executing module..")
 
-    println("--env--")
-    println("ls -l".!! )
-    println("-------")
-    println("ls -l conf".!! )
-    println("-------")
-    println("ls -l conf/mnt".!! )
-    println("-------")
+    Logger.debug("executing module..")
+
+    Logger.debug("--env--")
+    Logger.debug("ls -l".!! )
+    Logger.debug("-------")
+    Logger.debug("ls -l conf".!! )
+    Logger.debug("-------")
+    Logger.debug("ls -l conf/mnt".!! )
+    Logger.debug("-------")
 
     bind(classOf[LoginClient]).to(classOf[LoginClientLocal])//for the initialization of SecuredInvocationManager
 

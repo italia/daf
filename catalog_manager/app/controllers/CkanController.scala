@@ -14,7 +14,6 @@ import scala.concurrent.Future
 import play.api.libs.json._
 import play.api.inject.ConfigurationProvider
 import it.gov.daf.catalogmanager.service.CkanRegistry
-import it.gov.daf.common.sso.client.LoginClientRemote
 import it.gov.daf.common.sso.common.{LoginInfo, SecuredInvocationManager}
 import it.gov.daf.common.utils.WebServiceUtil
 import play.api.Logger

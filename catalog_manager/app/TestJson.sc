@@ -9,6 +9,7 @@ import play.api.libs.json._
 
 import javax.inject._
 
+
 val json = s"""{
     "dataschema": {
         "avro": {

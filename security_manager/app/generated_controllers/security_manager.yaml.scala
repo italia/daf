@@ -38,7 +38,7 @@ import it.gov.daf.securitymanager.service.utilities.RequestContext._
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                                                                                                                                                                                                                                                                    
+                                                                                                                                                                                                                                                                                                                        
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -105,7 +105,15 @@ package security_manager.yaml {
                 case Right(success) => CreateIPAgroup200(success)
                 case Left(err) => CreateIPAgroup500(err)
               }*/
-            CreateIPAgroup500(Error(Option(1),Some("The service is deprecated"),None))
+          CreateIPAgroup500(Error(Option(1),Some("The service is deprecated"),None))
+          /*
+            apiClientIPA.testH.flatMap{
+              case Right(success) => CreateIPAgroup200(success)
+              case Left(err) => CreateIPAgroup500(err)
+
+            }*/
+
+            //CreateIPAgroup500(Error(Option(1),Some("The service is deprecated"),None))
             // ----- End of unmanaged code area for action  Security_managerYaml.createIPAgroup
         }
         val createDAForganization = createDAForganizationAction { (organization: DafOrg) =>  

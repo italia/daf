@@ -1360,7 +1360,33 @@ definitions:
       dataset_type:
         type: string
         description: It tells whether the dataset is at rest ('batch') or realtime stream ('stream') and, orthogonally, if it is of type 'opendata' (from  national catalogue), in which case it will have a prefix '_opendata'.
-
+      ext_opendata:
+        type: object
+        description: Info about dataset imported from external ckan used to rebuild opendata relations
+        $ref: '#/definitions/ExtOpenData'
+  ExtOpenData:
+    type: object
+    description: Type associated with group_access
+    required:
+      - id
+      - name
+      - url
+      - resourceId
+      - resourceName
+      - resourceUrl
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      url:
+        type: string
+      resourceId:
+        type: string
+      resourceName:
+        type: string
+      resourceUrl:
+        type: string
   GroupAccess:
     type: object
     description: Type associated with group_access

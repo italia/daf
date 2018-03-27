@@ -260,6 +260,12 @@ val json = s"""{
     }
 }"""
 
-val a = Json.parse(json).as[MetaCatalog]
+val b =  s"""{"a" : "a"}"""
 
-a.operational
+val c = Json.parse(b)
+
+val d = (c \ "a").get.asOpt[String]
+
+println(d)
+//val a = Json.parse(json).as[MetaCatalog]
+

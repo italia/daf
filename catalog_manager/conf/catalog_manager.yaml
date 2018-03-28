@@ -1254,13 +1254,19 @@ definitions:
       id:
         type: string
         description: Semantic tag from OntonetHub, describing the conventional triplet to uniquely identify an attribute of an entity of a given ontology.
+      id_label:
+        type: string
+        description: Human readable lable for semantic tag.
       context:
         type: string
-        description: it gives context information.
-      rdf_subject:
+        description: it gives context information. It is the semantic web URI.
+      context_label:
+        type: string
+        description: Human readable label for context.
+      subject:
         type: string
         description: it is used to give a better context to the info contained in the column. Technically, it is a tag for a concept described into an ontology. In most cases, it can be seen as the subject that makes an action, derived from the id attribute.
-      rdf_predicate:
+      predicate:
         type: string
         description: Semantic annotation of the action the subject performs on the content of the column.
       rdf_object: 

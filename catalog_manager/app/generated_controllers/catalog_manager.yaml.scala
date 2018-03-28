@@ -40,6 +40,7 @@ import it.gov.daf.catalogmanager.kylo.KyloTrasformers
 import catalog_manager.yaml
 import it.gov.daf.catalogmanager.kylo.Kylo
 import it.gov.daf.common.sso.common.CredentialManager
+import play.api.Logger
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -48,7 +49,7 @@ import it.gov.daf.common.sso.common.CredentialManager
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-            
+                
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -398,9 +399,9 @@ package catalog_manager.yaml {
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbyid
             val logical_uri = new java.net.URI(catalog_id)
             val catalog = ServiceRegistry.catalogService.catalog(logical_uri.toString)
-            println("*******")
-            println(logical_uri.toString)
-            println(catalog.toString)
+            Logger.debug("*******")
+            Logger.debug(logical_uri.toString)
+            Logger.debug(catalog.toString)
             /*
             val resutl  = catalog match {
                 case MetaCatalog(None,None,None) => Datasetcatalogbyid401("Error no data with that logical_uri")

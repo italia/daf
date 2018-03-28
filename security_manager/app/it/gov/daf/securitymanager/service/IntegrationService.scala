@@ -11,13 +11,11 @@ import cats.implicits._
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import ProcessHandler._
 import IntegrationService._
-
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.util.Try
 
 @Singleton
 class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient: SupersetApiClient, ckanApiClient: CkanApiClient, grafanaApiClient:GrafanaApiClient, registrationService: RegistrationService,kyloApiClient:KyloApiClient){
-
-  import play.api.libs.concurrent.Execution.Implicits._
 
   def createDafOrganization(dafOrg:DafOrg):Future[Either[Error,Success]] = {
 

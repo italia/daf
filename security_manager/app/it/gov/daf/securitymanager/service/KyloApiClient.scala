@@ -2,6 +2,7 @@ package it.gov.daf.securitymanager.service
 
 import com.google.inject.Inject
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
+import play.api.Logger
 import play.api.libs.json.{JsUndefined, JsValue, Json}
 import play.api.libs.ws.{WSAuthScheme, WSClient}
 import security_manager.yaml.{Error, Success}
@@ -31,7 +32,7 @@ class KyloApiClient @Inject()(wSClient: WSClient){
                                            "systemName": "$name"
                                     }""")
 
-    println("createCategory: "+ jsonRequest.toString())
+    Logger.logger.debug("createCategory: "+ jsonRequest.toString())
 
     val response = wSClient.url(ConfigReader.kyloUrl + "/proxy/v1/feedmgr/categories")
                     .withHeaders("Accept" -> "application/json")
@@ -43,7 +44,7 @@ class KyloApiClient @Inject()(wSClient: WSClient){
       if( response.status != 200 )
         Left( Error(Option(0),Some("Error in during kylo category creation: bad http code"+response.status),None) )
       else{
-        println("RESPONSE:"+response.json)
+        Logger.logger.debug("RESPONSE:"+response.json)
         val result = response.json \ "id"
         if( result.isInstanceOf[JsUndefined] )
           Left( Error(Option(0),Some("Error in during kylo category creation"),None) )

@@ -83,6 +83,7 @@ resolvers ++= Seq(
   "lightshed-maven" at "http://dl.bintray.com/content/lightshed/maven",
   Resolver.mavenLocal,
   "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/"
+  //"daf repo" at "http://nexus.teamdigitale.test:8081/repository/maven-public/"
 )
 
 // Play provides two styles of routers, one expects its actions to be injected, the
@@ -107,12 +108,16 @@ dockerCommands := dockerCommands.value.flatMap {
   )
   case other => List(other)
 }
+
 dockerEntrypoint := Seq(s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
+//dockerEntrypoint := Seq(s"bin/${name.value}", "-Dconfig.file=conf/productionNew.conf")
 dockerExposedPorts := Seq(9000)
 dockerRepository := Option("10.98.74.120:5000")
+//dockerRepository := Option("nexus.teamdigitale.test")
 
 publishTo in ThisBuild := {
   val nexus = "http://nexus.default.svc.cluster.local:8081/repository/"
+  //val nexus = "http://nexus.teamdigitale.test:8081/repository/"
   if (isSnapshot.value)
     Some("snapshots" at nexus + "maven-snapshots/")
   else

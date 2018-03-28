@@ -1199,6 +1199,13 @@ definitions:
       uniq_dim:
         type: boolean
         description: checked if the column is part of the list of dimensions that make the row unique, such that there will not be two rows with the same values for the columns checked as uniq_dim.
+      is_createdate:
+        type: boolean
+        description: checked if the column contains the date when the row was created.
+      is_updatedate:
+        type: boolean
+        description: checked if the column contains the date when the row was updated.
+
       #desc_lang:
       #  $ref: '#/definitions/Lang'
       cat:
@@ -1226,6 +1233,12 @@ definitions:
         type: object
         description: Add info about the specific format used for the column
         $ref: '#/definitions/FormatStd'
+      field_profile:
+        type: object
+        description: it has info on indexing in SearchEngine and profiling of the field, plus other Kylo specific information on standard and validation.
+        $ref: '#/definitions/FieldProfile'
+
+
   Lang:
     type: object
     properties:
@@ -1241,15 +1254,32 @@ definitions:
       id:
         type: string
         description: Semantic tag from OntonetHub, describing the conventional triplet to uniquely identify an attribute of an entity of a given ontology.
+      id_label:
+        type: string
+        description: Human readable lable for semantic tag.
+      context:
+        type: string
+        description: it gives context information. It is the semantic web URI.
+      context_label:
+        type: string
+        description: Human readable label for context.
       subject:
         type: string
-        description: Semantic annotation from OntonetHub, containing info to identify a concept the data refers to.
+        description: it is used to give a better context to the info contained in the column. Technically, it is a tag for a concept described into an ontology. In most cases, it can be seen as the subject that makes an action, derived from the id attribute.
       predicate:
         type: string
         description: Semantic annotation of the action the subject performs on the content of the column.
-      voc:
+      rdf_object: 
         type: string
-        description: semantic tag associating the column to a given controlled vocabulary, if it exists. This tag contains also info about the hierarchy of the vocabulary used.
+        description: the target of the action performed by the subject.
+      uri_voc:
+        type: string
+        description: It is a unique identifier for the vocabulary. It matches with the ``dsname`` field of the dataset in DAF.
+      property_hierarchy:
+        type: array
+        description: it is of type array, and it gives info about the hierarchy, if any, to which the property/column belongs to.
+        items:
+          type: string
   Constr:
     type: object
     properties:
@@ -1296,6 +1326,25 @@ definitions:
       param:
         type: string
         description: It contains the type of personal data
+  FieldProfile:
+    type: object
+    properties:
+      is_index:
+        type: boolean
+        description: it tells to create an index based on this field in the SearchEngine.
+      is_profile:
+        type: boolean
+        description: it tells to create a profile for the field that will be displayed as result of the SearchEngine.
+      validation:
+        type: array
+        description: contains info on the validation rules to be used for the field.
+        items: 
+          type: string
+      standardization:
+        type: array
+        description: contains info on the standardization procedure to be performed on the field.
+        items: 
+          type: string
   Operational:
     required:
       - logical_uri
@@ -1359,11 +1408,20 @@ definitions:
         $ref: '#/definitions/StorageInfo'
       dataset_type:
         type: string
-        description: It tells whether the dataset is at rest ('batch') or realtime stream ('stream') and, orthogonally, if it is of type 'opendata' (from  national catalogue), in which case it will have a prefix '_opendata'.
+        description: It tells whether the dataset is at rest ('batch') or realtime stream ('stream') and, orthogonally, if it is of type 'opendata' (from  national catalogue), in which case it will have a suffix '_opendata'.
+      partitions:
+        type: object
+        description: it tells if the dataset is partitioned, and what the partitions are.
+        $ref: '#/definitions/Partitions'
+      dataset_proc:
+        type: object
+        description: It has info about how to process and store internally the dataset. Such info includes partitioning, merge strategy, etc.
+        $ref: '#/definitions/DatasetProc'
       ext_opendata:
         type: object
         description: Info about dataset imported from external ckan used to rebuild opendata relations
         $ref: '#/definitions/ExtOpenData'
+
   ExtOpenData:
     type: object
     description: Type associated with group_access
@@ -1387,6 +1445,7 @@ definitions:
         type: string
       resourceUrl:
         type: string
+
   GroupAccess:
     type: object
     description: Type associated with group_access
@@ -1609,6 +1668,45 @@ definitions:
       param:
         type: string
         description: Other parameters to be passed in JSON format. It will be None by default.
+  Partitions:
+    type: object
+    description: it contains info about how the dataset has been partitioned, if applicable.
+    required:
+      - name
+      - field
+      - formula
+    properties:
+      name:
+        type: string
+        description: name of the partition
+      field:
+        type: string
+        description: field name (it must correspond to one of the 'name' of the dataschema).
+      formula:
+        type: string
+        description: the formula to be applied to the field to get the partition value.
+  DatasetProc:
+    type: object
+    description: It contains procedural info that helps to manage the ingestion and egestion of the dataset.
+    required:
+      - dataset_type
+      - read_type
+      - merge_strategy
+    properties:
+      dataset_type:
+        type: string
+        description: It tells whether the dataset is at rest ('batch') or realtime stream ('stream') and, orthogonally, if it is of type 'opendata' (from  national catalogue), in      which case it will have a suffix '_opendata'.. It should be an enum, to be changed when we upgrade to OpenApi 3.
+      read_type:
+        type: string
+        description: It tells whether the dataset is an append of snapshot ('last_update') or a time series ('time_series') and tells the program how to return the data. It should be an enum, to be changed when we upgrade to OpenApi 3.
+      partitions:
+        type: object
+        description: Info on how dataset are partitioned into HDFS.
+        $ref: '#/definitions/Partitions'
+      merge_strategy:
+        type: string
+        description: It tells how new data should be ingested into the existing dataset. User must choose among the following options. 'SYNC' to replace the existing content with the new one; 'MERGE' to append the data into the target partitions; 'DEDUPE_AND_MERGE' to insert into the target partition but ensure no duplicate rows are remaining; 'PK_MERGE' to insert or update existing rows matching the  same primary key; 'ROLLING_SYNC' to overwrite target partitions only when present in source.
+
   GeoRef:
     type: object
     required:

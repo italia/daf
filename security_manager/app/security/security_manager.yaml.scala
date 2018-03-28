@@ -19,13 +19,12 @@ package security_manager.yaml
 import de.zalando.play.controllers.ResponseWriters
 import de.zalando.play.controllers.SwaggerSecurityExtractors._
 import play.api.mvc._
-
-import scala.concurrent.{ExecutionContext, Future}
-
+import scala.concurrent.Future
+/*
 object SecurityExtractorsExecutionContext {
   // this ExecutionContext might be overridden if default configuration is not suitable for some reason
   implicit val ec: ExecutionContext = de.zalando.play.controllers.Contexts.tokenChecking
-}
+}*/
 
 trait SecurityExtractors {
   def basicAuth_Extractor[User >: Any](): RequestHeader => Future[Option[User]] =

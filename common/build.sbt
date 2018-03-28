@@ -24,7 +24,7 @@ name := "common"
 
 Seq(gitStampSettings: _*)
 
-version in ThisBuild := sys.env.get("COMMON_VERSION").getOrElse("1.0.5-SNAPSHOT")
+version in ThisBuild := sys.env.get("COMMON_VERSION").getOrElse("1.0.6-SNAPSHOT")
 
 //version := "1.0.1-SNAPSHOT"
 
@@ -82,7 +82,8 @@ headerLicense := Some(HeaderLicense.ALv2("2017", "TEAM PER LA TRASFORMAZIONE DIG
 headerMappings := headerMappings.value + (HeaderFileType.conf -> HeaderCommentStyle.HashLineComment)
 
 publishTo := {
-  val nexus = "http://nexus.daf.teamdigitale.it/repository/"
+  //val nexus = "http://nexus.teamdigitale.test:8081/repository/"
+  val nexus = "http://nexus.default.svc.cluster.local:8081/repository/"
   if (isSnapshot.value)
     Some("snapshots" at nexus + "maven-snapshots/")
   else

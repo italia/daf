@@ -8,19 +8,27 @@ import it.gov.daf.common.sso.common.{LoginInfo, SecuredInvocationManager}
 import it.gov.daf.common.utils.WebServiceUtil
 import it.gov.daf.securitymanager.service.IntegrationService
 import it.gov.daf.securitymanager.service.utilities.{AppConstants, ConfigReader}
-import org.slf4j.MDC
 import play.api.libs.json._
-import play.api.libs.ws.{WSClient, WSResponse}
+import play.api.libs.ws.{WSAuthScheme, WSClient, WSResponse}
 import security_manager.yaml.{Error, IpaGroup, IpaUser, Success}
 
 import scala.concurrent.Future
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.Logger
 
 @Singleton
 class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClientLocal: LoginClientLocal,wsClient: WSClient){
 
-  import play.api.libs.concurrent.Execution.Implicits._
-
   private val loginInfo = new LoginInfo(ConfigReader.ipaUser, ConfigReader.ipaUserPwd, LoginClientLocal.FREE_IPA)
+
+/*
+  def testH:Future[Either[Error,Success]]={
+    wsClient.url("https://master:50470/webhdfs/v1/app?op=GETFILESTATUS").withAuth("andreacherici@DAF.GOV.IT", "Zibibbo!", WSAuthScheme.SPNEGO).get().map{ resp =>
+      println("----->>>"+resp.body)
+      Left( Error(Option(0),Some("wee"),None) )
+    }
+  }*/
+
 
   // only sysadmin and ipaAdmin
   def createUser(user: IpaUser, isPredefinedOrgUser:Boolean):Future[Either[Error,Success]]= {
@@ -54,7 +62,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
                                        "id":0
                                     }""")
 
-    println("createUser: "+jsonUser.toString())
+    Logger.logger.debug("createUser: "+jsonUser.toString())
 
     val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonUser,_,_)
 
@@ -106,7 +114,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
                                        "id":0
                                     }""")
 
-    println("updateUser :"+jsonUser.toString())
+    Logger.logger.debug("updateUser :"+jsonUser.toString())
 
     val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonUser,_,_)
 
@@ -148,7 +156,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
                                        "id":0
                                     }""")
 
-    println("resetPwd: "+jsonUser.toString())
+    Logger.logger.debug("resetPwd: "+jsonUser.toString())
 
     val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonUser,_,_)
 
@@ -190,7 +198,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
                                        "id":0
                                     }""")
 
-    println("passwd: "+jsonUser.toString())
+    Logger.logger.debug("passwd: "+jsonUser.toString())
 
     //val currentUserLoginInfo = new LoginInfo(userUid, oldPwd, LoginClientLocal.FREE_IPA)
     val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonUser,_,_)
@@ -227,7 +235,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
       "referer" -> IPA_APP_ULR
     ).post(login)
 
-    println("login IPA (changePassword): "+login)
+    Logger.logger.debug("login IPA (changePassword): "+login)
 
     wsResponse.map{ response =>
 
@@ -266,7 +274,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
                                        "id":0
                                     }""")
 
-    println("deleteUser: "+jsonDelete.toString())
+    Logger.logger.debug("deleteUser: "+jsonDelete.toString())
 
     val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonDelete,_,_)
 
@@ -308,7 +316,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
                                        "id":0
                                     }""")
 
-    println("createGroup: "+ jsonGroup.toString())
+    Logger.logger.debug("createGroup: "+ jsonGroup.toString())
 
     val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonGroup,_,_)
 
@@ -348,7 +356,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
                                        "id":0
                                     }""")
 
-    println("showGroup: "+ jsonGroup.toString())
+    Logger.logger.debug("showGroup: "+ jsonGroup.toString())
 
     val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonGroup,_,_)
 
@@ -408,7 +416,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
                                        "id":0
                                     }""")
 
-    println("deleteGroup: "+jsonDelete.toString())
+    Logger.logger.debug("deleteGroup: "+jsonDelete.toString())
 
     val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonDelete,_,_)
 
@@ -449,7 +457,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
                                        "id":0
                                     }""")
 
-    println("addUsersToGroup: "+ jsonAdd.toString())
+    Logger.logger.debug("addUsersToGroup: "+ jsonAdd.toString())
 
     val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonAdd,_,_)
 
@@ -490,7 +498,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
                                        "id":0
                                     }""")
 
-    println("removeUsersToGroup: "+ jsonAdd.toString())
+    Logger.logger.debug("removeUsersToGroup: "+ jsonAdd.toString())
 
     val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonAdd,_,_)
 
@@ -515,7 +523,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
   def findUserByUid(userId: String):Future[Either[Error,IpaUser]]={
 
-    println("------------------->>>>"+MDC.get("user-id") )
+    //println("------------------->>>>"+MDC.get("user-id") )
     val jsonRequest:JsValue = Json.parse(s"""{
                                              "id": 0,
                                              "method": "user_show/1",
@@ -530,14 +538,14 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
                                              ]
                                          }""")
 
-    println("findUserByUid request: "+jsonRequest.toString())
+    Logger.logger.debug("findUserByUid request: "+jsonRequest.toString())
 
     val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonRequest,_,_)
 
 
     def handleJson(json:JsValue) = {
 
-      println("------------------->>>>>>"+MDC.get("user-id") )
+      //println("------------------->>>>>>"+MDC.get("user-id") )
 
       val count = ((json \ "result") \ "count").asOpt[Int].getOrElse(-1)
       val result = (json \ "result") \"result"
@@ -589,7 +597,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
                                              ]
                                          }""")
 
-    println("findUserByMail request: "+ jsonRequest.toString())
+    Logger.logger.debug("findUserByMail request: "+ jsonRequest.toString())
 
     val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonRequest,_,_)
 
@@ -643,7 +651,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
                                              ]
                                          }""")
 
-    println("findUserByMail request: "+ jsonRequest.toString())
+    Logger.logger.debug("findUserByMail request: "+ jsonRequest.toString())
 
     val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonRequest,_,_)
 
@@ -688,7 +696,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
   private def loginCkan(userName:String, pwd:String):Future[String] = {
 
-    println("login ckan")
+    Logger.logger.info("login ckan")
 
     val loginInfo = new LoginInfo(userName,pwd,LoginClientLocal.CKAN)
     val wsResponse = loginClientLocal.login(loginInfo,wsClient)

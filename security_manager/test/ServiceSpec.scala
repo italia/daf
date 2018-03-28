@@ -27,7 +27,7 @@ import play.api.libs.ws.{WSAuthScheme, WSResponse}
 import play.api.test.{WithServer, WsTestClient}
 
 import scala.concurrent.Await
-import scala.concurrent.ExecutionContext.Implicits.global
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.duration.Duration
 
 //@SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements", "org.wartremover.warts.Throw"))

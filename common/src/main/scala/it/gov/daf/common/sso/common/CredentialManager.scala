@@ -22,6 +22,7 @@ import com.google.inject.{Inject, Singleton}
 import it.gov.daf.common.authentication.{Authentication, Role}
 import it.gov.daf.common.utils._
 import org.apache.commons.net.util.Base64
+import play.api.Logger
 import play.api.mvc.{Request, RequestHeader}
 
 import scala.util.Try
@@ -66,22 +67,21 @@ class CredentialManager @Inject()(cacheWrapper: CacheWrapper) {
 
     if( authType.equalsIgnoreCase("bearer") ) {
 
-      println(s"claims:${Authentication.getClaims(requestHeader)}")
+      //Logger.logger.debug(s"claims:${Authentication.getClaims(requestHeader)}")
 
       val claims = Authentication.getClaims(requestHeader).get
       val ldapGroups = claims.get("memberOf").asInstanceOf[Option[Any]].get.asInstanceOf[net.minidev.json.JSONArray].toArray
       val groups: Array[String] = ldapGroups.map(_.toString.split(",")(0).split("=")(1))
       val user: String = claims("sub").toString
 
-      println(s"JWT user: $user")
-      println(s"belonging to groups: ${groups.toList}" )
+      //Logger.logger.info(s"JWT user: $user")
+      //Logger.logger.info(s"belonging to groups: ${groups.toList}" )
 
       Profile(user, groups)
     }else
       Empty()
 
   }
-
 
   def readCredentialFromRequest( requestHeader: RequestHeader ):UserInfo = {
 
@@ -93,6 +93,10 @@ class CredentialManager @Inject()(cacheWrapper: CacheWrapper) {
       }
     }
 
+  }
+
+  def tryToReadCredentialFromRequest( requestHeader: RequestHeader ):Try[UserInfo] = {
+    Try{readCredentialFromRequest(requestHeader)}
   }
 
   def getCredentials( requestHeader: RequestHeader ):Try[Credentials] = {
@@ -111,16 +115,22 @@ class CredentialManager @Inject()(cacheWrapper: CacheWrapper) {
 
 
   def isDafAdmin(request:Request[Any]):Boolean ={
-    readCredentialFromRequest(request).groups.contains(Role.Admin.toString)
+    val groups = readCredentialFromRequest(request).groups
+    Logger.logger.info(s"belonging to groups: ${groups.toList}" )
+    groups.contains(Role.Admin.toString)
   }
 
   def isDafEditor(request:Request[Any]):Boolean ={
-    readCredentialFromRequest(request).groups.contains(Role.Editor.toString)
+    val groups = readCredentialFromRequest(request).groups
+    Logger.logger.info(s"belonging to groups: ${groups.toList}" )
+    groups.contains(Role.Editor.toString)
   }
 
 
   def isBelongingToGroup( request:Request[Any], group:String ):Boolean ={
-    readCredentialFromRequest(request).groups.contains(group)
+    val groups = readCredentialFromRequest(request).groups
+    Logger.logger.info(s"belonging to groups: ${groups.toList}" )
+    groups.contains(group)
   }
 
 }

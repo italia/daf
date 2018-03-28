@@ -82,7 +82,8 @@ resolvers ++= Seq(
   "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos/",
   "lightshed-maven" at "http://dl.bintray.com/content/lightshed/maven",
   Resolver.mavenLocal,
-  "daf repo" at "http://nexus.teamdigitale.test:8081/repository/maven-public/"
+  "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/"
+  //"daf repo" at "http://nexus.teamdigitale.test:8081/repository/maven-public/"
 )
 
 // Play provides two styles of routers, one expects its actions to be injected, the

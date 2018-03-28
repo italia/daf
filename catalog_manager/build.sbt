@@ -13,7 +13,7 @@ val playVersion = "2.5.14"
 
 Seq(gitStampSettings: _*)
 
-version in ThisBuild := sys.env.getOrElse("CATALOG_MANAGER_VERSION", "1.0.1-SNAPSHOT")
+version in ThisBuild := sys.env.getOrElse("CATALOG_MANAGER_VERSION", "1.0.4-SNAPSHOT")
 
 
 lazy val client = (project in file("client")).

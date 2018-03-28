@@ -38,7 +38,7 @@
     "method": "SAMPLE_FILE",
     "existingTableName": null,
     "structured": false,
-    "targetMergeStrategy": "DEDUPE_AND_MERGE",
+    "targetMergeStrategy": "{DAF_MERGE_STRSTEGY}",
     "feedFormat": "{DAF_PARSER.hiveFormat}",
     "targetFormat": "STORED AS PARQUET",
     "fieldPolicies": [

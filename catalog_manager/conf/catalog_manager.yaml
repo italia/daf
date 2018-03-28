@@ -1417,6 +1417,34 @@ definitions:
         type: object
         description: It has info about how to process and store internally the dataset. Such info includes partitioning, merge strategy, etc.
         $ref: '#/definitions/DatasetProc'
+      ext_opendata:
+        type: object
+        description: Info about dataset imported from external ckan used to rebuild opendata relations
+        $ref: '#/definitions/ExtOpenData'
+
+  ExtOpenData:
+    type: object
+    description: Type associated with group_access
+    required:
+      - id
+      - name
+      - url
+      - resourceId
+      - resourceName
+      - resourceUrl
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      url:
+        type: string
+      resourceId:
+        type: string
+      resourceName:
+        type: string
+      resourceUrl:
+        type: string
 
   GroupAccess:
     type: object

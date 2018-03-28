@@ -120,7 +120,8 @@ object CatalogManager {
 
     val datasetType = if (metaCatalog.operational.is_std)
       Standard
-    else if (metaCatalog.dcatapit.owner_org.get.equals("open_data"))
+    //else if (metaCatalog.dcatapit.owner_org.get.equals("open_data"))
+    else if (!metaCatalog.operational.ext_opendata.isEmpty)
       OpenData
     else
       Ordinary

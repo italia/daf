@@ -49,7 +49,7 @@ import play.api.Logger
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-            
+                
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -464,11 +464,11 @@ package catalog_manager.yaml {
             // TODO use only one match case
             val ingest = feed.operational.input_src.sftp match {
                 case None => "ws"
-                case Some(_) => "file"
+                case Some(_) => "sftp"
             }
 
             val templateProperties = ingest match {
-                case "file" => kylo.datasetIngest(file_type, feed)
+                case "sftp" => kylo.datasetIngest(file_type, feed)
                 case "ws" => kylo.wsIngest(file_type, feed)
             }
 

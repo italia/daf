@@ -90,6 +90,7 @@ object KyloTrasformers {
                                       "name" ->  (category \ "name").as[String],
                                       "systemName" -> (category \ "systemName").as[String])) and
          (__ \ 'dataOwner).json.put(JsString((category \ "systemName").as[String])) and
+      (__ \ 'targetMergeStrategy).json.put(JsString("DEDUPE_AND_MERGE")) and
       ((__ \ 'options) \ 'skipHeader).json.put(JsBoolean(skipHeader))
          reduce)
   ) andThen (__ \ 'userProperties).json.update(

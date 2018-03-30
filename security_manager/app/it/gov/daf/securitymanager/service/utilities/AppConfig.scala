@@ -38,6 +38,9 @@ private class AppConfig @Inject()(playConfig: Configuration) {
 
 
   val metabaseUrl :Option[String] = playConfig.getString("metabase.url")
+  val metabaseAdminUser :Option[String] = playConfig.getString("metabase.adminUser")
+  val metabaseAdminPwd :Option[String] = playConfig.getString("metabase.adminPwd")
+
   val jupyterUrl :Option[String] = playConfig.getString("jupyter.url")
 
   val grafanaUrl :Option[String] = playConfig.getString("grafana.url")
@@ -78,6 +81,10 @@ object ConfigReader {
   require(config.kyloUser.nonEmpty,"A kylo user must be specified")
   require(config.kyloUserPwd.nonEmpty,"A kylo user password must be specified")
 
+  require(config.metabaseUrl.nonEmpty,"Metabase url must be specified")
+  require(config.metabaseAdminUser.nonEmpty,"Metabase user must be specified")
+  require(config.metabaseAdminPwd.nonEmpty,"Metabase password must be specified")
+
 
   //def userIdHeader: String = config.userIdHeader.getOrElse("userid")
   def ckanHost: String = config.ckanHost.getOrElse("localhost")
@@ -107,7 +114,10 @@ object ConfigReader {
   def suspersetOrgAdminRole:String = config.suspersetOrgAdminRole.get
   def suspersetDbUri:String = config.suspersetDbUri.get
 
-  def metabaseUrl:String = config.metabaseUrl.getOrElse("xxx")
+  def metabaseUrl:String = config.metabaseUrl.get
+  def metabaseAdminUser:String = config.metabaseAdminUser.get
+  def metabaseAdminPwd:String = config.metabaseAdminPwd.get
+
   def jupyterUrl:String = config.jupyterUrl.getOrElse("xxx")
 
   def grafanaUrl:String = config.grafanaUrl.getOrElse("xxx")

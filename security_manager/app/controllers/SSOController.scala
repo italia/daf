@@ -5,6 +5,7 @@ import javax.inject.Inject
 import it.gov.daf.common.sso.common.{CacheWrapper, CredentialManager, LoginInfo}
 import it.gov.daf.common.utils.Credentials
 import it.gov.daf.securitymanager.service.utilities.RequestContext.execInContext
+import it.gov.daf.securitymanager.service.utilities.Utils
 import it.gov.daf.sso.LoginClientLocal
 import play.api.inject.ConfigurationProvider
 import play.api.libs.json.Json
@@ -15,7 +16,7 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 
-class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider, implicit val credentialManager:CredentialManager, cacheWrapper: CacheWrapper, loginClientLocal:LoginClientLocal) extends Controller {
+class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider, cacheWrapper: CacheWrapper, loginClientLocal:LoginClientLocal) extends Controller {
 
   import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
@@ -24,7 +25,7 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider, impli
 
   private def doWithCredentials(request:RequestHeader, f:(Credentials)=> Future[Result]):Future[Result]={
 
-    credentialManager.getCredentials(request) match{
+    Utils.getCredentials(request,cacheWrapper) match{
       case Success(crd) => f(crd)
       case Failure(thw) => Future{InternalServerError(thw.getMessage)}
     }
@@ -35,7 +36,7 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider, impli
 
   // servono le credenziali da BA
   def register = Action { implicit request =>
-    execInContext[Result] { () =>
+    execInContext[Result] ("register"){ () =>
 
       val authHeader = request.headers.get("authorization").get.split(" ")
       val authType = authHeader(0)
@@ -50,7 +51,7 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider, impli
 
   // serve token JWT o BA
   def retriveCookie(appName:String) = Action.async { implicit request =>
-    execInContext[Future[Result]] { () =>
+    execInContext[Future[Result]] ("retriveCookie"){ () =>
 
       def callService(crd: Credentials): Future[Result] = {
 
@@ -69,7 +70,7 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider, impli
 
   // serve token JWT o BA
   def retriveCachedCookie(appName:String) = Action.async { implicit request =>
-    execInContext[Future[Result]] { () =>
+    execInContext[Future[Result]] ("retriveCachedCookie") { () =>
 
       def callService(crd: Credentials): Future[Result] = {
 
@@ -95,7 +96,7 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider, impli
 
   // serve token JWT o BA
   def login(appName:String) = Action.async { implicit request =>
-    execInContext[Future[Result]] { () =>
+    execInContext[Future[Result]] ("login"){ () =>
 
       def callService(crd: Credentials): Future[Result] = {
 
@@ -112,8 +113,8 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider, impli
 
   // serve token JWT
   def test = Action { implicit request =>
-    execInContext[Result] { () =>
-      val username = credentialManager.readCredentialFromRequest(request).username
+    execInContext[Result] ("test") { () =>
+      val username = CredentialManager.readCredentialFromRequest(request).username
 
       if (cacheWrapper.getPwd(username).isEmpty) {
         Unauthorized("JWT expired")
@@ -124,7 +125,7 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider, impli
 
 
   //-----------------UNSECURED API-----------------------------------------
-
+/*
   def registerInternal(username:String,password:String) = Action { implicit request =>
     execInContext[Result] { () =>
 
@@ -136,10 +137,17 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider, impli
 
     }
   }
+*/
+
+  def retriveAdminCookieInternal(appName:String) = Action.async { implicit request =>
+    execInContext[Future[Result]] ("retriveAdminCookieInternal"){ () =>
+      loginClientLocal.loginAdmin(appName, ws).map { cookie => Ok(Json.toJson(cookie)) }
+    }
+  }
 
 
   def retriveCookieInternal(username:String,appName:String) = Action.async { implicit request =>
-    execInContext[Future[Result]] { () =>
+    execInContext[Future[Result]] ("retriveCookieInternal"){ () =>
 
       val loginInfo = new LoginInfo(
         username,

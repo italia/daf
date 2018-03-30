@@ -20,8 +20,8 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
     Logger.debug("-------")
     Logger.debug("ls -l conf".!! )
     Logger.debug("-------")
-    Logger.debug("ls -l conf/mnt".!! )
-    Logger.debug("-------")
+    //Logger.debug("ls -l conf/mnt".!! )
+    //Logger.debug("-------")
 
     bind(classOf[LoginClient]).to(classOf[LoginClientLocal])//for the initialization of SecuredInvocationManager
 

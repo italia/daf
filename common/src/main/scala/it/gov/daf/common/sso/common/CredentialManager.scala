@@ -17,27 +17,23 @@
 package it.gov.daf.common.sso.common
 
 import java.util
-
-import com.google.inject.{Inject, Singleton}
 import it.gov.daf.common.authentication.{Authentication, Role}
 import it.gov.daf.common.utils._
 import org.apache.commons.net.util.Base64
 import play.api.Logger
 import play.api.mvc.{Request, RequestHeader}
-
 import scala.util.Try
 
 @SuppressWarnings(
   Array(
-    "org.wartremover.warts.Throw",
-    "org.wartremover.warts.ToString",
-    "org.wartremover.warts.TraversableOps",
-    "org.wartremover.warts.OptionPartial",
-    "org.wartremover.warts.AsInstanceOf"
+  "org.wartremover.warts.Throw",
+  "org.wartremover.warts.ToString",
+  "org.wartremover.warts.TraversableOps",
+  "org.wartremover.warts.OptionPartial",
+  "org.wartremover.warts.AsInstanceOf"
   )
 )
-@Singleton
-class CredentialManager @Inject()(cacheWrapper: CacheWrapper) {
+object CredentialManager {
 
   def readBaCredentials( requestHeader:RequestHeader):UserInfoSearch= {
 
@@ -97,20 +93,6 @@ class CredentialManager @Inject()(cacheWrapper: CacheWrapper) {
 
   def tryToReadCredentialFromRequest( requestHeader: RequestHeader ):Try[UserInfo] = {
     Try{readCredentialFromRequest(requestHeader)}
-  }
-
-  def getCredentials( requestHeader: RequestHeader ):Try[Credentials] = {
-
-    Try{
-      readCredentialFromRequest(requestHeader) match {
-        case p:Profile => cacheWrapper.getPwd(p.username) match{
-          case Some(pwd) => Credentials(p.username, pwd, p.groups)
-          case None => throw new Exception("Can't find credentails in cache")
-        }
-        case c:Credentials => c
-      }
-    }
-
   }
 
 

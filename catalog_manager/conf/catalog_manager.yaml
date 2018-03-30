@@ -1692,6 +1692,7 @@ definitions:
       - dataset_type
       - read_type
       - merge_strategy
+      - cron
     properties:
       dataset_type:
         type: string
@@ -1706,6 +1707,9 @@ definitions:
       merge_strategy:
         type: string
         description: It tells how new data should be ingested into the existing dataset. User must choose among the following options. 'SYNC' to replace the existing content with the new one; 'MERGE' to append the data into the target partitions; 'DEDUPE_AND_MERGE' to insert into the target partition but ensure no duplicate rows are remaining; 'PK_MERGE' to insert or update existing rows matching the  same primary key; 'ROLLING_SYNC' to overwrite target partitions only when present in source.
+      cron:
+        type: string
+        description:  It tells the shedule frequency of feed to start
 
   GeoRef:
     type: object

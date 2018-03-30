@@ -22,7 +22,10 @@ curl -i -X POST \
   --url http://kong-admin.default.svc.cluster.local:8001/apis/ \
   --data 'name=daf-security-manager-daf' \
   --data 'uris=/security-manager/v1/daf' \
-  --data 'upstream_url=http://security-manager.default.svc.cluster.local:9000/security-manager/v1/daf'
+  --data 'upstream_url=http://security-manager.default.svc.cluster.local:9000/security-manager/v1/daf' \
+  --data 'upstream_send_timeout=240000' \
+  --data 'upstream_read_timeout=240000' \
+  --data 'upstream_connect_timeout=240000'
 
 curl -i -X POST \
   --url http://kong-admin.default.svc.cluster.local:8001/apis/ \

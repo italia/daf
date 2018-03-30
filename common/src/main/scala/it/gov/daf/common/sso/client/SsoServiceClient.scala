@@ -28,7 +28,8 @@ package it.gov.daf.common.sso.client
   @SuppressWarnings(
     Array(
       "org.wartremover.warts.ExplicitImplicitTypes",
-      "org.wartremover.warts.Throw"
+      "org.wartremover.warts.Throw",
+      "org.wartremover.warts.Null"
     )
   )
   object SsoServiceClient {
@@ -37,6 +38,7 @@ package it.gov.daf.common.sso.client
     private implicit val cookieReads = Json.reads[Cookie]
 
 
+    /*
     def registerInternal(host:String, username:String, password:String, wsClient:WSClient):Future[String]= {
 
       val params = WebServiceUtil.buildEncodedQueryString(Map("username"->username,"password"->password))
@@ -51,13 +53,21 @@ package it.gov.daf.common.sso.client
 
       }
 
-    }
+    }*/
 
 
     def retriveCookieInternal(host:String, username:String,appName:String,wsClient:WSClient):Future[Cookie] =  {
 
+      /*
       val userParam = WebServiceUtil.buildEncodedQueryString( Map("username"->username) )
       val url =  s"$host/sso-manager/internal/retriveCookie/$appName$userParam"
+      */
+
+      val url = username match{
+        case null =>  s"$host/sso-manager/internal/retriveAdminCookie/$appName"
+        case _ =>     val userParam = WebServiceUtil.buildEncodedQueryString( Map("username"->username) )
+                      s"$host/sso-manager/internal/retriveCookie/$appName$userParam"
+      }
 
       wsClient.url(url).get().map{ response =>
 

@@ -30,6 +30,8 @@ import it.gov.daf.securitymanager.service.IntegrationService
 import it.gov.daf.ftp.SftpHandler
 import it.gov.daf.common.sso.common.CredentialManager
 import it.gov.daf.securitymanager.service.utilities.RequestContext._
+import it.gov.daf.common.sso.common.CacheWrapper
+import it.gov.daf.securitymanager.service.utilities.Utils
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -38,16 +40,16 @@ import it.gov.daf.securitymanager.service.utilities.RequestContext._
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                                                                                                                                                                                                                                                                        
+                                                                                                                                                                                                                                                                                                                                                                
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
                                            val configuration: Configuration,
                                            val playSessionStore: PlaySessionStore,
-                                            implicit val credentialManager:CredentialManager,
                                            apiClientIPA:ApiClientIPA,
                                            registrationService:RegistrationService,
                                            integrationService:IntegrationService,
+                                            cacheWrapper: CacheWrapper,
         // ----- End of unmanaged code area for injections Security_managerYaml
         val messagesApi: MessagesApi,
         lifecycle: ApplicationLifecycle,
@@ -63,7 +65,7 @@ package security_manager.yaml {
         // ----- End of unmanaged code area for constructor Security_managerYaml
         val registrationconfirm = registrationconfirmAction { (token: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.registrationconfirm
-            execInContext[Future[RegistrationconfirmType[T] forSome { type T }]] { () =>
+            execInContext[Future[RegistrationconfirmType[T] forSome { type T }]] ("registrationconfirm"){ () =>
             registrationService.createUser(token) flatMap {
               case Right(success) => Registrationconfirm200(success)
               case Left(err) => Registrationconfirm500(err)
@@ -73,8 +75,8 @@ package security_manager.yaml {
         }
         val createDAFuser = createDAFuserAction { (user: IpaUser) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.createDAFuser
-            execInContext[Future[CreateDAFuserType[T] forSome { type T }]] { () =>
-            if (!credentialManager.isDafAdmin(currentRequest))
+            execInContext[Future[CreateDAFuserType[T] forSome { type T }]] ("createDAFuser"){ () =>
+            if (!CredentialManager.isDafAdmin(currentRequest))
               CreateDAFuser500(Error(Option(1), Some("Admin permissions required"), None))
             else
               registrationService.checkUserNcreate(user) flatMap {
@@ -87,7 +89,7 @@ package security_manager.yaml {
         }
         val resetpwdconfirm = resetpwdconfirmAction { (resetinfo: ConfirmResetPwdPayload) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.resetpwdconfirm
-            execInContext[Future[ResetpwdconfirmType[T] forSome { type T }]] { () =>
+            execInContext[Future[ResetpwdconfirmType[T] forSome { type T }]] ("resetpwdconfirm"){ () =>
               registrationService.resetPassword(resetinfo.token, resetinfo.newpwd) flatMap {
                 case Right(success) => Resetpwdconfirm200(success)
                 case Left(err) => Resetpwdconfirm500(err)
@@ -106,7 +108,8 @@ package security_manager.yaml {
                 case Left(err) => CreateIPAgroup500(err)
               }*/
           CreateIPAgroup500(Error(Option(1),Some("The service is deprecated"),None))
-          /*
+
+            /*
             apiClientIPA.testH.flatMap{
               case Right(success) => CreateIPAgroup200(success)
               case Left(err) => CreateIPAgroup500(err)
@@ -118,8 +121,8 @@ package security_manager.yaml {
         }
         val createDAForganization = createDAForganizationAction { (organization: DafOrg) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.createDAForganization
-            execInContext[Future[CreateDAForganizationType[T] forSome { type T }]] { () =>
-            if (!credentialManager.isDafAdmin(currentRequest))
+            execInContext[Future[CreateDAForganizationType[T] forSome { type T }]] ("createDAForganization") { () =>
+            if (!CredentialManager.isDafAdmin(currentRequest))
               CreateDAForganization500(Error(Option(1), Some("Admin permissions required"), None))
             else
               integrationService.createDafOrganization(organization) flatMap {
@@ -131,11 +134,11 @@ package security_manager.yaml {
         }
         val findIpauserByName = findIpauserByNameAction { (userName: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.findIpauserByName
-            execInContext[Future[FindIpauserByNameType[T] forSome { type T }]] { () =>
-            val credentials = credentialManager.readCredentialFromRequest(currentRequest)
+            execInContext[Future[FindIpauserByNameType[T] forSome { type T }]]("findIpauserByName") { () =>
+            val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
 
             apiClientIPA.findUserByUid(userName) flatMap {
-              case Right(success) =>  if (success.uid == credentials.username || credentialManager.isDafAdmin(currentRequest))
+              case Right(success) =>  if (success.uid == credentials.username || CredentialManager.isDafAdmin(currentRequest))
                                         FindIpauserByName200(success)
                                       else
                                         FindIpauserByName500(Error(Option(1), Some("Permissions required"), None))
@@ -146,8 +149,8 @@ package security_manager.yaml {
         }
         val deleteDAForganization = deleteDAForganizationAction { (orgName: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.deleteDAForganization
-            execInContext[Future[DeleteDAForganizationType[T] forSome { type T }]] { () =>
-            if (!credentialManager.isDafAdmin(currentRequest))
+            execInContext[Future[DeleteDAForganizationType[T] forSome { type T }]] ("deleteDAForganization"){ () =>
+            if (!CredentialManager.isDafAdmin(currentRequest))
               DeleteDAForganization500(Error(Option(1), Some("Admin permissions required"), None))
             else
               integrationService.deleteDafOrganization(orgName) flatMap {
@@ -188,7 +191,7 @@ package security_manager.yaml {
         }
         val createSupersetTable = createSupersetTableAction { (payload: SupersetTable) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.createSupersetTable
-            execInContext[Future[CreateSupersetTableType[T] forSome { type T }]] { () =>
+            execInContext[Future[CreateSupersetTableType[T] forSome { type T }]] ("createSupersetTable"){ () =>
             integrationService.createSupersetTable(payload.dbName, payload.schema, payload.tableName) flatMap {
               case Right(success) => CreateSupersetTable200(success)
               case Left(err) => CreateSupersetTable500(err)
@@ -199,8 +202,8 @@ package security_manager.yaml {
         val updateDAFuser = updateDAFuserAction { input: (String, IpaUserMod) =>
             val (uid, user) = input
             // ----- Start of unmanaged code area for action  Security_managerYaml.updateDAFuser
-            execInContext[Future[UpdateDAFuserType[T] forSome { type T }]] { () =>
-            if (!credentialManager.isDafAdmin(currentRequest))
+            execInContext[Future[UpdateDAFuserType[T] forSome { type T }]] ("updateDAFuser"){ () =>
+            if (!CredentialManager.isDafAdmin(currentRequest))
               UpdateDAFuser500(Error(Option(1), Some("Admin permissions required"), None))
             else
               registrationService.updateUser(input._1, input._2.givenname, input._2.sn, input._2.role) flatMap {
@@ -215,17 +218,17 @@ package security_manager.yaml {
             //val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
             //cacheWrapper.deleteCredentials(credentials._1.get)
             //cacheWrapper.putCredentials(credentials._1.get,credentials._2.get)
-          execInContext[Future[TokenType[T] forSome { type T }]] { () =>
+          execInContext[Future[TokenType[T] forSome { type T }]] ("token"){ () =>
             Token200(Authentication.getStringToken(currentRequest, ConfigReader.tokenExpiration).getOrElse(""))
           }
             // ----- End of unmanaged code area for action  Security_managerYaml.token
         }
         val showipagroup = showipagroupAction { (cn: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.showipagroup
-            execInContext[Future[ShowipagroupType[T] forSome { type T }]] { () =>
-            val credentials = credentialManager.readCredentialFromRequest(currentRequest)
+            execInContext[Future[ShowipagroupType[T] forSome { type T }]] ("showipagroup"){ () =>
+            val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
 
-            if (credentials.groups.contains(cn) || credentialManager.isDafAdmin(currentRequest))
+            if (credentials.groups.contains(cn) || CredentialManager.isDafAdmin(currentRequest))
               apiClientIPA.showGroup(cn) flatMap {
                 case Right(success) => Showipagroup200(success)
                 case Left(err) => Showipagroup500(err)
@@ -237,11 +240,11 @@ package security_manager.yaml {
         }
         val useraddDAForganization = useraddDAForganizationAction { (payload: UserAndGroup) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.useraddDAForganization
-            execInContext[Future[UseraddDAForganizationType[T] forSome { type T }]] { () =>
-            val credentials = credentialManager.readCredentialFromRequest(currentRequest)
+            execInContext[Future[UseraddDAForganizationType[T] forSome { type T }]] ("useraddDAForganization"){ () =>
+            val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
 
-            if ((credentials.groups.contains(payload.groupCn) && credentialManager.isDafEditor(currentRequest)) ||
-              credentialManager.isDafAdmin(currentRequest))
+            if ((credentials.groups.contains(payload.groupCn) && CredentialManager.isDafEditor(currentRequest)) ||
+              CredentialManager.isDafAdmin(currentRequest))
               integrationService.addUserToOrganization(payload.groupCn, payload.userId) flatMap {
                 case Right(success) => UseraddDAForganization200(success)
                 case Left(err) => UseraddDAForganization500(err)
@@ -253,12 +256,12 @@ package security_manager.yaml {
         }
         val findIpauserByMail = findIpauserByMailAction { (mail: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.findIpauserByMail
-            execInContext[Future[FindIpauserByMailType[T] forSome { type T }]] { () =>
-            val credentials = credentialManager.readCredentialFromRequest(currentRequest)
+            execInContext[Future[FindIpauserByMailType[T] forSome { type T }]] ("findIpauserByMail"){ () =>
+            val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
 
             apiClientIPA.findUserByMail(mail) flatMap {
 
-              case Right(success) =>  if (success.uid == credentials.username || credentialManager.isDafAdmin(currentRequest))
+              case Right(success) =>  if (success.uid == credentials.username || CredentialManager.isDafAdmin(currentRequest))
                                         FindIpauserByMail200(success)
                                       else
                                         FindIpauserByMail500(Error(Option(1), Some("Permissions required"), None))
@@ -270,8 +273,8 @@ package security_manager.yaml {
         }
         val createDefaultDAForganization = createDefaultDAForganizationAction { (organization: DafOrg) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.createDefaultDAForganization
-            execInContext[Future[CreateDefaultDAForganizationType[T] forSome { type T }]] { () =>
-            if (!credentialManager.isDafAdmin(currentRequest))
+            execInContext[Future[CreateDefaultDAForganizationType[T] forSome { type T }]] ("createDefaultDAForganization"){ () =>
+            if (!CredentialManager.isDafAdmin(currentRequest))
               CreateDefaultDAForganization500(Error(Option(1), Some("Admin permissions required"), None))
             else
               integrationService.createDefaultDafOrganization(organization.predefinedUserPwd) flatMap {
@@ -283,10 +286,10 @@ package security_manager.yaml {
         }
         val sftp = sftpAction { (path_to_create: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.sftp
-            execInContext[Future[SftpType[T] forSome { type T }]] { () =>
-            val credentials = credentialManager.getCredentials(currentRequest)
+            execInContext[Future[SftpType[T] forSome { type T }]] ("sftp"){ () =>
+            val credentials = Utils.getCredentials(currentRequest, cacheWrapper )
 
-            if (credentialManager.isDafAdmin(currentRequest) || credentialManager.isDafEditor(currentRequest)) {
+            if (CredentialManager.isDafAdmin(currentRequest) || CredentialManager.isDafEditor(currentRequest)) {
               val result = credentials.flatMap { crd =>
                 val sftp = new SftpHandler(crd.username, crd.password, sftpHost)
                 sftp.mkdir(path_to_create)
@@ -303,7 +306,7 @@ package security_manager.yaml {
         }
         val findSupersetOrgTables = findSupersetOrgTablesAction { (orgName: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.findSupersetOrgTables
-            execInContext[Future[FindSupersetOrgTablesType[T] forSome { type T }]] { () =>
+            execInContext[Future[FindSupersetOrgTablesType[T] forSome { type T }]] ("findSupersetOrgTables"){ () =>
             integrationService.getSupersetOrgTables(orgName) flatMap {
               case Right(success) => FindSupersetOrgTables200(SupersetTables(Some(success)))
               case Left(err) => FindSupersetOrgTables500(err)
@@ -313,7 +316,7 @@ package security_manager.yaml {
         }
         val resetpwdrequest = resetpwdrequestAction { (resetMail: ResetPwdPayload) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.resetpwdrequest
-            execInContext[Future[ResetpwdrequestType[T] forSome { type T }]] { () =>
+            execInContext[Future[ResetpwdrequestType[T] forSome { type T }]] ("resetpwdrequest"){ () =>
             registrationService.requestResetPwd(resetMail.mail) flatMap {
               case Right(mailService) => mailService.sendResetPwdMail()
               case Left(e) => Future(Left(e))
@@ -326,7 +329,7 @@ package security_manager.yaml {
         }
         val listDAForganization = listDAForganizationAction {  _ =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.listDAForganization
-            execInContext[Future[ListDAForganizationType[T] forSome { type T }]] { () =>
+            execInContext[Future[ListDAForganizationType[T] forSome { type T }]] ("listDAForganization"){ () =>
             apiClientIPA.organizationList() flatMap {
               case Right(success) => ListDAForganization200(OrgList(success))
               case Left(err) => ListDAForganization500(err)
@@ -336,8 +339,8 @@ package security_manager.yaml {
         }
         val deleteDAFuser = deleteDAFuserAction { (userName: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.deleteDAFuser
-            execInContext[Future[DeleteDAFuserType[T] forSome { type T }]] { () =>
-            if (!credentialManager.isDafAdmin(currentRequest))
+            execInContext[Future[DeleteDAFuserType[T] forSome { type T }]] ("deleteDAFuser"){ () =>
+            if (!CredentialManager.isDafAdmin(currentRequest))
               DeleteDAFuser500(Error(Option(1), Some("Admin permissions required"), None))
             else
               registrationService.deleteUser(userName) flatMap {
@@ -349,11 +352,11 @@ package security_manager.yaml {
         }
         val userdelDAForganization = userdelDAForganizationAction { (payload: UserAndGroup) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.userdelDAForganization
-            execInContext[Future[UserdelDAForganizationType[T] forSome { type T }]] { () =>
-            val credentials = credentialManager.readCredentialFromRequest(currentRequest)
+            execInContext[Future[UserdelDAForganizationType[T] forSome { type T }]] ("userdelDAForganization"){ () =>
+            val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
 
-            if ((credentials.groups.contains(payload.groupCn) && credentialManager.isDafEditor(currentRequest)) ||
-              credentialManager.isDafAdmin(currentRequest))
+            if ((credentials.groups.contains(payload.groupCn) && CredentialManager.isDafEditor(currentRequest)) ||
+              CredentialManager.isDafAdmin(currentRequest))
               integrationService.removeUserFromOrganization(payload.groupCn, payload.userId) flatMap {
                 case Right(success) => UserdelDAForganization200(success)
                 case Left(err) => UserdelDAForganization500(err)
@@ -365,7 +368,7 @@ package security_manager.yaml {
         }
         val registrationrequest = registrationrequestAction { (user: IpaUser) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.registrationrequest
-            execInContext[Future[RegistrationrequestType[T] forSome { type T }]] { () =>
+            execInContext[Future[RegistrationrequestType[T] forSome { type T }]] ("registrationrequest"){ () =>
             registrationService.requestRegistration(user) flatMap {
               case Right(mailService) => mailService.sendRegistrationMail()
               case Left(e) => Future( Left(e) )

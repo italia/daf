@@ -78,8 +78,8 @@ resolvers ++= Seq(
   "jeffmay" at "https://dl.bintray.com/jeffmay/maven",
   Resolver.url("sbt-plugins", url("http://dl.bintray.com/gruggiero/sbt-plugins"))(Resolver.ivyStylePatterns),
   "lightshed-maven" at "http://dl.bintray.com/content/lightshed/maven",
-  //"daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/"
-  "daf repo" at "http://nexus.teamdigitale.test:8081/repository/maven-public/"
+  "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/"
+  //"daf repo" at "http://nexus.teamdigitale.test:8081/repository/maven-public/"
 )
 
 import com.typesafe.sbt.packager.MappingsHelper._

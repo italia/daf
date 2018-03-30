@@ -12,7 +12,9 @@ import play.api.libs.json.Json
 import play.api.libs.ws.{WSClient, WSResponse}
 import play.api.mvc.Cookie
 import play.api.libs.concurrent.Execution.Implicits._
+
 import scala.concurrent.Future
+import scala.concurrent.stm.Txn.ExplicitRetryCause
 
 @Singleton
 class LoginClientLocal() extends LoginClient {
@@ -56,6 +58,21 @@ class LoginClientLocal() extends LoginClient {
       case LoginClientLocal.METABASE => loginMetabase(loginInfo.user, loginInfo.password, wsClient).map(Seq(_))
       case LoginClientLocal.JUPYTER => loginJupyter(loginInfo.user, loginInfo.password, wsClient).map(Seq(_))
       case LoginClientLocal.GRAFANA => loginGrafanaFE(loginInfo.user, loginInfo.password, wsClient)
+      case _ => throw new Exception("Unexpeted exception: application name not found")
+    }
+
+  }
+
+
+  def loginAdmin(appName: String, wsClient: WSClient): Future[Cookie] = {
+
+    appName match {
+      case LoginClientLocal.CKAN => loginCkan( ConfigReader.ckanAdminUser, ConfigReader.ckanAdminPwd, wsClient)
+      case LoginClientLocal.FREE_IPA => loginIPA( ConfigReader.ipaUser, ConfigReader.ipaUserPwd, wsClient)
+      case LoginClientLocal.SUPERSET => loginSuperset( ConfigReader.suspersetAdminUser, ConfigReader.suspersetAdminPwd, wsClient)
+      case LoginClientLocal.METABASE => loginMetabase(ConfigReader.metabaseAdminUser, ConfigReader.metabaseAdminPwd, wsClient)
+      case LoginClientLocal.JUPYTER => val msg="Jupyter dosen't have admins";Logger.error(msg);throw new Exception(msg) //loginJupyter(loginInfo.user, loginInfo.password, wsClient)
+      case LoginClientLocal.GRAFANA => loginGrafana(ConfigReader.grafanaAdminUser, ConfigReader.grafanaAdminPwd, wsClient)
       case _ => throw new Exception("Unexpeted exception: application name not found")
     }
 

@@ -21,13 +21,13 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
   private val loginInfo = new LoginInfo(ConfigReader.ipaUser, ConfigReader.ipaUserPwd, LoginClientLocal.FREE_IPA)
 
-/*
+
   def testH:Future[Either[Error,Success]]={
-    wsClient.url("https://master:50470/webhdfs/v1/app?op=GETFILESTATUS").withAuth("andreacherici@DAF.GOV.IT", "Zibibbo!", WSAuthScheme.SPNEGO).get().map{ resp =>
+    wsClient.url("https://master:50470/webhdfs/v1/app?op=GETFILESTATUS").withAuth("krbtgt/DAF.GOV.IT@DAF.GOV.IT","andreacherici@DAF.GOV.IT", WSAuthScheme.SPNEGO).get().map{ resp =>
       println("----->>>"+resp.body)
       Left( Error(Option(0),Some("wee"),None) )
     }
-  }*/
+  }
 
 
   // only sysadmin and ipaAdmin

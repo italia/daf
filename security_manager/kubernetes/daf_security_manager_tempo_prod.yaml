@@ -85,8 +85,8 @@ spec:
           mountPath: /opt/docker/conf/production.conf
           subPath: security-manager/conf/production.conf
         - name: glusterfsvol
-          mountPath: /opt/docker/conf/logback.conf
-          subPath: security-manager/conf/logback.conf
+          mountPath: /opt/docker/conf/logback.xml
+          subPath: security-manager/conf/logback.xml
           readOnly: true
         - name: glusterfsvol
           mountPath: /opt/docker/logs

@@ -4,6 +4,7 @@ import com.google.inject.Inject
 import it.gov.daf.common.sso.common.{CacheWrapper, LoginInfo, SecuredInvocationManager}
 import it.gov.daf.common.utils.WebServiceUtil
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
+import it.gov.daf.sso.LoginClientLocal
 import play.api.Logger
 import play.api.libs.json._
 import play.api.libs.ws.{WSClient, WSResponse}
@@ -35,7 +36,8 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
     )(CkanOrgUser.apply _)
   */
 
-  private val ckanAdminLogin = new LoginInfo(ConfigReader.ckanAdminUser, ConfigReader.ckanAdminPwd, "ckan")
+  private val ckanAdminLogin = new LoginInfo(ConfigReader.ckanAdminUser, ConfigReader.ckanAdminPwd, LoginClientLocal.CKAN)
+  private val ckanGeoAdminLogin = new LoginInfo(ConfigReader.ckanGeoAdminUser, ConfigReader.ckanGeoAdminPwd, LoginClientLocal.CKAN_GEO)
 
   def createOrganization(userName:String, userPwd:String, groupCn:String):Future[Either[Error, Success]] = {
 
@@ -61,6 +63,21 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
   }
 
   def createOrganizationAsAdmin(groupCn:String):Future[Either[Error, Success]] = {
+    createOrganizationAsAdmin(false,groupCn)
+  }
+
+  def createOrganizationInGeoCkanAsAdmin(groupCn:String):Future[Either[Error, Success]] = {
+    createOrganizationAsAdmin(true,groupCn)
+  }
+
+  private type CkanInfo = (String,LoginInfo)
+  private def selectInfo(isGeoCkan:Boolean):CkanInfo =  if(isGeoCkan) (ConfigReader.ckanGeoHost, ckanGeoAdminLogin)
+                                                        else (ConfigReader.ckanHost,ckanAdminLogin)
+
+  private def createOrganizationAsAdmin(isGeoCkan:Boolean,groupCn:String):Future[Either[Error, Success]] = {
+
+    val ckaninfo = selectInfo(isGeoCkan)
+
 
     val jsonRequest: JsValue = Json.parse(
       s"""{
@@ -76,15 +93,24 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
 
 
     def serviceInvoke(cookie: String, wsClient: WSClient): Future[WSResponse] = {
-      wsClient.url(ConfigReader.ckanHost + "/api/3/action/organization_create").withHeaders("Cookie" -> cookie).post(jsonRequest)
+      wsClient.url(ckaninfo._1 + "/api/3/action/organization_create").withHeaders("Cookie" -> cookie).post(jsonRequest)
     }
 
-    secInvokeManager.manageRestServiceCall(ckanAdminLogin, serviceInvoke, 200) map ( evaluateResult(_,"Organization created") )
+    secInvokeManager.manageRestServiceCall(ckaninfo._2, serviceInvoke, 200) map ( evaluateResult(_,s"Organization created (${ckaninfo._1})") )
 
   }
 
-
   def deleteOrganization(groupCn:String):Future[Either[Error, Success]] = {
+    deleteOrganization(false,groupCn)
+  }
+
+  def deleteOrganizationInGeoCkan(groupCn:String):Future[Either[Error, Success]] = {
+    deleteOrganization(true,groupCn)
+  }
+
+  private def deleteOrganization(isGeoCkan:Boolean,groupCn:String):Future[Either[Error, Success]] = {
+
+    val ckaninfo = selectInfo(isGeoCkan)
 
     val jsonRequest: JsValue = Json.parse( s"""{"id" : "$groupCn"}""" )
 
@@ -92,11 +118,11 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
 
 
     def serviceInvoke(cookie: String, wsClient: WSClient): Future[WSResponse] = {
-      val url = ConfigReader.ckanHost + "/api/3/action/organization_delete"
+      val url = ckaninfo._1 + "/api/3/action/organization_delete"
       wsClient.url(url).withHeaders("Cookie" -> cookie).post(jsonRequest)
     }
 
-    secInvokeManager.manageRestServiceCall(ckanAdminLogin, serviceInvoke, 200) map ( evaluateResult(_,"Organization deleted") )
+    secInvokeManager.manageRestServiceCall(ckaninfo._2, serviceInvoke, 200) map ( evaluateResult(_,s"Organization deleted (${ckaninfo._1})") )
 
   }
 
@@ -117,6 +143,16 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
   }
 
   def purgeOrganization(groupCn:String):Future[Either[Error, Success]] = {
+    purgeOrganization(false, groupCn)
+  }
+
+  def purgeOrganizationInGeoCkan(groupCn:String):Future[Either[Error, Success]] = {
+    purgeOrganization(true, groupCn)
+  }
+
+  private def purgeOrganization(isGeoCkan:Boolean, groupCn:String):Future[Either[Error, Success]] = {
+
+    val ckaninfo = selectInfo(isGeoCkan)
 
     val jsonRequest: JsValue = Json.parse( s"""{"id" : "$groupCn"}""" )
 
@@ -124,11 +160,11 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
 
 
     def serviceInvoke(cookie: String, wsClient: WSClient): Future[WSResponse] = {
-      val url = ConfigReader.ckanHost + "/api/3/action/organization_purge"
+      val url = ckaninfo._1 + "/api/3/action/organization_purge"
       wsClient.url(url).withHeaders("Cookie" -> cookie).post(jsonRequest)
     }
 
-    secInvokeManager.manageRestServiceCall(ckanAdminLogin, serviceInvoke, 200) map ( evaluateResult(_,"Organization deleted") )
+    secInvokeManager.manageRestServiceCall(ckaninfo._2, serviceInvoke, 200) map ( evaluateResult(_,s"Organization purged (${ckaninfo._1})") )
 
   }
 

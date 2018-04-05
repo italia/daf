@@ -11,6 +11,9 @@ private class AppConfig @Inject()(playConfig: Configuration) {
   val ckanHost: Option[String] = playConfig.getString("ckan.url")
   val ckanAdminUser:Option[String] = playConfig.getString("ckan.adminUser")
   val ckanAdminPwd:Option[String] = playConfig.getString("ckan.adminPwd")
+  val ckanGeoHost: Option[String] = playConfig.getString("ckan-geo.url")
+  val ckanGeoAdminUser:Option[String] = playConfig.getString("ckan-geo.adminUser")
+  val ckanGeoAdminPwd:Option[String] = playConfig.getString("ckan-geo.adminPwd")
   val dbHost: Option[String] = playConfig.getString("mongo.host")
   val dbPort: Option[Int] = playConfig.getInt("mongo.port")
   val userName :Option[String] = playConfig.getString("mongo.username")
@@ -69,8 +72,12 @@ object ConfigReader {
   require(config.suspersetAdminPwd.nonEmpty,"A superset admin password must be specified")
   require(config.suspersetOrgAdminRole.nonEmpty,"A superset organization admin role must be specified")
   require(config.suspersetDbUri.nonEmpty,"A superset db uri must be specified")
+  require(config.ckanHost.nonEmpty,"A ckan host must be specified")
   require(config.ckanAdminUser.nonEmpty,"A ckan admin must be specified")
   require(config.ckanAdminPwd.nonEmpty,"A ckan admin password must be specified")
+  require(config.ckanGeoHost.nonEmpty,"A ckan geo host must be specified")
+  require(config.ckanGeoAdminUser.nonEmpty,"A ckan geo admin must be specified")
+  require(config.ckanGeoAdminPwd.nonEmpty,"A ckan geo  admin password must be specified")
   require(config.grafanaAdminUser.nonEmpty,"A grafana admin must be specified")
   require(config.grafanaAdminPwd.nonEmpty,"A grafana admin password must be specified")
 
@@ -87,9 +94,14 @@ object ConfigReader {
 
 
   //def userIdHeader: String = config.userIdHeader.getOrElse("userid")
-  def ckanHost: String = config.ckanHost.getOrElse("localhost")
+  def ckanHost: String = config.ckanHost.get
   def ckanAdminUser:String = config.ckanAdminUser.get
   def ckanAdminPwd:String = config.ckanAdminPwd.get
+
+  def ckanGeoHost: String = config.ckanGeoHost.get
+  def ckanGeoAdminUser:String = config.ckanGeoAdminUser.get
+  def ckanGeoAdminPwd:String = config.ckanGeoAdminPwd.get
+
   def getDbHost: String = config.dbHost.getOrElse("localhost")
   def getDbPort: Int = config.dbPort.getOrElse(27017)
   def database :String = config.database.getOrElse("security_manager")

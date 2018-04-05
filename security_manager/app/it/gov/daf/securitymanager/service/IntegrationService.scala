@@ -20,7 +20,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
   def createDafOrganization(dafOrg:DafOrg):Future[Either[Error,Success]] = {
 
     val groupCn = dafOrg.groupCn
-    val predefinedOrgIpaUser = new IpaUser(groupCn,
+    val predefinedOrgIpaUser =     IpaUser(groupCn,
                                           "predefined organization user",
                                           dafOrg.predefinedUserMail.getOrElse( toMail(groupCn) ),
                                           toUserName(groupCn),
@@ -37,12 +37,13 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
       d <- stepOver( c, Try{kyloApiClient.createCategory(dafOrg.groupCn)} )
 
       e <- step( c, Try{ckanApiClient.createOrganizationAsAdmin(groupCn)} )
+      e1 <- step( c, Try{ckanApiClient.createOrganizationInGeoCkanAsAdmin(groupCn)} )
       //f <- EitherT( grafanaApiClient.createOrganization(groupCn) ) TODO da riabilitare
       g <- stepOver( e, Try{addUserToOrganization(groupCn,predefinedOrgIpaUser.uid)} )
       //g <- EitherT( grafanaApiClient.addUserInOrganization(groupCn,toUserName(groupCn)) )
     } yield g
 
-    // 4 step
+    // 5 step
 
     result.value.map{
       case Right(r) => Right( Success(Some("Organization created"), Some("ok")) )
@@ -82,6 +83,9 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
       g <- stepOver( e, Try{ckanApiClient.deleteOrganization(groupCn)} )
       h <- step( g, Try{ckanApiClient.purgeOrganization(groupCn)} )
+
+      g1 <- stepOver( e, Try{ckanApiClient.deleteOrganizationInGeoCkan(groupCn)} )
+      h1 <- step( g, Try{ckanApiClient.purgeOrganizationInGeoCkan(groupCn)} )
 
       //i <- EitherT( grafanaApiClient.deleteOrganization(groupCn) ) TODO re-enable when Grafana is integrated
     } yield h

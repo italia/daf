@@ -27,6 +27,7 @@ class LoginClientLocal() extends LoginClient {
   private val GRAFANA = "grafana"
 
   private val CKAN_URL = ConfigReader.ckanHost
+  private val CKAN_GEO_URL = ConfigReader.ckanGeoHost
   private val IPA_URL = ConfigReader.ipaUrl
   private val SUPERSET_URL = ConfigReader.supersetUrl
   private val METABASE_URL = ConfigReader.metabaseUrl
@@ -39,6 +40,7 @@ class LoginClientLocal() extends LoginClient {
 
     loginInfo.appName match {
       case LoginClientLocal.CKAN => loginCkan(loginInfo.user, loginInfo.password, wsClient)
+      case LoginClientLocal.CKAN_GEO => loginCkanGeo(loginInfo.user, loginInfo.password, wsClient)
       case LoginClientLocal.FREE_IPA => loginIPA(loginInfo.user, loginInfo.password, wsClient)
       case LoginClientLocal.SUPERSET => loginSuperset(loginInfo.user, loginInfo.password, wsClient)
       case LoginClientLocal.METABASE => loginMetabase(loginInfo.user, loginInfo.password, wsClient)
@@ -53,6 +55,7 @@ class LoginClientLocal() extends LoginClient {
 
     loginInfo.appName match {
       case LoginClientLocal.CKAN => loginCkan(loginInfo.user, loginInfo.password, wsClient).map(Seq(_))
+      case LoginClientLocal.CKAN_GEO => loginCkanGeo(loginInfo.user, loginInfo.password, wsClient).map(Seq(_))
       case LoginClientLocal.FREE_IPA => loginIPA(loginInfo.user, loginInfo.password, wsClient).map(Seq(_))
       case LoginClientLocal.SUPERSET => loginSuperset(loginInfo.user, loginInfo.password, wsClient).map(Seq(_))
       case LoginClientLocal.METABASE => loginMetabase(loginInfo.user, loginInfo.password, wsClient).map(Seq(_))
@@ -68,6 +71,7 @@ class LoginClientLocal() extends LoginClient {
 
     appName match {
       case LoginClientLocal.CKAN => loginCkan( ConfigReader.ckanAdminUser, ConfigReader.ckanAdminPwd, wsClient)
+      case LoginClientLocal.CKAN_GEO => loginCkanGeo(ConfigReader.ckanGeoAdminUser, ConfigReader.ckanGeoAdminPwd, wsClient)
       case LoginClientLocal.FREE_IPA => loginIPA( ConfigReader.ipaUser, ConfigReader.ipaUserPwd, wsClient)
       case LoginClientLocal.SUPERSET => loginSuperset( ConfigReader.suspersetAdminUser, ConfigReader.suspersetAdminPwd, wsClient)
       case LoginClientLocal.METABASE => loginMetabase(ConfigReader.metabaseAdminUser, ConfigReader.metabaseAdminPwd, wsClient)
@@ -78,23 +82,24 @@ class LoginClientLocal() extends LoginClient {
 
   }
 
+  private def loginCkan( userName: String, pwd: String, wsClient: WSClient): Future[Cookie] = loginCkan(CKAN_URL,userName,pwd,wsClient)
 
-  private def loginCkan(userName: String, pwd: String, wsClient: WSClient): Future[Cookie] = {
+  private def loginCkanGeo( userName: String, pwd: String, wsClient: WSClient): Future[Cookie] = loginCkan(CKAN_GEO_URL,userName,pwd,wsClient)
+
+  private def loginCkan( ckanUrl:String, userName: String, pwd: String, wsClient: WSClient): Future[Cookie] = {
 
     val login = s"login=$userName&password=${URLEncoder.encode(pwd, "UTF-8")}"
-
-    //println("we"+CKAN_URL.split(":")(1))
 
     val host = CKAN_URL.split(":")(1).replaceAll("""//""", "")
 
 
-    val url = wsClient.url(CKAN_URL + "/ldap_login_handler")
+    val url = wsClient.url(ckanUrl + "/ldap_login_handler")
       .withHeaders("host" -> host,
         "User-Agent" ->"""Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:55.0) Gecko/20100101 Firefox/55.0""",
         "Accept" -> "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language" -> "en-US,en;q=0.5",
         "Accept-Encoding" -> "gzip, deflate",
-        "Referer" -> (CKAN_URL + "/user/login"),
+        "Referer" -> (ckanUrl + "/user/login"),
         "Content-Type" -> "application/x-www-form-urlencoded",
         "Content-Length" -> login.length.toString,
         "Connection" -> "keep-alive",
@@ -241,6 +246,7 @@ class LoginClientLocal() extends LoginClient {
 object LoginClientLocal {
 
   val CKAN = "ckan"
+  val CKAN_GEO = "ckan-geo"
   val FREE_IPA = "freeIPA"
   val SUPERSET = "superset"
   val METABASE = "metabase"

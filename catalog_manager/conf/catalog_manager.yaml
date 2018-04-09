@@ -1275,6 +1275,9 @@ definitions:
       uri_voc:
         type: string
         description: It is a unique identifier for the vocabulary. It matches with the ``dsname`` field of the dataset in DAF.
+      uri_property:
+        type: string
+        description: It is a unique identifier for the property/column of the vocabulary. It matches with the ``fields.name`` field of the dataset in DAF.
       property_hierarchy:
         type: array
         description: it is of type array, and it gives info about the hierarchy, if any, to which the property/column belongs to.

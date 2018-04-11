@@ -12,6 +12,7 @@ import play.api.libs.json.Json
 import play.api.libs.ws.{WSClient, WSResponse}
 import play.api.mvc.Cookie
 import play.api.libs.concurrent.Execution.Implicits._
+import play.mvc.Http.Cookies
 
 import scala.concurrent.Future
 import scala.concurrent.stm.Txn.ExplicitRetryCause
@@ -46,6 +47,7 @@ class LoginClientLocal() extends LoginClient {
       case LoginClientLocal.METABASE => loginMetabase(loginInfo.user, loginInfo.password, wsClient)
       case LoginClientLocal.JUPYTER => loginJupyter(loginInfo.user, loginInfo.password, wsClient)
       case LoginClientLocal.GRAFANA => loginGrafana(loginInfo.user, loginInfo.password, wsClient)
+      case LoginClientLocal.HADOOP => loginWebHDFS(loginInfo.user, loginInfo.password)
       case _ => throw new Exception("Unexpeted exception: application name not found")
     }
 
@@ -61,6 +63,7 @@ class LoginClientLocal() extends LoginClient {
       case LoginClientLocal.METABASE => loginMetabase(loginInfo.user, loginInfo.password, wsClient).map(Seq(_))
       case LoginClientLocal.JUPYTER => loginJupyter(loginInfo.user, loginInfo.password, wsClient).map(Seq(_))
       case LoginClientLocal.GRAFANA => loginGrafanaFE(loginInfo.user, loginInfo.password, wsClient)
+      case LoginClientLocal.HADOOP => loginWebHDFS(loginInfo.user, loginInfo.password).map(Seq(_))
       case _ => throw new Exception("Unexpeted exception: application name not found")
     }
 
@@ -77,6 +80,7 @@ class LoginClientLocal() extends LoginClient {
       case LoginClientLocal.METABASE => loginMetabase(ConfigReader.metabaseAdminUser, ConfigReader.metabaseAdminPwd, wsClient)
       case LoginClientLocal.JUPYTER => val msg="Jupyter dosen't have admins";Logger.error(msg);throw new Exception(msg) //loginJupyter(loginInfo.user, loginInfo.password, wsClient)
       case LoginClientLocal.GRAFANA => loginGrafana(ConfigReader.grafanaAdminUser, ConfigReader.grafanaAdminPwd, wsClient)
+      case LoginClientLocal.HADOOP => val msg="webHDFS dosen't have admins";Logger.error(msg);throw new Exception(msg)
       case _ => throw new Exception("Unexpeted exception: application name not found")
     }
 
@@ -192,6 +196,24 @@ class LoginClientLocal() extends LoginClient {
   }
 
 
+  private def loginWebHDFS(userName: String, pwd: String): Future[Cookie] = {
+
+    Logger.logger.info("login WebHDFS")
+
+    val out = WebHDFSLogin.loginF(userName,pwd) map{
+      case Right(r) => r
+      case Left(l) => throw new Exception(l)
+    }
+
+    out.map{ resp =>
+      play.api.mvc.Cookies.fromSetCookieHeader( Some(resp) ).get("hadoop.auth") match{
+        case Some(s) => s
+        case None => throw new Exception(s"Hadoop cookie not found. WebHDFSLogin response:$resp")
+      }
+    }
+
+  }
+
   private def loginGrafanaFE(userName: String, pwd: String, wsClient: WSClient): Future[Seq[Cookie]] = {
 
     val data = Json.obj(
@@ -252,6 +274,7 @@ object LoginClientLocal {
   val METABASE = "metabase"
   val JUPYTER = "jupyter"
   val GRAFANA = "grafana"
+  val HADOOP = "hadoop"
 
 }
 

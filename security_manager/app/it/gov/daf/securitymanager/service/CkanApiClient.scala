@@ -9,8 +9,6 @@ import play.api.Logger
 import play.api.libs.json._
 import play.api.libs.ws.{WSClient, WSResponse}
 import security_manager.yaml.{Error, Success}
-import play.api.libs.functional.syntax._
-
 import scala.concurrent.Future
 
 

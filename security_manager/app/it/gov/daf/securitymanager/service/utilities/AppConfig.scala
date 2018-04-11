@@ -59,6 +59,7 @@ private class AppConfig @Inject()(playConfig: Configuration) {
   val kyloUser :Option[String] = playConfig.getString("kylo.user")
   val kyloUserPwd :Option[String] = playConfig.getString("kylo.userpwd")
 
+  val hadoopUrl :Option[String] = playConfig.getString("hadoop.url")
 
 }
 
@@ -91,6 +92,8 @@ object ConfigReader {
   require(config.metabaseUrl.nonEmpty,"Metabase url must be specified")
   require(config.metabaseAdminUser.nonEmpty,"Metabase user must be specified")
   require(config.metabaseAdminPwd.nonEmpty,"Metabase password must be specified")
+
+  require(config.hadoopUrl.nonEmpty,"Hadoop url must be specified")
 
 
   //def userIdHeader: String = config.userIdHeader.getOrElse("userid")
@@ -144,6 +147,8 @@ object ConfigReader {
   def kyloUrl :String = config.kyloUrl.get
   def kyloUser :String = config.kyloUser.get
   def kyloUserPwd :String = config.kyloUserPwd.get
+
+  def hadoopUrl :String = config.hadoopUrl.get
 
 }
 

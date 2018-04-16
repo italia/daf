@@ -83,7 +83,7 @@ class SecuredInvocationManager @Inject()(loginClient:LoginClient, cacheWrapper: 
       case Failure(e) =>
         val sw = new StringWriter()
         e.printStackTrace(new PrintWriter(sw))
-        Left(sw.toString)
+        Left(s"Error trying to invoking the serivice ---> ${sw.toString}")
     }
 
   }
@@ -95,7 +95,7 @@ class SecuredInvocationManager @Inject()(loginClient:LoginClient, cacheWrapper: 
       case Failure(e) =>
         val sw = new StringWriter()
         e.printStackTrace(new PrintWriter(sw))
-        Left(sw.toString)
+        Left(s"Error trying to invoking the serivice ---> ${sw.toString}")
     }
 
   }
@@ -104,9 +104,12 @@ class SecuredInvocationManager @Inject()(loginClient:LoginClient, cacheWrapper: 
 
     manageServiceCall(loginInfo,serviceFetch) map { response =>
       Try{
-        if( acceptableHttpCodes.contains(response.status) )
-          RestServiceResponse(response.json,response.status)
-        else
+        if( acceptableHttpCodes.contains(response.status) ) {
+          if(response.body.trim().length==0)
+            RestServiceResponse(JsString("{no-content}"), response.status)
+          else
+            RestServiceResponse(response.json, response.status)
+        }else
           throw new Exception(s"Error while invoking the service. Unespected http code returned: ${response.status}")
       }
     }

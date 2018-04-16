@@ -17,9 +17,11 @@
 package it.gov.daf.common.sso.common
 
 import java.util
+
 import it.gov.daf.common.authentication.{Authentication, Role}
 import it.gov.daf.common.utils._
-import org.apache.commons.net.util.Base64
+import org.apache.commons.codec.binary.Base64
+//import org.apache.commons.net.util.Base64
 import play.api.Logger
 import play.api.mvc.{Request, RequestHeader}
 import scala.util.Try
@@ -46,7 +48,12 @@ object CredentialManager {
 
       val pwd:String = new String(Base64.decodeBase64(authCrendentials.getBytes)).split(":")(1)
       val user:String= Authentication.getProfiles(requestHeader).head.getId
-      val ldapGroups = Authentication.getProfiles(requestHeader).head.getAttribute("memberOf").asInstanceOf[util.Collection[String]].toArray()
+      val ldapGroups = Authentication.getProfiles(requestHeader).head.getAttribute("memberOf") match {
+        case coll: util.Collection[_] => coll.asInstanceOf[util.Collection[String]].toArray()
+        case s: String => Array(s)
+        case _ => throw new Exception("User with no associated profiles")
+      }
+
       val groups: Array[String] = ldapGroups.map( _.toString().split(",")(0).split("=")(1) )
 
       Credentials(user, pwd, groups)

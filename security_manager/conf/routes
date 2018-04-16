@@ -39,7 +39,6 @@ GET         /sso-manager/internal/retriveCookie/:appName                controll
 GET         /sso-manager/internal/retriveAdminCookie/:appName           controllers.SSOController.retriveAdminCookieInternal(appName:String)
 
 
-
 GET         /hdfs/retriveACL/*path                                      controllers.HdfsController.retriveACL(path:String)
 
 GET         /hdfs/proxy/*path                                           controllers.HdfsController.callWebHdfs(path:String)

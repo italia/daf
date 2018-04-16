@@ -91,25 +91,18 @@ spec:
         - name: glusterfsvol
           mountPath: /opt/docker/logs
           subPath: security-manager/logs
-        #- name: hosts
-          #mountPath: /etc/extra_hosts
+        - name: glusterfsvol
+          mountPath: /opt/docker/cert/master-impala.jks
+          subPath: security-manager/cert/master-impala.jks
+          readOnly: true
         - name: krb5conf
           mountPath: /etc/krb5.conf
-        - name: hadoopconf
-          mountPath: /etc/hadoop/conf
-          readOnly: true
       imagePullSecrets:
         - name: regsecret
       volumes:
       - name: glusterfsvol
         persistentVolumeClaim:
           claimName: gluster-claim
-      #- name: hosts
-       # hostPath:
-        #  path: /etc/hosts
       - name: krb5conf
         hostPath:
           path: /etc/krb5.conf
-      - name: hadoopconf
-        hostPath:
-          path: /etc/hadoop/conf

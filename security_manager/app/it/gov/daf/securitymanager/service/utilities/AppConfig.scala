@@ -61,6 +61,10 @@ private class AppConfig @Inject()(playConfig: Configuration) {
 
   val hadoopUrl :Option[String] = playConfig.getString("hadoop.url")
 
+  val impalaServer :Option[String] = playConfig.getString("impala.server")
+  val impalaKeyStorePath :Option[String] = playConfig.getString("impala.keyStorePath")
+  val impalaKeyStorePwd :Option[String] = playConfig.getString("impala.keyStorePwd")
+
 }
 
 
@@ -94,6 +98,10 @@ object ConfigReader {
   require(config.metabaseAdminPwd.nonEmpty,"Metabase password must be specified")
 
   require(config.hadoopUrl.nonEmpty,"Hadoop url must be specified")
+
+  require(config.impalaServer.nonEmpty,"Impala server must be specified")
+  require(config.impalaKeyStorePath.nonEmpty,"Impala KeyStore path must be specified")
+  require(config.impalaKeyStorePwd.nonEmpty,"Impala KeyStore pwd must be specified")
 
 
   //def userIdHeader: String = config.userIdHeader.getOrElse("userid")
@@ -149,6 +157,10 @@ object ConfigReader {
   def kyloUserPwd :String = config.kyloUserPwd.get
 
   def hadoopUrl :String = config.hadoopUrl.get
+
+  def impalaServer :String = config.impalaServer.get
+  def impalaKeyStorePath :String = config.impalaKeyStorePath.get
+  def impalaKeyStorePwd :String = config.impalaKeyStorePwd.get
 
 }
 

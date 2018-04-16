@@ -23,6 +23,9 @@ scalacOptions ++= Seq(
   "-Xfuture"
 )
 
+//addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.9.0")
+
+unmanagedBase := baseDirectory.value / "lib/ClouderaImpalaJDBC41_2.5.43" //TODO to put on Nexus
 
 //wartremoverErrors ++= Warts.allBut(Wart.Nothing, Wart.PublicInference, Wart.Any, Wart.Equals, Wart.Option2Iterable)
 //wartremoverExcluded ++= getRecursiveListOfFiles(baseDirectory.value / "target" / "scala-2.11" / "routes").toSeq
@@ -70,6 +73,28 @@ libraryDependencies ++= Seq(
   "io.prometheus" % "simpleclient_common" % "0.1.0"
 )
 
+libraryDependencies ++= Seq(
+  //"commons-codec" % "commons-codec" % "1.3",
+  //"commons-logging" % "commons-logging" % "1.1.1",
+  "org.apache.httpcomponents" % "httpclient" % "4.1.3",
+  "org.apache.httpcomponents" % "httpcore" % "4.1.3",
+  "org.apache.thrift" % "libfb303" % "0.9.0",
+  "org.apache.thrift" % "libthrift" % "0.9.0"
+  //"log4j" % "log4j" % "1.2.14",
+  //"org.slf4j" % "slf4j-api" % "1.5.11",
+  //"org.slf4j" % "slf4j-log4j12" % "1.5.11",
+  //"org.apache.zookeeper" % "zookeeper" % "3.4.6"
+)
+
+val zookeeperExcludes =
+  (moduleId: ModuleID) => moduleId.
+    exclude("org.slf4j", "slf4j-log4j12")
+
+val zookeeperLibs = Seq(
+  zookeeperExcludes("org.apache.zookeeper" % "zookeeper" % "3.4.6")
+)
+libraryDependencies ++= zookeeperLibs
+
 //Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns),
 
 
@@ -104,7 +129,9 @@ dockerBaseImage := "anapsix/alpine-java:8_jdk_unlimited"
 dockerCommands := dockerCommands.value.flatMap {
   case cmd@Cmd("FROM", _) => List(cmd,
     Cmd("RUN", "apk update && apk add bash krb5-libs krb5"),
-    Cmd("RUN", "ln -sf /etc/krb5.conf /opt/jdk/jre/lib/security/krb5.conf")
+    Cmd("RUN", "ln -sf /etc/krb5.conf /opt/jdk/jre/lib/security/krb5.conf"),
+    Cmd("COPY", "./cert/jssecacerts /opt/jdk/jre/lib/security/")
+
   )
   case other => List(other)
 }

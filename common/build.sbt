@@ -47,7 +47,7 @@ wartremoverErrors ++= Warts.allBut(Wart.Equals)
 lazy val root = (project in file(".")).enablePlugins(AutomateHeaderPlugin)
 
 scalaVersion := "2.11.8"
-
+/*
 val hadoopExcludes =
   (moduleId: ModuleID) => moduleId.
     exclude("org.slf4j", "slf4j-log4j12").
@@ -57,7 +57,7 @@ val hadoopExcludes =
 val hadoopLibraries = Seq(
   hadoopExcludes("org.apache.hadoop" % "hadoop-client" % hadoopVersion % Compile)
 )
-
+*/
 val playLibraries = Seq(
   "io.swagger" %% "swagger-play2" % "1.5.3",
   "com.typesafe.play" %% "play-cache" % playVersion,
@@ -67,14 +67,15 @@ val playLibraries = Seq(
   "org.pac4j" % "play-pac4j" % playPac4jVersion,
   "org.pac4j" % "pac4j-http" % pac4jVersion,
   "org.pac4j" % "pac4j-jwt" % pac4jVersion exclude("commons-io", "commons-io"),
-  "org.pac4j" % "pac4j-ldap" % pac4jVersion
+  "org.pac4j" % "pac4j-ldap" % pac4jVersion,
+  "commons-codec" % "commons-codec" % "1.11"
 )
 
-libraryDependencies ++= hadoopLibraries ++ playLibraries
-
+//libraryDependencies ++= hadoopLibraries ++ playLibraries
+libraryDependencies ++= playLibraries
 resolvers ++= Seq(
-  Resolver.sonatypeRepo("releases"),
-  "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos/"
+  Resolver.sonatypeRepo("releases")
+//  "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos/"
 )
 
 licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt"))

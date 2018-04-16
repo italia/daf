@@ -105,4 +105,7 @@ class CatalogRepositoryDev extends CatalogRepository{
 
   def standardUris(): List[String] = List("raf", "org", "cert")
 
+  def isDatasetOnCatalog(name :String) = None
+
+
 }

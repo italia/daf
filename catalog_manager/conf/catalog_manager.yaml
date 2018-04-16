@@ -181,6 +181,36 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  "/catalog-ds/is_present/{name}":
+    get:
+      #security:
+      #- basicAuth: []
+      summary: DatasetCatalog
+      description: |
+        Check if this name is present on Catalog
+      tags:
+        - DatasetCatalog
+      operationId: isPresentOnCatalog
+      parameters:
+        - name: name
+          in: path
+          description: Name of catalog
+          required: true
+          type: string
+      responses:
+        200:
+          description: A Catalog
+          schema:
+            type:
+            $ref: '#/definitions/Success'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   "/catalog-ds/add":
     post:
       #security:

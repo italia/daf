@@ -208,4 +208,7 @@
 
     // Not used
      def standardUris(): List[String] = List("ale", "raf")
+
+    def isDatasetOnCatalog(name :String) = None
+
   }

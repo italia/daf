@@ -49,7 +49,7 @@ import play.api.Logger
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                    
+                                
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -215,6 +215,16 @@ package catalog_manager.yaml {
                 case Left(error) => Autocompletedataset401(Error(error,None,None))
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.autocompletedataset
+        }
+        val isPresentOnCatalog = isPresentOnCatalogAction { (name: String) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.isPresentOnCatalog
+            val result = ServiceRegistry.catalogRepository.isDatasetOnCatalog(name)
+            result match {
+                case Some(true) => IsPresentOnCatalog200(Success("is present", Some(name)))
+                case _ => IsPresentOnCatalog401(s"$name non presente")
+
+            }          //  NotImplementedYet
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.isPresentOnCatalog
         }
         val createdatasetcatalog = createdatasetcatalogAction { (catalog: MetaCatalog) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalog

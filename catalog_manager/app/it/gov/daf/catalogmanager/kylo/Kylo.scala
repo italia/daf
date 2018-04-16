@@ -4,7 +4,7 @@ import catalog_manager.yaml.{InputSrcSrv_pullOpt, MetaCatalog}
 import play.api.libs.json.{JsObject, JsResult, JsValue}
 import play.api.libs.ws.{WSAuthScheme, WSClient, WSResponse}
 import com.google.inject.{Inject, Singleton}
-import org.apache.hadoop.hdfs.protocol.proto.HdfsProtos.HdfsFileStatusProto.FileType
+//import org.apache.hadoop.hdfs.protocol.proto.HdfsProtos.HdfsFileStatusProto.FileType
 import play.api.inject.ConfigurationProvider
 
 import scala.concurrent.Future

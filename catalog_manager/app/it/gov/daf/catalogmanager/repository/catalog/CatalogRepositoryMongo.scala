@@ -6,9 +6,11 @@ import javax.security.auth.login.AppConfigurationEntry
 import catalog_manager.yaml.{Dataset, DatasetCatalogFlatSchema, MetaCatalog, MetadataCat, ResponseWrites, Success}
 import com.mongodb.DBObject
 import com.mongodb.casbah.MongoClient
+import com.mongodb.casbah.Imports._
 import org.bson.types.ObjectId
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import com.mongodb.casbah.Imports._
+import com.mongodb.casbah.commons.TypeImports
 import it.gov.daf.catalogmanager.utilities.{CatalogManager, ConfigReader}
 import it.gov.daf.catalogmanager.service.CkanRegistry
 import play.api.libs.ws.{WSClient, WSResponse}
@@ -169,5 +171,18 @@ class CatalogRepositoryMongo extends  CatalogRepository{
 
   // Not used implement query on db
   def standardUris(): List[String] = List("raf", "org", "cert")
+
+  def isDatasetOnCatalog(name :String) = {
+    val mongoClient = MongoClient(server, List(credentials))
+    val db = mongoClient(source)
+    val coll = db("catalog_test")
+    val query = "dcatapit.name" $eq name
+    val results = coll.findOne(query)
+    results match {
+      case Some(_) => Some(true)
+      case None => None
+    }
+  }
+
 
 }

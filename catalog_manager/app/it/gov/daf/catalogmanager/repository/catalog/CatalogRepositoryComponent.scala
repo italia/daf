@@ -17,6 +17,7 @@ trait CatalogRepository {
     def catalogByName(name :String): Option[MetaCatalog]
     def createCatalog(metaCatalog: MetaCatalog,callingUserid :MetadataCat, ws :WSClient) :Success
     def standardUris() : List[String]
+    def isDatasetOnCatalog(name :String): Option[Boolean]
 
 
     // DO NOT DELETE

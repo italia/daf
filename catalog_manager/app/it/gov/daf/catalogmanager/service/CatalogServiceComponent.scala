@@ -35,5 +35,10 @@ trait CatalogServiceComponent {
       println("Service : " +  callingUserid)
       catalogRepository.createCatalog(metaCatalog, callingUserid, ws)
     }
+
+    def isPresentOnCatalog(name :String) :Option[Boolean] = {
+      catalogRepository.isDatasetOnCatalog(name)
+    }
+
   }
 }

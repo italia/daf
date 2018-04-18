@@ -129,7 +129,7 @@ dockerBaseImage := "anapsix/alpine-java:8_jdk_unlimited"
 dockerCommands := dockerCommands.value.flatMap {
   case cmd@Cmd("FROM", _) => List(cmd,
     Cmd("RUN", "apk update && apk add bash krb5-libs krb5"),
-    Cmd("RUN", "ln -sf /etc/krb5.conf /opt/jdk/jre/lib/security/krb5.conf")
+    Cmd("RUN", "ln -sf /etc/krb5.conf /opt/jdk/jre/lib/security/krb5.conf"),
   )
   case other => List(other)
 }

@@ -49,7 +49,7 @@ import play.api.Logger
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                        
+
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -59,7 +59,6 @@ package catalog_manager.yaml {
         val configuration: Configuration,
         val playSessionStore: PlaySessionStore,
         val ws: WSClient,
-        //credentialManager: CredentialManager,
         // ----- End of unmanaged code area for injections Catalog_managerYaml
         val messagesApi: MessagesApi,
         lifecycle: ApplicationLifecycle,

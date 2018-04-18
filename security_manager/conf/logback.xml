@@ -4,7 +4,7 @@
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} %mdc{user-id:--} %mdc{request-init-time:--} %mdc{context-name:--} %coloredLevel - %logger - %message%n%xException</pattern>
+            <pattern>%d{HH:mm:ss.SSS} %mdc{user-id:--} %mdc{request-init-time:--} %coloredLevel - %logger - %message%n%xException</pattern>
         </encoder>
     </appender>
 
@@ -13,7 +13,7 @@
 
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>./logs/security_manager.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>3</maxHistory>
+            <maxHistory>2</maxHistory>
         </rollingPolicy>
 
         <encoder>
@@ -25,7 +25,7 @@
     <logger name="play" level="INFO" />
     <logger name="application" level="DEBUG" />
 
-    <root level="ERROR">
+    <root level="WARN">
         <appender-ref ref="STDOUT" />
         <!--<appender-ref ref="TIME_BASED_FILE" />-->
     </root>

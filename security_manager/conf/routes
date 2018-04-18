@@ -38,3 +38,17 @@ GET         /sso-manager/secured/test                                   controll
 GET         /sso-manager/internal/retriveCookie/:appName                controllers.SSOController.retriveCookieInternal(username:String,appName:String)
 GET         /sso-manager/internal/retriveAdminCookie/:appName           controllers.SSOController.retriveAdminCookieInternal(appName:String)
 
+
+GET         /hdfs/retriveACL/*path                                      controllers.HdfsController.retriveACL(path:String)
+
+GET         /hdfs/proxy/*path                                           controllers.HdfsController.callWebHdfs(path:String)
+GET         /hdfs/proxy/                                                controllers.HdfsController.callWebHdfs(path:String="")
+PUT         /hdfs/proxy/*path                                           controllers.HdfsController.callWebHdfs(path:String)
+PUT         /hdfs/proxy/                                                controllers.HdfsController.callWebHdfs(path:String="")
+POST        /hdfs/proxy/*path                                           controllers.HdfsController.callWebHdfs(path:String)
+POST        /hdfs/proxy/                                                controllers.HdfsController.callWebHdfs(path:String="")
+DELETE      /hdfs/proxy/*path                                           controllers.HdfsController.callWebHdfs(path:String)
+DELETE      /hdfs/proxy/                                                controllers.HdfsController.callWebHdfs(path:String="")
+
+
+

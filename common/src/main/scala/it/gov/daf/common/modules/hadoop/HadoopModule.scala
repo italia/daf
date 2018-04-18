@@ -73,7 +73,7 @@ class SchedulingTask @Inject()(val system: ActorSystem, val configuration: Confi
 @Singleton
 class HadoopModule @Inject()(val environment: Environment, val configuration: Configuration) extends AbstractModule {
   
-  private val hadoopConfiguration = new org.apache.hadoop.conf.Configuration()
+  //private val hadoopConfiguration = new org.apache.hadoop.conf.Configuration()
 
   private val process = Process(s"/usr/bin/kinit -kt ${configuration.getString("keytab").getOrElse("")} ${configuration.getString("principal").getOrElse("")}")
   private val _ = process.!

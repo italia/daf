@@ -24,6 +24,8 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 import play.api.Logger
 
+final case class RestServiceResponse(jsValue:JsValue,httpCode:Int)
+
 @SuppressWarnings(
   Array(
     "org.wartremover.warts.NonUnitStatements",
@@ -73,25 +75,41 @@ class SecuredInvocationManager @Inject()(loginClient:LoginClient, cacheWrapper: 
 
   }
 
+  // TODO to replace with the one below
   def manageRestServiceCall( loginInfo:LoginInfo, serviceFetch:ServiceFetch, acceptableHttpCodes:Int* ) : Future[Either[String,JsValue]] = {
+
+    tryManageRestServiceCall ( loginInfo, serviceFetch, acceptableHttpCodes:_* ) map {
+      case Success(s) => Right(s.jsValue)
+      case Failure(e) =>
+        val sw = new StringWriter()
+        e.printStackTrace(new PrintWriter(sw))
+        Left(s"Error trying to invoking the serivice ---> ${sw.toString}")
+    }
+
+  }
+
+  def manageRestServiceCallWithResp( loginInfo:LoginInfo, serviceFetch:ServiceFetch, acceptableHttpCodes:Int* ) : Future[Either[String,RestServiceResponse]] = {
 
     tryManageRestServiceCall ( loginInfo, serviceFetch, acceptableHttpCodes:_* ) map {
       case Success(s) => Right(s)
       case Failure(e) =>
         val sw = new StringWriter()
         e.printStackTrace(new PrintWriter(sw))
-        Left(sw.toString)
+        Left(s"Error trying to invoking the serivice ---> ${sw.toString}")
     }
 
   }
 
-  private def tryManageRestServiceCall( loginInfo:LoginInfo, serviceFetch:ServiceFetch, acceptableHttpCodes:Int* ) : Future[Try[JsValue]] = {
+  private def tryManageRestServiceCall( loginInfo:LoginInfo, serviceFetch:ServiceFetch, acceptableHttpCodes:Int* ) : Future[Try[RestServiceResponse]] = {
 
     manageServiceCall(loginInfo,serviceFetch) map { response =>
       Try{
-        if( acceptableHttpCodes.contains(response.status) )
-          response.json
-        else
+        if( acceptableHttpCodes.contains(response.status) ) {
+          if(response.body.trim().length==0)
+            RestServiceResponse(JsString("{no-content}"), response.status)
+          else
+            RestServiceResponse(response.json, response.status)
+        }else
           throw new Exception(s"Error while invoking the service. Unespected http code returned: ${response.status}")
       }
     }
@@ -118,8 +136,6 @@ class SecuredInvocationManager @Inject()(loginClient:LoginClient, cacheWrapper: 
     }
 
   }
-
-
 
 }
 

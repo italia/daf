@@ -17,10 +17,9 @@ In general, the script executes the following steps:
  * Create the new secret with the fresh certificates
  * Recreate the Kubernetes Ingress controller
 
-### Renew the certificates [NOT Sure Revised by Fabio Fumarola but now sure if it works]
+### Renew the certificates
 
-1. execute the script `./scripts/renew_certificate.sh`
-
+1. execute the script `./scripts/renew_certificate_teamdigitale.sh`
 
 ## Notes ##
 

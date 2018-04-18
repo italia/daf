@@ -55,7 +55,7 @@ class SecurityModule(environment: Environment, configuration: Configuration) ext
     dnResolver.setFormat("uid=%s,cn=users,cn=accounts,dc=example,dc=test")
     */
 
-    Logger.logger.info("Common Lib v.1.0.6-SNAPSHOT")
+    Logger.logger.info("Common Lib v.1.0.8-SNAPSHOT")
     val connectionConfig = new ConnectionConfig
     connectionConfig.setConnectTimeout(Duration.ofMillis(configuration.getLong("pac4j.ldap.connect_timeout").getOrElse(500)))
     connectionConfig.setResponseTimeout(Duration.ofMillis(configuration.getLong("pac4j.ldap.response_timeout").getOrElse(1000)))

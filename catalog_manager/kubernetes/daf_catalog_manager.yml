@@ -88,9 +88,9 @@ spec:
           mountPath: /etc/extra_hosts
         - name: krb5conf
           mountPath: /etc/krb5.conf
-        - name: hadoopconf
-          mountPath: /etc/hadoop/conf
-          readOnly: true
+#        - name: hadoopconf
+#          mountPath: /etc/hadoop/conf
+#          readOnly: true
       imagePullSecrets:
         - name: regsecret
       volumes:
@@ -106,6 +106,6 @@ spec:
       - name: krb5conf
         hostPath:
           path: /etc/krb5.conf
-      - name: hadoopconf
-        hostPath:
-          path: /etc/hadoop/conf
+#      - name: hadoopconf
+#        hostPath:
+#          path: /etc/hadoop/conf

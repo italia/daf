@@ -45,4 +45,6 @@ object RequestContext {
 
   }
 
+  def getUsername():String = MDC.get("user-id")
+
 }

@@ -14,8 +14,7 @@ catalog_manager/conf/cluster_application.conf
 catalog_manager/conf/integration.conf
 catalog_manager/conf/production.conf
 security_manager/conf/integration.conf
-security_manager/cert/master-impala.jks
-security_manager/cert/jssecacerts
+security_manager/cert/*
 */conf/production/
 catalog_manager/conf/cross_spec
 ingestion_manager/conf/

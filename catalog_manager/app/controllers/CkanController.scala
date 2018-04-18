@@ -103,10 +103,12 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
 
       val jsonString = json.toString().replace("privatex","private")// Temporary PATCH for swagger libs issues
       def callCreateDataset(cookie: String,wsClient: WSClient):Future[WSResponse] = {
-        wsClient.url(CKAN_URL + "/api/3/action/package_create").withHeaders("Cookie" -> cookie).post(jsonString)
+        // wsClient.url(CKAN_URL + "/api/3/action/package_create").withHeaders("Cookie" -> cookie).post(jsonString)
+        wsClient.url("http://ckan-geo.default.svc.cluster.local:5000" + "/api/3/action/package_create").withHeaders("Cookie" -> cookie).post(jsonString)
+
       }
 
-      secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callCreateDataset).map { r => Ok(r.body) }
+      secInvokManager.manageServiceCall(new LoginInfo(null,null,"ckan-geo"), callCreateDataset).map { r => Ok(r.body) }
 
     }
   }

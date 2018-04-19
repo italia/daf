@@ -6,6 +6,8 @@ import uk.gov.hmrc.gitstamp.GitStampPlugin._
 organization in ThisBuild := "it.gov.daf"
 name := "daf-security-manager"
 
+val isStaging = System.getProperty("STAGING") != null
+
 Seq(gitStampSettings: _*)
 
 version in ThisBuild := sys.env.get("SECURITY_MANAGER_VERSION").getOrElse("1.0.1-SNAPSHOT")
@@ -83,7 +85,6 @@ libraryDependencies ++= Seq(
   //"log4j" % "log4j" % "1.2.14",
   //"org.slf4j" % "slf4j-api" % "1.5.11",
   //"org.slf4j" % "slf4j-log4j12" % "1.5.11",
-  //"org.apache.zookeeper" % "zookeeper" % "3.4.6"
 )
 
 val zookeeperExcludes =
@@ -97,8 +98,6 @@ libraryDependencies ++= zookeeperLibs
 
 //Resolver.url("sbt-plugins", url("http://dl.bintray.com/zalando/sbt-plugins"))(Resolver.ivyStylePatterns),
 
-
-
 resolvers ++= Seq(
   "zalando-bintray" at "https://dl.bintray.com/zalando/maven",
   "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
@@ -106,10 +105,14 @@ resolvers ++= Seq(
   Resolver.url("sbt-plugins", url("http://dl.bintray.com/gruggiero/sbt-plugins"))(Resolver.ivyStylePatterns),
   "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos/",
   "lightshed-maven" at "http://dl.bintray.com/content/lightshed/maven",
-  Resolver.mavenLocal,
-  "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/"
-  //"daf repo" at "http://nexus.teamdigitale.test:8081/repository/maven-public/"
+  Resolver.mavenLocal
 )
+
+if(isStaging)
+  resolvers ++= Seq("daf repo" at "http://nexus.teamdigitale.test:8081/repository/maven-public/")
+else
+  resolvers ++= Seq("daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/")
+
 
 // Play provides two styles of routers, one expects its actions to be injected, the
 // other, legacy style, accesses its actions statically.
@@ -134,19 +137,27 @@ dockerCommands := dockerCommands.value.flatMap {
   case other => List(other)
 }
 
-dockerEntrypoint := Seq(s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
-//dockerEntrypoint := Seq(s"bin/${name.value}", "-Dconfig.file=conf/productionNew.conf")
 dockerExposedPorts := Seq(9000)
-dockerRepository := Option("10.98.74.120:5000")
-//dockerRepository := Option("nexus.teamdigitale.test")
+
+if(isStaging) {
+  dockerEntrypoint := Seq(s"bin/${name.value}", "-Dconfig.file=conf/productionNew.conf")
+  dockerRepository := Option("nexus.teamdigitale.test")
+}else {
+  dockerEntrypoint := Seq(s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
+  dockerRepository := Option("10.98.74.120:5000")
+}
 
 publishTo in ThisBuild := {
-  val nexus = "http://nexus.default.svc.cluster.local:8081/repository/"
-  //val nexus = "http://nexus.teamdigitale.test:8081/repository/"
+  val nexus = if(isStaging) "http://nexus.teamdigitale.test:8081/repository/"
+              else "http://nexus.default.svc.cluster.local:8081/repository/"
+
   if (isSnapshot.value)
     Some("snapshots" at nexus + "maven-snapshots/")
   else
     Some("releases"  at nexus + "maven-releases/")
 }
 
-credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
+if(isStaging)
+  credentials += Credentials(Path.userHome / ".ivy2" / ".credentialsTest")
+else
+  credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")

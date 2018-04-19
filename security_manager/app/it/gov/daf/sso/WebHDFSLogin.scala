@@ -29,8 +29,10 @@ object WebHDFSLogin {
         (o: String) => {out.append(s"$o\n");()},
         (e: String) => {err.append(s"$e\n");()} )
 
+      val scriptName =  if(System.getProperty("STAGING") != null) "./script/kb_init_test.sh"
+                        else "./script/kb_init.sh"
 
-      val pb = Process(s"timeout 5 ./script/kb_init.sh $usrName $HADOOP_URL") // Process should hang: command timeout needed
+      val pb = Process(s"timeout 5 $scriptName $usrName $HADOOP_URL") // Process should hang: command timeout needed
 
       val bos = new ByteArrayOutputStream()
       val exitCode = pb #< new ByteArrayInputStream(s"$pwd\n".toCharArray.map(_.toByte)) #> bos ! logger

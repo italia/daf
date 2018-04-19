@@ -9,6 +9,8 @@ organization in ThisBuild := "it.gov.daf"
 
 name := "daf-catalog-manager"
 
+val isStaging = System.getProperty("STAGING") != null
+
 val playVersion = "2.5.14"
 
 Seq(gitStampSettings: _*)
@@ -77,10 +79,13 @@ resolvers ++= Seq(
   "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
   "jeffmay" at "https://dl.bintray.com/jeffmay/maven",
   Resolver.url("sbt-plugins", url("http://dl.bintray.com/gruggiero/sbt-plugins"))(Resolver.ivyStylePatterns),
-  "lightshed-maven" at "http://dl.bintray.com/content/lightshed/maven",
-  "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/"
-  //"daf repo" at "http://nexus.teamdigitale.test:8081/repository/maven-public/"
+  "lightshed-maven" at "http://dl.bintray.com/content/lightshed/maven"
 )
+
+if(isStaging)
+  resolvers ++= Seq("daf repo" at "http://nexus.teamdigitale.test:8081/repository/maven-public/")
+else
+  resolvers ++= Seq("daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/")
 
 import com.typesafe.sbt.packager.MappingsHelper._
 mappings in Universal ++= directory(baseDirectory.value / "data")
@@ -109,23 +114,32 @@ dockerCommands := dockerCommands.value.flatMap {
   )
   case other => List(other)
 }
-dockerEntrypoint := Seq(s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
-//dockerEntrypoint := Seq(s"bin/${name.value}", "-Dconfig.file=conf/productionNew.conf")
+
 dockerExposedPorts := Seq(9000)
-dockerRepository := Option("10.98.74.120:5000")
-//dockerRepository := Option("nexus.teamdigitale.test")
+
+if(isStaging) {
+  dockerEntrypoint := Seq(s"bin/${name.value}", "-Dconfig.file=conf/productionNew.conf")
+  dockerRepository := Option("nexus.teamdigitale.test")
+}else {
+  dockerEntrypoint := Seq(s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
+  dockerRepository := Option("10.98.74.120:5000")
+}
 
 
 publishTo in ThisBuild := {
-  val nexus = "http://nexus.default.svc.cluster.local:8081/repository/"
-  //val nexus = "http://nexus.teamdigitale.test:8081/repository/"
+  val nexus = if(isStaging) "http://nexus.teamdigitale.test:8081/repository/"
+              else "http://nexus.default.svc.cluster.local:8081/repository/"
+
   if (isSnapshot.value)
     Some("snapshots" at nexus + "maven-snapshots/")
   else
     Some("releases"  at nexus + "maven-releases/")
 }
 
-credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
+if(isStaging)
+  credentials += Credentials(Path.userHome / ".ivy2" / ".credentialsTest")
+else
+  credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
 
 
 javaOptions in Test += "-Dconfig.resource=" + System.getProperty("config.resource", "integration.conf")

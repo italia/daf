@@ -18,6 +18,8 @@ import Versions._
 import sbt.Keys.resolvers
 import uk.gov.hmrc.gitstamp.GitStampPlugin._
 
+val isStaging = System.getProperty("STAGING") != null
+
 organization := "it.gov.daf"
 
 name := "common"
@@ -83,8 +85,9 @@ headerLicense := Some(HeaderLicense.ALv2("2017", "TEAM PER LA TRASFORMAZIONE DIG
 headerMappings := headerMappings.value + (HeaderFileType.conf -> HeaderCommentStyle.HashLineComment)
 
 publishTo := {
-  //val nexus = "http://nexus.teamdigitale.test:8081/repository/"
-  val nexus = "http://nexus.default.svc.cluster.local:8081/repository/"
+  val nexus = if(isStaging) "http://nexus.teamdigitale.test:8081/repository/"
+              else "http://nexus.default.svc.cluster.local:8081/repository/"
+
   if (isSnapshot.value)
     Some("snapshots" at nexus + "maven-snapshots/")
   else
@@ -93,4 +96,7 @@ publishTo := {
 
 publishMavenStyle := true
 
-credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
+if(isStaging)
+  credentials += Credentials(Path.userHome / ".ivy2" / ".credentialsTest")
+else
+  credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")

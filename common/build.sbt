@@ -96,7 +96,5 @@ publishTo := {
 
 publishMavenStyle := true
 
-if(isStaging)
-  credentials += Credentials(Path.userHome / ".ivy2" / ".credentialsTest")
-else
-  credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
+credentials += {if(isStaging) Credentials(Path.userHome / ".ivy2" / ".credentialsTest") else Credentials(Path.userHome / ".ivy2" / ".credentials")}
+

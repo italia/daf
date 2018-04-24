@@ -11,13 +11,16 @@ class HDFSController(sparkSession: SparkSession) {
 
   def readData(path: String, format: String): Try[DataFrame] =  {
     format match {
-      case "csv" => Try(sparkSession.read.csv(path))
+      case "csv" => Try {
+        val pathFixAle = path + "/" + path.split("/").last + ".csv"
+        println(s"questo e' il path ${pathFixAle}")
+        sparkSession.read.csv(pathFixAle)
+      }
       case "parquet" => Try(sparkSession.read.parquet(path))
       case "avro" =>
         import com.databricks.spark.avro._
         Try(sparkSession.read.avro(path))
      case x => Failure(new IllegalArgumentException(s"Format $x is not implemented"))
-
     }
   }
 }

@@ -1888,7 +1888,7 @@ definitions:
       license_id:
         type: string
       #license_title:
-        #type: string
+      #  type: string
       #maintainer:
         #type: string
       #maintainer_email:

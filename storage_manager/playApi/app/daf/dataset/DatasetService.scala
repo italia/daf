@@ -90,7 +90,8 @@ class DatasetService(
           Try(
             Map(
               "protocol" -> "hdfs",
-              "path" -> s"${catalog.operational.physical_uri.get}" //storage.hdfs.flatMap(_.path).map(_ + "/final.parquet").get
+              "path" -> s"${catalog.operational.physical_uri.get}", //storage.hdfs.flatMap(_.path).map(_ + "/final.parquet").get
+              "format" -> storage.hdfs.flatMap(_.param).getOrElse("format=parquet").split("=").last
             )
           )
         } else if (storage.kudu.isDefined) {

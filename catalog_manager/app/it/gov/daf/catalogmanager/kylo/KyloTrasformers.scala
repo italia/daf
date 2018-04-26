@@ -58,6 +58,11 @@ object KyloTrasformers {
         case "daf_domain" => x + ("value" -> JsString(metaCatalog.operational.theme))
         case "daf_subdomain" => x + ("value" -> JsString(metaCatalog.operational.subtheme))
         case "daf_format" => x + ("value" -> JsString(fileType))
+        case "daf_opendata" => { if (metaCatalog.dcatapit.privatex.getOrElse(true))
+                                   x + ("value" -> JsBoolean(false))
+                                 else
+                                   x + ("value" -> JsBoolean(true))
+        }
       }
     })
     JsArray(result)

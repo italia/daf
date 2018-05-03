@@ -127,6 +127,7 @@ val hbaseLibrariesTEST = Seq(
   hadoopHBaseExcludes("org.apache.hadoop" % "hadoop-mapreduce-client-jobclient" % hadoopVersion % "test" classifier "tests")
 )
 
+javaOptions in Universal ++= Seq("-jvm-debug 5005")
 
 licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt"))
 headerLicense := Some(HeaderLicense.ALv2("2017", "TEAM PER LA TRASFORMAZIONE DIGITALE"))

@@ -125,11 +125,15 @@ licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.
 headerLicense := Some(HeaderLicense.ALv2("2017", "TEAM PER LA TRASFORMAZIONE DIGITALE"))
 headerMappings := headerMappings.value + (HeaderFileType.conf -> HeaderCommentStyle.HashLineComment)
 
+dockerPackageMappings in Docker += (if(isStaging) baseDirectory.value / "cert" / "test" / "jssecacerts"
+                                    else baseDirectory.value / "cert" / "jssecacerts") -> "jssecacerts"
+
 dockerBaseImage := "anapsix/alpine-java:8_jdk_unlimited"
 dockerCommands := dockerCommands.value.flatMap {
   case cmd@Cmd("FROM", _) => List(cmd,
     Cmd("RUN", "apk update && apk add bash krb5-libs krb5"),
-    Cmd("RUN", "ln -sf /etc/krb5.conf /opt/jdk/jre/lib/security/krb5.conf")
+    Cmd("RUN", "ln -sf /etc/krb5.conf /opt/jdk/jre/lib/security/krb5.conf"),
+    Cmd("COPY", "jssecacerts", "/opt/jdk/jre/lib/security/")
   )
   case other => List(other)
 }

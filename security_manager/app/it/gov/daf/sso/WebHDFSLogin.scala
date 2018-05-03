@@ -29,6 +29,7 @@ object WebHDFSLogin {
         (o: String) => {out.append(s"$o\n");()},
         (e: String) => {err.append(s"$e\n");()} )
 
+      // TODO change switch property
       val scriptName =  if(System.getProperty("STAGING") != null) "./script/kb_init_test.sh"
                         else "./script/kb_init.sh"
 

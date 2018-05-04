@@ -52,8 +52,8 @@ class WebHDFSApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cac
     def handleJson(resp:RestServiceResponse):Either[RestServiceResponse,JsValue]={
 
       (resp.jsValue \ "AclStatus").validate[JsObject] match {
-        case s: JsSuccess[String] => Right(resp.jsValue)
-        case e: JsError => Left(resp)
+        case JsSuccess(s,v) => Right(resp.jsValue)
+        case JsError(e) => Left(resp)
       }
     }
 

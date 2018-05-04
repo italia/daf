@@ -563,6 +563,92 @@ paths:
           description: Error Message
           schema:
             $ref: '#/definitions/Error'
+
+  "/daf/datasetACL/{datasetName}/addPermission":
+    put:
+      tags:
+        - DAF
+      description: add permission to dataset ACL
+      operationId: addPermissionToACL
+      produces:
+      - application/json
+      parameters:
+      - name: datasetName
+        in: path
+        description: dataset name
+        required: true
+        type: string
+      - name: aclPermission
+        in: body
+        description: Permission to add
+        required: true
+        schema:
+          $ref: '#/definitions/AclPermission'
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+
+  "/daf/datasetACL/{datasetName}/deletePermission":
+    put:
+      tags:
+        - DAF
+      description: delete permission from dataset ACL
+      operationId: deletePermissionFromACL
+      produces:
+      - application/json
+      parameters:
+      - name: datasetName
+        in: path
+        description: dataset name
+        required: true
+        type: string
+      - name: permissionDel
+        in: body
+        description: Permission to del
+        required: true
+        schema:
+          $ref: '#/definitions/PermissionDel'
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+
+  "/daf/datasetACL/{datasetName}":
+    get:
+      tags:
+        - DAF
+      description: get dataset ACL
+      operationId: getDatasetACL
+      produces:
+      - application/json
+      parameters:
+      - name: datasetName
+        in: path
+        description: dataset name
+        required: true
+        type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/AclPermission'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
   "/internal/superset/table":
     post:
       tags:
@@ -766,6 +852,32 @@ definitions:
         type: string
       newpwd:
         description: user new password
+        type: string
+  AclPermission:
+    type: object
+    required:
+      - groupName
+      - groupType
+      - permission
+    properties:
+      groupName:
+        description: group name
+        type: string
+      groupType:
+        description: group type
+        type: string
+        enum: [user, organization]
+      permission:
+        description: group permission on a dataset
+        type: string
+        enum: [r--, rw-]
+  PermissionDel:
+    type: object
+    required:
+      - groupName
+    properties:
+      groupName:
+        description: group name
         type: string
   Error:
     properties:

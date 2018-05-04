@@ -40,7 +40,7 @@ import it.gov.daf.securitymanager.service.utilities.Utils
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                                                                                                                                                                                                                                                                                                                    
+                                                                                                                                                                                                                                                                                                                                                                                                    
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -189,6 +189,12 @@ package security_manager.yaml {
               DelUserToIPAgroup500(Error(Option(1),Some("The service is deprecated"),None))
             // ----- End of unmanaged code area for action  Security_managerYaml.delUserToIPAgroup
         }
+        val deletePermissionFromACL = deletePermissionFromACLAction { input: (String, PermissionDel) =>
+            val (datasetName, permissionDel) = input
+            // ----- Start of unmanaged code area for action  Security_managerYaml.deletePermissionFromACL
+            NotImplementedYet
+            // ----- End of unmanaged code area for action  Security_managerYaml.deletePermissionFromACL
+        }
         val createSupersetTable = createSupersetTableAction { (payload: SupersetTable) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.createSupersetTable
             execInContext[Future[CreateSupersetTableType[T] forSome { type T }]] ("createSupersetTable"){ () =>
@@ -212,6 +218,11 @@ package security_manager.yaml {
               }
           }
             // ----- End of unmanaged code area for action  Security_managerYaml.updateDAFuser
+        }
+        val getDatasetACL = getDatasetACLAction { (datasetName: String) =>  
+            // ----- Start of unmanaged code area for action  Security_managerYaml.getDatasetACL
+            NotImplementedYet
+            // ----- End of unmanaged code area for action  Security_managerYaml.getDatasetACL
         }
         val token = tokenAction {  _ =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.token
@@ -237,6 +248,14 @@ package security_manager.yaml {
               Showipagroup500(Error(Option(1), Some("Admin permissions required"), None))
           }
             // ----- End of unmanaged code area for action  Security_managerYaml.showipagroup
+        }
+        val addPermissionToACL = addPermissionToACLAction { input: (String, AclPermission) =>
+            val (datasetName, aclPermission) = input
+            // ----- Start of unmanaged code area for action  Security_managerYaml.addPermissionToACL
+
+
+            //NotImplementedYet
+            // ----- End of unmanaged code area for action  Security_managerYaml.addPermissionToACL
         }
         val useraddDAForganization = useraddDAForganizationAction { (payload: UserAndGroup) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.useraddDAForganization

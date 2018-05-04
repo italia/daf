@@ -25,14 +25,23 @@ class ImpalaService @Inject()(implicit val cacheWrapper:CacheWrapper){
   }
 
 
-  def revokeSelectGrant(tableName:String, groupName:String):Boolean= createGrant(tableName,groupName,"SELECT")
+  def revokeSelectGrant(tableName:String, groupName:String):Boolean= revokeGrant(tableName,groupName,"SELECT")
 
-  def revokeInsertGrant(tableName:String, groupName:String):Boolean = createGrant(tableName,groupName,"INSERT")
+  def revokeInsertGrant(tableName:String, groupName:String):Boolean = revokeGrant(tableName,groupName,"INSERT")
 
   private def revokeGrant(tableName:String, groupName:String, permission:String):Boolean={
 
     val roleName = s"${groupName}_group_role"
     val query = s"REVOKE $permission ON TABLE $tableName FROM ROLE $roleName;"
+
+    executeUpdate(query)>0
+  }
+
+
+  def createGroupRole(groupName:String):Boolean={
+
+    val roleName = s"${groupName}_group_role"
+    val query = s"CREATE ROLE $roleName;"
 
     executeUpdate(query)>0
   }
@@ -47,27 +56,30 @@ class ImpalaService @Inject()(implicit val cacheWrapper:CacheWrapper){
     val res = stmt.executeUpdate(query)
 
     conn.close()
-
     res
 
   }
 
-  private def executeQuery(user:String,pwd:String, query:String):String={
 
+  // for testing pourpose
+  private def executeQuery(query:String):scala.collection.mutable.Map[String,String] ={
 
-    val conn = ds.getConnection(user,pwd)
+    val loginInfo = readLoginInfo
+    val conn = ds.getConnection(loginInfo.user,loginInfo.password)
 
     val stmt = conn.createStatement()
-    val rs = stmt.executeQuery("SHOW ROLE GRANT GROUP default_org;")
+    val rs = stmt.executeQuery(query) //for example "SHOW ROLE GRANT GROUP default_org;"
 
-    val res = if( rs.next() ) rs.getString(1)
-              else "not found"
-
-    //println("weeee-->"+rs.getString(1))
+    val metadata = rs.getMetaData
+    val columns = metadata.getColumnCount
+    var resultMap = scala.collection.mutable.Map[String,String]()
+    while( rs.next() ) {
+      for(i <- 0 to columns-1)
+        resultMap += metadata.getColumnName(i) -> rs.getString(i)
+    }
 
     conn.close()
-
-    res
+    resultMap
 
   }
 

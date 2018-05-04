@@ -101,7 +101,6 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   private def formatRegisteredUser(user: IpaUser): IpaUser = {
 
-
     if (user.uid == null || user.uid.isEmpty )
       user.copy( uid = user.mail.replaceAll("[@]", "_").replaceAll("[.]", "-"), role = Option(Role.Viewer.toString()) )
     else

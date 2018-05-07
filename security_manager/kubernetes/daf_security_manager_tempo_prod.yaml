@@ -96,10 +96,6 @@ spec:
           mountPath: /opt/docker/cert/master-impala.jks
           subPath: security-manager/cert/master-impala.jks
           readOnly: true
-        - name: glusterfsvol
-          mountPath: /opt/docker/cert/jssecacerts.jks
-          subPath: security-manager/cert/jssecacerts.jks
-          readOnly: true
         - name: krb5conf
           mountPath: /etc/krb5.conf
       imagePullSecrets:

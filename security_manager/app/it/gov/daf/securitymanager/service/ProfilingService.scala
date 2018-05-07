@@ -17,7 +17,25 @@ import scala.util.Try
 @Singleton
 class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:ImpalaService){
 
-  def addPermissionToACL(datasetPath:String, groupName:String, groupType:String, permission:String) :Future[Either[Error,Success]] = {
+
+  private def addAclToCatalog(datasetPath:String, groupName:String, groupType:String, permission:String ):Future[Either[Error,Success]] = {
+
+    val datasetName = toDatasetName(datasetPath)
+
+    def methodCall = MongoService.addACL(datasetName, groupName, groupType, permission)
+    evalInFuture0S(methodCall)
+  }
+
+
+  private def createImpalaGrant(datasetPath:String, groupName:String, groupType:String, permission:String ):Future[Either[Error,Success]] = {
+
+    val tableName = toDatasetName(datasetPath)
+
+    def methodCall = impalaService.createGrant(tableName, groupName, permission)
+    evalInFuture0S(methodCall)
+  }
+
+  private def createHDFSPermission(datasetPath:String, groupName:String, groupType:String, permission:String ):Future[Either[Error,Success]] = {
 
     //curl -i -X PUT "http://<HOST>:<PORT>/webhdfs/v1/<PATH>?op=MODIFYACLENTRIES
     //&aclspec=<ACLSPEC>"
@@ -26,6 +44,42 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
     //group:sales:rwx
     //user:pippo:r--
 
+
+    val aclString = s"${if(groupType != "user") "group" else "user"}:$groupName:$permission"
+    val queryString: Map[String, String] =Map("op"->"MODIFYACLENTRIES","aclspec"->aclString)
+
+    webHDFSApiProxy.callHdfsService("PUT",datasetPath,queryString) map{
+      case Right(r) => Right( Success(Some("HDFS ACL updated"),Some("ok")) )
+      case Left(l) => Left(Error(Option(1), Some(l.jsValue.toString()), None))
+    }
+
+  }
+
+  def addPermissionToACL(datasetPath:String, groupName:String, groupType:String, permission:String) :Future[Either[Error,Success]] = {
+
+
+    val result = for {
+      a <- step(Try {
+        createHDFSPermission(datasetPath, groupName, groupType, permission)
+      })
+      b <- step(a, Try {
+        createImpalaGrant(datasetPath, groupName, groupType, permission)
+      })
+      c <- step(b, Try {
+        addAclToCatalog(datasetPath, groupName, groupType, permission)
+      })
+
+    } yield c
+
+
+    result.value.map {
+      case Right(r) => Right(Success(Some("ACL added"), Some("ok")))
+      case Left(l) => Left(l.error)
+    }
+
+  }
+
+/*
     val datasetName = ProfilingService.toDatasetName(datasetPath)
 
     val aclString = s"${if(groupType != "user") "group" else "user"}:$groupName:$permission"
@@ -33,10 +87,10 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
     webHDFSApiProxy.callHdfsService("PUT",datasetPath,queryString)
 
     val tableName = ProfilingService.toDatasetName(datasetPath)
-
-    impalaService.createInsertGrant(tableName,groupName)
+    impalaService.createGrant(tableName, groupName, permission)
 
     MongoService.addACL(datasetName, groupName, groupType, permission)
+    */
 
     /*
     val groupCn = dafOrg.groupCn
@@ -74,21 +128,11 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
           if( l.steps != steps)
             throw new Exception( s"CreateDafOrganization rollback issue: process steps=${l.steps} rollback steps=$steps" )
 
-        }
-
-      }
-        Left(l.error)
-    }
-*/
-
-  }
+        }*/
 
 
-}
-
-
-object ProfilingService {
   def toTableName(datasetPhisicalURI:String)=datasetPhisicalURI.split('/').dropRight(3).mkString(".")
   def toDatasetName(datasetPhisicalURI:String)=datasetPhisicalURI.split('/').last.split("_o_").last
 
 }
+

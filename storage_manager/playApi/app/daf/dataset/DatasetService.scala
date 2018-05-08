@@ -22,6 +22,7 @@ import daf.catalogmanager.{CatalogManagerClient, MetaCatalog}
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.types.StructType
 import play.api.Logger
+import play.api.libs.json.{JsDefined, JsError, Json}
 import play.api.libs.ws.WSClient
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -80,6 +81,28 @@ class DatasetService(
         }
   }
 
+
+  private def extractSeparator(catalog :MetaCatalog) : Option[String] =  {
+    val hiveFormatJson = Json.parse(catalog.dataschema.kyloSchema.getOrElse("{}")) \ "hiveFormat"
+    hiveFormatJson.asOpt[String].map { hiveFormat =>
+      val indexStart = hiveFormat.indexOf("'separatorChar'")
+      val indexEnd = hiveFormat.indexOf(",'escapeChar'")
+      val separator = if(indexStart != -1 && indexEnd != -1) {
+        hiveFormat.substring(indexStart, indexEnd).trim.split(" = ").toList.last.replaceAll("'", "").trim
+      } else { "," }
+      separator
+    }
+    // TODO remove once we test that it works
+   /* catalog.dataschema.kyloSchema.map(x => {
+      val indexStart = x.indexOf("'separatorChar'")
+      val indexEnd = x.indexOf(",'escapeChar'")
+      val sep = if(indexStart != -1 && indexEnd != -1) {
+        x.substring(indexStart, indexEnd).trim.split("=").toList.last.replaceAll("'", "").trim
+      } else ""
+       sep
+    }) */
+  }
+
   private def extractParamsF(catalog: MetaCatalog): Future[Map[String, String]] =
     Future.fromTry(extractParams(catalog))
 
@@ -91,7 +114,8 @@ class DatasetService(
             Map(
               "protocol" -> "hdfs",
               "path" -> s"${catalog.operational.physical_uri.get}", //storage.hdfs.flatMap(_.path).map(_ + "/final.parquet").get
-              "format" -> storage.hdfs.flatMap(_.param).getOrElse("format=parquet").split("=").last
+              "format" -> storage.hdfs.flatMap(_.param).getOrElse("format=parquet").split("=").last,
+              "separator" -> extractSeparator(catalog)
             )
           )
         } else if (storage.kudu.isDefined) {

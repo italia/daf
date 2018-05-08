@@ -13,28 +13,40 @@ class ImpalaService @Inject()(implicit val cacheWrapper:CacheWrapper){
   ds.setURL(s"jdbc:impala://${ConfigReader.impalaServer};SSL=1;SSLKeyStore=${ConfigReader.impalaKeyStorePath};SSLKeyStorePwd=${ConfigReader.impalaKeyStorePwd};CAIssuedCertNamesMismatch=1;AuthMech=3")
 
 
-  def createSelectGrant(tableName:String, groupName:String):Boolean= createGrant(tableName,groupName,"SELECT")
+  def createGrant(tableName:String, groupName:String, permission:String):Either[String,String]={
 
-  def createInsertGrant(tableName:String, groupName:String):Boolean= createGrant(tableName,groupName,"INSERT")
+    val permissionOnQuery = if(permission == Permission.read.toString) "SELECT"
+                            else "INSERT"
 
-  private def createGrant(tableName:String, groupName:String, permission:String):Boolean={
+
     val roleName = s"${groupName}_group_role"
-    val query = s"GRANT $permission ON TABLE $tableName TO ROLE $roleName;"
+    val query = s"GRANT $permissionOnQuery ON TABLE $tableName TO ROLE $roleName;"
 
-    executeUpdate(query)>0
+    if(executeUpdate(query)>0) Right("Grant created")
+    else Left("Can not create Impala grant")
   }
 
 
-  def revokeSelectGrant(tableName:String, groupName:String):Boolean= createGrant(tableName,groupName,"SELECT")
+  def revokeGrant(tableName:String, groupName:String, permission:String):Either[String,String]={
 
-  def revokeInsertGrant(tableName:String, groupName:String):Boolean = createGrant(tableName,groupName,"INSERT")
-
-  private def revokeGrant(tableName:String, groupName:String, permission:String):Boolean={
+    val permissionOnQuery = if(permission == Permission.read.toString) "SELECT"
+    else "INSERT"
 
     val roleName = s"${groupName}_group_role"
-    val query = s"REVOKE $permission ON TABLE $tableName FROM ROLE $roleName;"
+    val query = s"REVOKE $permissionOnQuery ON TABLE $tableName FROM ROLE $roleName;"
 
-    executeUpdate(query)>0
+    if(executeUpdate(query)>0) Right("Grant revoked")
+    else Left("Can not revoke Impala grant")
+  }
+
+
+  def createGroupRole(groupName:String):Either[String,String]={
+
+    val roleName = s"${groupName}_group_role"
+    val query = s"CREATE ROLE $roleName;"
+
+    if(executeUpdate(query)>0) Right("Group created")
+    else Left("Can not create Impala group")
   }
 
 
@@ -47,27 +59,30 @@ class ImpalaService @Inject()(implicit val cacheWrapper:CacheWrapper){
     val res = stmt.executeUpdate(query)
 
     conn.close()
-
     res
 
   }
 
-  private def executeQuery(user:String,pwd:String, query:String):String={
 
+  // for testing pourpose
+  private def executeQuery(query:String):scala.collection.mutable.Map[String,String] ={
 
-    val conn = ds.getConnection(user,pwd)
+    val loginInfo = readLoginInfo
+    val conn = ds.getConnection(loginInfo.user,loginInfo.password)
 
     val stmt = conn.createStatement()
-    val rs = stmt.executeQuery("SHOW ROLE GRANT GROUP default_org;")
+    val rs = stmt.executeQuery(query) //for example "SHOW ROLE GRANT GROUP default_org;"
 
-    val res = if( rs.next() ) rs.getString(1)
-              else "not found"
-
-    //println("weeee-->"+rs.getString(1))
+    val metadata = rs.getMetaData
+    val columns = metadata.getColumnCount
+    var resultMap = scala.collection.mutable.Map[String,String]()
+    while( rs.next() ) {
+      for(i <- 0 to columns-1)
+        resultMap += metadata.getColumnName(i) -> rs.getString(i)
+    }
 
     conn.close()
-
-    res
+    resultMap
 
   }
 

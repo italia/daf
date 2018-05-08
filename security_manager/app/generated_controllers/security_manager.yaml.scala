@@ -32,6 +32,7 @@ import it.gov.daf.common.sso.common.CredentialManager
 import it.gov.daf.securitymanager.service.utilities.RequestContext._
 import it.gov.daf.common.sso.common.CacheWrapper
 import it.gov.daf.securitymanager.service.utilities.Utils
+import it.gov.daf.securitymanager.service.ProfilingService
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -40,7 +41,7 @@ import it.gov.daf.securitymanager.service.utilities.Utils
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                                                                                                                                                                            
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -49,7 +50,8 @@ package security_manager.yaml {
                                            apiClientIPA:ApiClientIPA,
                                            registrationService:RegistrationService,
                                            integrationService:IntegrationService,
-                                            cacheWrapper: CacheWrapper,
+                                           profilingService:ProfilingService,
+                                           cacheWrapper: CacheWrapper,
         // ----- End of unmanaged code area for injections Security_managerYaml
         val messagesApi: MessagesApi,
         lifecycle: ApplicationLifecycle,
@@ -132,6 +134,22 @@ package security_manager.yaml {
           }
             // ----- End of unmanaged code area for action  Security_managerYaml.createDAForganization
         }
+        val deletePermissionFromACL = deletePermissionFromACLAction { input: (String, AclPermission) =>
+            val (datasetPath, permissionDel) = input
+            // ----- Start of unmanaged code area for action  Security_managerYaml.deletePermissionFromACL
+            execInContext[Future[DeletePermissionFromACLType[T] forSome {type T}]]("deletePermissionToACL") { () =>
+
+              profilingService.deletePermissionToACL(datasetPath,
+                permissionDel.groupName,
+                permissionDel.groupType.value,
+                permissionDel.permission.value) flatMap {
+                case Right(success) => DeletePermissionFromACL200(success)
+                case Left(err) => DeletePermissionFromACL500(err)
+              }
+
+            }
+            // ----- End of unmanaged code area for action  Security_managerYaml.deletePermissionFromACL
+        }
         val findIpauserByName = findIpauserByNameAction { (userName: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.findIpauserByName
             execInContext[Future[FindIpauserByNameType[T] forSome { type T }]]("findIpauserByName") { () =>
@@ -189,6 +207,22 @@ package security_manager.yaml {
               DelUserToIPAgroup500(Error(Option(1),Some("The service is deprecated"),None))
             // ----- End of unmanaged code area for action  Security_managerYaml.delUserToIPAgroup
         }
+        val addPermissionToACL = addPermissionToACLAction { input: (String, AclPermission) =>
+            val (datasetPath, aclPermission) = input
+            // ----- Start of unmanaged code area for action  Security_managerYaml.addPermissionToACL
+            execInContext[Future[AddPermissionToACLType[T] forSome {type T}]]("addPermissionToACL") { () =>
+
+              profilingService.addPermissionToACL(datasetPath,
+                aclPermission.groupName,
+                aclPermission.groupType.value,
+                aclPermission.permission.value) flatMap {
+                case Right(success) => AddPermissionToACL200(success)
+                case Left(err) => AddPermissionToACL500(err)
+              }
+
+            }
+            // ----- End of unmanaged code area for action  Security_managerYaml.addPermissionToACL
+        }
         val createSupersetTable = createSupersetTableAction { (payload: SupersetTable) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.createSupersetTable
             execInContext[Future[CreateSupersetTableType[T] forSome { type T }]] ("createSupersetTable"){ () =>
@@ -212,6 +246,18 @@ package security_manager.yaml {
               }
           }
             // ----- End of unmanaged code area for action  Security_managerYaml.updateDAFuser
+        }
+        val getDatasetACL = getDatasetACLAction { (datasetName: String) =>  
+            // ----- Start of unmanaged code area for action  Security_managerYaml.getDatasetACL
+            execInContext[Future[GetDatasetACLType[T] forSome {type T}]]("getDatasetACL") { () =>
+
+            profilingService.getPermissions(datasetName) flatMap {
+              case Right(success) => GetDatasetACL200(success)
+              case Left(err) => GetDatasetACL500(err)
+            }
+
+          }
+            // ----- End of unmanaged code area for action  Security_managerYaml.getDatasetACL
         }
         val token = tokenAction {  _ =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.token

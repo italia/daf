@@ -3,8 +3,9 @@ package it.gov.daf.securitymanager.service
 import java.util.Calendar
 
 import com.mongodb.casbah.commons.MongoDBObject
+import com.mongodb.casbah.query.Imports.DBObject
 import com.mongodb.{BasicDBObject, ServerAddress}
-import com.mongodb.casbah.{MongoClient, MongoCredential}
+import com.mongodb.casbah.{Imports, MongoClient, MongoCredential}
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import play.api.Logger
 import play.api.libs.json.{JsValue, Json}
@@ -20,29 +21,10 @@ object MongoService {
   private val credentials = MongoCredential.createCredential(userName, dbName, password.toCharArray)
   private val USER_COLLECTION_NAME = "PreRegistratedUsers"
   private val RESETPWD_COLLECTION_NAME = "ResetPwdRequests"
+  private val CATALOG_COLLECTION_NAME = "catalog_test"
   private val PRE_REGISTRATION_TTL = 60*60*2
   private val RESET_PWD_TTL = 60*60*2
 
-/*
-  def writeUserData(user:IpaUser, token:String): Boolean = {
-
-    val mongoClient = MongoClient( server, List(credentials) )
-    val db = mongoClient(dbName)
-    val coll = db(USER_COLLECTION_NAME)
-
-
-    if(coll.isEmpty) {
-      try
-        coll.underlying.createIndex(new BasicDBObject("createdOn", 1), new BasicDBObject("expireAfterSeconds", PRE_REGISTRATION_TTL))
-      catch{ case e:Exception => println("Indice già creato") }
-    }
-
-    val document = new BasicDBObject("token", token).append("uid", user.uid).append("userpassword",user.userpassword).append("givenname",user.givenname).append("sn",user.sn).append("mail",user.mail).append("createdOn", Calendar.getInstance().getTime() )
-    val inserted = coll.insert(document)
-    mongoClient.close()
-    inserted.getN > 0
-
-  }*/
 
   def writeUserData(user:IpaUser, token:String): Either[String,String] = {
 
@@ -68,7 +50,7 @@ object MongoService {
     if(coll.isEmpty) {
       try
         coll.underlying.createIndex(new BasicDBObject("createdOn", 1), new BasicDBObject("expireAfterSeconds", ttl))
-      catch{ case e:Exception => Logger.logger.error("Indice già creato") }
+      catch{ case e:Exception => Logger.logger.warn("Index already created") }
     }
 
     val inserted = coll.insert(document)
@@ -77,6 +59,58 @@ object MongoService {
     Logger.logger.debug( "mongo write result: "+inserted )
 
     if(! inserted.isUpdateOfExisting )
+      Right("ok")
+    else
+      Left("ko")
+
+  }
+
+  def addACL( datasetName:String, groupName:String, groupType:String, permission:String ): Either[String,String] = {
+
+    //$push:{"operational.acl":{"groupName":"comune_torino","type":"organization","permissions":"rw"}}
+
+    val query = MongoDBObject("dcatapit.name" -> datasetName)
+    val aclPermission = MongoDBObject("groupName"->groupName,"groupType"->groupType,"permission"->permission)
+    val update = Imports.$push("operational.acl" -> aclPermission )
+    updateData( query, update, CATALOG_COLLECTION_NAME )
+
+  }
+
+  def removeACL( datasetName:String, groupName:String, permissions:String ): Either[String,String] = {
+
+    val query = MongoDBObject("dcatapit.name" -> datasetName)
+    val update = Imports.$pull("operational.acl" -> ("groupName"->groupName) )
+    updateData( query, update, CATALOG_COLLECTION_NAME )
+
+  }
+
+  def getACL(datasetName:String): Either[String,JsValue] = {
+
+    val result = findData( "dcatapit.name", datasetName, CATALOG_COLLECTION_NAME )
+    result match{
+      case Right(json) => ((json \ "operational") \ "acl").toOption match{
+        case Some(x) => Right(x)
+        case None =>  Logger.logger.warn( "No Acl found: "+result )
+                      Left("No Acl found")
+      }
+      case _ => result
+    }
+
+  }
+
+
+  private def updateData( query:DBObject, update:DBObject, collectionName:String )={
+
+    val mongoClient = MongoClient( server, List(credentials) )
+    val db = mongoClient(dbName)
+    val coll = db(collectionName)
+
+    val updated = coll.update(query, update)
+    mongoClient.close()
+
+    Logger.logger.debug( "mongo update result: "+updated )
+
+    if(updated.isUpdateOfExisting)
       Right("ok")
     else
       Left("ko")

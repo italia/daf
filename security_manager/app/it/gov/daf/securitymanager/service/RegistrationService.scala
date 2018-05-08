@@ -21,34 +21,60 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   private val tokenGenerator = new BearerTokenGenerator
 
-
-  private def adapt1[T](in:Either[String,T]):Future[Either[Error,T]]={
-    in match {
-      case Right(r) => Future{ Right(r) }
-      case Left(l) => Future{ Left( Error(Option(1),Some(l),None) )}
+  /*
+  private def wrapFuture1[T](in:Either[String,T]):Future[Either[Error,T]]={
+    Future.successful {
+      in match {
+        case Right(r) => Right(r)
+        case Left(l) => Left(Error(Option(1), Some(l), None))
+      }
     }
 
   }
 
-  private def adapt0[T](in:Either[String,T]):Future[Either[Error,T]]={
-    in match {
-      case Right(r) => Future{ Right(r) }
-      case Left(l) => Future{ Left( Error(Option(0),Some(l),None) )}
+  private def wrapFuture0[T](in:Either[String,T]):Future[Either[Error,T]]={
+    Future.successful {
+      in match {
+        case Right(r) => Right(r)
+        case Left(l) => Left(Error(Option(0), Some(l), None))
+      }
     }
 
   }
+
+  private def evalInFuture1[T](in:Either[String,T]):Future[Either[Error,T]]={
+    Future {
+      in match {
+        case Right(r) => Right(r)
+        case Left(l) => Left(Error(Option(1), Some(l), None))
+      }
+    }
+
+  }
+
+  private def evalInFuture0[T](in:Either[String,T]):Future[Either[Error,T]]={
+    Future {
+      in match {
+        case Right(r) => Right(r)
+        case Left(l) => Left(Error(Option(0), Some(l), None))
+      }
+    }
+
+  }
+*/
 
   def requestRegistration(userIn:IpaUser):Future[Either[Error,MailService]] = {
 
     Logger.logger.info("requestRegistration")
 
+    def cui = checkUserInfo(userIn)
     val result = for {
-      a <- EitherT( adapt1(checkUserInfo(userIn)) )
+      a <- EitherT( wrapFuture1(checkUserInfo(userIn)) )
       user = formatRegisteredUser(userIn)
       b <- EitherT( checkRegistration(user.uid) )
       c <- EitherT( checkUser(user) )
       d <- EitherT( checkMail(user) )
-      f <- EitherT( adapt0(writeRequestNsendMail(user)(MongoService.writeUserData)) )
+      f <- EitherT( wrapFuture0(writeRequestNsendMail(user)(MongoService.writeUserData)) )
     } yield f
 
     result.value
@@ -63,7 +89,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
     val result = for {
       user <- EitherT( apiClientIPA.findUserByMail(mail) )
       b <- EitherT( checkResetPwd(mail) )
-      c <- EitherT( adapt0(writeRequestNsendMail(user)(MongoService.writeResetPwdData)) )
+      c <- EitherT( wrapFuture0(writeRequestNsendMail(user)(MongoService.writeResetPwdData)) )
     } yield c
 
     result.value
@@ -77,7 +103,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
       case Left(o) => Right("Ok: not found")
     }
 
-    adapt1(result)
+    wrapFuture1(result)
   }
 
 
@@ -101,7 +127,6 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   private def formatRegisteredUser(user: IpaUser): IpaUser = {
 
-
     if (user.uid == null || user.uid.isEmpty )
       user.copy( uid = user.mail.replaceAll("[@]", "_").replaceAll("[.]", "-"), role = Option(Role.Viewer.toString()) )
     else
@@ -117,7 +142,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
       case Left(o) => Right("Ok: not found")
     }
 
-    adapt1(result)
+    wrapFuture1(result)
   }
 
   private def checkUser(user:IpaUser):Future[Either[Error,String]] = {

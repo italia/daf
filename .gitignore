@@ -13,7 +13,7 @@ iot_ingestion_manager/common/src/generated
 catalog_manager/conf/cluster_application.conf
 catalog_manager/conf/integration.conf
 catalog_manager/conf/production.conf
-security_manager/conf/integration.conf
+security_manager/conf/testEnv.conf
 security_manager/cert/*.jks
 security_manager/cert/test/*.jks
 */conf/production/

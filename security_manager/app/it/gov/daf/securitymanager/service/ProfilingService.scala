@@ -1,18 +1,16 @@
 package it.gov.daf.securitymanager.service
 
-import cats.data.EitherT
-import com.google.inject.{Inject, Singleton}
-import it.gov.daf.common.authentication.Role
-import it.gov.daf.sso.ApiClientIPA
-import security_manager.yaml.{DafOrg, Error, IpaUser, Success}
 
+import com.google.inject.{Inject, Singleton}
+import security_manager.yaml.{AclPermission, DafOrg, Error, IpaUser, Success}
 import scala.concurrent.Future
 import cats.implicits._
-import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import ProcessHandler._
-import IntegrationService._
+import it.gov.daf.common.utils.WebServiceUtil
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import scala.util.Try
+import play.api.libs.json.{JsError, JsSuccess}
+import security_manager.yaml.BodyReads._
+import scala.util.{Left, Try}
 
 @Singleton
 class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:ImpalaService){
@@ -50,7 +48,7 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
     webHDFSApiProxy.callHdfsService("PUT",datasetPath,queryString) map{
       case Right(r) => Right( Success(Some("HDFS ACL updated"),Some("ok")) )
-      case Left(l) => Left(Error(Option(1), Some(l.jsValue.toString()), None))
+      case Left(l) => Left(Error(Option(0), Some(l.jsValue.toString()), None))
     }
 
   }
@@ -71,7 +69,6 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
     } yield c
 
-
     result.value.map {
       case Right(r) => Right(Success(Some("ACL added"), Some("ok")))
       case Left(l) => Left(l.error)
@@ -79,18 +76,72 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
   }
 
-/*
-    val datasetName = ProfilingService.toDatasetName(datasetPath)
+
+  private def deleteAclFromCatalog(datasetPath:String, groupName:String, groupType:String ):Future[Either[Error,Success]] = {
+
+    val datasetName = toDatasetName(datasetPath)
+
+    def methodCall = MongoService.removeACL(datasetName, groupName, groupType)
+    evalInFuture0S(methodCall)
+  }
+
+
+  private def revokeImpalaGrant(datasetPath:String, groupName:String, groupType:String, permission:String ):Future[Either[Error,Success]] = {
+
+    val tableName = toDatasetName(datasetPath)
+
+    def methodCall = impalaService.revokeGrant(tableName, groupName, permission)
+    evalInFuture0S(methodCall)
+  }
+
+  private def revokeHDFSPermission(datasetPath:String, groupName:String, groupType:String, permission:String ):Future[Either[Error,Success]] = {
+
 
     val aclString = s"${if(groupType != "user") "group" else "user"}:$groupName:$permission"
-    val queryString: Map[String, String] =Map("op"->"MODIFYACLENTRIES","aclspec"->aclString)
-    webHDFSApiProxy.callHdfsService("PUT",datasetPath,queryString)
+    val queryString: Map[String, String] =Map("op"->"REMOVEACLENTRIES","aclspec"->aclString)
 
-    val tableName = ProfilingService.toDatasetName(datasetPath)
-    impalaService.createGrant(tableName, groupName, permission)
+    webHDFSApiProxy.callHdfsService("PUT",datasetPath,queryString) map{
+      case Right(r) => Right( Success(Some("HDFS ACL deleted"),Some("ok")) )
+      case Left(l) => Left(Error(Option(0), Some(l.jsValue.toString()), None))
+    }
 
-    MongoService.addACL(datasetName, groupName, groupType, permission)
-    */
+  }
+
+  def deletePermissionToACL(datasetPath:String, groupName:String, groupType:String, permission:String) :Future[Either[Error,Success]] = {
+
+
+    val result = for {
+      a <- step(Try {
+        revokeHDFSPermission(datasetPath, groupName, groupType, permission)
+      })
+      b <- step(a, Try {
+        revokeImpalaGrant(datasetPath, groupName, groupType, permission)
+      })
+      c <- step(b, Try {
+        deleteAclFromCatalog(datasetPath, groupName, groupType)
+      })
+
+    } yield c
+
+
+    result.value.map {
+      case Right(r) => Right(Success(Some("ACL deleted"), Some("ok")))
+      case Left(l) => Left(l.error)
+    }
+
+  }
+
+  def getPermissions(datasetName:String) :Future[Either[Error,Seq[AclPermission]]] = {
+
+    def methodCall = MongoService.getACL(datasetName)
+    evalInFuture0(methodCall).map{
+      case Right(json) => json.validate[Seq[AclPermission]] match {
+        case s: JsSuccess[Seq[AclPermission]] => Right(s.get)
+        case e: JsError => Left( Error(Option(1), Some(WebServiceUtil.getMessageFromJsError(e)), None) )
+      }
+      case Left(l) => Left(l)
+    }
+  }
 
     /*
     val groupCn = dafOrg.groupCn

@@ -61,6 +61,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
     }
 
   }
+*/
 
   def requestRegistration(userIn:IpaUser):Future[Either[Error,MailService]] = {
 
@@ -78,7 +79,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
     result.value
 
-  }*/
+  }
 
 
   def requestResetPwd(mail:String):Future[Either[Error,MailService]] = {

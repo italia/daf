@@ -49,7 +49,7 @@ import play.api.Logger
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-            
+                    
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -71,7 +71,7 @@ package catalog_manager.yaml {
         val SEC_MANAGER_HOST = config.get.getString("security.manager.host").get
         val KYLOURL = config.get.getString("kylo.url").get
         val KYLOUSER = config.get.getString("kylo.user").getOrElse("dladmin")
-        val KYLOPWD = config.get.getString("kylo.password").getOrElse("XXXXXXXXXXX")
+        val KYLOPWD = config.get.getString("kylo.userpwd").getOrElse("XXXXXXXXXXX")
 
         // ----- End of unmanaged code area for constructor Catalog_managerYaml
         val autocompletedummy = autocompletedummyAction { (autocompRes: AutocompRes) =>  

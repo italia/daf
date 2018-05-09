@@ -41,7 +41,7 @@ import it.gov.daf.securitymanager.service.ProfilingService
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                                                                                                                                                                                                                                                                                                                                                                                            
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -134,22 +134,6 @@ package security_manager.yaml {
           }
             // ----- End of unmanaged code area for action  Security_managerYaml.createDAForganization
         }
-        val deletePermissionFromACL = deletePermissionFromACLAction { input: (String, AclPermission) =>
-            val (datasetPath, permissionDel) = input
-            // ----- Start of unmanaged code area for action  Security_managerYaml.deletePermissionFromACL
-            execInContext[Future[DeletePermissionFromACLType[T] forSome {type T}]]("deletePermissionToACL") { () =>
-
-              profilingService.deletePermissionToACL(datasetPath,
-                permissionDel.groupName,
-                permissionDel.groupType.value,
-                permissionDel.permission.value) flatMap {
-                case Right(success) => DeletePermissionFromACL200(success)
-                case Left(err) => DeletePermissionFromACL500(err)
-              }
-
-            }
-            // ----- End of unmanaged code area for action  Security_managerYaml.deletePermissionFromACL
-        }
         val findIpauserByName = findIpauserByNameAction { (userName: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.findIpauserByName
             execInContext[Future[FindIpauserByNameType[T] forSome { type T }]]("findIpauserByName") { () =>
@@ -207,21 +191,21 @@ package security_manager.yaml {
               DelUserToIPAgroup500(Error(Option(1),Some("The service is deprecated"),None))
             // ----- End of unmanaged code area for action  Security_managerYaml.delUserToIPAgroup
         }
-        val addPermissionToACL = addPermissionToACLAction { input: (String, AclPermission) =>
-            val (datasetPath, aclPermission) = input
-            // ----- Start of unmanaged code area for action  Security_managerYaml.addPermissionToACL
-            execInContext[Future[AddPermissionToACLType[T] forSome {type T}]]("addPermissionToACL") { () =>
+        val deletePermissionFromACL = deletePermissionFromACLAction { input: (String, AclPermission) =>
+            val (datasetName, permissionDel) = input
+            // ----- Start of unmanaged code area for action  Security_managerYaml.deletePermissionFromACL
+            execInContext[Future[DeletePermissionFromACLType[T] forSome {type T}]]("deletePermissionToACL") { () =>
 
-              profilingService.addPermissionToACL(datasetPath,
-                aclPermission.groupName,
-                aclPermission.groupType.value,
-                aclPermission.permission.value) flatMap {
-                case Right(success) => AddPermissionToACL200(success)
-                case Left(err) => AddPermissionToACL500(err)
+              profilingService.deletePermissionToACL(datasetName,
+                permissionDel.groupName,
+                permissionDel.groupType,
+                permissionDel.permission) flatMap {
+                case Right(success) => DeletePermissionFromACL200(success)
+                case Left(err) => DeletePermissionFromACL500(err)
               }
 
             }
-            // ----- End of unmanaged code area for action  Security_managerYaml.addPermissionToACL
+            // ----- End of unmanaged code area for action  Security_managerYaml.deletePermissionFromACL
         }
         val createSupersetTable = createSupersetTableAction { (payload: SupersetTable) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.createSupersetTable
@@ -283,6 +267,22 @@ package security_manager.yaml {
               Showipagroup500(Error(Option(1), Some("Admin permissions required"), None))
           }
             // ----- End of unmanaged code area for action  Security_managerYaml.showipagroup
+        }
+        val addPermissionToACL = addPermissionToACLAction { input: (String, AclPermission) =>
+            val (datasetName, aclPermission) = input
+            // ----- Start of unmanaged code area for action  Security_managerYaml.addPermissionToACL
+            execInContext[Future[AddPermissionToACLType[T] forSome {type T}]]("addPermissionToACL") { () =>
+
+              profilingService.addPermissionToACL(datasetName,
+                aclPermission.groupName,
+                aclPermission.groupType,
+                aclPermission.permission) flatMap {
+                case Right(success) => AddPermissionToACL200(success)
+                case Left(err) => AddPermissionToACL500(err)
+              }
+
+            }
+            // ----- End of unmanaged code area for action  Security_managerYaml.addPermissionToACL
         }
         val useraddDAForganization = useraddDAForganizationAction { (payload: UserAndGroup) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.useraddDAForganization

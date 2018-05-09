@@ -98,6 +98,19 @@ object MongoService {
 
   }
 
+  def getDatasetInfo(datasetName:String): Either[String,(String,String)] = {
+
+    val result = findData( "dcatapit.name", datasetName, CATALOG_COLLECTION_NAME )
+    result match{
+      case Right(json) => val out = ( (json \ "operational" \ "physical_uri").asOpt[String], (json \ "dcatapit" \ "author").asOpt[String] )
+                          out match{
+                            case (Some(x), Some(y)) => Right((x,y))
+                            case _ =>  Logger.logger.warn( "No data found: "+result ); Left("No dataset found")
+                          }
+      case Left(l) => Left(l)
+    }
+
+  }
 
   private def updateData( query:DBObject, update:DBObject, collectionName:String )={
 

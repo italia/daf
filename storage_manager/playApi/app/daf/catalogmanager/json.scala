@@ -23,7 +23,7 @@ case class KeyValue(key: String, value: String)
 // Generic Key/Value pair object
 case class VocKeyValueSubtheme(key: String, value: String, keyTheme: String, valueTheme: Option[String])
 case class MetaCatalog(dataschema: DatasetCatalog, operational: Operational, dcatapit: Dataset)
-case class DatasetCatalog(avro: Avro, flatSchema: List[FlatSchema])
+case class DatasetCatalog(avro: Avro, flatSchema: List[FlatSchema], kyloSchema: Option[String])
 case class Avro(namespace: String, `type`: String, name: String, aliases: Option[List[String]], fields: Option[List[Field]])
 case class Field(name: String, `type`: String)
 case class FlatSchema(name: String, `type`: String, metadata: Option[Metadata])
@@ -95,10 +95,10 @@ object json {
     o => JsObject(Seq("dataschema" -> Json.toJson(o.dataschema), "operational" -> Json.toJson(o.operational), "dcatapit" -> Json.toJson(o.dcatapit)).filter(_._2 != JsNull))
   }
   implicit lazy val DatasetCatalogReads: Reads[DatasetCatalog] = Reads[DatasetCatalog] {
-    json => JsSuccess(DatasetCatalog((json \ "avro").as[Avro], (json \ "flatSchema").as[List[FlatSchema]]))
+    json => JsSuccess(DatasetCatalog((json \ "avro").as[Avro], (json \ "flatSchema").as[List[FlatSchema]],(json \ "kyloSchema").as[Option[String]]))
   }
   implicit lazy val DatasetCatalogWrites: Writes[DatasetCatalog] = Writes[DatasetCatalog] {
-    o => JsObject(Seq("avro" -> Json.toJson(o.avro), "flatSchema" -> Json.toJson(o.flatSchema)).filter(_._2 != JsNull))
+    o => JsObject(Seq("avro" -> Json.toJson(o.avro), "flatSchema" -> Json.toJson(o.flatSchema), "kyloSchema" -> Json.toJson(o.kyloSchema)).filter(_._2 != JsNull))
   }
   implicit lazy val AvroReads: Reads[Avro] = Reads[Avro] {
     json => JsSuccess(Avro((json \ "namespace").as[String], (json \ "type").as[String], (json \ "name").as[String], (json \ "aliases").asOpt[List[String]], (json \ "fields").asOpt[List[Field]]))

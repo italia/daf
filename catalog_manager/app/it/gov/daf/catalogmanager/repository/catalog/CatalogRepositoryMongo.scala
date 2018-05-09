@@ -125,7 +125,12 @@ class CatalogRepositoryMongo extends  CatalogRepository{
     val dcatapit: Dataset = metaCatalog.dcatapit
     val datasetJs : JsValue = ResponseWrites.DatasetWrites.writes(dcatapit)
 
-    val result: Future[String] = CkanRegistry.ckanRepository.createDataset(datasetJs,callingUserid)
+
+    // TODO think if private should go in ckan or not as backup of metadata
+    if(!metaCatalog.dcatapit.privatex.getOrElse(true))
+      CkanRegistry.ckanRepository.createDataset(datasetJs,callingUserid)
+
+    // val result: Future[String] =
 
     val msg = if(metaCatalog.operational.std_schema.isDefined) {
       val stdUri = metaCatalog.operational.std_schema.get.std_uri

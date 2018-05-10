@@ -76,6 +76,7 @@ case class UserOrg(name: Option[String], capacity: Option[String])
 case class Credentials(username: Option[String], password: Option[String])
 
 object json {
+
   implicit lazy val KeyValueReads: Reads[KeyValue] = Reads[KeyValue] {
     json => JsSuccess(KeyValue((json \ "key").as[String], (json \ "value").as[String]))
   }
@@ -95,7 +96,7 @@ object json {
     o => JsObject(Seq("dataschema" -> Json.toJson(o.dataschema), "operational" -> Json.toJson(o.operational), "dcatapit" -> Json.toJson(o.dcatapit)).filter(_._2 != JsNull))
   }
   implicit lazy val DatasetCatalogReads: Reads[DatasetCatalog] = Reads[DatasetCatalog] {
-    json => JsSuccess(DatasetCatalog((json \ "avro").as[Avro], (json \ "flatSchema").as[List[FlatSchema]],(json \ "kyloSchema").as[Option[String]]))
+    json => JsSuccess(DatasetCatalog((json \ "avro").as[Avro], (json \ "flatSchema").as[List[FlatSchema]],(json \ "kyloSchema").asOpt[String]))
   }
   implicit lazy val DatasetCatalogWrites: Writes[DatasetCatalog] = Writes[DatasetCatalog] {
     o => JsObject(Seq("avro" -> Json.toJson(o.avro), "flatSchema" -> Json.toJson(o.flatSchema), "kyloSchema" -> Json.toJson(o.kyloSchema)).filter(_._2 != JsNull))

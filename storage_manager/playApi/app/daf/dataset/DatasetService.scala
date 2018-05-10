@@ -83,8 +83,7 @@ class DatasetService(
 
 
   private def extractSeparator(catalog :MetaCatalog) : Option[String] =  {
-      val sep = """'separatorChar'.=.'.*'.,'""".r
-        .findFirstIn(catalog.dataschema.kyloSchema.getOrElse("{}"))
+      val sep = """'separatorChar'.=.'.*'.,'""".r.findFirstIn(catalog.dataschema.kyloSchema.getOrElse("{}"))
         .getOrElse(",").split(" ,")(0)
         .replace("""\\\\""", "")
         .replaceAll("'", "").split(" = ").last.trim

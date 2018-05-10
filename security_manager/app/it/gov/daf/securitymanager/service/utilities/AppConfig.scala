@@ -65,6 +65,8 @@ private class AppConfig @Inject()(playConfig: Configuration) {
   val impalaKeyStorePath :Option[String] = playConfig.getString("impala.keyStorePath")
   val impalaKeyStorePwd :Option[String] = playConfig.getString("impala.keyStorePwd")
 
+  val localEnv:Option[Boolean] = playConfig.getBoolean("localEnv")
+
 }
 
 
@@ -161,6 +163,8 @@ object ConfigReader {
   def impalaServer :String = config.impalaServer.get
   def impalaKeyStorePath :String = config.impalaKeyStorePath.get
   def impalaKeyStorePwd :String = config.impalaKeyStorePwd.get
+
+  def localEnv:Boolean = config.localEnv.getOrElse(false)
 
 }
 

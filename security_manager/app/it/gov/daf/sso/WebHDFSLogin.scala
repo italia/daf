@@ -4,6 +4,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.nio.charset.StandardCharsets
 
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
+import play.api.Logger
 
 import scala.concurrent.Future
 import scala.sys.process.{Process, ProcessLogger}
@@ -29,11 +30,14 @@ object WebHDFSLogin {
         (o: String) => {out.append(s"$o\n");()},
         (e: String) => {err.append(s"$e\n");()} )
 
-      // TODO change switch property
-      val scriptName =  if(System.getProperty("STAGING") != null) "./script/kb_init_test.sh"
+      val scriptName =  if(ConfigReader.localEnv )"./script/kb_init_local_test.sh"
                         else "./script/kb_init.sh"
 
-      val pb = Process(s"timeout 5 $scriptName $usrName $HADOOP_URL") // Process should hang: command timeout needed
+      val command = s"timeout 10 $scriptName $usrName $HADOOP_URL" // Process should hang: command timeout needed
+
+      Logger.logger.debug("Launching command: "+command)
+
+      val pb = Process(command)
 
       val bos = new ByteArrayOutputStream()
       val exitCode = pb #< new ByteArrayInputStream(s"$pwd\n".toCharArray.map(_.toByte)) #> bos ! logger

@@ -40,7 +40,7 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
   private def createImpalaGrant(datasetPath:String, groupName:String, groupType:String, permission:String ):Future[Either[Error,Success]] = {
 
-    val tableName = toDatasetName(datasetPath)
+    val tableName = toTableName(datasetPath)
 
     def methodCall = impalaService.createGrant(tableName, groupName, permission)
     evalInFuture0S(methodCall)
@@ -56,7 +56,8 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
     //user:pippo:r--
 
 
-    val aclString = s"${if(groupType != "user") "group" else "user"}:$groupName:$permission"
+    val subject = if(groupType != "user") "group" else "user"
+    val aclString = s"$subject:$groupName:$permission,default:$subject:$groupName:$permission"
     val queryString: Map[String, String] =Map("op"->"MODIFYACLENTRIES","aclspec"->aclString)
 
     webHDFSApiProxy.callHdfsService("PUT",datasetPath,queryString) map{
@@ -77,7 +78,7 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
       a <- step(Try {createHDFSPermission(datasetPath, groupName, groupType, permission)})
       b <- step(a, Try {createImpalaGrant(datasetPath, groupName, groupType, permission)})
-      c <- step(b, Try {addAclToCatalog(datasetPath, groupName, groupType, permission)})
+      c <- step(b, Try {addAclToCatalog(datasetName, groupName, groupType, permission)})
 
     } yield c
 
@@ -89,16 +90,16 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
   }
 
 
-  private def deleteAclFromCatalog(datasetName:String, groupName:String, groupType:String ):Future[Either[Error,Success]] = {
+  private def deleteAclFromCatalog(datasetName:String, groupName:String, groupType:String, permission:String ):Future[Either[Error,Success]] = {
 
-    def methodCall = MongoService.removeACL(datasetName, groupName, groupType)
+    def methodCall = MongoService.removeACL(datasetName, groupName, groupType, permission)
     evalInFuture0S(methodCall)
   }
 
 
   private def revokeImpalaGrant(datasetPath:String, groupName:String, groupType:String, permission:String ):Future[Either[Error,Success]] = {
 
-    val tableName = toDatasetName(datasetPath)
+    val tableName = toTableName(datasetPath)
 
     def methodCall = impalaService.revokeGrant(tableName, groupName, permission)
     evalInFuture0S(methodCall)
@@ -106,8 +107,10 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
   private def revokeHDFSPermission(datasetPath:String, groupName:String, groupType:String, permission:String ):Future[Either[Error,Success]] = {
 
+    val subject = if(groupType != "user") "group" else "user"
+    val aclString = s"$subject:$groupName:,default:$subject:$groupName:"
 
-    val aclString = s"${if(groupType != "user") "group" else "user"}:$groupName:$permission"
+    //val aclString = s"${if(groupType != "user") "group" else "user"}:$groupName:"//$permission
     val queryString: Map[String, String] =Map("op"->"REMOVEACLENTRIES","aclspec"->aclString)
 
     webHDFSApiProxy.callHdfsService("PUT",datasetPath,queryString) map{
@@ -128,7 +131,7 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
       a <- step(Try {revokeHDFSPermission(datasetPath, groupName, groupType, permission)})
       b <- step(a, Try {revokeImpalaGrant(datasetPath, groupName, groupType, permission) })
-      c <- step(b, Try {deleteAclFromCatalog(datasetPath, groupName, groupType)})
+      c <- step(b, Try {deleteAclFromCatalog(datasetName, groupName, groupType, permission)})
 
     } yield c
 
@@ -191,8 +194,8 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
         }*/
 
 
-  def toTableName(datasetPhisicalURI:String)=datasetPhisicalURI.split('/').dropRight(3).mkString(".")
-  def toDatasetName(datasetPhisicalURI:String)=datasetPhisicalURI.split('/').last.split("_o_").last
+  def toTableName(datasetPhisicalURI:String)=datasetPhisicalURI.split('/').drop(4).mkString(".")
+  //def toDatasetName(datasetPhisicalURI:String)=datasetPhisicalURI.split('/').last.split("_o_").last
 
 }
 

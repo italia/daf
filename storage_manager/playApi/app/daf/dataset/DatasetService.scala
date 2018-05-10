@@ -88,21 +88,6 @@ class DatasetService(
         .replace("""\\\\""", "")
         .replaceAll("'", "").split(" = ").last.trim
       Option(sep)
-
-   /* log.debug("MERDACCIAQUADRATA")
-    log.debug(catalog.dataschema.kyloSchema.getOrElse("""{"TRIPLACACCA":"ciao"}"""))
-    val hiveFormatJson = (Json.parse(catalog.dataschema.kyloSchema.getOrElse("{}")) \ "hiveFormat")
-    hiveFormatJson.asOpt[String].map { hiveFormat =>
-      log.debug("MERDACCIA")
-      log.debug(hiveFormat)
-      val indexStart = hiveFormat.indexOf("'separatorChar'")
-      val indexEnd = hiveFormat.indexOf(",'escapeChar'")
-      val separator = if(indexStart != -1 && indexEnd != -1) {
-        hiveFormat.substring(indexStart, indexEnd).trim.split(" = ").toList.last.replaceAll("'", "").trim
-      } else { "," }
-      separator
-    } */
-   /* """'separatorChar'.=.'.*'.,'""".r.findFirstIn(kyloSchema.get.toString()).getOrElse(",").split(" ,")(0).replace("""\\\""", "").replaceAll("'", "").split(" = ").last.trim */
   }
 
   private def extractParamsF(catalog: MetaCatalog): Future[Map[String, String]] =

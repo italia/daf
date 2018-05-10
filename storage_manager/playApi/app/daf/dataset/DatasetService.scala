@@ -83,24 +83,11 @@ class DatasetService(
 
 
   private def extractSeparator(catalog :MetaCatalog) : Option[String] =  {
-    val hiveFormatJson = Json.parse(catalog.dataschema.kyloSchema.getOrElse("{}")) \ "hiveFormat"
-    hiveFormatJson.asOpt[String].map { hiveFormat =>
-      val indexStart = hiveFormat.indexOf("'separatorChar'")
-      val indexEnd = hiveFormat.indexOf(",'escapeChar'")
-      val separator = if(indexStart != -1 && indexEnd != -1) {
-        hiveFormat.substring(indexStart, indexEnd).trim.split(" = ").toList.last.replaceAll("'", "").trim
-      } else { "," }
-      separator
-    }
-    // TODO remove once we test that it works
-   /* catalog.dataschema.kyloSchema.map(x => {
-      val indexStart = x.indexOf("'separatorChar'")
-      val indexEnd = x.indexOf(",'escapeChar'")
-      val sep = if(indexStart != -1 && indexEnd != -1) {
-        x.substring(indexStart, indexEnd).trim.split("=").toList.last.replaceAll("'", "").trim
-      } else ""
-       sep
-    }) */
+      val sep = """'separatorChar'.=.'.*'.,'""".r.findFirstIn(catalog.dataschema.kyloSchema.getOrElse("{}"))
+        .getOrElse(",").split(" ,")(0)
+        .replace("""\\\\""", "")
+        .replaceAll("'", "").split(" = ").last.trim
+      Option(sep)
   }
 
   private def extractParamsF(catalog: MetaCatalog): Future[Map[String, String]] =

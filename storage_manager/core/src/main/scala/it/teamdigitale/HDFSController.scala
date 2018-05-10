@@ -16,8 +16,8 @@ class HDFSController(sparkSession: SparkSession) {
         println(s"questo e' il path ${pathFixAle}")
         separator match {
           case None => sparkSession.read.csv(pathFixAle)
-          case Some(separator) => sparkSession.read.format("csv")
-            .option("sep", separator)
+          case Some(sep) => sparkSession.read.format("csv")
+            .option("sep", sep)
             .option("inferSchema", "true")
             .option("header", "true")
             .load(pathFixAle)

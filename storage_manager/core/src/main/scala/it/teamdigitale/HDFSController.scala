@@ -12,12 +12,14 @@ class HDFSController(sparkSession: SparkSession) {
   def readData(path: String, format: String, separator :Option[String]): Try[DataFrame] =  {
     format match {
       case "csv" => Try {
+        alogger.debug("ALEOOOOO")
+        alogger.debug(separator.get)
         val pathFixAle = path + "/" + path.split("/").last + ".csv"
         println(s"questo e' il path ${pathFixAle}")
         separator match {
           case None => sparkSession.read.csv(pathFixAle)
-          case Some(separator) => sparkSession.read.format("csv")
-            .option("sep", separator)
+          case Some(sep) => sparkSession.read.format("csv")
+            .option("sep", sep)
             .option("inferSchema", "true")
             .option("header", "true")
             .load(pathFixAle)

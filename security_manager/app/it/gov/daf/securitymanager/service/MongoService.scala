@@ -25,6 +25,8 @@ object MongoService {
   private val PRE_REGISTRATION_TTL = 60*60*2
   private val RESET_PWD_TTL = 60*60*2
 
+  private val mongoClient = MongoClient( server, List(credentials) )
+
 
   def writeUserData(user:IpaUser, token:String): Either[String,String] = {
 
@@ -42,7 +44,7 @@ object MongoService {
 
   private def writeData( document:BasicDBObject, collectionName:String, ttl:Int)={
 
-    val mongoClient = MongoClient( server, List(credentials) )
+
     val db = mongoClient(dbName)
     val coll = db(collectionName)
 
@@ -54,7 +56,7 @@ object MongoService {
     }
 
     val inserted = coll.insert(document)
-    mongoClient.close()
+    //mongoClient.close()
 
     Logger.logger.debug( "mongo write result: "+inserted )
 
@@ -71,22 +73,23 @@ object MongoService {
 
     val query = MongoDBObject("dcatapit.name" -> datasetName)
     val aclPermission = MongoDBObject("groupName"->groupName,"groupType"->groupType,"permission"->permission)
-    val update = Imports.$push("operational.acl" -> aclPermission )
+    val update = Imports.$addToSet("operational.acl" -> aclPermission )
     updateData( query, update, CATALOG_COLLECTION_NAME )
 
   }
 
-  def removeACL( datasetName:String, groupName:String, permissions:String ): Either[String,String] = {
+  def removeACL( datasetName:String, groupName:String, groupType:String, permission:String ): Either[String,String] = {
 
     val query = MongoDBObject("dcatapit.name" -> datasetName)
-    val update = Imports.$pull("operational.acl" -> ("groupName"->groupName) )
+    val aclPermission = MongoDBObject("groupName"->groupName,"groupType"->groupType,"permission"->permission)
+    val update = Imports.$pull("operational.acl" -> aclPermission )
     updateData( query, update, CATALOG_COLLECTION_NAME )
 
   }
 
   def getACL(datasetName:String): Either[String,JsValue] = {
 
-    val result = findData( "dcatapit.name", datasetName, CATALOG_COLLECTION_NAME )
+    val result = findData( CATALOG_COLLECTION_NAME, "dcatapit.name", datasetName  )
     result match{
       case Right(json) => ((json \ "operational") \ "acl").toOption match{
         case Some(x) => Right(x)
@@ -98,22 +101,37 @@ object MongoService {
 
   }
 
+  def getDatasetInfo(datasetName:String): Either[String,(String,String)] = {
+
+    val result = findData(CATALOG_COLLECTION_NAME ,"dcatapit.name", datasetName)
+    result match{
+      case Right(json) => val out = ( (json \ "operational" \ "physical_uri").asOpt[String], (json \ "dcatapit" \ "author").asOpt[String] )
+                          out match{
+                            case (Some(x), Some(y)) => Right((x,y))
+                            case _ =>  Logger.logger.warn( "No data found: "+result ); Left("No dataset found")
+                          }
+      case Left(l) => Left(l)
+    }
+
+  }
 
   private def updateData( query:DBObject, update:DBObject, collectionName:String )={
 
-    val mongoClient = MongoClient( server, List(credentials) )
+    Logger.logger.debug(s"Mongo update, collection: $collectionName, query: $query, update: $update")
+
+    //val mongoClient = MongoClient( server, List(credentials) )
     val db = mongoClient(dbName)
     val coll = db(collectionName)
 
     val updated = coll.update(query, update)
-    mongoClient.close()
+    //mongoClient.close()
 
     Logger.logger.debug( "mongo update result: "+updated )
 
     if(updated.isUpdateOfExisting)
-      Right("ok")
+      Right("Mongo update: success")
     else
-      Left("ko")
+      Left("Mongo update: failed")
 
   }
 
@@ -142,14 +160,17 @@ object MongoService {
 
   private def findData(collectionName:String, filterAttName:String, filterValue:String): Either[String,JsValue] = {
 
-    val mongoClient = MongoClient(server,List(credentials))
+    //val mongoClient = MongoClient(server,List(credentials))
     val db = mongoClient(dbName)
 
     val coll = db(collectionName)
 
     val query = MongoDBObject(filterAttName -> filterValue)
+
+    Logger.logger.debug("Mongo query "+query)
+
     val result = coll.findOne(query)
-    mongoClient.close
+    //mongoClient.close
 
     result match {
       case Some(x) => {
@@ -163,14 +184,14 @@ object MongoService {
 
   private def findAndRemoveData(collectionName:String, filterAttName:String, filterValue:String): Either[String,JsValue] = {
 
-    val mongoClient = MongoClient(server,List(credentials))
+    //val mongoClient = MongoClient(server,List(credentials))
     val db = mongoClient(dbName)
 
     val coll = db(collectionName)
 
     val query = MongoDBObject(filterAttName -> filterValue)
     val result = coll.findAndRemove(query)
-    mongoClient.close
+    //mongoClient.close
 
     result match {
       case Some(x) => {

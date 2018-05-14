@@ -6,7 +6,7 @@ import security_manager.yaml.{AclPermission, Error, Success}
 
 import scala.concurrent.Future
 import cats.implicits._
-import ProcessHandler._
+import ProcessHandler.{stepOverF, _}
 import cats.data.EitherT
 import it.gov.daf.common.utils.WebServiceUtil
 import it.gov.daf.securitymanager.service.utilities.RequestContext._
@@ -65,7 +65,7 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
   }
 
-  private def setDatasetHDFSPermission(datasetPath:String, isDirectory:Boolean,setHdfsPerm:(String,Boolean)=>Future[Either[Error,Success]]) :Future[Either[Error,Success]] = {
+  private def setDatasetHDFSPermission(datasetPath:String, isDirectory:Boolean, setHdfsPerm:(String,Boolean)=>Future[Either[Error,Success]]) :Future[Either[Error,Success]] = {
 
     val res = for {
 
@@ -104,15 +104,26 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
   }
 
-  def addPermissionToACL(datasetName:String, groupName:String, groupType:String, permission:String) :Future[Either[Error,Success]] = {
+  private def verifyPermissionString(permission:String):Future[Either[Error,Success]]={
+
+    def methodCall =  if (Permission.permissions.map(_.toString) contains (permission)) Right("ok")
+                      else Left(s"Permisson cab be: ${Permission.permissions}")
+
+    wrapInFuture1S(methodCall)
+  }
+
+  def setACLPermission(datasetName:String, groupName:String, groupType:String, permission:String) :Future[Either[Error,Success]] = {
 
     val createPermission:(String,Boolean)=>Future[Either[Error,Success]] = createHDFSPermission(_, _, groupName, groupType, permission)
 
     val result = for {
 
+      test <- stepOverF(Try {verifyPermissionString(permission)})
       info <- stepOverF(Try {getDatasetInfo(datasetName)}); (datasetPath,owner)=info
 
       s <- stepOverF(testUser(owner))
+
+      k <- stepOverF(Try {deletePermissionIfPresent(datasetPath, groupName, groupType)})
 
       a <- step(Try {setDatasetHDFSPermission(datasetPath, true, createPermission)})
       b <- step(a, Try {createImpalaGrant(datasetPath, groupName, groupType, permission)})
@@ -122,28 +133,38 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
     result.value.map {
       case Right(r) => Right(Success(Some("ACL added"), Some("ok")))
-      case Left(l) => Left(l.error)
+      case Left(l) => if( l.steps !=0 ) {
+        hardDeletePermissionFromACL(datasetName, groupName, groupType).onSuccess { case e =>
+
+          val steps = e.fold(ll=>ll.steps,rr=>rr.steps)
+          if( l.steps != steps)
+            throw new Exception( s"setACLPermission rollback issue: process steps=${l.steps} rollback steps=$steps" )
+
+        }
+
+      }
+        Left(l.error)
     }
 
   }
 
 
-  private def deleteAclFromCatalog(datasetName:String, groupName:String, groupType:String, permission:String ):Future[Either[Error,Success]] = {
+  private def deleteAclFromCatalog(datasetName:String, groupName:String, groupType:String ):Future[Either[Error,Success]] = {
 
-    def methodCall = MongoService.removeACL(datasetName, groupName, groupType, permission)
+    def methodCall = MongoService.removeAllACL(datasetName, groupName, groupType)
     evalInFuture0S(methodCall)
   }
 
 
-  private def revokeImpalaGrant(datasetPath:String, groupName:String, groupType:String, permission:String ):Future[Either[Error,Success]] = {
+  private def revokeImpalaGrant(datasetPath:String, groupName:String, groupType:String):Future[Either[Error,Success]] = {
 
     val tableName = toTableName(datasetPath)
 
-    def methodCall = impalaService.revokeGrant(tableName, groupName, permission)
+    def methodCall = impalaService.revokeGrant(tableName, groupName)
     evalInFuture0S(methodCall)
   }
 
-  private def revokeHDFSPermission(datasetPath:String, isDirectory:Boolean, groupName:String, groupType:String, permission:String ):Future[Either[Error,Success]] = {
+  private def revokeHDFSPermission(datasetPath:String, isDirectory:Boolean, groupName:String, groupType:String):Future[Either[Error,Success]] = {
 
     val subject = if(groupType != "user") "group" else "user"
     val aclString = if(isDirectory) s"$subject:$groupName:,default:$subject:$groupName:"
@@ -159,28 +180,42 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
   }
 
-  def deletePermissionToACL(datasetName:String, groupName:String, groupType:String, permission:String) :Future[Either[Error,Success]] = {
+  private def hardDeletePermissionFromACL(datasetPath:String, groupName:String, groupType:String) :Future[Either[ErrorWrapper,SuccessWrapper]] = {
 
-    val deletePermission:(String,Boolean)=>Future[Either[Error,Success]] = revokeHDFSPermission(_, _, groupName, groupType, permission)
+    val deletePermission:(String,Boolean)=>Future[Either[Error,Success]] = revokeHDFSPermission(_, _, groupName, groupType)
+    val datasetName = toDatasetName(datasetPath)
 
     val result = for {
 
-      info <- stepOverF(Try {getDatasetInfo(datasetName)}); (datasetPath,owner)=info
-
-      s <- stepOverF(testUser(owner))
-
       a <- step(Try {setDatasetHDFSPermission(datasetPath, true, deletePermission)})
-      b <- step(a, Try {revokeImpalaGrant(datasetPath, groupName, groupType, permission) })
-      c <- step(b, Try {deleteAclFromCatalog(datasetName, groupName, groupType, permission)})
+      b <- step(a, Try {revokeImpalaGrant(datasetPath, groupName, groupType) })
+      c <- step(b, Try {deleteAclFromCatalog(datasetName, groupName, groupType)})
 
     } yield c
 
 
-    result.value.map {
-      case Right(r) => Right(Success(Some("ACL deleted"), Some("ok")))
-      case Left(l) => Left(l.error)
-    }
+    result.value
 
+  }
+
+  def deletePermissionFromACL(datasetName:String, groupName:String, groupType:String) :Future[Either[Error,Success]] = {
+
+
+    val result = for {
+
+      info <- stepOverF( Try {getDatasetInfo(datasetName)}) ; (datasetPath,owner)=info
+
+      s <- stepOverF( testUser(owner) )
+
+      a <- EitherT( hardDeletePermissionFromACL(datasetPath, groupName, groupType) )
+
+    } yield a
+
+    result.value map{
+      case Right(r) =>Right(Success(Some("ACL deleted"),Some("ok")))
+      case Left(l) => if( l.steps == 0 ) Left(l.error)
+                      else throw new Exception( s"deletePermissionFromACL process issue: process steps=${l.steps}" )
+    }
   }
 
   def getPermissions(datasetName:String) :Future[Either[Error,Seq[AclPermission]]] = {
@@ -195,47 +230,32 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
     }
   }
 
-    /*
-    val groupCn = dafOrg.groupCn
-    val predefinedOrgIpaUser =     IpaUser(groupCn,
-      "predefined organization user",
-      dafOrg.predefinedUserMail.getOrElse( toMail(groupCn) ),
-      toUserName(groupCn),
-      Option(Role.Editor.toString),
-      Option(dafOrg.predefinedUserPwd),
-      None,
-      Option(Seq(dafOrg.groupCn)))
+  private def checkPermissions(datasetName:String) :Future[Either[Error,Success]] = {
 
+    getPermissions(datasetName).map{
+                                      case Right(r) =>  if(r.isEmpty || r.length==0) Left(Error(Option(1), None, None))
+                                                        else Right{Success(Some(""), Some(""))}
+                                      case Left(l) => Left(l)
+                                    }
+  }
 
-    val result = for {
-      a <- step( Try{apiClientIPA.createGroup(dafOrg.groupCn)} )
-      b <- step( a, Try{registrationService.checkMailNcreateUser(predefinedOrgIpaUser,true)} )
-      c <- step( b, Try{supersetApiClient.createDatabase(toSupersetDS(groupCn),predefinedOrgIpaUser.uid,dafOrg.predefinedUserPwd,dafOrg.supSetConnectedDbName)} )
-      d <- stepOver( c, Try{kyloApiClient.createCategory(dafOrg.groupCn)} )
+  def deletePermissionIfPresent(datasetPath:String, groupName:String, groupType:String) :Future[Either[Error,Success]] = {
 
-      e <- step( c, Try{ckanApiClient.createOrganizationAsAdmin(groupCn)} )
-      e1 <- step( c, Try{ckanApiClient.createOrganizationInGeoCkanAsAdmin(groupCn)} )
+    val out = checkPermissions(toDatasetName(datasetPath))
 
-      g <- stepOver( e, Try{addUserToOrganization(groupCn,predefinedOrgIpaUser.uid)} )
+    out flatMap { case Right(r) => hardDeletePermissionFromACL(datasetPath, groupName, groupType) map{
+                                                                                                      case Right(r) =>Right(r.success)
+                                                                                                      case Left(l) => if( l.steps == 0 ) Left(l.error)
+                                                                                                      else throw new Exception( s"deletePermissionIfPresent process issue: process steps=${l.steps}" )
+                                                                                                      }
+                  case Left(Error(Some(1), None, None))=> Future.successful( Right{Success(Some("Nothing todo"), Some("ok"))} )
+                  case _ => out
+                }
 
-    } yield g
-
-    // 5 step
-
-    result.value.map{
-      case Right(r) => Right( Success(Some("Organization created"), Some("ok")) )
-      case Left(l) => if( l.steps !=0 ) {
-        hardDeleteDafOrganization(groupCn).onSuccess { case e =>
-
-          val steps = e.fold(ll=>ll.steps,rr=>rr.steps)
-          if( l.steps != steps)
-            throw new Exception( s"CreateDafOrganization rollback issue: process steps=${l.steps} rollback steps=$steps" )
-
-        }*/
-
+  }
 
   def toTableName(datasetPhisicalURI:String)=datasetPhisicalURI.split('/').drop(4).mkString(".")
-  //def toDatasetName(datasetPhisicalURI:String)=datasetPhisicalURI.split('/').last.split("_o_").last
+  def toDatasetName(datasetPhisicalURI:String)=datasetPhisicalURI.split('/').last.split("_o_").last
 
 }
 

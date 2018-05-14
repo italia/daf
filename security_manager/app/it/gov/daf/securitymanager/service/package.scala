@@ -59,6 +59,16 @@ package object service {
 
   }
 
+  def wrapInFuture1S(in:Either[String,String]):Future[Either[security_manager.yaml.Error,security_manager.yaml.Success]]={
+    Future.successful {
+      in match {
+        case Right(r) => Right( security_manager.yaml.Success(Some(r), Some("ok")) )
+        case Left(l) => Left( security_manager.yaml.Error(Option(1), Some(l), None) )
+      }
+    }
+
+  }
+
   def evalInFuture0S(in:Either[String,String]):Future[Either[security_manager.yaml.Error,security_manager.yaml.Success]]={
     Future {
       in match {
@@ -80,15 +90,14 @@ package object service {
     new LoginInfo( RequestContext.getUsername(), pwd, LoginClientLocal.HADOOP )
   }
 
-
   object Permission {
 
     sealed abstract class EnumVal(name : String){
       override def toString = name
     }
 
-    case object read extends EnumVal("r--")
-    case object readWrite extends EnumVal("rw--")
+    case object read extends EnumVal("r-x")
+    case object readWrite extends EnumVal("rwx")
 
     val permissions = Seq(read, readWrite)
 

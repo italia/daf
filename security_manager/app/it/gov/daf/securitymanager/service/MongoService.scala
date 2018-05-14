@@ -87,6 +87,18 @@ object MongoService {
 
   }
 
+  def removeAllACL( datasetName:String, groupName:String, groupType:String ): Either[String,String] = {
+
+    val query = MongoDBObject("dcatapit.name" -> datasetName)
+
+    val aclPermission = MongoDBObject("groupName"->groupName,"groupType"->groupType,"permission"->Permission.read.toString)
+    val aclPermission2 = MongoDBObject("groupName"->groupName,"groupType"->groupType,"permission"->Permission.readWrite.toString)
+
+    val update = Imports.$pullAll("operational.acl" -> Seq(aclPermission,aclPermission2))
+    updateData( query, update, CATALOG_COLLECTION_NAME )
+
+  }
+
   def getACL(datasetName:String): Either[String,JsValue] = {
 
     val result = findData( CATALOG_COLLECTION_NAME, "dcatapit.name", datasetName  )
@@ -134,6 +146,7 @@ object MongoService {
       Left("Mongo update: failed")
 
   }
+
 
   def findUserByToken(token:String): Either[String,JsValue] = {
     findData(USER_COLLECTION_NAME,"token",token)
@@ -202,30 +215,6 @@ object MongoService {
     }
 
   }
-
-
-  /*
-  private def readMongoById(collectionName: String, id: String): JsValue = {
-
-    val mongoClient = MongoClient(server,List(credentials))
-    val db = mongoClient(dbName)
-    //val collection = db.getCollection(collectionName)
-    val coll = db(collectionName)
-    //val result2 = collection.findOne(equal(filterAttName, filterValue))
-
-    val query = MongoDBObject("_id" -> new ObjectId(id))
-    val result = coll.findOne(query)
-    mongoClient.close
-
-    val out: JsValue = result match {
-      case Some(x) => {
-        val jsonString = com.mongodb.util.JSON.serialize(x)
-        Json.parse(jsonString)
-      }
-      case None => JsString("Not found")
-    }
-    out
-  }*/
 
 
 

@@ -564,12 +564,12 @@ paths:
           schema:
             $ref: '#/definitions/Error'
 
-  "/daf/datasetACL/{datasetName}/addPermission":
+  "/daf/datasetACL/{datasetName}/setPermission":
     put:
       tags:
         - DAF
-      description: add permission to dataset ACL
-      operationId: addPermissionToACL
+      description: set permission to dataset ACL
+      operationId: setACLPermission
       produces:
       - application/json
       parameters:
@@ -599,7 +599,7 @@ paths:
       tags:
         - DAF
       description: delete permission from dataset ACL
-      operationId: deletePermissionFromACL
+      operationId: deleteACLPermission
       produces:
       - application/json
       parameters:
@@ -613,7 +613,7 @@ paths:
         description: Permission to del
         required: true
         schema:
-          $ref: '#/definitions/AclPermission'
+          $ref: '#/definitions/AclPermissionDel'
       responses:
         200:
           description: Success
@@ -871,6 +871,19 @@ definitions:
         description: group permission on a dataset
         type: string
 #        enum: [r--, rw-]
+  AclPermissionDel:
+    type: object
+    required:
+      - groupName
+      - groupType
+    properties:
+      groupName:
+        description: group name
+        type: string
+      groupType:
+        description: group type
+        type: string
+#        enum: [user, organization]
   Error:
     properties:
       code:

@@ -44,6 +44,17 @@ class ImpalaService @Inject()(implicit val cacheWrapper:CacheWrapper){
     //else Left("Can not revoke Impala grant")
   }
 
+  def revokeGrant(tableName:String, groupName:String):Either[String,String]={
+
+    val roleName = s"${groupName}_group_role"
+
+    executeUpdate(s"REVOKE SELECT ON TABLE $tableName FROM ROLE $roleName;")
+    executeUpdate(s"REVOKE INSERT ON TABLE $tableName FROM ROLE $roleName;")
+
+
+    Right("Grant revoked")
+    //else Left("Can not revoke Impala grant")
+  }
 
   def createGroupRole(groupName:String):Either[String,String]={
 
@@ -62,8 +73,13 @@ class ImpalaService @Inject()(implicit val cacheWrapper:CacheWrapper){
     val loginInfo = readLoginInfo
 
     val conn = ds.getConnection(loginInfo.user,loginInfo.password)
+
+    Logger.logger.debug("Impala connection obtained")
+
     val stmt = conn.createStatement()
     val res = stmt.executeUpdate(query)
+
+    Logger.logger.debug("Impala query executed")
 
     conn.close()
     res

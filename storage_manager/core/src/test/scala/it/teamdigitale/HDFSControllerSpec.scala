@@ -16,9 +16,9 @@ class HDFSControllerSpec extends HDFSbase {
 
   "A HDFS controller" should "get a dataset from hdfs when a path exists" in {
 
-    val dfParquet = HDFSController.readData(pathParquet, "parquet")
-    val dfAvro = HDFSController.readData(pathAvro, "avro")
-    val dfCsv = HDFSController.readData(pathCsv, "csv")
+    val dfParquet = HDFSController.readData(pathParquet, "parquet", None)
+    val dfAvro = HDFSController.readData(pathAvro, "avro",None)
+    val dfCsv = HDFSController.readData(pathCsv, "csv", None)
 
     dfParquet shouldBe 'Success
     dfParquet.get.count() should be > 0L

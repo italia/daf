@@ -22,6 +22,7 @@ import daf.catalogmanager.{CatalogManagerClient, MetaCatalog}
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.types.StructType
 import play.api.Logger
+import play.api.libs.json.{JsDefined, JsError, Json}
 import play.api.libs.ws.WSClient
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -80,6 +81,15 @@ class DatasetService(
         }
   }
 
+
+  private def extractSeparator(catalog :MetaCatalog) : Option[String] =  {
+      val sep = """'separatorChar'.=.'.*'.,'""".r.findFirstIn(catalog.dataschema.kyloSchema.getOrElse("{}"))
+        .getOrElse(",").split(" ,")(0)
+        .replace("""\\\\""", "")
+        .replaceAll("'", "").split(" = ").last.trim
+      Option(sep)
+  }
+
   private def extractParamsF(catalog: MetaCatalog): Future[Map[String, String]] =
     Future.fromTry(extractParams(catalog))
 
@@ -91,7 +101,8 @@ class DatasetService(
             Map(
               "protocol" -> "hdfs",
               "path" -> s"${catalog.operational.physical_uri.get}", //storage.hdfs.flatMap(_.path).map(_ + "/final.parquet").get
-              "format" -> storage.hdfs.flatMap(_.param).getOrElse("format=parquet").split("=").last
+              "format" -> storage.hdfs.flatMap(_.param).getOrElse("format=parquet").split("=").last,
+              "separator" -> extractSeparator(catalog).getOrElse(",")
             )
           )
         } else if (storage.kudu.isDefined) {

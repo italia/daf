@@ -109,10 +109,24 @@
       "description": null,
       "displayName": null,
       "locked": false,
-      "order": 2,
+      "order": 3,
       "required": true,
       "systemName": "daf_format",
       "value": "{DAF_FORMAT}",
+      "$error": {
+        "duplicate": false,
+        "missingName": false,
+        "missingValue": false
+      }
+    },
+    {
+      "description": null,
+      "displayName": null,
+      "locked": false,
+      "order": 4,
+      "required": false,
+      "systemName": "daf_opendata",
+      "value": false,
       "$error": {
         "duplicate": false,
         "missingName": false,

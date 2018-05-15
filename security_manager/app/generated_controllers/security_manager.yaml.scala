@@ -41,7 +41,7 @@ import it.gov.daf.securitymanager.service.ProfilingService
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+                                                                                                                                                                                                                                                                                                                                                                
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -206,7 +206,7 @@ package security_manager.yaml {
             }
             // ----- End of unmanaged code area for action  Security_managerYaml.deleteACLPermission
         }
-        val createSupersetTable = createSupersetTableAction { (payload: SupersetTable) =>  
+        val createSupersetTable = createSupersetTableAction { (payload: SupersetTable) =>
             // ----- Start of unmanaged code area for action  Security_managerYaml.createSupersetTable
             execInContext[Future[CreateSupersetTableType[T] forSome { type T }]] ("createSupersetTable"){ () =>
             integrationService.createSupersetTable(payload.dbName, payload.schema, payload.tableName) flatMap {
@@ -246,7 +246,7 @@ package security_manager.yaml {
             }
             // ----- End of unmanaged code area for action  Security_managerYaml.setACLPermission
         }
-        val getDatasetACL = getDatasetACLAction { (datasetName: String) =>  
+        val getDatasetACL = getDatasetACLAction { (datasetName: String) =>
             // ----- Start of unmanaged code area for action  Security_managerYaml.getDatasetACL
             execInContext[Future[GetDatasetACLType[T] forSome {type T}]]("getDatasetACL") { () =>
 
@@ -258,7 +258,7 @@ package security_manager.yaml {
           }
             // ----- End of unmanaged code area for action  Security_managerYaml.getDatasetACL
         }
-        val token = tokenAction {  _ =>  
+        val token = tokenAction {  _ =>
             // ----- Start of unmanaged code area for action  Security_managerYaml.token
             //val credentials = WebServiceUtil.readCredentialFromRequest(currentRequest)
             //cacheWrapper.deleteCredentials(credentials._1.get)

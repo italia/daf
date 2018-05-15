@@ -64,9 +64,10 @@ class PhysicalDatasetController(
 
         val format = params.getOrElse("format", "parquet")
         val pathOp = params.get("path")
+        val separator = params.get("separator")
         logger.info(s"Reading request for hdfs with params: path:$pathOp format: $format")
 
-        val res = pathOp.map(hdfs.readData(_, format).map(_.limit(limit)))
+        val res = pathOp.map(hdfs.readData(_, format, separator).map(_.limit(limit)))
         toTry(res, "Path should be defined")
 
       case other =>

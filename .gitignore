@@ -20,3 +20,4 @@ security_manager/cert/test/*.jks
 catalog_manager/conf/cross_spec
 ingestion_manager/conf/
 storage_manager_core
+storage_manager/playApi/conf/production.conf

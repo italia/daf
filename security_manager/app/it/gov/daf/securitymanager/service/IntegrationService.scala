@@ -9,13 +9,14 @@ import security_manager.yaml.{DafOrg, Error, IpaUser, Success}
 import scala.concurrent.Future
 import cats.implicits._
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
-import ProcessHandler._
+import ProcessHandler.{step, _}
 import IntegrationService._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+
 import scala.util.Try
 
 @Singleton
-class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient: SupersetApiClient, ckanApiClient: CkanApiClient, grafanaApiClient:GrafanaApiClient, registrationService: RegistrationService,kyloApiClient:KyloApiClient){
+class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient: SupersetApiClient, ckanApiClient: CkanApiClient, grafanaApiClient:GrafanaApiClient, registrationService: RegistrationService,kyloApiClient:KyloApiClient, impalaService:ImpalaService){
 
   def createDafOrganization(dafOrg:DafOrg):Future[Either[Error,Success]] = {
 
@@ -32,7 +33,8 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
     val result = for {
       a <- step( Try{apiClientIPA.createGroup(dafOrg.groupCn)} )
-      b <- step( a, Try{registrationService.checkMailNcreateUser(predefinedOrgIpaUser,true)} )
+      a1 <- step( a, Try{evalInFuture0S(impalaService.createRole(groupCn,false))})
+      b <- step( a1, Try{registrationService.checkMailNcreateUser(predefinedOrgIpaUser,true)} )
       c <- step( b, Try{supersetApiClient.createDatabase(toSupersetDS(groupCn),predefinedOrgIpaUser.uid,dafOrg.predefinedUserPwd,dafOrg.supSetConnectedDbName)} )
       d <- stepOver( c, Try{kyloApiClient.createCategory(dafOrg.groupCn)} )
 
@@ -68,9 +70,10 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
     val result = for {
 
       a <- step( Try{apiClientIPA.deleteGroup(groupCn)} )
-      b <- stepOver( a, Try{apiClientIPA.deleteUser(toUserName(groupCn))} )
+      a1 <- step( a, Try{evalInFuture0S(impalaService.deleteRole(groupCn,false))})
+      b <- stepOver( a1, Try{apiClientIPA.deleteUser(toUserName(groupCn))} )
 
-      userInfo <- stepOverF( a, Try{supersetApiClient.findUser(toUserName(groupCn))} )
+      userInfo <- stepOverF( b, Try{supersetApiClient.findUser(toUserName(groupCn))} )
       c <- step( b, Try{supersetApiClient.deleteUser(userInfo._1)} )
 
       roleId <- stepOverF( c, Try{supersetApiClient.findRoleId(toSupersetRole(groupCn))} )
@@ -158,15 +161,15 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
       user <-  stepOverF( Try{apiClientIPA.findUserByUid(userName)} )
       a1<-  stepOver( Try{registrationService.testIfUserBelongsToThisGroup(user,groupCn)} )
       a2 <- step( Try{apiClientIPA.addUsersToGroup(groupCn,Seq(userName))} )
-      supersetUserInfo <- stepOverF( Try{supersetApiClient.findUser(userName)} )
-      roleIds <- stepOverF( Try{supersetApiClient.findRoleIds(toSupersetRole(groupCn)::supersetUserInfo._2.toList:_*)} )
+      supersetUserInfo <- stepOverF( a2, Try{supersetApiClient.findUser(userName)} )
+      roleIds <- stepOverF( a2, Try{supersetApiClient.findRoleIds(toSupersetRole(groupCn)::supersetUserInfo._2.toList:_*)} )
 
       a <- step( a2, Try{supersetApiClient.updateUser(user,supersetUserInfo._1,roleIds)} )
       /*
       a <- EitherT( supersetApiClient.deleteUser(supersetUserInfo._1) )
       b <- EitherT( supersetApiClient.createUserWithRoles(user,roleIds:_*) )
       */
-      org <- stepOverF( Try{ckanApiClient.getOrganizationAsAdmin(groupCn)} )
+      org <- stepOverF( a, Try{ckanApiClient.getOrganizationAsAdmin(groupCn)} )
       c <- step( a, Try{ckanApiClient.putUserInOrganizationAsAdmin(userName,org)} )
 
       //d <- EitherT( grafanaApiClient.addUserInOrganization(groupCn,userName) ) TODO re-enable when Grafana is integrated
@@ -196,16 +199,16 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
       a1 <- step(Try{apiClientIPA.removeUsersFromGroup(groupCn, Seq(userName))})
 
-      supersetUserInfo <- stepOverF(Try{supersetApiClient.findUser(userName)})
-      roleNames = supersetUserInfo._2.toList.filter(p => (!p.equals(toSupersetRole(groupCn)))); roleIds <- stepOverF(Try{supersetApiClient.findRoleIds(roleNames: _*)})
+      supersetUserInfo <- stepOverF(a1,Try{supersetApiClient.findUser(userName)})
+      roleNames = supersetUserInfo._2.toList.filter(p => (!p.equals(toSupersetRole(groupCn)))); roleIds <- stepOverF(a1,Try{supersetApiClient.findRoleIds(roleNames: _*)})
 
-      a <- step(Try{supersetApiClient.updateUser(user, supersetUserInfo._1, roleIds)})
+      a <- step(a1,Try{supersetApiClient.updateUser(user, supersetUserInfo._1, roleIds)})
       /*
       a <- EitherT( supersetApiClient.deleteUser(supersetUserInfo._1) )
       b <- EitherT( supersetApiClient.createUserWithRoles(user,roleIds:_*) )*/
 
-      org <- stepOverF(Try{ckanApiClient.getOrganizationAsAdmin(groupCn)})
-      c <- step(Try{ckanApiClient.removeUserInOrganizationAsAdmin(userName, org)})
+      org <- stepOverF(a,Try{ckanApiClient.getOrganizationAsAdmin(groupCn)})
+      c <- step(a,Try{ckanApiClient.removeUserInOrganizationAsAdmin(userName, org)})
 
       //d <- EitherT( grafanaApiClient ) TODO re-enable when Grafana is integrated (review)
     } yield c

@@ -15,7 +15,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.util.Try
 
 @Singleton
-class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient: SupersetApiClient, ckanApiClient: CkanApiClient, grafanaApiClient: GrafanaApiClient) {
+class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient: SupersetApiClient, ckanApiClient: CkanApiClient, grafanaApiClient: GrafanaApiClient, impalaService:ImpalaService) {
 
   import security_manager.yaml.BodyReads._
 
@@ -261,10 +261,11 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
     val result = for {
       a <- step( Try{apiClientIPA.createUser(user, isPredefinedOrgUser)} )
-      a1 <- stepOver( Try{apiClientIPA.changePassword(user.uid,a.success.fields.get,user.userpassword.get)} )
-      b <- stepOver( Try{apiClientIPA.addUsersToGroup(user.role.getOrElse(Role.Viewer.toString()),Seq(user.uid))} )
-      c <- step( a, Try{addNewUserToDefaultOrganization(user)} )
-    } yield c
+      a1 <- stepOver( a, Try{apiClientIPA.changePassword(user.uid,a.success.fields.get,user.userpassword.get)} )
+      b <- stepOver( a, Try{apiClientIPA.addUsersToGroup(user.role.getOrElse(Role.Viewer.toString()),Seq(user.uid))} )
+      c <-step( a, Try{evalInFuture0S(impalaService.createRole(user.uid,true))})
+      d <- step( c, Try{addNewUserToDefaultOrganization(user)} )
+    } yield d
 
     result.value.map{
       case Right(r) => Right( Success(Some("User created"), Some("ok")) )
@@ -287,9 +288,10 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
     val result = for {
 
-      b <- step( Try{apiClientIPA.deleteUser(uid)} )
-      userInfo <- stepOverF( Try{supersetApiClient.findUser(uid)} )
-      c <- step( Try{supersetApiClient.deleteUser(userInfo._1)} )
+      a <- step( Try{apiClientIPA.deleteUser(uid)} )
+      b <-step(a,Try{evalInFuture0S(impalaService.deleteRole(uid,true))})
+      userInfo <- stepOverF( b, Try{supersetApiClient.findUser(uid)} )
+      c <- step(b, Try{supersetApiClient.deleteUser(userInfo._1)} )
       // Commented because ckan have problems to recreate again the same user TODO try to test a ckan config not create local users
       //defOrg <- EitherT( ckanApiClient.getOrganizationAsAdmin(ConfigReader.defaultOrganization) )
       //d <- EitherT( ckanApiClient.removeUserInOrganizationAsAdmin(uid,defOrg) )

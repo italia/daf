@@ -64,6 +64,8 @@ private class AppConfig @Inject()(playConfig: Configuration) {
   val impalaServer :Option[String] = playConfig.getString("impala.server")
   val impalaKeyStorePath :Option[String] = playConfig.getString("impala.keyStorePath")
   val impalaKeyStorePwd :Option[String] = playConfig.getString("impala.keyStorePwd")
+  val impalaAdminUser :Option[String] = playConfig.getString("impala.adminUser")
+  val impalaAdminUserPwd :Option[String] = playConfig.getString("impala.adminUserPwd")
 
   val localEnv:Option[Boolean] = playConfig.getBoolean("localEnv")
 
@@ -104,6 +106,9 @@ object ConfigReader {
   require(config.impalaServer.nonEmpty,"Impala server must be specified")
   require(config.impalaKeyStorePath.nonEmpty,"Impala KeyStore path must be specified")
   require(config.impalaKeyStorePwd.nonEmpty,"Impala KeyStore pwd must be specified")
+
+  require(config.impalaAdminUser.nonEmpty,"Impala admin user must be specified")
+  require(config.impalaAdminUserPwd.nonEmpty,"Impala admin user pwd must be specified")
 
 
   //def userIdHeader: String = config.userIdHeader.getOrElse("userid")
@@ -163,6 +168,8 @@ object ConfigReader {
   def impalaServer :String = config.impalaServer.get
   def impalaKeyStorePath :String = config.impalaKeyStorePath.get
   def impalaKeyStorePwd :String = config.impalaKeyStorePwd.get
+  def impalaAdminUser :String = config.impalaAdminUser.get
+  def impalaAdminUserPwd :String = config.impalaAdminUserPwd.get
 
   def localEnv:Boolean = config.localEnv.getOrElse(false)
 

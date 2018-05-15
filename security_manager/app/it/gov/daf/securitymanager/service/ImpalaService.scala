@@ -23,7 +23,7 @@ class ImpalaService @Inject()(implicit val cacheWrapper:CacheWrapper){
 
 
     val roleName = s"${groupName}_group_role"
-    val query = s"GRANT $permissionOnQuery ON TABLE $tableName TO ROLE $roleName;"
+    val query = s"GRANT $permissionOnQuery ON TABLE $tableName TO ROLE $roleName"
 
     executeUpdate(query)
     Right("Grant created")
@@ -37,7 +37,7 @@ class ImpalaService @Inject()(implicit val cacheWrapper:CacheWrapper){
     else "INSERT"
 
     val roleName = s"${groupName}_group_role"
-    val query = s"REVOKE $permissionOnQuery ON TABLE $tableName FROM ROLE $roleName;"
+    val query = s"REVOKE $permissionOnQuery ON TABLE $tableName FROM ROLE $roleName"
 
     executeUpdate(query)
     Right("Grant revoked")
@@ -48,38 +48,107 @@ class ImpalaService @Inject()(implicit val cacheWrapper:CacheWrapper){
 
     val roleName = s"${groupName}_group_role"
 
-    executeUpdate(s"REVOKE SELECT ON TABLE $tableName FROM ROLE $roleName;")
-    executeUpdate(s"REVOKE INSERT ON TABLE $tableName FROM ROLE $roleName;")
+    executeUpdates( Seq(s"REVOKE SELECT ON TABLE $tableName FROM ROLE $roleName",
+                        s"REVOKE INSERT ON TABLE $tableName FROM ROLE $roleName") )
 
-
-    Right("Grant revoked")
+    Right("Grants revoked")
     //else Left("Can not revoke Impala grant")
   }
 
-  def createGroupRole(groupName:String):Either[String,String]={
 
-    val roleName = s"${groupName}_group_role"
-    val query = s"CREATE ROLE $roleName;"
+  def createRole(name:String, isUser:Boolean):Either[String,String]={
 
-    if(executeUpdate(query)>0) Right("Group created")
-    else Left("Can not create Impala group")
+    val roleName =  if(isUser) s"${name}_user_role"
+                    else s"${name}_group_role"
+
+    val query = s"CREATE ROLE $roleName"
+    val query2 = s"GRANT ROLE $roleName TO GROUP $name"
+
+    executeUpdatesAsAdmin(Seq(query,query2))
+
+    Right("Role created")
+
+    //if( executeUpdatesAsAdmin(Seq(query,query2)).filter(_>0).length >=2 ) Right("Role created")
+    //else Left("Can not create Impala role")
   }
+
+  def deleteRole(name:String, isUser:Boolean):Either[String,String]={
+
+    val roleName =  if(isUser) s"${name}_user_role"
+    else s"${name}_group_role"
+
+    val query = s"REVOKE ROLE $roleName FROM GROUP $name"
+    val query2 = s"DROP ROLE $roleName"
+
+    executeUpdatesAsAdmin(Seq(query,query2))
+
+    Right("Role dropped")
+
+    //if( executeUpdatesAsAdmin(Seq(query,query2)).filter(_>0).length >=2 ) Right("Role dropped")
+    //else Left("Can not drop Impala role")
+  }
+
 
 
   private def executeUpdate(query:String):Int={
 
-    Logger.logger.debug(s" Impala update query : $query")
-
     val loginInfo = readLoginInfo
+
+    Logger.logger.debug("Impala connection request")
 
     val conn = ds.getConnection(loginInfo.user,loginInfo.password)
 
     Logger.logger.debug("Impala connection obtained")
+    Logger.logger.debug(s" Impala update query : $query")
 
     val stmt = conn.createStatement()
     val res = stmt.executeUpdate(query)
 
     Logger.logger.debug("Impala query executed")
+
+    conn.close()
+    res
+
+  }
+
+  private def executeUpdatesAsAdmin(query:Seq[String]):Seq[Int]={
+
+    Logger.logger.debug("Impala connection request")
+
+    val conn = ds.getConnection(ConfigReader.impalaAdminUser,ConfigReader.impalaAdminUserPwd)
+
+    Logger.logger.debug("Impala connection obtained")
+
+    val res = query.map{ q =>
+      Logger.logger.debug(s" Impala update query : $q")
+      val stmt = conn.createStatement()
+      val out = stmt.executeUpdate(q)
+      Logger.logger.debug("Impala query executed")
+      out
+    }
+
+    conn.close()
+    res
+
+  }
+
+  private def executeUpdates(query:Seq[String]):Seq[Int]={
+
+    val loginInfo = readLoginInfo
+
+    Logger.logger.debug("Impala connection request")
+
+    val conn = ds.getConnection(loginInfo.user,loginInfo.password)
+
+    Logger.logger.debug("Impala connection obtained")
+
+    val res = query.map{ q =>
+      Logger.logger.debug(s" Impala update query : $q")
+      val stmt = conn.createStatement()
+      val out = stmt.executeUpdate(q)
+      Logger.logger.debug("Impala query executed")
+      out
+    }
 
     conn.close()
     res

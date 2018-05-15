@@ -9,7 +9,7 @@ class HDFSController(sparkSession: SparkSession) {
 
   val alogger: Logger = LoggerFactory.getLogger(this.getClass)
 
-  def readData(path: String, format: String, separator :Option[String]): Try[DataFrame] =  {
+  def readData(path: String, format: String, separator: Option[String]): Try[DataFrame] =  {
     format match {
       case "csv" => Try {
         val pathFixAle = path + "/" + path.split("/").last + ".csv"

@@ -16,12 +16,12 @@
 
 package it.gov.daf.common.sso.common
 
-class LoginInfo(userName:String, userPassword:String, applicationName:String) {
+class LoginInfo(userName: String, userPassword: String, applicationName: String) {
 
-  val appName:String = applicationName
-  val user:String = userName
-  val password:String = userPassword
+  val appName: String = applicationName
+  val user: String = userName
+  val password: String = userPassword
 
-  override def toString: String = "Applicazione: "+appName+ "    username:"+user
+  override def toString: String = s"Applicazione: $appName    username: $user"
 
 }

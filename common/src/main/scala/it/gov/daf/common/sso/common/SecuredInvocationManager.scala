@@ -24,7 +24,7 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 import play.api.Logger
 
-final case class RestServiceResponse(jsValue:JsValue,httpCode:Int)
+final case class RestServiceResponse(jsValue:JsValue, httpCode:Int)
 
 @SuppressWarnings(
   Array(
@@ -41,7 +41,7 @@ class SecuredInvocationManager @Inject()(loginClient:LoginClient, cacheWrapper: 
   import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 
-  type ServiceFetch = (String,WSClient)=> Future[WSResponse]
+  type ServiceFetch = (String, WSClient) => Future[WSResponse]
 
   private def callService(loginInfo:LoginInfo, serviceFetch:ServiceFetch):Future[WSResponse] = {
 
@@ -49,7 +49,7 @@ class SecuredInvocationManager @Inject()(loginClient:LoginClient, cacheWrapper: 
 
     val cookieOpt = cacheWrapper.getCookie(loginInfo.appName,loginInfo.user)
 
-    if( cookieOpt.isEmpty )
+    if(cookieOpt.isEmpty)
 
       loginClient.login(loginInfo, wsCli).flatMap { cookie =>
 

@@ -113,6 +113,59 @@ class CatalogRepositoryMongo extends  CatalogRepository{
     metaCatalog
   }
 
+  def createCatalogExtOpenData(metaCatalog: MetaCatalog, callingUserid :MetadataCat, ws :WSClient) :Success = {
+
+    import catalog_manager.yaml.ResponseWrites.MetaCatalogWrites
+
+    //val mongoClient = MongoClient(mongoHost, mongoPort)
+    val mongoClient = MongoClient(server, List(credentials))
+    val db = mongoClient(source)
+    val coll = db("catalog_test")
+
+    val dcatapit: Dataset = metaCatalog.dcatapit
+    val datasetJs : JsValue = ResponseWrites.DatasetWrites.writes(dcatapit)
+
+    val msg = if(metaCatalog.operational.std_schema.isDefined) {
+      val stdUri = metaCatalog.operational.std_schema.get.std_uri
+      //TODO Review logic
+      val stdCatalot: MetaCatalog = catalog(stdUri).get
+      val res: Option[MetaCatalog] = CatalogManager.writeOrdinaryWithStandard(metaCatalog, stdCatalot)
+      val message = res match {
+        case Some(meta) =>
+          val json: JsValue = MetaCatalogWrites.writes(meta)
+          val obj = com.mongodb.util.JSON.parse(json.toString()).asInstanceOf[DBObject]
+          val inserted = coll.insert(obj)
+          mongoClient.close()
+          val msg = meta.operational.logical_uri
+          msg
+        case _ =>
+          println("Error");
+          val msg = "Error"
+          msg
+      }
+      message
+    } else {
+      val random = scala.util.Random
+      val id = random.nextInt(1000).toString
+      val res: Option[MetaCatalog]= (CatalogManager.writeOrdAndStd(metaCatalog))
+      val message = res match {
+        case Some(meta) =>
+          val json: JsValue = MetaCatalogWrites.writes(meta)
+          val obj = com.mongodb.util.JSON.parse(json.toString()).asInstanceOf[DBObject]
+          val inserted = coll.insert(obj)
+          val msg = meta.operational.logical_uri
+          msg
+        case _ =>
+          println("Error");
+          val msg = "Error"
+          msg
+      }
+      message
+    }
+
+    Success(msg, Some(msg))
+  }
+
   def createCatalog(metaCatalog: MetaCatalog, callingUserid :MetadataCat, ws :WSClient) :Success = {
 
     import catalog_manager.yaml.ResponseWrites.MetaCatalogWrites

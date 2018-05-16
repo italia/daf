@@ -49,7 +49,7 @@ import play.api.Logger
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                    
+                            
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -117,6 +117,16 @@ package catalog_manager.yaml {
                 case Left(error) => Getckanorganizationbyid401(Error(error,None,None))
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.getckanorganizationbyid
+        }
+        val createdatasetcatalogExtOpenData = createdatasetcatalogExtOpenDataAction { (catalog: MetaCatalog) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalogExtOpenData
+            val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
+            if( CredentialManager.isDafEditor(currentRequest) || CredentialManager.isDafAdmin(currentRequest) ) {
+                val created: Success = ServiceRegistry.catalogService.createCatalogExtOpenData(catalog, Option(credentials.username), ws)
+                CreatedatasetcatalogExtOpenData200(created)
+            }else
+                CreatedatasetcatalogExtOpenData401("Admin or editor permissions required")
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalogExtOpenData
         }
         val getckandatasetList = getckandatasetListAction {  _ =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.getckandatasetList

@@ -103,6 +103,10 @@ class CatalogRepositoryDev extends CatalogRepository{
     Success("Created",None)
   }
 
+  def createCatalogExtOpenData(metaCatalog: MetaCatalog, callingUserid :MetadataCat, ws :WSClient) :Success = {
+    Success("Created",None)
+  }
+
   def standardUris(): List[String] = List("raf", "org", "cert")
 
   def isDatasetOnCatalog(name :String) = None

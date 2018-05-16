@@ -36,6 +36,11 @@ trait CatalogServiceComponent {
       catalogRepository.createCatalog(metaCatalog, callingUserid, ws)
     }
 
+    def createCatalogExtOpenData(metaCatalog: MetaCatalog, callingUserid :MetadataCat, ws :WSClient) :Success = {
+      println("Service : " +  callingUserid)
+      catalogRepository.createCatalogExtOpenData(metaCatalog, callingUserid, ws)
+    }
+
     def isPresentOnCatalog(name :String) :Option[Boolean] = {
       catalogRepository.isDatasetOnCatalog(name)
     }

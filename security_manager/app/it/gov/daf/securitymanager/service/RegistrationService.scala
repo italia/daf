@@ -7,11 +7,13 @@ import play.api.libs.json.{JsError, JsSuccess, JsValue}
 import security_manager.yaml.{Error, IpaUser, Success}
 import it.gov.daf.common.authentication.Role
 import cats.implicits._
-import it.gov.daf.sso.ApiClientIPA
+import it.gov.daf.sso.{ApiClientIPA, User}
 import play.api.Logger
+
 import scala.concurrent.Future
 import ProcessHandler._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+
 import scala.util.Try
 
 @Singleton
@@ -21,47 +23,6 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   private val tokenGenerator = new BearerTokenGenerator
 
-  /*
-  private def wrapFuture1[T](in:Either[String,T]):Future[Either[Error,T]]={
-    Future.successful {
-      in match {
-        case Right(r) => Right(r)
-        case Left(l) => Left(Error(Option(1), Some(l), None))
-      }
-    }
-
-  }
-
-  private def wrapFuture0[T](in:Either[String,T]):Future[Either[Error,T]]={
-    Future.successful {
-      in match {
-        case Right(r) => Right(r)
-        case Left(l) => Left(Error(Option(0), Some(l), None))
-      }
-    }
-
-  }
-
-  private def evalInFuture1[T](in:Either[String,T]):Future[Either[Error,T]]={
-    Future {
-      in match {
-        case Right(r) => Right(r)
-        case Left(l) => Left(Error(Option(1), Some(l), None))
-      }
-    }
-
-  }
-
-  private def evalInFuture0[T](in:Either[String,T]):Future[Either[Error,T]]={
-    Future {
-      in match {
-        case Right(r) => Right(r)
-        case Left(l) => Left(Error(Option(0), Some(l), None))
-      }
-    }
-
-  }
-*/
 
   def requestRegistration(userIn:IpaUser):Future[Either[Error,MailService]] = {
 
@@ -277,9 +238,11 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
     val result = for {
       a <- step( Try{apiClientIPA.createUser(user, isPredefinedOrgUser)} )
       a1 <- stepOver( a, Try{apiClientIPA.changePassword(user.uid,a.success.fields.get,user.userpassword.get)} )
-      b <- stepOver( a, Try{apiClientIPA.addUsersToGroup(user.role.getOrElse(Role.Viewer.toString()),Seq(user.uid))} )
+      b <- stepOver( a, Try{apiClientIPA.addMembersToGroup(user.role.getOrElse(Role.Viewer.toString()),User(user.uid))} )
       c <-step( a, Try{evalInFuture0S(impalaService.createRole(user.uid,true))})
-      d <- step( c, Try{addNewUserToDefaultOrganization(user)} )
+      roleIds <- stepOverF( c, Try{supersetApiClient.findRoleIds(ConfigReader.suspersetOrgAdminRole)} )
+      d <- step( c, supersetApiClient.createUserWithRoles(user,roleIds:_*) )
+      //d <- step( c, Try{addNewUserToDefaultOrganization(user)} )
     } yield d
 
     result.value.map{
@@ -322,7 +285,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
     val result = for {
       user <- stepOverF( Try{apiClientIPA.findUserByUid(uid)} )
-      a1 <- stepOver( Try{testIfIsNotPredefinedUser(user)} )// cannot cancel predefined user
+      a1 <- stepOver( Try{testIfIsNotReferenceUser(user.uid)} )// cannot cancel predefined user
       a2 <- stepOver( Try{testIfUserBelongsToGroup(user)} )// cannot cancel user belonging to some orgs
 
       b <- EitherT( hardDeleteUser(uid) )
@@ -343,35 +306,36 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   }
 
+  /*
   def createDefaultUser(user:IpaUser):Future[Either[Error,Success]] = {
 
     val result = for {
       a <- EitherT( apiClientIPA.createUser(user,true) )
-      b <- EitherT( apiClientIPA.addUsersToGroup(user.role.getOrElse(Role.Viewer.toString()),Seq(user.uid)) )
+      b <- EitherT( apiClientIPA.addMembersToGroup(user.role.getOrElse(Role.Viewer.toString()),User(user.uid)) )
       c <- EitherT( addDefaultUserToDefaultOrganization(user) )
     } yield c
     result.value
 
-  }
+  }*/
 
 
-  def testIfIsNotPredefinedUser(user:IpaUser):Future[Either[Error,Success]] = {
+  def testIfIsNotReferenceUser(userName:String):Future[Either[Error,Success]] = {
 
-    if( user.title.isEmpty || (!user.title.get.equals(AppConstants.PredefinedOrgUserTitle)) )
-      Future{Right( Success(Some("Ok"), Some("ok")))}
+    if( !userName.endsWith(ORG_REF_USER_POSTFIX) )
+      Future.successful{Right( Success(Some("Ok"), Some("ok")))}
     else
-      Future{Left(Error(Option(1), Some("Predefined user"), None))}
+      Future.successful{Left(Error(Option(1), Some("Reference user"), None))}
 
   }
 
   private def testIfUserBelongsToGroup(user:IpaUser):Future[Either[Error,Success]] = {
 
     if( user.organizations.isEmpty || user.organizations.get.isEmpty ||
-        user.organizations.get.filter( p => (!p.equals(ConfigReader.defaultOrganization)) ).isEmpty
+        user.organizations.get.filter( p => !p.equals(ConfigReader.defaultOrganization) ).isEmpty
     )
-      Future{Right( Success(Some("Ok"), Some("ok")))}
+      Future.successful{Right( Success(Some("Ok"), Some("ok")))}
     else
-      Future{Left(Error(Option(1), Some("User belongs to organization"), None))}
+      Future.successful{Left(Error(Option(1), Some("User belongs to organization"), None))}
 
   }
 
@@ -380,31 +344,31 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
     if( user.organizations.isEmpty || user.organizations.get.isEmpty ||
       (!user.organizations.get.contains(groupCn))
     )
-      Future{Right( Success(Some("Ok"), Some("ok")))}
+      Future.successful{Right( Success(Some("Ok"), Some("ok")))}
     else
-      Future{Left(Error(Option(1), Some("User belongs to this organization"), None))}
+      Future.successful{Left(Error(Option(1), Some("User belongs to this organization"), None))}
 
   }
 
   private def checkRole(role:String):Future[Either[Error,Success]] = {
 
     if( ApiClientIPA.isValidRole(role) )
-      Future{Right( Success(Some("Ok"), Some("ok")))}
+      Future.successful{Right( Success(Some("Ok"), Some("ok")))}
     else
-      Future{Left(Error(Option(1), Some("Invalid role"), None))}
+      Future.successful{Left(Error(Option(1), Some("Invalid role"), None))}
 
   }
 
 
-  def updateUser(uid: String, givenname:String, sn:String, role:String ):Future[Either[Error,Success]]= {
+  def updateUser(uid: String, givenname:String, sn:String, role:String):Future[Either[Error,Success]]= {
 
     val result = for {
       a1 <- EitherT( checkRole(role) )
       user <- EitherT( apiClientIPA.findUserByUid(uid) )
-      a <- EitherT( testIfIsNotPredefinedUser(user) )// cannot update predefined user
+      a <- EitherT( testIfIsNotReferenceUser(user.uid) )// cannot update reference user
 
-      b <- EitherT( apiClientIPA.removeUsersFromGroup(user.role.get,Seq(uid)) )
-      b1 <- EitherT( apiClientIPA.addUsersToGroup(role,Seq(uid)) )
+      b <- EitherT( apiClientIPA.removeMembersFromGroup(user.role.get,User(uid)) )
+      b1 <- EitherT( apiClientIPA.addMembersToGroup(role,User(uid)) )
       c<- EitherT( apiClientIPA.updateUser(uid,givenname,sn) )
 
     } yield c
@@ -415,15 +379,14 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
     }
   }
 
-
+/*
   private def addNewUserToDefaultOrganization(ipaUser:IpaUser):Future[Either[Error,Success]] = {
 
     require(ipaUser.userpassword.nonEmpty,"user password needed!")
 
-    //val userId = UserList(Option(Seq(ipaUser.uid)))
 
     val result = for {
-      a <- EitherT( apiClientIPA.addUsersToGroup(ConfigReader.defaultOrganization,Seq(ipaUser.uid)) )
+      a <- EitherT( apiClientIPA.addMembersToGroup(ConfigReader.defaultOrganization,User(ipaUser.uid)) )
       roleIds <- EitherT( supersetApiClient.findRoleIds(ConfigReader.suspersetOrgAdminRole,IntegrationService.toSupersetRole(ConfigReader.defaultOrganization)) )
       b <- EitherT( supersetApiClient.createUserWithRoles(ipaUser,roleIds:_*) )
       //c <- EitherT( grafanaApiClient.addNewUserInOrganization(ConfigReader.defaultOrganization,ipaUser.uid,ipaUser.userpassword.get) ) TODO da riattivare
@@ -437,17 +400,15 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
     require(ipaUser.userpassword.nonEmpty,"user password needed!")
 
-    //val userId = UserList(Option(Seq(ipaUser.uid)))
-
     val result = for {
-      a <- EitherT( apiClientIPA.addUsersToGroup(ConfigReader.defaultOrganization,Seq(ipaUser.uid)) )
+      a <- EitherT( apiClientIPA.addMembersToGroup(ConfigReader.defaultOrganization,User(ipaUser.uid)) )
       roleIds <- EitherT( supersetApiClient.findRoleIds(ConfigReader.suspersetOrgAdminRole,IntegrationService.toSupersetRole(ConfigReader.defaultOrganization)) )
       b <- EitherT( supersetApiClient.createUserWithRoles(ipaUser,roleIds:_*) )
       //c <- EitherT( grafanaApiClient.addNewUserInOrganization(ConfigReader.defaultOrganization,ipaUser.uid,ipaUser.userpassword.get) )
     } yield b
 
     result.value
-  }
+  }*/
 
 
 

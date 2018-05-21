@@ -3,7 +3,7 @@ package it.gov.daf.securitymanager.service
 import cats.data.EitherT
 import com.google.inject.{Inject, Singleton}
 import it.gov.daf.common.authentication.Role
-import it.gov.daf.sso.ApiClientIPA
+import it.gov.daf.sso.{ApiClientIPA, Organization, User}
 import security_manager.yaml.{DafOrg, Error, IpaUser, Success}
 
 import scala.concurrent.Future
@@ -22,9 +22,9 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
     val groupCn = dafOrg.groupCn
     val predefinedOrgIpaUser =     IpaUser(groupCn,
-                                          "predefined organization user",
-                                          dafOrg.predefinedUserMail.getOrElse( toMail(groupCn) ),
-                                          toUserName(groupCn),
+                                          "reference organization user",
+                                          toMail(groupCn),
+                                          toRefUserName(groupCn),
                                           Option(Role.Editor.toString),
                                           Option(dafOrg.predefinedUserPwd),
                                           None,
@@ -32,9 +32,15 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
 
     val result = for {
-      a <- step( Try{apiClientIPA.createGroup(dafOrg.groupCn)} )
-      a1 <- step( a, Try{evalInFuture0S(impalaService.createRole(groupCn,false))})
-      b <- step( a1, Try{registrationService.checkMailNcreateUser(predefinedOrgIpaUser,true)} )
+      a <- step( Try{apiClientIPA.createGroup(Organization(dafOrg.groupCn))} )
+
+      a1 <- step( a, Try{apiClientIPA.createGroup(Organization(ADMIN_ROLE_PREFIX+dafOrg.groupCn))} )
+      a2 <- step( a1, Try{apiClientIPA.createGroup(Organization(EDITOR_ROLE_PREFIX+dafOrg.groupCn))} )
+      a3 <- step( a2, Try{apiClientIPA.createGroup(Organization(VIEWER_ROLE_PREFIX+dafOrg.groupCn))} )
+
+      a4 <- step( a3, Try{evalInFuture0S(impalaService.createRole(groupCn,false))})
+
+      b <- step( a4, Try{registrationService.checkMailNcreateUser(predefinedOrgIpaUser,true)} )
       c <- step( b, Try{supersetApiClient.createDatabase(toSupersetDS(groupCn),predefinedOrgIpaUser.uid,dafOrg.predefinedUserPwd,dafOrg.supSetConnectedDbName)} )
       d <- stepOver( c, Try{kyloApiClient.createCategory(dafOrg.groupCn)} )
 
@@ -45,7 +51,6 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
       //g <- EitherT( grafanaApiClient.addUserInOrganization(groupCn,toUserName(groupCn)) )
     } yield g
 
-    // 5 step
 
     result.value.map{
       case Right(r) => Right( Success(Some("Organization created"), Some("ok")) )
@@ -70,10 +75,15 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
     val result = for {
 
       a <- step( Try{apiClientIPA.deleteGroup(groupCn)} )
-      a1 <- step( a, Try{evalInFuture0S(impalaService.deleteRole(groupCn,false))})
-      b <- stepOver( a1, Try{apiClientIPA.deleteUser(toUserName(groupCn))} )
+      a1 <- step( a, Try{apiClientIPA.createGroup(Organization(ADMIN_ROLE_PREFIX+groupCn))} )
+      a2 <- step( a1, Try{apiClientIPA.createGroup(Organization(EDITOR_ROLE_PREFIX+groupCn))} )
+      a3 <- step( a2, Try{apiClientIPA.createGroup(Organization(VIEWER_ROLE_PREFIX+groupCn))} )
 
-      userInfo <- stepOverF( b, Try{supersetApiClient.findUser(toUserName(groupCn))} )
+      a4 <- step( a3, Try{evalInFuture0S(impalaService.deleteRole(groupCn,false))})
+
+      b <- stepOver( a4, Try{apiClientIPA.deleteUser(toRefUserName(groupCn))} )
+
+      userInfo <- stepOverF( b, Try{supersetApiClient.findUser(toRefUserName(groupCn))} )
       c <- step( b, Try{supersetApiClient.deleteUser(userInfo._1)} )
 
       roleId <- stepOverF( c, Try{supersetApiClient.findRoleId(toSupersetRole(groupCn))} )
@@ -120,15 +130,16 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
 
   // only setup freeIPA and Superset
+  /*
   def createDefaultDafOrganization(passwd:String):Future[Either[Error,Success]] = {
 
-    val dafOrg = DafOrg(ConfigReader.defaultOrganization, passwd, "opendata", None)
+    val dafOrg = DafOrg(ConfigReader.defaultOrganization, passwd, "opendata")
 
     val groupCn = dafOrg.groupCn
     val defaultOrgIpaUser = IpaUser( dafOrg.groupCn,
       "default org default admin",
       toMail(groupCn),
-      toUserName(groupCn),
+      toRefUserName(groupCn),
       Option(Role.Admin.toString),
       Option(dafOrg.predefinedUserPwd),
       None,
@@ -136,7 +147,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
 
     val result = for {
-      a <- EitherT( apiClientIPA.createGroup(dafOrg.groupCn) )
+      a <- EitherT( apiClientIPA.createGroup(Organization(dafOrg.groupCn)) )
       b <- EitherT( registrationService.createDefaultUser(defaultOrgIpaUser) )
       c <- EitherT( supersetApiClient.createDatabase(toSupersetDS(groupCn),defaultOrgIpaUser.uid,dafOrg.predefinedUserPwd,dafOrg.supSetConnectedDbName) )
       //e <- EitherT( ckanApiClient.createOrganizationAsAdmin(groupCn) )
@@ -151,7 +162,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
       case Left(l) => Left(l)
     }
 
-  }
+  }*/
 
 
   def addUserToOrganization(groupCn:String, userName:String):Future[Either[Error,Success]] = {
@@ -160,7 +171,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
     val result = for {
       user <-  stepOverF( Try{apiClientIPA.findUserByUid(userName)} )
       a1<-  stepOver( Try{registrationService.testIfUserBelongsToThisGroup(user,groupCn)} )
-      a2 <- step( Try{apiClientIPA.addUsersToGroup(groupCn,Seq(userName))} )
+      a2 <- step( Try{apiClientIPA.addMembersToGroup(groupCn,User(userName))} )
       supersetUserInfo <- stepOverF( a2, Try{supersetApiClient.findUser(userName)} )
       roleIds <- stepOverF( a2, Try{supersetApiClient.findRoleIds(toSupersetRole(groupCn)::supersetUserInfo._2.toList:_*)} )
 
@@ -197,10 +208,10 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
     val result = for {
       user <- stepOverF(Try{apiClientIPA.findUserByUid(userName)})
 
-      a1 <- step(Try{apiClientIPA.removeUsersFromGroup(groupCn, Seq(userName))})
+      a1 <- step(Try{apiClientIPA.removeMembersFromGroup(groupCn, User(userName))})
 
       supersetUserInfo <- stepOverF(a1,Try{supersetApiClient.findUser(userName)})
-      roleNames = supersetUserInfo._2.toList.filter(p => (!p.equals(toSupersetRole(groupCn)))); roleIds <- stepOverF(a1,Try{supersetApiClient.findRoleIds(roleNames: _*)})
+      roleNames = supersetUserInfo._2.toList.filter(p => !p.equals(toSupersetRole(groupCn))); roleIds <- stepOverF(a1,Try{supersetApiClient.findRoleIds(roleNames: _*)})
 
       a <- step(a1,Try{supersetApiClient.updateUser(user, supersetUserInfo._1, roleIds)})
       /*
@@ -291,10 +302,10 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
 
 object IntegrationService {
-  def toEditorGroupName(groupCn:String)=s"$groupCn-edit"
-  def toViewerGroupName(groupCn:String)=s"$groupCn-view"
+  //def toEditorGroupName(groupCn:String)=s"$groupCn-edit"
+  //def toViewerGroupName(groupCn:String)=s"$groupCn-view"
   def toSupersetDS(groupCn:String)=s"$groupCn-db"
   def toSupersetRole(groupCn:String)=s"datarole-$groupCn-db"
-  def toUserName(groupCn:String)=groupCn+"_default_admin"
-  def toMail(groupCn:String)=s"$groupCn@default.it"
+  def toRefUserName(groupCn:String)=groupCn+ORG_REF_USER_POSTFIX
+  def toMail(groupCn:String)=s"$groupCn@ref.usr.org.it"
 }

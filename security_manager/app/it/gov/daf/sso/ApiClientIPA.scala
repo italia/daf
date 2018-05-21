@@ -2,6 +2,7 @@ package it.gov.daf.sso
 
 import java.net.URLEncoder
 
+import cats.data.EitherT
 import com.google.inject.{Inject, Singleton}
 import it.gov.daf.common.authentication.Role
 import it.gov.daf.common.sso.common.{LoginInfo, SecuredInvocationManager}
@@ -34,7 +35,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
   def createUser(user: IpaUser, isPredefinedOrgUser:Boolean):Future[Either[Error,Success]]= {
 
 
-    val titleAttributeValue = if(isPredefinedOrgUser) AppConstants.PredefinedOrgUserTitle else ""
+    val titleAttributeValue = if(isPredefinedOrgUser) AppConstants.ReferenceOrgUserTitle else ""
 
     val jsonUser: JsValue = Json.parse(
                                 s"""{
@@ -297,8 +298,8 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
   }
 
-  // only sysadmin
-  def createGroup(group: String):Future[Either[Error,Success]]= {
+
+  private def createGroup(group: String):Future[Either[Error,Success]]= {
 
     val jsonGroup: JsValue = Json.parse(
                                 s"""{
@@ -334,8 +335,25 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
       case Left(l) =>  Left( Error(Option(0),Some(l),None) )
     }
 
-
   }
+
+
+  // only sysadmin
+  def createGroup(group: Group):Future[Either[Error,Success]]= {
+
+    val parentGroupName = group match{
+      case Organization(_) => ORGANIZATIONS_GROUP
+      case WorkGroup(_) => WORKGROUPS_GROUP
+    }
+
+    val out = for{
+      a <- EitherT( createGroup(group) )
+      b <- EitherT( addMembersToGroup(parentGroupName, group) )
+    }yield a
+
+    out.value
+  }
+
 
   // all users
   def showGroup(group: String):Future[Either[Error,IpaGroup]]= {
@@ -384,10 +402,11 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
   }
 
+
   def isEmptyGroup(groupCn:String):Future[Either[Error,Success]] ={
 
     showGroup(groupCn) map{
-      case Right(r) =>  if( r.member_user.nonEmpty && r.member_user.get.exists(p => !p.equals(IntegrationService.toUserName(groupCn))) )
+      case Right(r) =>  if( r.member_user.nonEmpty && r.member_user.get.exists(p => !p.equals(IntegrationService.toRefUserName(groupCn))) )
                           Left(Error(Option(1),Some("This group contains users"),None))
                         else
                           Right(Success(Some("Empty group"), Some("ok")))
@@ -437,19 +456,24 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
   }
 
-  def addUsersToGroup(group: String, userList: Seq[String]):Future[Either[Error,Success]]= {
+  def addMembersToGroup(group: String, memberList: Member*):Future[Either[Error,Success]]= {
 
-    val jArrayStr = userList.mkString("\"","\",\"","\"")
+    val jArrayStr = memberList.mkString("\"","\",\"","\"")
+
+    val memberType = memberList match {
+      case User(_) => "user"
+      case _ => "group"
+    }
 
     val jsonAdd: JsValue = Json.parse(
-                                s"""{
+      s"""{
                                        "method":"group_add_member",
                                        "params":[
                                           [
                                              "$group"
                                           ],
                                           {
-                                             "user":[$jArrayStr],
+                                             "$memberType":[$jArrayStr],
                                              "raw":false,
                                              "version": "2.213"
                                           }
@@ -478,19 +502,24 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
   }
 
-  def removeUsersFromGroup(group: String, userList: Seq[String]):Future[Either[Error,Success]]= {
+  def removeMembersFromGroup(group: String, memberList: Member*):Future[Either[Error,Success]]= {
 
-    val jArrayStr = userList.mkString("\"","\",\"","\"")
+    val jArrayStr = memberList.mkString("\"","\",\"","\"")
+
+    val memberType = memberList match {
+      case User(_) => "user"
+      case _ => "group"
+    }
 
     val jsonAdd: JsValue = Json.parse(
-      s"""{
+                                    s"""{
                                        "method":"group_remove_member",
                                        "params":[
                                           [
                                              "$group"
                                           ],
                                           {
-                                             "user":[$jArrayStr],
+                                             "$memberType":[$jArrayStr],
                                              "raw":false,
                                              "version": "2.213"
                                           }
@@ -753,3 +782,31 @@ object ApiClientIPA {
 
 
 }
+
+
+sealed abstract class Member{
+  def value:String
+  override def toString = value
+}
+
+sealed abstract class Group extends Member
+
+case class User(value: String) extends Member{
+  //override def toString = value
+}
+case class Organization(value: String) extends Group{
+  //override def toString = value
+}
+
+case class WorkGroup(value: String) extends Group{
+  //override def toString = value
+}
+/*
+object Users{
+  def apply(user: String) = Users( Seq(user) )
+}
+
+
+object Groups{
+  def apply(group: String) = Groups( Seq(group) )
+}*/

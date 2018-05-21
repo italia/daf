@@ -445,30 +445,30 @@ paths:
           description: Error Message
           schema:
             $ref: '#/definitions/Error'
-  "/daf/defaultOrg":
-    post:
-      tags:
-        - DAF
-      description: Create default DAF organization
-      operationId: createDefaultDAForganization
-      produces:
-      - application/json
-      parameters:
-      - name: organization
-        in: body
-        description: Organization
-        required: true
-        schema:
-          $ref: '#/definitions/DafOrg'
-      responses:
-        200:
-          description: Success
-          schema:
-            $ref: '#/definitions/Success'
-        500:
-          description: Error Message
-          schema:
-            $ref: '#/definitions/Error'
+#  "/daf/defaultOrg":
+#    post:
+#      tags:
+#        - DAF
+#      description: Create default DAF organization
+#      operationId: createDefaultDAForganization
+#      produces:
+#      - application/json
+#      parameters:
+#      - name: organization
+#        in: body
+#        description: Organization
+#        required: true
+#        schema:
+#          $ref: '#/definitions/DafOrg'
+#      responses:
+#        200:
+#          description: Success
+#          schema:
+#            $ref: '#/definitions/Success'
+#        500:
+#          description: Error Message
+#          schema:
+#           $ref: '#/definitions/Error'
   "/daf/organization/useradd":
     put:
       tags:
@@ -798,8 +798,6 @@ definitions:
     properties:
       groupCn:
         description: group cn
-        type: string
-      predefinedUserMail:
         type: string
       predefinedUserPwd:
         type: string

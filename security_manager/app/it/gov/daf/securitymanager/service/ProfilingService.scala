@@ -3,7 +3,6 @@ package it.gov.daf.securitymanager.service
 
 import com.google.inject.{Inject, Singleton}
 import security_manager.yaml.{AclPermission, Error, Success}
-
 import scala.concurrent.Future
 import cats.implicits._
 import ProcessHandler.{stepOverF, _}
@@ -22,29 +21,31 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
   private def testUser(owner:String ):Future[Either[Error,String]] = {
 
-    def methodCall = if(owner == getUsername()) Right("user is the owner") else Left("The user is not the owner of the dataset")
-    evalInFuture1(methodCall)
+    evalInFuture1{
+      if(owner == getUsername()) Right("user is the owner")
+      else Left("The user is not the owner of the dataset")
+    }
+
   }
 
   private def getDatasetInfo(datasetPath:String ):Future[Either[Error,(String,String)]] = {
 
-    def methodCall = MongoService.getDatasetInfo(datasetPath)
-    evalInFuture0(methodCall)
+    evalInFuture0( MongoService.getDatasetInfo(datasetPath) )
   }
 
   private def addAclToCatalog(datasetName:String, groupName:String, groupType:String, permission:String ):Future[Either[Error,Success]] = {
 
-    def methodCall = MongoService.addACL(datasetName, groupName, groupType, permission)
-    evalInFuture0S(methodCall)
+    evalInFuture0S( MongoService.addACL(datasetName, groupName, groupType, permission) )
   }
 
 
   private def createImpalaGrant(datasetPath:String, groupName:String, groupType:String, permission:String ):Future[Either[Error,Success]] = {
 
-    val tableName = toTableName(datasetPath)
+    evalInFuture0S{
+      val tableName = toTableName(datasetPath)
+      impalaService.createGrant(tableName, groupName, permission)
+    }
 
-    def methodCall = impalaService.createGrant(tableName, groupName, permission)
-    evalInFuture0S(methodCall)
   }
 
 
@@ -106,10 +107,11 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
   private def verifyPermissionString(permission:String):Future[Either[Error,Success]]={
 
-    def methodCall =  if (Permission.permissions.map(_.toString) contains (permission)) Right("ok")
-                      else Left(s"Permisson cab be: ${Permission.permissions}")
+    wrapInFuture1S{
+      if (Permission.permissions.map(_.toString) contains (permission)) Right("ok")
+      else Left(s"Permisson cab be: ${Permission.permissions}")
+    }
 
-    wrapInFuture1S(methodCall)
   }
 
   def setACLPermission(datasetName:String, groupName:String, groupType:String, permission:String) :Future[Either[Error,Success]] = {
@@ -151,17 +153,16 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
   private def deleteAclFromCatalog(datasetName:String, groupName:String, groupType:String ):Future[Either[Error,Success]] = {
 
-    def methodCall = MongoService.removeAllACL(datasetName, groupName, groupType)
-    evalInFuture0S(methodCall)
+    evalInFuture0S( MongoService.removeAllACL(datasetName, groupName, groupType) )
   }
 
 
   private def revokeImpalaGrant(datasetPath:String, groupName:String, groupType:String):Future[Either[Error,Success]] = {
 
-    val tableName = toTableName(datasetPath)
-
-    def methodCall = impalaService.revokeGrant(tableName, groupName)
-    evalInFuture0S(methodCall)
+    evalInFuture0S{
+      val tableName = toTableName(datasetPath)
+      impalaService.revokeGrant(tableName, groupName)
+    }
   }
 
   private def revokeHDFSPermission(datasetPath:String, isDirectory:Boolean, groupName:String, groupType:String):Future[Either[Error,Success]] = {

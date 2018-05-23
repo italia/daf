@@ -18,7 +18,7 @@ package it.gov.daf.common.sso.common
 
 import java.util
 
-import it.gov.daf.common.authentication.{Authentication, Role}
+import it.gov.daf.common.authentication.Authentication
 import it.gov.daf.common.utils._
 import org.apache.commons.codec.binary.Base64
 //import org.apache.commons.net.util.Base64
@@ -102,24 +102,30 @@ object CredentialManager {
     Try{readCredentialFromRequest(requestHeader)}
   }
 
-
-  def isDafAdmin(request:Request[Any]):Boolean ={
+  def isDafSysAdmin( request:Request[Any]):Boolean ={
     val groups = readCredentialFromRequest(request).groups
     Logger.logger.info(s"belonging to groups: ${groups.toList}" )
-    groups.contains(Role.Admin.toString)
+    groups.contains(SysAdmin.toString)
   }
 
-  def isDafEditor(request:Request[Any]):Boolean ={
+  def isOrgAdmin( request:Request[Any], group:String ):Boolean ={
     val groups = readCredentialFromRequest(request).groups
     Logger.logger.info(s"belonging to groups: ${groups.toList}" )
-    groups.contains(Role.Editor.toString)
+    groups.contains(Admin.toString+group)
+  }
+
+  def isOrgEditor( request:Request[Any], group:String ):Boolean ={
+    val groups = readCredentialFromRequest(request).groups
+    Logger.logger.info(s"belonging to groups: ${groups.toList}" )
+    groups.contains(Editor.toString+group)
   }
 
 
-  def isBelongingToGroup( request:Request[Any], group:String ):Boolean ={
+  def isBelongingToOrgAs( request:Request[Any], orgName:String ):Option[Role] ={
     val groups = readCredentialFromRequest(request).groups
     Logger.logger.info(s"belonging to groups: ${groups.toList}" )
-    groups.contains(group)
+
+    Role.pickRole(groups,orgName)
   }
 
 }

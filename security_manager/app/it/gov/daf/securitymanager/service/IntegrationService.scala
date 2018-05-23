@@ -2,15 +2,15 @@ package it.gov.daf.securitymanager.service
 
 import cats.data.EitherT
 import com.google.inject.{Inject, Singleton}
-import it.gov.daf.common.authentication.Role
-import it.gov.daf.sso.{ApiClientIPA, Organization, User}
-import security_manager.yaml.{DafOrg, Error, IpaUser, Success}
+import it.gov.daf.sso._
+import security_manager.yaml.{DafGroup, Error, IpaUser, Success}
 
 import scala.concurrent.Future
 import cats.implicits._
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import ProcessHandler.{step, _}
 import IntegrationService._
+import it.gov.daf.common.sso.common.{Admin, Editor, Viewer}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.util.Try
@@ -18,25 +18,26 @@ import scala.util.Try
 @Singleton
 class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient: SupersetApiClient, ckanApiClient: CkanApiClient, grafanaApiClient:GrafanaApiClient, registrationService: RegistrationService,kyloApiClient:KyloApiClient, impalaService:ImpalaService){
 
-  def createDafOrganization(dafOrg:DafOrg):Future[Either[Error,Success]] = {
+  def createDafOrganization(dafOrg:DafGroup):Future[Either[Error,Success]] = {
 
     val groupCn = dafOrg.groupCn
     val predefinedOrgIpaUser =     IpaUser(groupCn,
                                           "reference organization user",
-                                          toMail(groupCn),
-                                          toRefUserName(groupCn),
-                                          Option(Role.Editor.toString),
+                                          toOrgMail(groupCn),
+                                          toRefOrgUserName(groupCn),
+                                          None,
+                                          Option(Seq(Viewer.toString+groupCn)),
                                           Option(dafOrg.predefinedUserPwd),
                                           None,
                                           Option(Seq(dafOrg.groupCn)))
 
 
     val result = for {
-      a <- step( Try{apiClientIPA.createGroup(Organization(dafOrg.groupCn))} )
+      a <- step( Try{apiClientIPA.createGroup(Organization(dafOrg.groupCn),None)} )
 
-      a1 <- step( a, Try{apiClientIPA.createGroup(Organization(ADMIN_ROLE_PREFIX+dafOrg.groupCn))} )
-      a2 <- step( a1, Try{apiClientIPA.createGroup(Organization(EDITOR_ROLE_PREFIX+dafOrg.groupCn))} )
-      a3 <- step( a2, Try{apiClientIPA.createGroup(Organization(VIEWER_ROLE_PREFIX+dafOrg.groupCn))} )
+      a1 <- step( a, Try{apiClientIPA.createGroup(RoleGroup(Admin.toString+groupCn),None)} )
+      a2 <- step( a1, Try{apiClientIPA.createGroup(RoleGroup(Editor.toString+groupCn),None)} )
+      a3 <- step( a2, Try{apiClientIPA.createGroup(RoleGroup(Viewer.toString+groupCn),None)} )
 
       a4 <- step( a3, Try{evalInFuture0S(impalaService.createRole(groupCn,false))})
 
@@ -75,15 +76,15 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
     val result = for {
 
       a <- step( Try{apiClientIPA.deleteGroup(groupCn)} )
-      a1 <- step( a, Try{apiClientIPA.createGroup(Organization(ADMIN_ROLE_PREFIX+groupCn))} )
-      a2 <- step( a1, Try{apiClientIPA.createGroup(Organization(EDITOR_ROLE_PREFIX+groupCn))} )
-      a3 <- step( a2, Try{apiClientIPA.createGroup(Organization(VIEWER_ROLE_PREFIX+groupCn))} )
+      a1 <- step( a, Try{apiClientIPA.deleteGroup(Admin.toString+groupCn)} )
+      a2 <- step( a1, Try{apiClientIPA.deleteGroup(Editor.toString+groupCn)} )
+      a3 <- step( a2, Try{apiClientIPA.deleteGroup(Viewer.toString+groupCn)} )
 
       a4 <- step( a3, Try{evalInFuture0S(impalaService.deleteRole(groupCn,false))})
 
-      b <- stepOver( a4, Try{apiClientIPA.deleteUser(toRefUserName(groupCn))} )
+      b <- stepOver( a4, Try{apiClientIPA.deleteUser(toRefOrgUserName(groupCn))} )
 
-      userInfo <- stepOverF( b, Try{supersetApiClient.findUser(toRefUserName(groupCn))} )
+      userInfo <- stepOverF( b, Try{supersetApiClient.findUser(toRefOrgUserName(groupCn))} )
       c <- step( b, Try{supersetApiClient.deleteUser(userInfo._1)} )
 
       roleId <- stepOverF( c, Try{supersetApiClient.findRoleId(toSupersetRole(groupCn))} )
@@ -128,6 +129,76 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
     }
   }
 
+  def createDafWorkgroup(dafWrk:DafGroup, orgName:String):Future[Either[Error,Success]] = {
+
+    val wrkName = dafWrk.groupCn
+    val predefinedWrkIpaUser =     IpaUser(wrkName,
+      "reference workgroup user",
+      toWrkMail(wrkName),
+      toRefWrkUserName(wrkName),
+      None,
+      Option(Seq(Viewer.toString+orgName)),
+      Option(dafWrk.predefinedUserPwd),
+      None,
+      Option(Seq(dafWrk.groupCn)))
+
+
+    val result = for {
+      a <- step( Try{apiClientIPA.createGroup(WorkGroup(wrkName),Some(Organization(orgName)))} )
+
+      a4 <- step( a, Try{evalInFuture0S(impalaService.createRole(wrkName,false))})
+
+      b <- step( a4, Try{registrationService.checkMailNcreateUser(predefinedWrkIpaUser,true)} )
+      c <- step( b, Try{supersetApiClient.createDatabase(toSupersetDS(wrkName),predefinedWrkIpaUser.uid,dafWrk.predefinedUserPwd,dafWrk.supSetConnectedDbName)} )
+
+      //f <- EitherT( grafanaApiClient.createOrganization(groupCn) ) TODO da riabilitare
+      g <- stepOver( c, Try{addUserToWorkgroup(wrkName,predefinedWrkIpaUser.uid)} )
+      //g <- EitherT( grafanaApiClient.addUserInOrganization(groupCn,toUserName(groupCn)) )
+    } yield g
+
+
+    result.value.map{
+      case Right(r) => Right( Success(Some("Workgroup created"), Some("ok")) )
+      case Left(l) => if( l.steps !=0 ) {
+        hardDeleteDafWorkgroup(wrkName).onSuccess { case e =>
+
+          val steps = e.fold(ll=>ll.steps,rr=>rr.steps)
+          if( l.steps != steps)
+            throw new Exception( s"createDafWorkgroup rollback issue: process steps=${l.steps} rollback steps=$steps" )
+
+        }
+
+      }
+        Left(l.error)
+    }
+
+
+  }
+
+  private def hardDeleteDafWorkgroup(groupCn:String):Future[Either[ErrorWrapper,SuccessWrapper]] = {
+
+    val result = for {
+
+      a <- step( Try{apiClientIPA.deleteGroup(groupCn)} )
+
+      a4 <- step( a, Try{evalInFuture0S(impalaService.deleteRole(groupCn,false))})
+
+      b <- stepOver( a4, Try{apiClientIPA.deleteUser(toRefWrkUserName(groupCn))} )
+
+      userInfo <- stepOverF( b, Try{supersetApiClient.findUser(toRefOrgUserName(groupCn))} )
+      c <- step( b, Try{supersetApiClient.deleteUser(userInfo._1)} )
+
+      roleId <- stepOverF( c, Try{supersetApiClient.findRoleId(toSupersetRole(groupCn))} )
+      d <- stepOver( c, Try{supersetApiClient.deleteRole(roleId)} )
+
+      dbId <- stepOverF(c, Try{supersetApiClient.findDatabaseId(toSupersetDS(groupCn))} )
+      e <- step( c, Try{supersetApiClient.deleteDatabase(dbId)} )
+      //f <- stepOver( c, Try{clearSupersetPermissions(dbId, toSupersetDS(groupCn))} ) TODO to re-enable when Superset bug is resolved
+      //i <- EitherT( grafanaApiClient.deleteOrganization(groupCn) ) TODO re-enable when Grafana is integrated
+    } yield e
+
+    result.value
+  }
 
   // only setup freeIPA and Superset
   /*
@@ -166,7 +237,6 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
 
   def addUserToOrganization(groupCn:String, userName:String):Future[Either[Error,Success]] = {
-
 
     val result = for {
       user <-  stepOverF( Try{apiClientIPA.findUserByUid(userName)} )
@@ -230,29 +300,102 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
   def removeUserFromOrganization(groupCn:String, userName:String):Future[Either[Error,Success]] = {
 
-    if( groupCn.equals(ConfigReader.defaultOrganization) )
-      Future{ Left( Error(Option(1),Some("Cannot remove users from default organization"),None) ) }
+    val result = for {
+      //user <-  stepOverF( Try{apiClientIPA.findUserByUid(userName)} )
+      a <- stepOver( Try{registrationService.testIfIsNotReferenceUser(userName)} )// cannot remove predefined user
 
-    else{
+      b <-  EitherT( hardRemoveUserFromOrganization(groupCn,userName) )
 
-      val result = for {
-        user <-  stepOverF( Try{apiClientIPA.findUserByUid(userName)} )
-        a <- stepOver( Try{registrationService.testIfIsNotPredefinedUser(user)} )// cannot remove predefined user
+    } yield b
 
-        b <-  EitherT( hardRemoveUserFromOrganization(groupCn,userName) )
-
-      } yield b
-
-      result.value.map{
-        case Right(r) => Right( Success(Some(s"User $userName deleted from organization $groupCn"), Some("ok")) )
-        case Left(l) => if( l.steps == 0 )
-          Left(l.error)
-        else
-          throw new Exception( s"removeUserFromOrganization process issue: process steps=${l.steps}" )
-
-      }
+    result.value.map{
+      case Right(r) => Right( Success(Some(s"User $userName deleted from organization $groupCn"), Some("ok")) )
+      case Left(l) => if( l.steps == 0 )
+        Left(l.error)
+      else
+        throw new Exception( s"removeUserFromOrganization process issue: process steps=${l.steps}" )
 
     }
+
+  }
+
+
+
+  def addUserToWorkgroup(groupCn:String, userName:String):Future[Either[Error,Success]] = {
+
+    val result = for {
+      user <-  stepOverF( Try{apiClientIPA.findUserByUid(userName)} )
+      a1<-  stepOver( Try{registrationService.testIfUserBelongsToThisGroup(user,groupCn)} )
+      a2 <- step( Try{apiClientIPA.addMembersToGroup(groupCn,User(userName))} )
+      supersetUserInfo <- stepOverF( a2, Try{supersetApiClient.findUser(userName)} )
+      roleIds <- stepOverF( a2, Try{supersetApiClient.findRoleIds(toSupersetRole(groupCn)::supersetUserInfo._2.toList:_*)} )
+
+      a <- step( a2, Try{supersetApiClient.updateUser(user,supersetUserInfo._1,roleIds)} )
+      /*
+      a <- EitherT( supersetApiClient.deleteUser(supersetUserInfo._1) )
+      b <- EitherT( supersetApiClient.createUserWithRoles(user,roleIds:_*) )
+      */
+
+      //d <- EitherT( grafanaApiClient.addUserInOrganization(groupCn,userName) ) TODO re-enable when Grafana is integrated
+    } yield a
+
+    result.value.map{
+      case Right(r) => Right( Success(Some("Added user to "+groupCn), Some("ok")) )
+      case Left(l) => if( l.steps !=0 ) {
+        hardRemoveUserFromWorkgroup(groupCn,userName).onSuccess { case e =>
+
+          val steps = e.fold(ll=>ll.steps,rr=>rr.steps)
+          if( l.steps != steps)
+            throw new Exception( s"addUserToWorkgroup rollback issue: process steps=${l.steps} rollback steps=$steps" )
+
+        }
+
+      }
+        Left(l.error)
+    }
+  }
+
+  private def hardRemoveUserFromWorkgroup(groupCn:String, userName:String):Future[Either[ErrorWrapper,SuccessWrapper]] = {
+
+
+    val result = for {
+      user <- stepOverF(Try{apiClientIPA.findUserByUid(userName)})
+
+      a1 <- step(Try{apiClientIPA.removeMembersFromGroup(groupCn, User(userName))})
+
+      supersetUserInfo <- stepOverF(a1,Try{supersetApiClient.findUser(userName)})
+      roleNames = supersetUserInfo._2.toList.filter(p => !p.equals(toSupersetRole(groupCn))); roleIds <- stepOverF(a1,Try{supersetApiClient.findRoleIds(roleNames: _*)})
+
+      a <- step(a1,Try{supersetApiClient.updateUser(user, supersetUserInfo._1, roleIds)})
+      /*
+      a <- EitherT( supersetApiClient.deleteUser(supersetUserInfo._1) )
+      b <- EitherT( supersetApiClient.createUserWithRoles(user,roleIds:_*) )*/
+
+      //d <- EitherT( grafanaApiClient ) TODO re-enable when Grafana is integrated (review)
+    } yield a
+
+    result.value
+
+  }
+
+  def removeUserFromWorkgroup(groupCn:String, userName:String):Future[Either[Error,Success]] = {
+
+    val result = for {
+      //user <-  stepOverF( Try{apiClientIPA.findUserByUid(userName)} )
+      a <- stepOver( Try{registrationService.testIfIsNotReferenceUser(userName)} )// cannot remove predefined user
+
+      b <-  EitherT( hardRemoveUserFromWorkgroup(groupCn,userName) )
+
+    } yield b
+
+    result.value.map{
+      case Right(r) => Right( Success(Some(s"User $userName deleted from workgroup $groupCn"), Some("ok")) )
+      case Left(l) => if( l.steps == 0 )
+        Left(l.error)
+      else
+        throw new Exception( s"removeUserFromWorkgroup process issue: process steps=${l.steps}" )
+    }
+
 
   }
 
@@ -306,6 +449,8 @@ object IntegrationService {
   //def toViewerGroupName(groupCn:String)=s"$groupCn-view"
   def toSupersetDS(groupCn:String)=s"$groupCn-db"
   def toSupersetRole(groupCn:String)=s"datarole-$groupCn-db"
-  def toRefUserName(groupCn:String)=groupCn+ORG_REF_USER_POSTFIX
-  def toMail(groupCn:String)=s"$groupCn@ref.usr.org.it"
+  def toRefOrgUserName(groupCn:String)=groupCn+ORG_REF_USER_POSTFIX
+  def toRefWrkUserName(groupCn:String)=groupCn+WRK_REF_USER_POSTFIX
+  def toOrgMail(groupCn:String)=s"$groupCn@ref.usr.org.it"
+  def toWrkMail(groupCn:String)=s"$groupCn@ref.usr.wrk.it"
 }

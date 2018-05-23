@@ -9,10 +9,8 @@ import scala.concurrent.Future
 
 package object service {
 
-  val ADMIN_ROLE_PREFIX :String = "daf_adm_"
-  val EDITOR_ROLE_PREFIX :String = "daf_edt_"
-  val VIEWER_ROLE_PREFIX :String = "daf_vwr_"
   val ORG_REF_USER_POSTFIX: String = "_org_rif"
+  val WRK_REF_USER_POSTFIX: String = "_wrk_rif"
 
   def wrapFuture1[T](in: =>Either[String,T]):Future[Either[security_manager.yaml.Error,T]]={
     Future.successful {

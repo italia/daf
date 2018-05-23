@@ -416,7 +416,7 @@ paths:
         200:
           description: Success
           schema:
-            $ref: '#/definitions/OrgList'
+            $ref: '#/definitions/StringList'
         500:
           description: Error Message
           schema:
@@ -435,7 +435,7 @@ paths:
         description: Organization
         required: true
         schema:
-          $ref: '#/definitions/DafOrg'
+          $ref: '#/definitions/DafGroup'
       responses:
         200:
           description: Success
@@ -540,6 +540,124 @@ paths:
           description: Error Message
           schema:
             $ref: '#/definitions/Error'
+  "/daf/workgroups":
+    get:
+      tags:
+        - DAF
+      description: List  DAF workgroups
+      operationId: listDAFworkgroup
+      produces:
+      - application/json
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/StringList'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+  "/daf/workgroup/{orgName}":
+    post:
+      tags:
+        - DAF
+      description: Create a DAF workgroup
+      operationId: createDAFworkgroup
+      produces:
+      - application/json
+      parameters:
+      - name: orgName
+        in: path
+        description: group Cn
+        required: true
+        type: string
+      - name: workgroup
+        in: body
+        description: Workgroup
+        required: true
+        schema:
+          $ref: '#/definitions/DafGroup'
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+  "/daf/workgroup/useradd":
+    put:
+      tags:
+        - DAF
+      description: Add auser to DAF workgroup
+      operationId: useraddDAFworkgroup
+      produces:
+      - application/json
+      parameters:
+      - name: payload
+        in: body
+        description: Username and groupCn
+        required: true
+        schema:
+          $ref: '#/definitions/UserAndGroup'
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+  "/daf/workgroup/userdel":
+    put:
+      tags:
+        - DAF
+      description: Delete a user from DAF workgroup
+      operationId: userdelDAFworkgroup
+      produces:
+      - application/json
+      parameters:
+      - name: payload
+        in: body
+        description: Username and groupCn
+        required: true
+        schema:
+          $ref: '#/definitions/UserAndGroup'
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+  "/daf/workgroup/{wrkName}":
+    delete:
+      tags:
+        - DAF
+      description: delete DAF workgroup
+      operationId: deleteDAFworkgroup
+      produces:
+      - application/json
+      parameters:
+      - name: wrkName
+        in: path
+        description: group Cn
+        required: true
+        type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Success'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+
   "/daf/user/{userName}":
     delete:
       tags:
@@ -563,7 +681,6 @@ paths:
           description: Error Message
           schema:
             $ref: '#/definitions/Error'
-
   "/daf/datasetACL/{datasetName}/setPermission":
     put:
       tags:
@@ -724,14 +841,16 @@ definitions:
         type: array
         items:
           type: string
-      role:
-        type: string
+      workgroups:
+        type: array
+        items:
+          type: string
+      roles:
+        type: array
+        items:
+          type: string
   IpaUserMod:
     type: object
-    required:
-      - givenname
-      - sn
-      - role
     properties:
       givenname:
         description: First name
@@ -739,8 +858,14 @@ definitions:
       sn:
         description: Last name
         type: string
-      role:
-        type: string
+      rolesToAdd:
+        type: array
+        items:
+          type: string
+      rolesToDelete:
+        type: array
+        items:
+          type: string
   IpaGroup:
     type: object
     required:
@@ -753,6 +878,10 @@ definitions:
         description: group gid number
         type: string
       member_user:
+        type: array
+        items:
+          type: string
+      member_group:
         type: array
         items:
           type: string
@@ -780,16 +909,16 @@ definitions:
         type: array
         items:
           type: string
-  OrgList:
+  StringList:
     type: object
     required:
-      - orgs
+      - elem
     properties:
-      orgs:
+      elem:
         type: array
         items:
           type: string
-  DafOrg:
+  DafGroup:
     type: object
     required:
       - groupCn

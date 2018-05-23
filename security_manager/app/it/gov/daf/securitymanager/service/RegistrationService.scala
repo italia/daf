@@ -4,8 +4,7 @@ import cats.data.EitherT
 import com.google.inject.{Inject, Singleton}
 import it.gov.daf.securitymanager.service.utilities.{AppConstants, BearerTokenGenerator, ConfigReader}
 import play.api.libs.json.{JsError, JsSuccess, JsValue}
-import security_manager.yaml.{Error, IpaUser, Success}
-import it.gov.daf.common.authentication.Role
+import security_manager.yaml.{Error, IpaUser, IpaUserMod, Success}
 import cats.implicits._
 import it.gov.daf.sso.{ApiClientIPA, User}
 import play.api.Logger
@@ -104,7 +103,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
   private def formatRegisteredUser(user: IpaUser): IpaUser = {
 
     if (user.uid == null || user.uid.isEmpty )
-      user.copy( uid = user.mail.replaceAll("[@]", "_").replaceAll("[.]", "-"), role = Option(Role.Viewer.toString()) )
+      user.copy( uid = user.mail.replaceAll("[@]", "_").replaceAll("[.]", "-") )
     else
       user
 
@@ -238,7 +237,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
     val result = for {
       a <- step( Try{apiClientIPA.createUser(user, isPredefinedOrgUser)} )
       a1 <- stepOver( a, Try{apiClientIPA.changePassword(user.uid,a.success.fields.get,user.userpassword.get)} )
-      b <- stepOver( a, Try{apiClientIPA.addMembersToGroup(user.role.getOrElse(Role.Viewer.toString()),User(user.uid))} )
+      //b <- stepOver( a, Try{apiClientIPA.addMembersToGroup(user.role.getOrElse(Role.Viewer.toString()),User(user.uid))} )
       c <-step( a, Try{evalInFuture0S(impalaService.createRole(user.uid,true))})
       roleIds <- stepOverF( c, Try{supersetApiClient.findRoleIds(ConfigReader.suspersetOrgAdminRole)} )
       d <- step( c, supersetApiClient.createUserWithRoles(user,roleIds:_*) )
@@ -350,26 +349,44 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   }
 
-  private def checkRole(role:String):Future[Either[Error,Success]] = {
+  private def checkUserModsRoles(roleTodeletes:Option[Seq[String]], roleToAdds:Option[Seq[String]]):Future[Either[Error,Success]] = {
 
-    if( ApiClientIPA.isValidRole(role) )
-      Future.successful{Right( Success(Some("Ok"), Some("ok")))}
-    else
-      Future.successful{Left(Error(Option(1), Some("Invalid role"), None))}
+      val deletes = roleTodeletes.getOrElse(Seq(Nil)).toSet
+      val adds = roleToAdds.getOrElse(Seq(Nil)).toSet
+      val intersection = deletes intersect adds
+
+      if( intersection.nonEmpty )
+        Future.successful{Left(Error(Option(1), Some("Same roles founded to add and to delete"), None))}
+      else{
+        val union = deletes union adds
+        apiClientIPA.roleList().map{
+
+          case Right(list) => if(union subsetOf list.toSet)
+                                Right(Success(Some("Ok"), Some("ok")))
+                              else
+                                Left(Error(Option(1), Some("Same roles does not exists"), None))
+
+          case Left(l) => Left(l)
+        }
+
+
+      }
 
   }
 
 
-  def updateUser(uid: String, givenname:String, sn:String, role:String):Future[Either[Error,Success]]= {
+  def updateUser(uid: String, userMods:IpaUserMod):Future[Either[Error,Success]]= {
 
     val result = for {
-      a1 <- EitherT( checkRole(role) )
+      a1 <- EitherT( checkUserModsRoles(userMods.rolesToDelete, userMods.rolesToAdd) )
       user <- EitherT( apiClientIPA.findUserByUid(uid) )
       a <- EitherT( testIfIsNotReferenceUser(user.uid) )// cannot update reference user
 
-      b <- EitherT( apiClientIPA.removeMembersFromGroup(user.role.get,User(uid)) )
-      b1 <- EitherT( apiClientIPA.addMembersToGroup(role,User(uid)) )
-      c<- EitherT( apiClientIPA.updateUser(uid,givenname,sn) )
+      b <- EitherT( apiClientIPA.removeMemberFromGroups(userMods.rolesToDelete,User(uid)) )
+      b1 <- EitherT( apiClientIPA.addMemberToGroups(userMods.rolesToAdd,User(uid)) )
+
+      c<- EitherT( apiClientIPA.updateUser( uid,userMods.givenname.getOrElse(user.givenname),
+                                            userMods.sn.getOrElse(user.sn)) )
 
     } yield c
 
@@ -409,7 +426,5 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
     result.value
   }*/
-
-
 
 }

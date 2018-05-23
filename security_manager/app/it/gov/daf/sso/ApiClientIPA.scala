@@ -4,14 +4,15 @@ import java.net.URLEncoder
 
 import cats.data.EitherT
 import com.google.inject.{Inject, Singleton}
-import it.gov.daf.common.authentication.Role
-import it.gov.daf.common.sso.common.{LoginInfo, SecuredInvocationManager}
+import it.gov.daf.common.sso.common.{LoginInfo, Role, SecuredInvocationManager}
 import it.gov.daf.common.utils.WebServiceUtil
 import it.gov.daf.securitymanager.service.IntegrationService
 import it.gov.daf.securitymanager.service.utilities.{AppConstants, ConfigReader}
 import play.api.libs.json._
 import play.api.libs.ws.{WSAuthScheme, WSClient, WSResponse}
 import security_manager.yaml.{Error, IpaGroup, IpaUser, Success}
+import cats.implicits._
+import it.gov.daf.securitymanager.service
 
 import scala.concurrent.Future
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -299,6 +300,34 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
   }
 
 
+  // only sysadmin
+  def createGroup(group:Group, parentGroup:Option[Group]):Future[Either[Error,Success]]= {
+
+    val parentGroupNames = group match{
+      case Organization(_) => Some(Seq(ORGANIZATIONS_GROUP))
+      case WorkGroup(_) => parentGroup match{
+                                              case Some(x) => Some(Seq(WORKGROUPS_GROUP,x.toString))
+                                              case _ => None
+      }
+      case RoleGroup(_) => Some(Seq(ROLES_GROUP))
+    }
+
+    def testEmptyness:Future[Either[Error,Success]]=if(parentGroupNames.nonEmpty)
+                                                      Future.successful{Right(Success(Some("ok"), Some("ok")))}
+                                                    else
+                                                      Future.successful{Left(Error(Option(0), Some("Workgroups needs a parent organization"), None))}
+
+
+    val out = for{
+      we <- EitherT(testEmptyness)
+      a <- EitherT(createGroup(group.toString))
+      b <- EitherT(addMemberToGroups(parentGroupNames, group))
+    }yield a
+
+    out.value
+  }
+
+
   private def createGroup(group: String):Future[Either[Error,Success]]= {
 
     val jsonGroup: JsValue = Json.parse(
@@ -337,24 +366,6 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
   }
 
-
-  // only sysadmin
-  def createGroup(group: Group):Future[Either[Error,Success]]= {
-
-    val parentGroupName = group match{
-      case Organization(_) => ORGANIZATIONS_GROUP
-      case WorkGroup(_) => WORKGROUPS_GROUP
-    }
-
-    val out = for{
-      a <- EitherT( createGroup(group) )
-      b <- EitherT( addMembersToGroup(parentGroupName, group) )
-    }yield a
-
-    out.value
-  }
-
-
   // all users
   def showGroup(group: String):Future[Either[Error,IpaGroup]]= {
 
@@ -389,7 +400,8 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
           IpaGroup(
             (result \ "dn").asOpt[String].getOrElse(""),
             (result \ "gidnumber") (0).asOpt[String],
-            (result \ "member_user").asOpt[Seq[String]]
+            (result \ "member_user").asOpt[Seq[String]],
+            (result \ "member_group").asOpt[Seq[String]]
           )
         )
     }
@@ -406,8 +418,10 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
   def isEmptyGroup(groupCn:String):Future[Either[Error,Success]] ={
 
     showGroup(groupCn) map{
-      case Right(r) =>  if( r.member_user.nonEmpty && r.member_user.get.exists(p => !p.equals(IntegrationService.toRefUserName(groupCn))) )
+      case Right(r) =>  if( r.member_user.nonEmpty && r.member_user.get.exists(userName => !(userName.endsWith(service.ORG_REF_USER_POSTFIX)|| userName.endsWith(service.WRK_REF_USER_POSTFIX))) )
                           Left(Error(Option(1),Some("This group contains users"),None))
+                        else if( r.member_group.nonEmpty && r.member_group.get.nonEmpty )
+                          Left(Error(Option(1),Some("This group contains other groups"),None))
                         else
                           Right(Success(Some("Empty group"), Some("ok")))
 
@@ -456,12 +470,41 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
   }
 
+  private def handleGroupsMemberships(groups:Option[Seq[String]], member:Member, fx:(String, Seq[Member])=>Future[Either[Error,Success]]):Future[Either[Error,Success]]= {
+
+    //val traversed = groups.toList.traverse[Future, Either[Error, Long]](findRoleId): Future[List[Either[Error, Long]]]
+
+    groups match {
+
+      case Some(glist) =>
+
+        val traversed : Future[List[Either[Error, Success]]] = glist.toList.traverse(fx(_,Seq(member)))
+
+        traversed.map { list =>
+
+          val start = Right(Success(Some("ok"), Some("ok")))
+          list.foldLeft[Either[Error, Success]](start)((a, b) => a match {
+            case Right(r) => b
+            case _ => a
+          })
+
+        }
+
+      case _ => Future.successful( Right(Success(Some("ok"), Some("ok"))) )
+
+    }
+
+
+  }
+
+  def addMemberToGroups(groups:Option[Seq[String]], member:Member):Future[Either[Error,Success]] = handleGroupsMemberships(groups, member, addMembersToGroup)
+
   def addMembersToGroup(group: String, memberList: Member*):Future[Either[Error,Success]]= {
 
     val jArrayStr = memberList.mkString("\"","\",\"","\"")
 
     val memberType = memberList match {
-      case User(_) => "user"
+      case Seq(User(_)) => "user"
       case _ => "group"
     }
 
@@ -502,12 +545,14 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
   }
 
+  def removeMemberFromGroups(groups:Option[Seq[String]], member:Member):Future[Either[Error,Success]] = handleGroupsMemberships(groups, member, removeMembersFromGroup)
+
   def removeMembersFromGroup(group: String, memberList: Member*):Future[Either[Error,Success]]= {
 
     val jArrayStr = memberList.mkString("\"","\",\"","\"")
 
     val memberType = memberList match {
-      case User(_) => "user"
+      case Seq(User(_)) => "user"
       case _ => "group"
     }
 
@@ -552,6 +597,97 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
   def findUserByUid(userId: String):Future[Either[Error,IpaUser]]={
 
+    val result = for{
+      orgs <- EitherT(organizationList)
+      wrks <- EitherT(workroupList)
+      out <- EitherT(performFindUser(Left(userId),wrks,orgs) )
+    } yield out
+
+    result.value
+  }
+
+
+  type UserId = String
+  type Mail = String
+  private def performFindUser( param:Either[UserId,Mail], wrkGroups:Seq[String], orgs:Seq[String] ):Future[Either[Error,IpaUser]] ={
+
+    val jsonRequest:JsValue = param match{
+
+      case Right(mail) => Json.parse(s"""{
+                                             "id": 0,
+                                             "method": "user_find",
+                                             "params": [
+                                                 [""],
+                                                 {
+                                                    "mail": "$mail",
+                                                    "all": "true",
+                                                    "version": "2.213"
+                                                 }
+                                             ]
+                                         }""")
+
+      case Left(userId) => Json.parse(s"""{
+                                             "id": 0,
+                                             "method": "user_show/1",
+                                             "params": [
+                                                 [
+                                                     "$userId"
+                                                 ],
+                                                 {
+                                                     "all": "true",
+                                                     "version": "2.213"
+                                                 }
+                                             ]
+                                         }""")
+    }
+
+
+    Logger.logger.debug("performFindUser request: "+jsonRequest.toString())
+
+    val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonRequest,_,_)
+
+
+    def handleJson(json:JsValue) = {
+
+      //println("------------------->>>>>>"+MDC.get("user-id") )
+
+      val count = ((json \ "result") \ "count").asOpt[Int].getOrElse(-1)
+      val result = (json \ "result") \"result"
+
+      if(count==0)
+        Left( Error(Option(1),Some("No user found"),None) )
+
+      if( result.isInstanceOf[JsUndefined] )
+
+        Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
+
+      else
+
+        Right(
+          IpaUser(
+            sn = (result \ "sn") (0).asOpt[String].getOrElse(""),
+            givenname = (result \ "givenname") (0).asOpt[String].getOrElse(""),
+            mail = (result \ "mail") (0).asOpt[String].getOrElse(""),
+            uid = (result \ "uid") (0).asOpt[String].getOrElse(""),
+            roles = ApiClientIPA.extractRole( (result \ "memberof_group").asOpt[Seq[String]] ),
+            workgroups = ApiClientIPA.extractGroupsOf( (result \ "memberof_group").asOpt[Seq[String]], wrkGroups ),
+            title = (result \ "title") (0).asOpt[String],
+            userpassword = None,
+            organizations = ApiClientIPA.extractGroupsOf( (result \ "memberof_group").asOpt[Seq[String]], orgs )
+          )
+        )
+    }
+
+    secInvokeManager.manageRestServiceCall(loginInfo,serviceInvoke,200).map {
+      case Right(json) => handleJson(json)
+      case Left(l) =>  Left( Error(Option(0),Some(l),None) )
+    }
+
+  }
+
+/*
+  private def performFindUserByUid(userId: String, wrkGroups:Seq[String], orgs:Seq[String]):Future[Either[Error,IpaUser]]={
+
     //println("------------------->>>>"+MDC.get("user-id") )
     val jsonRequest:JsValue = Json.parse(s"""{
                                              "id": 0,
@@ -587,20 +723,21 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
         Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
 
       else
+
         Right(
           IpaUser(
             sn = (result \ "sn") (0).asOpt[String].getOrElse(""),
             givenname = (result \ "givenname") (0).asOpt[String].getOrElse(""),
             mail = (result \ "mail") (0).asOpt[String].getOrElse(""),
             uid = (result \ "uid") (0).asOpt[String].getOrElse(""),
-            role = ApiClientIPA.extractRole( (result \ "memberof_group").asOpt[Seq[String]] ),
+            roles = ApiClientIPA.extractRole( (result \ "memberof_group").asOpt[Seq[String]] ),
+            workgroups = ApiClientIPA.extractGroupsOf( (result \ "memberof_group").asOpt[Seq[String]], wrkGroups ),
             title = (result \ "title") (0).asOpt[String],
             userpassword = None,
-            organizations = ApiClientIPA.extractOrgs( (result \ "memberof_group").asOpt[Seq[String]] )
+            organizations = ApiClientIPA.extractGroupsOf( (result \ "memberof_group").asOpt[Seq[String]], orgs )
           )
         )
     }
-
 
     secInvokeManager.manageRestServiceCall(loginInfo,serviceInvoke,200).map {
       case Right(json) => handleJson(json)
@@ -608,10 +745,21 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
     }
 
 
-  }
-
+  }*/
 
   def findUserByMail(mail: String):Future[Either[Error,IpaUser]]={
+
+    val result = for{
+      orgs <- EitherT(organizationList)
+      wrks <- EitherT(workroupList)
+      out <- EitherT( performFindUser(Left(mail),wrks,orgs) )
+    } yield out
+
+    result.value
+  }
+
+/*
+  private def performFindUserByMail(mail: String, wrkGroups:Seq[String], orgs:Seq[String] ):Future[Either[Error,IpaUser]]={
 
     val jsonRequest:JsValue = Json.parse(s"""{
                                              "id": 0,
@@ -628,7 +776,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
     Logger.logger.debug("findUserByMail request: "+ jsonRequest.toString())
 
-    val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonRequest,_,_)
+    val serviceInvoke:(String,WSClient) => Future[WSResponse] = callIpaUrl(jsonRequest,_,_)
 
     def handleJson(json:JsValue) = {
 
@@ -648,10 +796,11 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
             givenname = (result \ "givenname") (0).asOpt[String].getOrElse(""),
             mail = (result \ "mail") (0).asOpt[String].getOrElse(""),
             uid = (result \ "uid") (0).asOpt[String].getOrElse(""),
-            role = ApiClientIPA.extractRole( (result \ "memberof_group").asOpt[Seq[String]] ),
+            roles = ApiClientIPA.extractRole( (result \ "memberof_group").asOpt[Seq[String]] ),
+            workgroups = ApiClientIPA.extractGroupsOf( (result \ "memberof_group").asOpt[Seq[String]], wrkGroups ),
             title = (result \ "title") (0).asOpt[String],
             userpassword = None,
-            organizations = ApiClientIPA.extractOrgs( (result \ "memberof_group").asOpt[Seq[String]] )
+            organizations = ApiClientIPA.extractGroupsOf( (result \ "memberof_group").asOpt[Seq[String]], orgs )
           )
         )
     }
@@ -662,9 +811,13 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
     }
 
 
-  }
+  }*/
 
-  def organizationList():Future[Either[Error,Seq[String]]]={
+  def organizationList():Future[Either[Error,Seq[String]]] = groupList(ORGANIZATIONS_GROUP)
+  def workroupList():Future[Either[Error,Seq[String]]] = groupList(WORKGROUPS_GROUP)
+  def roleList():Future[Either[Error,Seq[String]]] = groupList(ROLES_GROUP)
+
+  private def groupList(memberOf:String):Future[Either[Error,Seq[String]]]={
 
     val jsonRequest:JsValue = Json.parse(s"""{
                                              "id": 0,
@@ -672,7 +825,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
                                              "params": [
                                                  [""],
                                                  {
-                                                    "description": "${AppConstants.OrganizationIpaGroupDescription}",
+                                                    "inGroup": "${memberOf}",
                                                     "all": "false",
                                                     "raw": "true",
                                                     "version": "2.213"
@@ -747,39 +900,27 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 }
 
 
-
 object ApiClientIPA {
 
-  val whiteList = Seq( Role.Admin.toString(), Role.Editor.toString(), Role.Viewer.toString() )
-  val blackList = Seq( Role.Admin.toString(), Role.Editor.toString(), Role.Viewer.toString(), "ipausers" )
+  //val whiteList = Seq( Role.Admin.toString(), Role.Editor.toString(), Role.Viewer.toString() )
+  //val blackList = Seq( Role.Admin.toString(), Role.Editor.toString(), Role.Viewer.toString(), "ipausers" )
 
-  def extractRole( in:Option[Seq[String]] ): Option[String] = {
+  def extractRole( in:Option[Seq[String]] ): Option[Seq[String]] = {
 
     if(in.isEmpty)
       None
-    else{
-      val out = in.get.filter(elem => whiteList.contains(elem))
-      if( out.isEmpty )
-        None
-      else
-        Option(out.head)
-    }
-
-  }
-
-  def extractOrgs( in:Option[Seq[String]]): Option[Seq[String]] = {
-
-    if(in.isEmpty)
-      in
     else
-      //Option( in.get.filter(elem => show) )
-      Option( in.get.filter(elem => !blackList.contains(elem)) )
+      Some(in.get.filter(group => Role.rolesPrefixs.filter(group.startsWith(_)).length>0 ))
+
   }
 
-  def isValidRole(role:String): Boolean = {
-    whiteList.contains(role)
-  }
+  def extractGroupsOf( groups:Option[Seq[String]], of:Seq[String] ): Option[Seq[String]] = {
 
+    if(groups.isEmpty)
+      None
+    else
+      Option( groups.get.filter(group => of.contains(group)) )
+  }
 
 }
 
@@ -799,6 +940,10 @@ case class Organization(value: String) extends Group{
 }
 
 case class WorkGroup(value: String) extends Group{
+  //override def toString = value
+}
+
+case class RoleGroup(value: String) extends Group{
   //override def toString = value
 }
 /*

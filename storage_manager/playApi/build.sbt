@@ -44,7 +44,8 @@ lazy val root = (project in file("."))
     organization := "it.gov.daf",
     name := "daf-storage-manager",
     scalaVersion := "2.11.12",
-    version in ThisBuild := sys.env.getOrElse("STORAGE_MANAGER_VERSION", "1.0.0-SNAPSHOT"),
+    version in ThisBuild := sys.env.getOrElse("STORAGE_MANAGER_VERSION", "1.0-alpha.1"),
+    autoAPIMappings := true,
     libraryDependencies ++= Seq(
       "ch.qos.logback" % "logback-classic" % "1.2.3" % Test,
       cache,

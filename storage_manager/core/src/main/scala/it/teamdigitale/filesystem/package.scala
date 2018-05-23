@@ -22,6 +22,8 @@ package object filesystem {
 
     def /(other: Path) = new Path(path, other)
 
+    def asUriString = path.toUri.getPath
+
     def resolve(implicit fileSystem: FileSystem) = fileSystem.getFileStatus(path).getPath
 
   }

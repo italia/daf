@@ -16,15 +16,18 @@
 
 package daf.dataset
 
-import it.teamdigitale.filesystem.{ DirectoryInfo, FileInfo, MergeStrategies, NoCompressionFormat, PathInfo, StringPathSyntax }
-import org.apache.hadoop.conf.{ Configuration => HadoopConfiguration }
+import java.io.InputStream
+
+import it.teamdigitale.filesystem.{ DirectoryInfo, FileInfo, MergeStrategies, PathInfo, StringPathSyntax }
 import org.apache.hadoop.fs.FileSystem
 
 import scala.util.{ Failure, Success, Try }
 
-class DownloadService(hadoopConf: HadoopConfiguration) {
-
-  private implicit val fileSystem = FileSystem.get(hadoopConf)
+/**
+  * Service that allows interaction with the given file system for any operations aimed at facilitating downloads.
+  * @param fileSystem the [[FileSystem]] instance to have the service interact with.
+  */
+class DownloadService(implicit fileSystem: FileSystem) {
 
   private def openFiles(files: Seq[FileInfo]) = Try {
     files.map { file => fileSystem.open(file.path) }
@@ -48,7 +51,7 @@ class DownloadService(hadoopConf: HadoopConfiguration) {
 
   def info(path: String) = Try { PathInfo.fromHadoop(path.asHadoop) }
 
-  def open(directory: DirectoryInfo) = for {
+  def open(directory: DirectoryInfo): Try[InputStream] = for {
     nonEmptyChecked    <- checkNonEmpty(directory)
     compressionChecked <- checkCompression(nonEmptyChecked)
     formatChecked      <- checkFormats(compressionChecked)
@@ -57,9 +60,9 @@ class DownloadService(hadoopConf: HadoopConfiguration) {
   } yield mergeStrategy.merge(inputStreams)
 
 
-  def open(file: FileInfo) = Try { fileSystem.open(file.path) }
+  def open(file: FileInfo): Try[InputStream] = Try { fileSystem.open(file.path) }
 
-  def open(path: String) = info(path).map {
+  def open(path: String): Try[InputStream] = info(path).flatMap {
     case directory: DirectoryInfo => open(directory)
     case file: FileInfo           => open(file)
   }

@@ -44,7 +44,7 @@ scalacOptions ++= Seq(
   "-Xfuture"
 )
 
-wartremoverErrors ++= Warts.allBut(Wart.Equals)
+wartremoverErrors ++= Warts.allBut(Wart.Equals, Wart.ImplicitParameter)
 
 lazy val root = (project in file(".")).enablePlugins(AutomateHeaderPlugin)
 
@@ -95,6 +95,8 @@ publishTo := {
 }
 
 publishMavenStyle := true
+
+autoAPIMappings := true
 
 credentials += {if(isStaging) Credentials(Path.userHome / ".ivy2" / ".credentialsTest") else Credentials(Path.userHome / ".ivy2" / ".credentials")}
 

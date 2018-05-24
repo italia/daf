@@ -2,6 +2,7 @@ package daf.dataset.export
 
 import java.io.File
 import java.net.URI
+import java.util.Properties
 import java.util.concurrent.TimeUnit
 
 import akka.pattern.ask
@@ -12,7 +13,7 @@ import it.teamdigitale.instances.{ AkkaInstance, ConfigurationInstance }
 import org.apache.commons.lang3.concurrent.ConcurrentUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.FileSystem
-import org.apache.livy.{ Job, JobHandle, LivyClient }
+import org.apache.livy.{ Job, JobHandle, LivyClient, LivyClientFactory }
 import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpec }
 
 import scala.concurrent.duration._
@@ -31,7 +32,14 @@ class FileExportActorSpec extends WordSpec with Matchers with AkkaInstance with 
 
   private val workingDir = baseDir / f"file-export-actor-spec-${Random.nextInt(10000)}%05d"
 
-  private lazy val actorRef = system.actorOf { FileExportActor.props(new FileExportLivyClient, workingDir.asUriString) }
+  private lazy val actorRef = system.actorOf {
+    FileExportActor.props(
+      new FileExportLivyClientFactory,
+    "",
+      new Properties,
+      workingDir.asUriString
+    )
+  }
 
   override def beforeAll() = startAkka()
 
@@ -50,6 +58,12 @@ class FileExportActorSpec extends WordSpec with Matchers with AkkaInstance with 
     }
 
   }
+
+}
+
+sealed class FileExportLivyClientFactory extends LivyClientFactory {
+
+  def createClient(uri: URI, properties: Properties) = new FileExportLivyClient
 
 }
 

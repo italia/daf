@@ -7,7 +7,7 @@ import akka.actor.{ Actor, Props }
 import it.teamdigitale.filesystem.export.FileExportJob
 import it.teamdigitale.filesystem._
 import org.apache.hadoop.fs.{ FileSystem, FileUtil }
-import org.apache.livy.LivyClient
+import org.apache.livy.LivyClientFactory
 
 import scala.util.{ Failure, Success, Try }
 
@@ -22,17 +22,23 @@ import scala.util.{ Failure, Success, Try }
   * @note A Spark job is only triggered in case the input and output formats are different, otherwise the input file is
   *       simply copied to an output location.
   *
-  * @param livyClient the client that will be used to submit jobs to the livy server
-  * @param exportRepositoryPath string representing the base path where to put the exported data
+  * @param livyFactory the client factory that will be used to create the livy client
+  * @param livyUrl base url for the livy server
+  * @param livyProps the [[Properties]] instance used to configure the livy client
+  * @param exportPath string representing the base path where to put the exported data
   * @param fileSystem the [[FileSystem]] instance used for interaction
   */
-class FileExportActor(livyClient: LivyClient,
-                      exportRepositoryPath: String,
+class FileExportActor(livyFactory: LivyClientFactory,
+                      livyUrl: String,
+                      livyProps: Properties,
+                      exportPath: String,
                       fileSystem: FileSystem) extends Actor {
+
+  private val livyClient = livyFactory.createClient(URI.create(livyUrl), livyProps)
 
   private def suffix = UUID.randomUUID.toString.toLowerCase.split("-").take(3).mkString("-")
 
-  private def outputPath(inputPath: String) = exportRepositoryPath / s"${inputPath.asHadoop.getName}-$suffix"
+  private def outputPath(inputPath: String) = exportPath / s"${inputPath.asHadoop.getName}-$suffix"
 
   private def copy(inputPath: String, outputPath: String) = Try {
     FileUtil.copy(
@@ -70,7 +76,26 @@ class FileExportActor(livyClient: LivyClient,
 
 object FileExportActor {
 
-  def props(livyClient: LivyClient, exportPath: String)(implicit fileSystem: FileSystem) = Props { new FileExportActor(livyClient, exportPath, fileSystem) }
+  def props(livyFactory: LivyClientFactory,
+            exportServiceConfig: FileExportServiceConfig)(implicit fileSystem: FileSystem): Props = props(
+    livyFactory,
+    exportServiceConfig.livyUrl,
+    exportServiceConfig.livyProperties,
+    exportServiceConfig.exportPath
+  )
+
+  def props(livyFactory: LivyClientFactory,
+            livyUrl: String,
+            livyProps: Properties,
+            exportPath: String)(implicit fileSystem: FileSystem): Props = Props {
+    new FileExportActor(
+      livyFactory,
+      livyUrl,
+      livyProps,
+      exportPath,
+      fileSystem
+    )
+  }
 
 }
 

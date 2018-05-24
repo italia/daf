@@ -108,24 +108,42 @@ object CredentialManager {
     groups.contains(SysAdmin.toString)
   }
 
-  def isOrgAdmin( request:Request[Any], group:String ):Boolean ={
+  def isOrgAdmin( request:Request[Any], orgName:String ):Boolean ={
     val groups = readCredentialFromRequest(request).groups
     Logger.logger.info(s"belonging to groups: ${groups.toList}" )
-    groups.contains(Admin.toString+group)
+    groups.contains(Admin.toString+orgName)
   }
 
-  def isOrgEditor( request:Request[Any], group:String ):Boolean ={
+  def isOrgsAdmin( request:Request[Any], orgsNames:Seq[String] ):Boolean ={
+    val userGroups = readCredentialFromRequest(request).groups
+    Logger.logger.info(s"belonging to groups: ${userGroups.toList}" )
+    (orgsNames.map(Admin.toString+_).toSet intersect userGroups.toSet).nonEmpty
+  }
+
+  def isOrgEditor( request:Request[Any], orgName:String ):Boolean ={
     val groups = readCredentialFromRequest(request).groups
     Logger.logger.info(s"belonging to groups: ${groups.toList}" )
-    groups.contains(Editor.toString+group)
+    groups.contains(Editor.toString+orgName)
   }
 
+  def isOrgsEditor( request:Request[Any], orgsNames:Seq[String] ):Boolean ={
+    val userGroups = readCredentialFromRequest(request).groups
+    Logger.logger.info(s"belonging to groups: ${userGroups.toList}" )
+    (orgsNames.map(Editor.toString+_).toSet intersect userGroups.toSet).nonEmpty
+  }
 
   def isBelongingToOrgAs( request:Request[Any], orgName:String ):Option[Role] ={
     val groups = readCredentialFromRequest(request).groups
     Logger.logger.info(s"belonging to groups: ${groups.toList}" )
 
     Role.pickRole(groups,orgName)
+  }
+
+  def getUserGroups( request:Request[Any]):Option[String] ={
+    val groups = readCredentialFromRequest(request).groups
+    Logger.logger.info(s"belonging to groups: ${groups.toList}" )
+
+    Some(groups.mkString("|"))
   }
 
 }

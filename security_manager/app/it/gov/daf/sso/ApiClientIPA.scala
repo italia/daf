@@ -399,9 +399,10 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
         Right(
           IpaGroup(
             (result \ "dn").asOpt[String].getOrElse(""),
+            (result \ "memberof_group").asOpt[Seq[String]],
+            (result \ "member_group").asOpt[Seq[String]],
             (result \ "gidnumber") (0).asOpt[String],
-            (result \ "member_user").asOpt[Seq[String]],
-            (result \ "member_group").asOpt[Seq[String]]
+            (result \ "member_user").asOpt[Seq[String]]
           )
         )
     }
@@ -415,7 +416,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
   }
 
 
-  def isEmptyGroup(groupCn:String):Future[Either[Error,Success]] ={
+  def testGroupForDeletion(groupCn:String):Future[Either[Error,Success]] ={
 
     showGroup(groupCn) map{
       case Right(r) =>  if( r.member_user.nonEmpty && r.member_user.get.exists(userName => !(userName.endsWith(service.ORG_REF_USER_POSTFIX)|| userName.endsWith(service.WRK_REF_USER_POSTFIX))) )

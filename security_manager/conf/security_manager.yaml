@@ -885,6 +885,10 @@ definitions:
         type: array
         items:
           type: string
+      memberof_group:
+        type: array
+        items:
+          type: string
   Group:
     type: object
     required:

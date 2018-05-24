@@ -111,7 +111,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
     val result = for {
 
-      a <- stepOver( Try{apiClientIPA.isEmptyGroup(groupCn)} )
+      a <- stepOver( Try{apiClientIPA.testGroupForDeletion(groupCn)} )
       dbId <- stepOverF( Try{supersetApiClient.findDatabaseId(toSupersetDS(groupCn))} )
       b <- stepOver( Try{supersetApiClient.checkDbTables(dbId)} )
       c <- EitherT( hardDeleteDafOrganization(groupCn) )
@@ -198,6 +198,28 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
     } yield e
 
     result.value
+  }
+
+  def deleteDafWorkgroup(groupCn:String):Future[Either[Error,Success]] = {
+
+    val result = for {
+      // TODO test user org role
+      a <- stepOver( Try{apiClientIPA.testGroupForDeletion(groupCn)} )
+      dbId <- stepOverF( Try{supersetApiClient.findDatabaseId(toSupersetDS(groupCn))} )
+      b <- stepOver( Try{supersetApiClient.checkDbTables(dbId)} )
+      c <- EitherT( hardDeleteDafWorkgroup(groupCn) )
+
+    } yield c
+
+    result.value.map{
+      case Right(r) => Right( Success(Some("Workgroup deleted"), Some("ok")) )
+      case Left(l) => if( l.steps == 0 )
+        Left(l.error)
+      else
+        throw new Exception( s"deleteDafWorkgroup process issue: process steps=${l.steps}" )
+
+    }
+
   }
 
   // only setup freeIPA and Superset

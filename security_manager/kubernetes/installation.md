@@ -14,5 +14,5 @@ For this reason, when executing the following steps, replace \<environment\> wit
 3. `sbt docker:publish` to compile and push the docker image on Nexus
 4. cd `kubernetes` 
 5. `./config-map-<environment>.sh` to create config map
-6. `./kubectl create -f daf_security_manager.yaml` to deploy the containers in kubernetes
+6. `./kubectl create -f daf_security_manager_<environment>.yaml` to deploy the containers in kubernetes
 7. Setup user and groups and test installation accordingly to this guide: https://github.com/italia/daf/blob/master/infrastructure/pages/security.md

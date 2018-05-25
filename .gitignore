@@ -7,8 +7,8 @@ logs
 */build
 */conf/prodExt.conf
 */conf/testExt.conf
-security_manager/conf/productionLocal.conf
-security_manager/conf/testLocal.conf
+*/conf/prodLocal.conf
+*/conf/testLocal.conf
 iot_ingestion_manager/common/src/generated
 .ipynb_checkpoints
 catalog_manager/conf/cluster_application.conf

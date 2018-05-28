@@ -600,7 +600,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
     val result = for{
       orgs <- EitherT(organizationList)
-      wrks <- EitherT(workroupList)
+      wrks <- EitherT(workgroupList)
       out <- EitherT(performFindUser(Left(userId),wrks,orgs) )
     } yield out
 
@@ -752,7 +752,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
     val result = for{
       orgs <- EitherT(organizationList)
-      wrks <- EitherT(workroupList)
+      wrks <- EitherT(workgroupList)
       out <- EitherT( performFindUser(Left(mail),wrks,orgs) )
     } yield out
 
@@ -815,7 +815,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
   }*/
 
   def organizationList():Future[Either[Error,Seq[String]]] = groupList(ORGANIZATIONS_GROUP)
-  def workroupList():Future[Either[Error,Seq[String]]] = groupList(WORKGROUPS_GROUP)
+  def workgroupList():Future[Either[Error,Seq[String]]] = groupList(WORKGROUPS_GROUP)
   def roleList():Future[Either[Error,Seq[String]]] = groupList(ROLES_GROUP)
 
   private def groupList(memberOf:String):Future[Either[Error,Seq[String]]]={

@@ -44,7 +44,7 @@ import cats.implicits._
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -126,7 +126,17 @@ package security_manager.yaml {
         }
         val userdelDAFworkgroup = userdelDAFworkgroupAction { (payload: UserAndGroup) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.userdelDAFworkgroup
-            NotImplementedYet
+          execInContext[Future[UserdelDAFworkgroupType[T] forSome { type T }]] ("userdelDAFworkgroup") { () =>
+            val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
+
+            if (CredentialManager.isOrgAdmin(currentRequest, payload.groupCn) || CredentialManager.isDafSysAdmin(currentRequest))
+              integrationService.removeUserFromWorkgroup(payload.groupCn, payload.userId) flatMap {
+                case Right(success) => UserdelDAFworkgroup200(success)
+                case Left(err) => UserdelDAFworkgroup500(err)
+              }
+            else
+              UserdelDAFworkgroup500(Error(Option(1), Some("Permissions required"), None))
+          }
             // ----- End of unmanaged code area for action  Security_managerYaml.userdelDAFworkgroup
         }
         val createDAForganization = createDAForganizationAction { (organization: DafGroup) =>  
@@ -159,7 +169,12 @@ package security_manager.yaml {
         }
         val listDAFworkgroup = listDAFworkgroupAction {  _ =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.listDAFworkgroup
-            NotImplementedYet
+          execInContext[Future[ListDAFworkgroupType[T] forSome { type T }]] ("listDAFworkgroup"){ () =>
+            apiClientIPA.workgroupList() flatMap {
+              case Right(success) => ListDAFworkgroup200(StringList(success))
+              case Left(err) => ListDAFworkgroup500(err)
+            }
+          }
             // ----- End of unmanaged code area for action  Security_managerYaml.listDAFworkgroup
         }
         val deleteDAForganization = deleteDAForganizationAction { (orgName: String) =>  
@@ -405,7 +420,7 @@ package security_manager.yaml {
         }
         val listDAForganization = listDAForganizationAction {  _ =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.listDAForganization
-            execInContext[Future[ListDAForganizationType[T] forSome { type T }]] ("listDAForganization"){ () =>
+          execInContext[Future[ListDAForganizationType[T] forSome { type T }]] ("listDAForganization"){ () =>
             apiClientIPA.organizationList() flatMap {
               case Right(success) => ListDAForganization200(StringList(success))
               case Left(err) => ListDAForganization500(err)
@@ -456,7 +471,7 @@ package security_manager.yaml {
         }
         val useraddDAFworkgroup = useraddDAFworkgroupAction { (payload: UserAndGroup) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.useraddDAFworkgroup
-            execInContext[Future[UseraddDAFworkgroupType[T] forSome { type T }]] ("useraddDAFworkgroup") { () =>
+          execInContext[Future[UseraddDAFworkgroupType[T] forSome { type T }]] ("useraddDAFworkgroup") { () =>
             val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
 
             if (CredentialManager.isOrgAdmin(currentRequest, payload.groupCn) || CredentialManager.isDafSysAdmin(currentRequest))

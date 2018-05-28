@@ -18,3 +18,19 @@ spec:
         backend:
           serviceName: ontonehub
           servicePort: 8000
+      - path: /lode
+        backend:
+          serviceName: ontopia
+          servicePort: 9999
+      - path: /lodview
+        backend:
+          serviceName: ontopia
+          servicePort: 8080
+      - path: /webvowl
+        backend:
+          serviceName: ontopia
+          servicePort: 8080
+      - path: /sparql
+        backend:
+          serviceName: ontopia
+          servicePort: 8890

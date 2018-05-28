@@ -35,6 +35,8 @@ scalacOptions ++= Seq(
   "-Xfuture"
 )
 
+val commonVersion = sys.env.get("COMMON_VERSION").getOrElse("1.0-alpha.1")
+
 lazy val core = RootProject(file("../core"))
 
 lazy val root = (project in file("."))
@@ -42,7 +44,7 @@ lazy val root = (project in file("."))
     organization := "it.gov.daf",
     name := "daf-storage-manager",
     scalaVersion := "2.11.12",
-    version in ThisBuild := sys.env.getOrElse("STORAGE_MANAGER_VERSION", "1.0.0-SNAPSHOT"),
+    version in ThisBuild := sys.env.getOrElse("STORAGE_MANAGER_VERSION", "1.0-alpha.1"),
     libraryDependencies ++= Seq(
       "ch.qos.logback" % "logback-classic" % "1.2.3" % Test,
       cache,
@@ -51,7 +53,7 @@ lazy val root = (project in file("."))
       specs2 % Test,
       "io.swagger" %% "swagger-play2" % "1.5.3",
       "com.typesafe.play" %% "play-json" % playVersion,
-      "it.gov.daf" %% "common" % "1.0.2-SNAPSHOT",
+      "it.gov.daf" %% "common" % commonVersion,
       "org.scalatest" %% "scalatest" % "3.0.4" % "test",
       "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % "test",
       "com.github.pathikrit" %% "better-files" % betterFilesVersion % Test,

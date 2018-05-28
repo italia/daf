@@ -75,15 +75,12 @@ class DatasetController @Inject()(
     authorizations = Array(new Authorization(value = "basicAuth")),
     protocols = "https, http"
   )
-  def getSchema(
-                 @ApiParam(value = "the uri to access the dataset", required = true) uri: String
-               ): Action[AnyContent] =
-    Action {
-      CheckedAction(exceptionManager orElse hadoopExceptionManager) {
-        HadoopDoAsAction {
-          request =>
-            log.info(s"processing request=${request.method} for schema")
-            val auth = request.headers.get("Authorization").getOrElse("NO Authorization")
+  def getSchema(@ApiParam(value = "the uri to access the dataset", required = true)
+                uri: String): Action[AnyContent] = Action {
+    CheckedAction(exceptionManager orElse hadoopExceptionManager) {
+      HadoopDoAsAction { request =>
+          log.info(s"processing request=${request.method} for schema")
+          val auth = request.headers.get("Authorization").getOrElse("NO Authorization")
 //            val res = datasetService.schema(auth, uri).map { st =>
 //              log.info(s"response request=${request.method} with value=$st")
 //              Ok(st.prettyJson)
@@ -93,20 +90,19 @@ class DatasetController @Inject()(
 //                  log.error(s"processing request=${request.method} with uri=$uri error=${ex.getMessage}", ex)
 //                  BadRequest(ex.getMessage).as(JSON)
 //              }
-            val res = datasetService.schema(auth, uri) match {
-              case Success(st) =>
-                log.info(s"response request=${request.method} with value=$st")
-                Ok(st.prettyJson)
-              case Failure(ex) =>
-                log.error(s"processing request=${request.method} with uri=$uri error=${ex.getMessage}", ex)
-                BadRequest(ex.getMessage).as(JSON)
-            }
+          datasetService.schema(auth, uri) match {
+            case Success(st) =>
+              log.info(s"response request=${request.method} with value=$st")
+              Ok(st.prettyJson)
+            case Failure(ex) =>
+              log.error(s"processing request=${request.method} with uri=$uri error=${ex.getMessage}", ex)
+              BadRequest(ex.getMessage).as(JSON)
+          }
 
-            //Await.result(res, Duration.Inf);
-            res
-        }
+          //Await.result(res, Duration.Inf);
       }
     }
+  }
 
   @ApiOperation(
     value = "Get a dataset based on the dataset id",
@@ -115,29 +111,25 @@ class DatasetController @Inject()(
     authorizations = Array(new Authorization(value = "basicAuth")),
     protocols = "https, http"
   )
-  def getDataset(
-                  @ApiParam(value = "the uri to access the dataset", required = true) uri: String
-                ): Action[AnyContent] =
-    Action {
-      CheckedAction(exceptionManager orElse hadoopExceptionManager) {
-        HadoopDoAsAction {
-          request =>
-            log.info(s"processing request=${request.method} with uri=$uri")
-            val auth = request.headers.get("Authorization").getOrElse("NO Authorization")
-            val res = datasetService.data(auth, uri) match {
-              case Success(df) =>
-                val records = s"[${df.toJSON.collect().mkString(",")}]"
-                log.info(s"response request=${request.method} with records=$records")
-                df.unpersist()
-              Ok(records)
-              case Failure(ex) =>
-                  log.error(s"processing request=${request.method} with uri=$uri error=${ex.getMessage}", ex)
-                  BadRequest(ex.getMessage).as(JSON)
-              }
-            res
+  def getDataset(@ApiParam(value = "the uri to access the dataset", required = true)
+                 uri: String): Action[AnyContent] = Action {
+    CheckedAction(exceptionManager orElse hadoopExceptionManager) {
+      HadoopDoAsAction { request =>
+        log.info(s"processing request=${request.method} with uri=$uri")
+        val auth = request.headers.get("Authorization").getOrElse("NO Authorization")
+        datasetService.data(auth, uri) match {
+          case Success(df) =>
+            val records = s"[${df.toJSON.collect().mkString(",")}]"
+            log.info(s"response request=${request.method} with records=$records")
+            df.unpersist()
+            Ok(records)
+          case Failure(ex) =>
+              log.error(s"processing request=${request.method} with uri=$uri error=${ex.getMessage}", ex)
+              BadRequest(ex.getMessage).as(JSON)
         }
       }
     }
+  }
 
   @ApiOperation(
     value = "Get a dataset based on the dataset id",

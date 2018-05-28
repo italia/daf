@@ -47,14 +47,22 @@ class CacheWrapper(cookieTtlMin:Option[Long], credentialTtlMin:Option[Long]) {
   //private def delete(key:String) = remove(key)
   //private def put(key:String,value:String,d:Duration) = sync.cachingWithTTL(key)(d){value}
 
-  def getCookie(appName:String,userName:String):Option[Cookie] = sync.get(appName+"-"+userName)
-  def getCookies(appName:String,userName:String):Option[Seq[Cookie]] = sync.get(appName+"-"+userName+"multi")
-  def getPwd(user:String):Option[String] = sync.get(user)
-  def putCookie(appName:String,userName:String,cookie:Cookie) = sync.cachingWithTTL(appName+"-"+userName)(cookieTtlMin.get.minutes){cookie}
-  def putCookies(appName:String,userName:String,cookies:Seq[Cookie]) = sync.cachingWithTTL(appName+"-"+userName+"multi")(cookieTtlMin.get.minutes){cookies}
-  def putCredentials(user:String,pwd:String) = sync.cachingWithTTL(user)(credentialTtlMin.get.minutes){pwd}  //TTL must be equal to jwt expiration
-  def deleteCookie(appName:String,userName:String)= remove(appName+"-"+userName)
-  def deleteCookies(appName:String,userName:String)= remove(appName+"-"+userName+"multi")
+  def getCookie(appName: String, userName: String): Option[Cookie] = sync.get(s"$appName-$userName")
+
+  def getCookies(appName: String, userName: String): Option[Seq[Cookie]] = sync.get(s"$appName-${userName}multi")
+
+  def getPwd(user:String): Option[String] = sync.get(user)
+
+  def putCookie(appName: String, userName: String, cookie: Cookie) = sync.cachingWithTTL(s"$appName-$userName")(cookieTtlMin.get.minutes){cookie}
+
+  def putCookies(appName: String, userName: String, cookies: Seq[Cookie]) = sync.cachingWithTTL(s"$appName-${userName}multi")(cookieTtlMin.get.minutes){ cookies }
+
+  def putCredentials(user: String, pwd: String) = sync.cachingWithTTL(user)(credentialTtlMin.get.minutes){ pwd }  //TTL must be equal to jwt expiration
+
+  def deleteCookie(appName: String, userName: String)= remove(s"$appName-$userName")
+
+  def deleteCookies(appName: String, userName: String)= remove(s"$appName-${userName}multi")
+
   def deleteCredentials(user:String) = remove(user)
 
 

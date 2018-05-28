@@ -19,18 +19,18 @@ GET         /storage-manager/swagger.json                       controllers.With
 
 # Home page
 GET         /                                                   controllers.Application.index
-#POST        /storage-manager/v1/physical-datasets               controllers.StorageController.getDataset
+#POST        /storage-manager/v1/physical-datasets              controllers.StorageController.getDataset
 #(params: Map[String, String])
-#POST        /storage-manager/v1/physical-datasets/schema        controllers.StorageController.getDatasetSchema
+#POST        /storage-manager/v1/physical-datasets/schema       controllers.StorageController.getDatasetSchema
 
 ### NoDocs ###
 GET         /storage-manager/docs/swagger-ui/*file              controllers.Assets.at(path:String="/public/lib/swagger-ui", file:String)
 
-GET         /metrics                         controllers.MetricsController.index
+GET         /metrics                                            controllers.MetricsController.index
 
 ### NoDocs ###
 GET         /storage-manager/*file                              controllers.Assets.versioned(path="/public", file: Asset)
 
-GET         /dataset-manager/v1/dataset/:uri                    controllers.DatasetController.getDataset(uri: String)
+GET         /dataset-manager/v1/dataset/:uri                    controllers.DatasetController.getDataset(uri: String, format: String ?= "csv")
 GET         /dataset-manager/v1/dataset/:uri/schema             controllers.DatasetController.getSchema(uri: String)
 POST        /dataset-manager/v1/dataset/:uri/search             controllers.DatasetController.queryDataset(uri: String)

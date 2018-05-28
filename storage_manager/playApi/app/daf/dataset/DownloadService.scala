@@ -20,7 +20,10 @@ import java.io.InputStream
 
 import it.teamdigitale.filesystem.{ DirectoryInfo, FileInfo, MergeStrategies, PathInfo, StringPathSyntax }
 import org.apache.hadoop.fs.FileSystem
+import org.apache.hadoop.fs.permission.FsAction
+import org.apache.hadoop.security.UserGroupInformation
 
+import scala.collection.JavaConverters._
 import scala.util.{ Failure, Success, Try }
 
 /**

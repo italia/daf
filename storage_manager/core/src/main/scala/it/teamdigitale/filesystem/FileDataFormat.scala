@@ -4,6 +4,10 @@ sealed trait FileDataFormat extends FileFormat
 
 case object RawFileFormat extends FileDataFormat with NoExtensions with NoCompression
 
+case object CsvFileFormat extends FileDataFormat with SingleExtension with NoCompression {
+  val extension = "csv"
+}
+
 case object ParquetFileFormat extends FileDataFormat {
   val extensions = Set("parq", "parquet")
   val compressionRatio = 0.59
@@ -27,6 +31,8 @@ object FileDataFormats {
 
   def json: FileDataFormat    = JsonFileFormat
 
+  def csv: FileDataFormat     = CsvFileFormat
+
   def avro: FileDataFormat    = AvroFileFormat
 
   def isValid(format: String) = validExtensions contains format
@@ -35,6 +41,7 @@ object FileDataFormats {
     if      (parquet.extensions contains candidate) Some { parquet }
     else if (json.extensions    contains candidate) Some { json }
     else if (avro.extensions    contains candidate) Some { avro }
+    else if (csv.extensions     contains candidate) Some { csv }
     else if (candidate.isEmpty) Some { raw }
     else None
 

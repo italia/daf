@@ -79,7 +79,7 @@ class FileExportJobSpec extends WordSpec with Matchers with BeforeAndAfterAll wi
           { inputDir / "json" }.asUriString,
           { outputDir / "json-csv" }.asUriString,
           JsonFileFormat,
-          RawFileFormat
+          CsvFileFormat
         ).call { new TestExportJobContext(sparkSession) }.asHadoop should be { outputDir / "json-csv" }
       }
 
@@ -102,7 +102,7 @@ class FileExportJobSpec extends WordSpec with Matchers with BeforeAndAfterAll wi
           { inputDir / "parq" }.asUriString,
           { outputDir / "parq-csv" }.asUriString,
           ParquetFileFormat,
-          RawFileFormat
+          CsvFileFormat
         ).call { new TestExportJobContext(sparkSession) }.asHadoop should be { outputDir / "parq-csv" }
       }
 

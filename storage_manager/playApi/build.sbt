@@ -35,7 +35,7 @@ scalacOptions ++= Seq(
   "-Xfuture"
 )
 
-val commonVersion = sys.env.get("COMMON_VERSION").getOrElse("1.0-alpha.1")
+val commonVersion = sys.env.getOrElse("COMMON_VERSION", "1.0-alpha.1")
 
 lazy val core = RootProject(file("../core"))
 
@@ -47,21 +47,20 @@ lazy val root = (project in file("."))
     version in ThisBuild := sys.env.getOrElse("STORAGE_MANAGER_VERSION", "1.0-alpha.1"),
     autoAPIMappings := true,
     libraryDependencies ++= Seq(
-      "ch.qos.logback" % "logback-classic" % "1.2.3" % Test,
-      cache,
-      ws,
-      "org.webjars" % "swagger-ui" % swaggerUiVersion,
-      specs2 % Test,
-      "io.swagger" %% "swagger-play2" % "1.5.3",
-      "com.typesafe.play" %% "play-json" % playVersion,
-      "it.gov.daf" %% "common" % commonVersion,
-      "org.scalatest" %% "scalatest" % "3.0.4" % "test",
-      "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % "test",
-      "com.github.pathikrit" %% "better-files" % betterFilesVersion % Test,
-      "io.prometheus" % "simpleclient" % "0.1.0",
-      "io.prometheus" % "simpleclient_hotspot" % "0.1.0",
-      "io.prometheus" % "simpleclient_common" % "0.1.0",
-      "org.scalaj" %% "scalaj-http" % "2.3.0"
+      "com.typesafe.play"      %% "play-cache"           % playVersion,
+      "com.typesafe.play"      %% "play-ws"              % playVersion,
+      "com.typesafe.play"      %% "play-json"            % playVersion,
+      "org.webjars"             % "swagger-ui"           % swaggerUiVersion,
+      "io.swagger"             %% "swagger-play2"        % "1.5.3",
+      "io.prometheus"           % "simpleclient"         % "0.1.0",
+      "io.prometheus"           % "simpleclient_hotspot" % "0.1.0",
+      "io.prometheus"           % "simpleclient_common"  % "0.1.0",
+      "org.scalaj"             %% "scalaj-http"          % "2.3.0",
+      "ch.qos.logback"          % "logback-classic"      % "1.2.3"            % Test,
+      "com.typesafe.play"      %% "play-specs2"          % playVersion        % Test,
+      "org.scalatest"          %% "scalatest"            % "3.0.4"            % Test,
+      "org.scalatestplus.play" %% "scalatestplus-play"   % "2.0.1"            % Test,
+      "com.github.pathikrit"   %% "better-files"         % betterFilesVersion % Test
     ).map(_.exclude("org.slf4j", "*")) ++ hbaseLibrariesTEST.map(_.exclude("org.slf4j", "*")),
 
     resolvers ++= Seq(
@@ -73,7 +72,7 @@ lazy val root = (project in file("."))
   )
   .enablePlugins(PlayScala, AutomateHeaderPlugin, DockerPlugin)
   .aggregate(core)
-  .dependsOn(core)
+  .dependsOn(core % "compile->compile;test->test")
 
 val hadoopHBaseExcludes =
   (moduleId: ModuleID) => moduleId.
@@ -157,3 +156,5 @@ publishTo := {
 }
 
 credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
+
+parallelExecution in Test := false

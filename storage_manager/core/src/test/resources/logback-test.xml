@@ -1,6 +1,5 @@
 <configuration>
     <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator"/>
-    <logger name="org.codehaus.janino" level="WARN"/>
 
     <conversionRule conversionWord="coloredLevel" converterClass="play.api.libs.logback.ColoredLevel"/>
 
@@ -10,11 +9,10 @@
         </encoder>
     </appender>
 
-    <logger name="play" level="ERROR"/>
     <logger name="application" level="INFO"/>
-    <logger name="org.asynchttpclient.netty" level="ERROR" />
-
-
+    <logger name="controllers" level="DEBUG"/>
+    <logger name="it.teamdigitale" level="DEBUG" />
+    <logger name="it.gov" level="DEBUG" />
 
     <root level="ERROR">
         <appender-ref ref="STDOUT"/>

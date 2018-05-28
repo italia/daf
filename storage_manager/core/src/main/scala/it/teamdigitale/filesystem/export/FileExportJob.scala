@@ -31,14 +31,14 @@ class FileExportJob(val from: FileExportInfo, val to: FileExportInfo) extends Jo
     .option("delimiter", csvDelimiter)
 
   private def read(session: SparkSession) = from match {
-    case FileExportInfo(path, RawFileFormat)     => prepareCsvReader(session.read).csv(path)
-    case FileExportInfo(path, ParquetFileFormat) => session.read.parquet(path)
-    case FileExportInfo(path, JsonFileFormat)    => session.read.json(path)
-    case FileExportInfo(_, unsupported)          => throw new IllegalArgumentException(s"Input file format [$unsupported] is invalid")
+    case FileExportInfo(path, RawFileFormat | CsvFileFormat) => prepareCsvReader(session.read).csv(path)
+    case FileExportInfo(path, ParquetFileFormat)             => session.read.parquet(path)
+    case FileExportInfo(path, JsonFileFormat)                => session.read.json(path)
+    case FileExportInfo(_, unsupported)                      => throw new IllegalArgumentException(s"Input file format [$unsupported] is invalid")
   }
 
   private def write(data: DataFrame) = to match {
-    case FileExportInfo(path, RawFileFormat)  => prepareCsvWriter(data.write).csv(path)
+    case FileExportInfo(path, CsvFileFormat)  => prepareCsvWriter(data.write).csv(path)
     case FileExportInfo(path, JsonFileFormat) => data.write.json(path)
     case FileExportInfo(_, unsupported)       => throw new IllegalArgumentException(s"Output file format [$unsupported] is invalid")
   }

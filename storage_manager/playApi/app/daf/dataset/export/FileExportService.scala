@@ -1,30 +1,40 @@
-package daf.dataset.export
+/*
+ * Copyright 2017 TEAM PER LA TRASFORMAZIONE DIGITALE
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import java.util.Properties
+package daf.dataset.export
 
 import akka.actor.ActorRefFactory
 import akka.pattern.ask
 import akka.routing.RoundRobinPool
-import it.gov.daf.common.config._
+import akka.util.Timeout
+import config.FileExportConfig
 import it.teamdigitale.filesystem._
 import org.apache.hadoop.fs.{ FileSystem, Path }
 import org.apache.livy.client.http.HttpClientFactory
-import play.api.Configuration
 
 import scala.concurrent.Future
-import scala.concurrent.duration._
 import scala.util.{ Failure, Success }
 
-class FileExportService(configuration: Configuration)(implicit actorRefFactory: ActorRefFactory, fileSystem: FileSystem) {
+class FileExportService(fileExportConfig: FileExportConfig)(implicit actorRefFactory: ActorRefFactory, fileSystem: FileSystem) {
 
-  private val livyConfig = FileExportServiceConfig.reader.read(configuration) match {
-    case Success(config) => config
-    case Failure(error)  => throw ConfigReadException("Unable to read export configuration", error)
-  }
+  private implicit val askTimeout = Timeout.durationToTimeout { fileExportConfig.exportTimeout }
 
   private val exportRouter = actorRefFactory.actorOf {
-    RoundRobinPool(livyConfig.numSessions).props {
-      FileExportActor.props(new HttpClientFactory, livyConfig)
+    RoundRobinPool(fileExportConfig.numSessions).props {
+      FileExportActor.props(new HttpClientFactory, fileExportConfig)
     }
   }
 
@@ -38,46 +48,18 @@ class FileExportService(configuration: Configuration)(implicit actorRefFactory: 
       case unexpectedValue           => Future.failed { new IllegalArgumentException(s"Unexpected value received from export service; expected a Try[String], but received [$unexpectedValue]") }
     }
 
-}
-
-case class FileExportServiceConfig(numSessions: Int,
-                                   exportPath: String,
-                                   livyUrl: String,
-                                   livyProperties: Properties)
-
-private object FileExportServiceConfig {
-
-  private def readExport = Read.config("export").!
-
-  private def readLivyProperties(props: Properties = new Properties()) = for {
-    connectionTimeout   <- Read.time    { "client.http.connection.timeout"        } default 10.seconds
-    socketTimeout       <- Read.time    { "client.http.connection.socket.timeout" } default 5.minutes
-    idleTimeout         <- Read.time    { "client.http.connection.idle.timeout"   } default 5.minutes
-    compressionEnabled  <- Read.boolean { "client.http.content.compress.enable"   } default true
-    initialPollInterval <- Read.time    { "client.http.job.initial_poll_interval" } default 100.milliseconds
-    maxPollInterval     <- Read.time    { "client.http.job.max_poll_interval"     } default 5.seconds
-  } yield {
-    props.setProperty("livy.client.http.connection.timeout",        s"${connectionTimeout.toSeconds}s")
-    props.setProperty("livy.client.http.connection.socket.timeout", s"${socketTimeout.toMinutes}m")
-    props.setProperty("livy.client.http.connection.idle.timeout",   s"${idleTimeout.toMinutes}m")
-    props.setProperty("livy.client.http.content.compress.enable",   compressionEnabled.toString)
-    props.setProperty("livy.client.http.job.initial-poll-interval", s"${initialPollInterval.toMillis}ms")
-    props.setProperty("livy.client.http.job.max-poll-interval",     s"${maxPollInterval.toSeconds}s")
-    props
+  def export(info: PathInfo, toFormat: FileDataFormat): Future[String] = info match {
+    case dirInfo: DirectoryInfo if dirInfo.hasMixedFormats      => Future.failed {
+      new IllegalArgumentException(s"Unable to prepare export: directory [${dirInfo.path.getName}] has mixed formats")
+    }
+    case dirInfo: DirectoryInfo if dirInfo.hasMixedCompressions => Future.failed {
+      new IllegalArgumentException(s"Unable to prepare export: directory [${dirInfo.path.getName}] has mixed compressions")
+    }
+    case dirInfo: DirectoryInfo if dirInfo.isEmpty              => Future.failed {
+      new IllegalArgumentException(s"Unable to prepare export: directory [${dirInfo.path.getName}] is empty")
+    }
+    case dirInfo: DirectoryInfo                                 => export(dirInfo.path, dirInfo.fileFormats.head, toFormat) // .head is guarded by .isEmpty
+    case fileInfo: FileInfo                                     => export(fileInfo.path, fileInfo.format, toFormat)
   }
-
-  private def readValues = for {
-    numSessions    <- Read.int    { "num_sessions" } default 1
-    exportPath     <- Read.string { "export_path"  }.!
-    livyUrl        <- Read.string { "livy.url"     }.!
-    livyProperties <- readLivyProperties()
-  } yield FileExportServiceConfig(
-    numSessions    = numSessions,
-    exportPath     = exportPath,
-    livyUrl        = livyUrl,
-    livyProperties = livyProperties
-  )
-
-  def reader = readExport ~> readValues
 
 }

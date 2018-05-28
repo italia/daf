@@ -1,16 +1,29 @@
+/*
+ * Copyright 2017 TEAM PER LA TRASFORMAZIONE DIGITALE
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package controllers
+
+import akka.stream.ActorMaterializer
+
+import controllers.modules.TestAbstractModule
+import it.teamdigitale.instances._
+import org.scalatest._
 
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, ExecutionContext, Future }
-
-import com.google.inject.Inject
-
-import controllers.modules.TestAbstractModule
-
-import it.teamdigitale.instances._
-
-import org.scalatest._
-import org.pac4j.play.store.PlaySessionStore
 
 class AbstractControllerSpec extends TestAbstractModule
   with WordSpecLike
@@ -20,11 +33,11 @@ class AbstractControllerSpec extends TestAbstractModule
   with AkkaInstance
   with SparkSessionInstance {
 
-  @Inject protected var sessionStoreInstance: PlaySessionStore = _
+  implicit lazy val executionContext = actorSystem.dispatchers.lookup("akka.actor.test-dispatcher")
 
-  implicit lazy val executionContext = system.dispatchers.lookup("akka.actor.test-dispatcher")
+  protected implicit lazy val materializer = ActorMaterializer.create { actorSystem }
 
-  private def withController[U](f: TestController => U) = f { new TestController(configuration, sessionStore, sparkSession, system) }
+  private def withController[U](f: TestController => U) = f { new TestController(configuration, sessionStore, sparkSession, actorSystem, executionContext) }
 
   override def beforeAll() = {
     startAkka()

@@ -16,170 +16,78 @@
 
 package controllers
 
+import akka.actor.ActorSystem
 import com.google.inject.Inject
-import io.swagger.annotations._
-import daf.dataset.{DatasetService, Query}
+import api.DatasetControllerAPI
+import daf.dataset.{ BulkDownload, Query }
 import daf.dataset.json._
-import org.apache.spark.streaming.Seconds
+import daf.instance.FileSystemInstance
+import io.swagger.annotations._
+import it.gov.daf.common.config.ConfigReadException
+import it.teamdigitale.filesystem.{ FileDataFormat, FileDataFormats, JsonFileFormat, PathInfo, RawFileFormat }
+import it.teamdigitale.web._
+import org.apache.hadoop.conf.{ Configuration => HadoopConfiguration }
+import org.apache.hadoop.fs.FileSystem
 import org.pac4j.play.store.PlaySessionStore
-import play.api.{Configuration, Logger}
+import play.api.{ Configuration, Logger }
 import play.api.libs.ws.WSClient
 import play.api.mvc._
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.util.{Failure, Success}
+import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.{ Failure, Success, Try }
 
-@Api(value = "dataset-manager")
-class DatasetController @Inject()(
-                                   configuration: Configuration,
-                                   playSessionStore: PlaySessionStore,
-                                   ws: WSClient,
-                                   implicit val ec: ExecutionContext
-                                 ) extends AbstractController(configuration, playSessionStore) {
-
-  private val datasetService = new DatasetService(configuration.underlying, ws)(ec)
+class DatasetController @Inject()(configuration: Configuration,
+                                  playSessionStore: PlaySessionStore,
+                                  protected val ws: WSClient,
+                                  protected val parsers: BodyParsers,
+                                  protected implicit val actorSystem: ActorSystem,
+                                  protected implicit val ec: ExecutionContext)
+  extends AbstractController(configuration, playSessionStore)
+  with DatasetControllerAPI
+  with BulkDownload
+  with FileSystemInstance {
 
   private val log = Logger(this.getClass)
 
-  //  @ApiOperation(
-  //    value = "Get a dataset based on the dataset id",
-  //    produces = "application/json",
-  //    httpMethod = "GET",
-  //    authorizations = Array(new Authorization(value = "basicAuth")),
-  //    protocols = "https, http"
-  //  )
-  //  def getSchema(
-  //    @ApiParam(value = "the uri to access the dataset", required = true) uri: String
-  //  ): Action[AnyContent] = Action.async { implicit request =>
-  //    log.info(s"processing request=${request.method} with uri=$uri")
-  //
-  //    withAuthentication(request) { auth =>
-  //      datasetService.schema(auth, uri)
-  //        .map { st =>
-  //          log.info(s"response request=${request.method} with value=$st")
-  //          Ok(st.prettyJson)
-  //        }
-  //        .recover {
-  //          case ex: Throwable =>
-  //            log.error(s"processing request=${request.method} with uri=$uri error=${ex.getMessage}", ex)
-  //            BadRequest(ex.getMessage).as(JSON)
-  //        }
-  //    }
-  //  }
+  implicit val fileSystem = FileSystem.get(new HadoopConfiguration)
 
-  @ApiOperation(
-    value = "Get a dataset based on the dataset id",
-    produces = "application/json",
-    httpMethod = "GET",
-    authorizations = Array(new Authorization(value = "basicAuth")),
-    protocols = "https, http"
-  )
-  def getSchema(@ApiParam(value = "the uri to access the dataset", required = true)
-                uri: String): Action[AnyContent] = Action {
-    CheckedAction(exceptionManager orElse hadoopExceptionManager) {
-      HadoopDoAsAction { request =>
-          log.info(s"processing request=${request.method} for schema")
-          val auth = request.headers.get("Authorization").getOrElse("NO Authorization")
-//            val res = datasetService.schema(auth, uri).map { st =>
-//              log.info(s"response request=${request.method} with value=$st")
-//              Ok(st.prettyJson)
-//            }
-//              .recover {
-//                case ex: Throwable =>
-//                  log.error(s"processing request=${request.method} with uri=$uri error=${ex.getMessage}", ex)
-//                  BadRequest(ex.getMessage).as(JSON)
-//              }
-          datasetService.schema(auth, uri) match {
-            case Success(st) =>
-              log.info(s"response request=${request.method} with value=$st")
-              Ok(st.prettyJson)
-            case Failure(ex) =>
-              log.error(s"processing request=${request.method} with uri=$uri error=${ex.getMessage}", ex)
-              BadRequest(ex.getMessage).as(JSON)
-          }
+  private val queryJson = parsers.parse.json[Query]
 
-          //Await.result(res, Duration.Inf);
-      }
+  def getSchema(uri: String): Action[AnyContent] = Actions.hadoop(proxyUser).secured { (request, auth, _) =>
+    log.info(s"processing request=${request.method} for schema")
+
+    datasetService.schema(auth, uri) match {
+      case Success(st) =>
+        log.info(s"response request=${request.method} with value=$st")
+        Ok(st.prettyJson)
+      case Failure(ex) =>
+        log.error(s"processing request=${request.method} with uri=$uri error=${ex.getMessage}", ex)
+        BadRequest(ex.getMessage).as(JSON)
     }
   }
 
-  @ApiOperation(
-    value = "Get a dataset based on the dataset id",
-    produces = "application/json",
-    httpMethod = "GET",
-    authorizations = Array(new Authorization(value = "basicAuth")),
-    protocols = "https, http"
-  )
-  def getDataset(@ApiParam(value = "the uri to access the dataset", required = true)
-                 uri: String): Action[AnyContent] = Action {
-    CheckedAction(exceptionManager orElse hadoopExceptionManager) {
-      HadoopDoAsAction { request =>
-        log.info(s"processing request=${request.method} with uri=$uri")
-        val auth = request.headers.get("Authorization").getOrElse("NO Authorization")
-        datasetService.data(auth, uri) match {
-          case Success(df) =>
-            val records = s"[${df.toJSON.collect().mkString(",")}]"
-            log.info(s"response request=${request.method} with records=$records")
-            df.unpersist()
-            Ok(records)
-          case Failure(ex) =>
-              log.error(s"processing request=${request.method} with uri=$uri error=${ex.getMessage}", ex)
-              BadRequest(ex.getMessage).as(JSON)
-        }
-      }
+  def getDataset(uri: String, format: String = "csv"): Action[AnyContent] = Actions.basic.securedAsync { (request, auth, userId) =>
+    log.info(s"processing request=${request.method} with uri=$uri")
+
+    format.toLowerCase match {
+      case FileDataFormats(targetFormat) => bulkDownload(uri, auth, userId, targetFormat)
+      case _                             => Future.successful { Results.BadRequest(s"Invalid download format [$format], must be one of [csv | json]") }
     }
   }
 
-  @ApiOperation(
-    value = "Get a dataset based on the dataset id",
-    produces = "application/json",
-    consumes = "application/json",
-    httpMethod = "POST",
-    authorizations = Array(new Authorization(value = "basicAuth")),
-    protocols = "https, http"
-  )
-  @ApiImplicitParams(Array(
-    new ApiImplicitParam(
-      name = "query",
-      value = "A valid query",
-      required = true,
-      dataType = "daf.dataset.Query",
-      paramType = "body"
-    )
-  ))
-  def queryDataset(
-                    @ApiParam(value = "the uri to access the dataset", required = true) uri: String
-                  ): Action[AnyContent] = Action {
-    CheckedAction(exceptionManager orElse hadoopExceptionManager) {
-      HadoopDoAsAction {
-        request =>
-          log.info(s"processing request=${request.method} with uri=$uri")
-          val auth = request.headers.get("Authorization").getOrElse("NO Authorization");
-          val query = request.body.asJson.map(_.as[Query])
-          val res = query match {
-            case Some(q) =>
-              datasetService.query(auth, uri, q) match {
-            case Success(df) =>
-              val records = s"[${df.toJSON.collect().mkString(",")}]"
-              log.info(s"response request=${request.method} with records=$records")
-              df.unpersist()
-              Ok(records)
-            case Failure(ex) =>
-              log.error(s"processing request=${request.method} with uri=$uri error=${ex.getMessage}", ex)
-              BadRequest(ex.getMessage).as(JSON)
-          }
-            case None =>
-              log.error(s"processing request=${request.method} with uri=$uri error=missing query body")
-              BadRequest("Missing Query Body").as(JSON)
-          }
-          res;
-      }
+  def queryDataset(uri: String): Action[Query] = Actions.hadoop(proxyUser).secured(queryJson) { (request, auth, _) =>
+    log.info(s"processing request=${request.method} with uri=$uri")
+
+    datasetService.query(auth, uri, request.body) match {
+      case Success(df) =>
+        val records = s"[${df.toJSON.collect().mkString(",")}]"
+        log.info(s"response request=${request.method} with records=$records")
+        df.unpersist()
+        Ok(records)
+      case Failure(ex) =>
+        log.error(s"processing request=${request.method} with uri=$uri error=${ex.getMessage}", ex)
+        BadRequest(ex.getMessage).as(JSON)
     }
-
   }
-
-
-
 
 }

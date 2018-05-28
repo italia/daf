@@ -14,16 +14,23 @@
  * limitations under the License.
  */
 
-package it.teamdigitale.instances
+package it.gov.daf.common.web
 
-import com.typesafe.config.ConfigFactory
+import scala.language.higherKinds
 
-import play.api.Configuration
+trait Impersonation {
 
-trait ConfigurationInstance {
+  def wrap[F[_], A](action: WebAction[F, A]): String => WebAction[F, A]
 
-  protected val configFile = "test.conf"
+}
 
-  protected val configuration = Configuration { ConfigFactory.load(configFile) }
+object NoImpersonation extends Impersonation {
+
+  def wrap[F[_], A](action: WebAction[F, A]) = { _ => action }
+}
+
+object Impersonations {
+
+  def none: Impersonation = NoImpersonation
 
 }

@@ -16,25 +16,93 @@
 
 package controllers
 
-import com.typesafe.config.ConfigFactory
-import daf.dataset.DatasetService
-import org.scalatest.mockito.MockitoSugar
-import org.scalatestplus.play._
-import play.api.Configuration
+import akka.stream.ActorMaterializer
+import controllers.modules.TestAbstractModule
+import it.teamdigitale.instances.{ AkkaInstance, ConfigurationInstance }
+import org.pac4j.core.profile.{ CommonProfile, ProfileManager }
+import org.pac4j.play.PlayWebContext
+import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
 import play.api.mvc._
-import play.api.test._
-import play.api.test.Helpers._
+import play.api.test.FakeRequest
 
-class DatasetControllerSpec extends PlaySpec with MockitoSugar with Results {
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
-  val mockedDatasetService = mock[DatasetService]
+class DatasetControllerSpec extends TestAbstractModule
+  with WordSpecLike
+  with Matchers
+  with BeforeAndAfterAll
+  with ConfigurationInstance
+  with AkkaInstance {
 
-  val conf = ConfigFactory.load("test.conf")
+  implicit lazy val executionContext = actorSystem.dispatchers.lookup("akka.actor.test-dispatcher")
 
-//  val controller = new DatasetController(new Configuration(conf)){
-//    override val datasetService: DatasetService = mockedDatasetService
-//  }
+  protected implicit lazy val materializer = ActorMaterializer.create { actorSystem }
 
-//  "The dataset manager" should "get schema" in
+  private def withController[U](f: DatasetController => U) = f { new DatasetController(configuration, sessionStore, ws, bodyParsers, actorSystem, executionContext) }
+
+  private def request[A](method: String, uri: String, body: A, authorization: Option[String] = None, headers: Headers = Headers())(action: => Action[A]) = Await.result(
+    action {
+      FakeRequest(
+        method  = method,
+        uri     = uri,
+        body    = body,
+        headers = authorization.fold(headers) { auth => headers.add("Authorization" -> auth) }
+      )
+    },
+    5.seconds
+  )
+
+  private val userProfile = {
+    val profile = new CommonProfile
+    profile.setId("test-user")
+    profile.setRemembered(true)
+    profile
+  }
+
+  private def createSession() = {
+    val context = new PlayWebContext(
+      FakeRequest(
+        method  = "OPTIONS",
+        uri     = "/",
+        body    = AnyContentAsEmpty,
+        headers = Headers()
+      ),
+      sessionStore
+    )
+    val profileManager = new ProfileManager[CommonProfile](context)
+    profileManager.save(true, userProfile, false)
+  }
+
+  override def beforeAll() = {
+    startAkka()
+    createSession()
+  }
+
+  "A Dataset Controller" when {
+
+    "calling bulk download" must {
+
+      "return 401 when the auth header is missing" in withController { controller =>
+        request[AnyContent]("GET", "/dataset-manager/v1/dataset/data/path", AnyContentAsEmpty) {
+          controller.getDataset("data/path", "invalid")
+        }.header.status should be { 401 }
+      }
+
+      "return 400 when format is invalid" in withController { controller =>
+        request[AnyContent]("GET", "/dataset-manager/v1/dataset/data/path", AnyContentAsEmpty, Some("Basic:token")) {
+          controller.getDataset("data/path", "invalid")
+        }.header.status should be { 400 }
+      }
+
+      "return 404 when the data files do not exist" in withController { controller =>
+        request[AnyContent]("GET", "/dataset-manager/v1/dataset/data/path", AnyContentAsEmpty, Some("Basic:token")) {
+          controller.getDataset("data/path", "avro")
+        }.header.status should be { 404 }
+      }
+
+    }
+
+  }
 
 }

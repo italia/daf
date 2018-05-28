@@ -26,7 +26,7 @@ name := "common"
 
 Seq(gitStampSettings: _*)
 
-version in ThisBuild := sys.env.get("COMMON_VERSION").getOrElse("1.0.8-SNAPSHOT")
+version in ThisBuild := sys.env.getOrElse("COMMON_VERSION", "1.0-alpha.1")
 
 //version := "1.0.1-SNAPSHOT"
 
@@ -44,7 +44,7 @@ scalacOptions ++= Seq(
   "-Xfuture"
 )
 
-wartremoverErrors ++= Warts.allBut(Wart.Equals, Wart.ImplicitParameter)
+wartremoverErrors ++= Warts.allBut(Wart.Equals, Wart.ImplicitParameter, Wart.Overloading)
 
 lazy val root = (project in file(".")).enablePlugins(AutomateHeaderPlugin)
 
@@ -61,16 +61,18 @@ val hadoopLibraries = Seq(
 )
 */
 val playLibraries = Seq(
-  "io.swagger" %% "swagger-play2" % "1.5.3",
-  "com.typesafe.play" %% "play-cache" % playVersion,
-  "com.typesafe.play" %% "filters-helpers" % playVersion,
-  "com.typesafe.play" %% "play-ws" % playVersion,
-  "com.github.cb372" %% "scalacache-guava" % "0.9.4",
-  "org.pac4j" % "play-pac4j" % playPac4jVersion,
-  "org.pac4j" % "pac4j-http" % pac4jVersion,
-  "org.pac4j" % "pac4j-jwt" % pac4jVersion exclude("commons-io", "commons-io"),
-  "org.pac4j" % "pac4j-ldap" % pac4jVersion,
-  "commons-codec" % "commons-codec" % "1.11"
+  "io.swagger"        %% "swagger-play2"    % "1.5.3",
+  "org.typelevel"     %% "cats-core"        % catsVersion,
+  "org.typelevel"     %% "cats-effect"      % catsEffectVersion,
+  "com.typesafe.play" %% "play-cache"       % playVersion,
+  "com.typesafe.play" %% "filters-helpers"  % playVersion,
+  "com.typesafe.play" %% "play-ws"          % playVersion,
+  "com.github.cb372"  %% "scalacache-guava" % "0.9.4",
+  "org.pac4j"          % "play-pac4j"       % playPac4jVersion,
+  "org.pac4j"          % "pac4j-http"       % pac4jVersion,
+  "org.pac4j"          % "pac4j-jwt"        % pac4jVersion exclude("commons-io", "commons-io"),
+  "org.pac4j"          % "pac4j-ldap"       % pac4jVersion,
+  "commons-codec"      % "commons-codec"    % "1.11"
 )
 
 //libraryDependencies ++= hadoopLibraries ++ playLibraries

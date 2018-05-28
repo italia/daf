@@ -21,3 +21,4 @@ catalog_manager/conf/cross_spec
 ingestion_manager/conf/
 storage_manager_core
 storage_manager/playApi/conf/production.conf
+storage_manager/core/opendata

@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-package it.teamdigitale.instances
+package daf.instance
 
-import com.typesafe.config.ConfigFactory
+import org.apache.hadoop.fs.FileSystem
 
-import play.api.Configuration
+trait FileSystemInstance {
 
-trait ConfigurationInstance {
-
-  protected val configFile = "test.conf"
-
-  protected val configuration = Configuration { ConfigFactory.load(configFile) }
+  implicit def fileSystem: FileSystem
 
 }

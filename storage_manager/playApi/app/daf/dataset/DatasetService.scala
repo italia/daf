@@ -16,22 +16,25 @@
 
 package daf.dataset
 
+import java.sql.Timestamp
+import java.time.format.DateTimeFormatter
+import java.time.{ LocalDateTime, ZoneOffset }
+import java.util.Date
+
+import akka.stream.scaladsl.Source
 import com.typesafe.config.Config
-import it.teamdigitale.{DatasetOperations, PhysicalDatasetController}
-import daf.catalogmanager.{CatalogManagerClient, MetaCatalog}
+import it.teamdigitale.{ DatasetOperations, PhysicalDatasetController }
+import daf.catalogmanager.{ CatalogManagerClient, MetaCatalog }
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.types.StructType
 import play.api.Logger
-import play.api.libs.json.{JsDefined, JsError, Json}
 import play.api.libs.ws.WSClient
 
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success, Try}
+import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.{ Failure, Success, Try }
 
-class DatasetService(
-  config: Config,
-  ws: WSClient
-)(implicit private val ec: ExecutionContext) {
+class DatasetService(config: Config, ws: WSClient)
+                    (implicit private val ec: ExecutionContext) {
 
   private val catalogClient = new CatalogManagerClient(config.getString("daf.catalog-url"))(ec)
   private val storageClient = PhysicalDatasetController(config)
@@ -39,16 +42,6 @@ class DatasetService(
   private val log = Logger(this.getClass)
 
   def schema(auth: String, uri: String): Try[StructType] = {
-//    catalogClient.datasetCatalogByUid(auth, uri)
-//      .map { mc =>
-//        log.debug(s"dataset catalog result $mc")
-//        mc
-//      }
-//      .flatMap(c => extractParamsF(c).map(_ + ("limit" -> "1")))
-//      .flatMap(params => Future.fromTry(storageClient.get(params)))
-//      .map(_.schema)
-
-
     val mc = catalogClient.datasetCatalogByUid(auth, uri)
     log.debug(s"dataset catalog result $mc")
 
@@ -58,7 +51,26 @@ class DatasetService(
   def data(auth: String, uri: String): Try[DataFrame] = {
     val mc = catalogClient.datasetCatalogByUid(auth, uri)
     log.debug(s"dataset catalog result $mc")
-    extractParams(mc).flatMap(params => storageClient.get(params))
+    extractParams(mc).flatMap { storageClient.get }
+  }
+
+  def jsonData(auth: String, uri: String) = data(auth, uri).map { dataFrame =>
+    Source[String] { dataFrame.toJSON.collect().toList }
+  }
+
+  // TODO: split code without breaking Spark task serialization
+  def csvData(auth: String, uri: String) = data(auth, uri).map { data =>
+    Source[String] {
+      data.schema.fieldNames.map { h => s""""$h"""" }.mkString(",") ::
+      data.rdd.map { row =>
+        row.toSeq.map {
+          case s: String => s""""${s.replaceAll("\"", "\\\"")}""""
+          case t: Timestamp => LocalDateTime.from(t.toInstant).atOffset(ZoneOffset.UTC).format { DateTimeFormatter.ISO_OFFSET_DATE_TIME }
+          case d: Date      => LocalDateTime.from(d.toInstant).atOffset(ZoneOffset.UTC).format { DateTimeFormatter.ISO_OFFSET_DATE }
+          case d            => d.toString
+        }.mkString(",")
+      }.collect().toList
+    }
   }
 
   def query(auth: String, uri: String, query: Query): Try[DataFrame] = {
@@ -69,7 +81,7 @@ class DatasetService(
         //applying select and where
         val df = for {
           selectDf <- DatasetOperations.select(tryDf, query.select.getOrElse(List.empty))
-          whereDf <- DatasetOperations.where(Try(selectDf), query.where.getOrElse(List.empty))
+          whereDf  <- DatasetOperations.where(Try(selectDf), query.where.getOrElse(List.empty))
         } yield whereDf
 
         //applying groupBy

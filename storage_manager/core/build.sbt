@@ -9,12 +9,14 @@ val scalaTestVersion = "3.0.4"
 val betterFilesVersion = "2.17.1"
 val spec2Version = "3.9.5"
 val kuduVersion = "1.4.0-cdh5.12.0"
-val livyClient = "0.5.0-incubating"
+val livyClientVersion = "0.5.0-incubating"
+val catsVersion = "0.9.0"
+val commonVersion = sys.env.getOrElse("COMMON_VERSION", "1.0-alpha.1")
 
 organization := "it.gov.daf"
 name := "daf-storage-manager-common"
 
-version in ThisBuild := sys.env.getOrElse("STORAGE_MANAGER_VERSION", "1.0.8-SNAPSHOT")
+version in ThisBuild := sys.env.getOrElse("STORAGE_MANAGER_VERSION", "1.0-alpha.1")
 
 scalaVersion := "2.11.12"
 
@@ -149,19 +151,22 @@ resolvers ++= Seq(
 
 
 libraryDependencies ++= Seq(
-  "com.typesafe" % "config" % "1.3.1",
-  "org.apache.livy" % "livy-client-http" % livyClient,
-  "org.scalatest" %% "scalatest" % "3.0.4" % "test",
-  "org.scalactic" %% "scalactic" % "3.0.4" % "test",
-  "com.github.pathikrit" %% "better-files" % betterFilesVersion % Test)
-  .map(x => x.exclude("org.scalactic", "scalactic"))
-  .map(x => x.exclude("org.slf4j", "*")) ++
-  sparkLibraries.map(x => x.exclude("org.slf4j", "*")) ++
-  hbaseLibraries.map(x => x.exclude("org.slf4j", "*")) ++
-  kuduLibraries.map(x => x.exclude("org.slf4j", "*")) :+
-  ("org.apache.spark" %% "spark-hive" % sparkVersion % Test) :+
-  ("org.slf4j" % "slf4j-log4j12" % "1.7.25" % Test) :+
-  ("org.slf4j" % "jul-to-slf4j" % "1.7.25" % Test)
+  "com.typesafe"          % "config"           % "1.3.1",
+  "org.typelevel"        %% "cats-core"        % catsVersion,
+  "org.apache.livy"       % "livy-client-http" % livyClientVersion,
+  "it.gov.daf"           %% "common"           % commonVersion,
+  "org.scalatest"        %% "scalatest"        % "3.0.4"            % Test,
+  "org.scalactic"        %% "scalactic"        % "3.0.4"            % Test,
+  "com.github.pathikrit" %% "better-files"     % betterFilesVersion % Test)
+  .map {
+    _.exclude("org.scalactic", "scalactic")
+      .exclude("org.slf4j", "*")
+  } ++
+  { sparkLibraries ++ hbaseLibraries ++ kuduLibraries }
+    .map(x => x.exclude("org.slf4j", "*")) :+
+  ("org.apache.spark" %% "spark-hive"    % sparkVersion % Test) :+
+  ("org.slf4j"         % "slf4j-log4j12" % "1.7.25"     % Test) :+
+  ("org.slf4j"         % "jul-to-slf4j"  % "1.7.25"     % Test)
   //++ logLibraries.map(x => x.exclude("org.slf4j", "*"))
 
 publishTo := {

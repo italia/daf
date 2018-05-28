@@ -1,6 +1,6 @@
 package it.teamdigitale
 
-import java.io.{ BufferedReader, EOFException, InputStream, InputStreamReader }
+import java.io.EOFException
 import java.nio.charset.Charset
 import java.util.Scanner
 

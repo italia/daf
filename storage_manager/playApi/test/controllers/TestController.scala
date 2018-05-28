@@ -1,28 +1,43 @@
+/*
+ * Copyright 2017 TEAM PER LA TRASFORMAZIONE DIGITALE
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package controllers
 
 import akka.actor.ActorSystem
-
+import cats.Id
+import it.gov.daf.common.web.WebAction
+import it.teamdigitale.web.Impersonations
 import org.apache.hadoop.security.UserGroupInformation
 import org.apache.spark.sql.{ DataFrame, SparkSession }
-
 import org.pac4j.play.store.PlaySessionStore
-
 import play.api.Configuration
 import play.api.mvc.{ AnyContent, Request, Result }
 
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.{ Await, ExecutionContext, Future }
 import scala.concurrent.duration._
 import scala.util.{ Failure, Random, Success, Try }
 
-class TestController(val configuration: Configuration,
-                            override val playSessionStore: PlaySessionStore,
-                            val sparkSession: SparkSession,
-                            system: ActorSystem) extends AbstractController(configuration, playSessionStore) {
-
-  implicit lazy val executionContext = system.dispatchers.lookup("akka.actor.test-dispatcher")
+class TestController(override val configuration: Configuration,
+                     override val playSessionStore: PlaySessionStore,
+                     val sparkSession: SparkSession,
+                     protected implicit val system: ActorSystem,
+                     protected implicit val executionContext: ExecutionContext) extends AbstractController(configuration, playSessionStore) {
 
   type GenericAction[A]   = Request[AnyContent] => A
-  type ResultAction       = GenericAction[Result]
+  type ResultAction       = WebAction[Id, AnyContent]
   type FutureAction       = GenericAction[Future[Result]]
 
   private def executeQuery[A](f: DataFrame => A) = f {
@@ -46,13 +61,13 @@ class TestController(val configuration: Configuration,
 
   def withRandomUser[A](action: String => GenericAction[A]): GenericAction[A] = action { s"user-${Random.nextInt(5000)}" }
 
-  def impersonatedAction(action: String => ResultAction): ResultAction = withRandomUser { userId =>
-    doImpersonation { action(userId) } apply userId
+  def impersonatedAction[A](action: String => WebAction[Id, AnyContent]): WebAction[Id, AnyContent] = withRandomUser { userId =>
+    Impersonations.hadoop(proxyUser).wrap { action(userId) } apply userId
   }
 
-  def futureImpersonatedAction(action: String => ResultAction): FutureAction =  withRandomUser { userId => request =>
+  def futureImpersonatedAction(action: String => WebAction[Id, AnyContent]): FutureAction =  withRandomUser { userId => request =>
     Future {
-      doImpersonation { action(userId) } apply userId apply request
+      Impersonations.hadoop(proxyUser).wrap { action(userId) } apply userId apply request
     }
   }
 

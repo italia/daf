@@ -44,7 +44,7 @@ lazy val root = (project in file("."))
     organization := "it.gov.daf",
     name := "daf-storage-manager",
     scalaVersion := "2.11.12",
-    version in ThisBuild := sys.env.getOrElse("STORAGE_MANAGER_VERSION", "1.0-alpha.1"),
+    version in ThisBuild := sys.env.getOrElse("STORAGE_MANAGER_VERSION", "1.0.0-SNAPSHOT"),
     libraryDependencies ++= Seq(
       "ch.qos.logback" % "logback-classic" % "1.2.3" % Test,
       cache,
@@ -67,7 +67,7 @@ lazy val root = (project in file("."))
       Resolver.mavenLocal,
       Resolver.sonatypeRepo("releases"),
       "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos/",
-      "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/"
+      "daf repo" at "http://nexus.daf.teamdigitale.it:8081/repository/maven-public/"
     )
   )
   .enablePlugins(PlayScala, AutomateHeaderPlugin, DockerPlugin)
@@ -145,10 +145,10 @@ dockerCommands := dockerCommands.value.flatMap {
 }
 dockerEntrypoint := Seq(s"bin/${name.value}", "-Dconfig.file=conf/production.conf")
 dockerExposedPorts := Seq(9000)
-dockerRepository := Option("10.98.74.120:5000")
+dockerRepository := Option("nexus.daf.teamdigitale.it")
 
 publishTo := {
-  val nexus = "http://nexus.default.svc.cluster.local:8081/repository/"
+  val nexus = "http://nexus.daf.teamdigitale.it:8081/repository/"
   if (isSnapshot.value)
     Some("snapshots" at nexus + "maven-snapshots/")
   else

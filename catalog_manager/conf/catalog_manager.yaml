@@ -246,6 +246,41 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  "/catalog-ds/ext/add":
+    post:
+      #security:
+      #- basicAuth: []
+      summary: DatasetCatalog
+      description: |
+        The DatasetCatalog for ....
+      tags:
+        - DatasetCatalog
+      operationId: createdatasetcatalogExtOpenData
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+      - name: catalog
+        in: body
+        description: Dataset Catalog
+        required: true
+        schema:
+          $ref: '#/definitions/MetaCatalog'
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            $ref: '#/definitions/Success'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   "/ckan/create/dataset":
     post:
       #security:

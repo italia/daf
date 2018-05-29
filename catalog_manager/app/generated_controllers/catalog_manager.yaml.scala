@@ -118,6 +118,16 @@ package catalog_manager.yaml {
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.getckanorganizationbyid
         }
+        val createdatasetcatalogExtOpenData = createdatasetcatalogExtOpenDataAction { (catalog: MetaCatalog) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalogExtOpenData
+            val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
+            if( CredentialManager.isDafEditor(currentRequest) || CredentialManager.isDafAdmin(currentRequest) ) {
+                val created: Success = ServiceRegistry.catalogService.createCatalogExtOpenData(catalog, Option(credentials.username), ws)
+                CreatedatasetcatalogExtOpenData200(created)
+            }else
+                CreatedatasetcatalogExtOpenData401("Admin or editor permissions required")
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalogExtOpenData
+        }
         val getckandatasetList = getckandatasetListAction {  _ =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.getckandatasetList
             val credentials = CredentialManager.readCredentialFromRequest(currentRequest)

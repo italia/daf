@@ -15,7 +15,7 @@ val playVersion = "2.5.14"
 
 Seq(gitStampSettings: _*)
 
-version in ThisBuild := sys.env.getOrElse("CATALOG_MANAGER_VERSION", "1.0.4-SNAPSHOT")
+version in ThisBuild := sys.env.getOrElse("CATALOG_MANAGER_VERSION", "1.0.4.test-SNAPSHOT")
 
 
 lazy val client = (project in file("client")).
@@ -132,7 +132,7 @@ publishTo in ThisBuild := {
 
 credentials += {if(isStaging) Credentials(Path.userHome / ".ivy2" / ".credentialsTest") else Credentials(Path.userHome / ".ivy2" / ".credentials")}
 
-javaOptions in Test += "-Dconfig.resource=" + System.getProperty("config.resource", "integration.conf")
+javaOptions in Test += "-Dconfig.resource=" + System.getProperty("config.resource", "localConfigs/integration.conf")
 
 
 // Wart Remover Plugin Configuration

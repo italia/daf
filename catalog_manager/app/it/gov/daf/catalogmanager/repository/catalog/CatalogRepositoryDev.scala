@@ -99,6 +99,16 @@ class CatalogRepositoryDev extends CatalogRepository{
 
   }
 
+  def publicCatalogByName(name :String): Option[MetaCatalog] = {
+    // MetaCatalog(datasetCatalog,operational,conversion,dcat)
+    for {
+      dc <- datasetCatalog
+      op <- operational
+      dcatapit <- dcat
+    } yield MetaCatalog(dc, op, dcatapit)
+
+  }
+
   def createCatalog(metaCatalog: MetaCatalog, callingUserid :MetadataCat, ws :WSClient) :Success = {
     Success("Created",None)
   }

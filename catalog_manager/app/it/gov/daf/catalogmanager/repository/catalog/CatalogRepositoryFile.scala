@@ -161,6 +161,38 @@
       }
     }
 
+
+    def publicCatalogByName(name :String): Option[MetaCatalog] = {
+      println(name)
+      println("####################")
+      val file: File = Environment.simple().getFile("data/data-mgt/data_test.json")
+      val lines = scala.io.Source.fromFile(file).getLines()
+      val results: Seq[Option[MetaCatalog]] = lines.map(line => {
+        println(line)
+        val metaCatalogJs = Json.parse(line)
+        println(metaCatalogJs.toString())
+        val metaCatalogResult: JsResult[MetaCatalog] = metaCatalogJs.validate[MetaCatalog]
+        metaCatalogResult match {
+          case s: JsSuccess[MetaCatalog] => Some(s.get)
+          case e: JsError => {
+            println("ERRORE qui!!!!!!!!!!!!!")
+            println(e)
+            None
+          }
+        }
+
+      }).toList.filter( x =>
+        x match {
+          case Some(s) => s.dcatapit.title.equals(name)
+          case None => false
+        })
+
+      results match {
+        case List() => None
+        case _ => results(0)
+      }
+    }
+
     def createCatalogExtOpenData(metaCatalog: MetaCatalog, callingUserid :MetadataCat, ws :WSClient) :Success = {
       import catalog_manager.yaml.ResponseWrites.MetaCatalogWrites
 

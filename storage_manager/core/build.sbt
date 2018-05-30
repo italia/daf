@@ -4,7 +4,6 @@ val sparkVersion = "2.2.0.cloudera1"
 val hadoopVersion = "2.6.0-cdh5.12.0"
 val hbaseVersion = "1.2.0-cdh5.12.0"
 val log4j = "2.9.1"
-val sparkOpenTSDBVersion = "2.0"
 val scalaTestVersion = "3.0.4"
 val betterFilesVersion = "2.17.1"
 val spec2Version = "3.9.5"
@@ -96,7 +95,6 @@ val logLibraries = Seq (
 )
 
 val hbaseLibraries = Seq (
-  "org.apache.spark.opentsdb" %% "spark-opentsdb" % sparkOpenTSDBVersion % "compile" exclude("org.slf4j", "slf4j-log4j12"),
   hbaseExcludes("org.apache.hbase" % "hbase-client" % hbaseVersion % "compile"),
   hbaseExcludes("org.apache.hbase" % "hbase-protocol" % hbaseVersion % "compile"),
   hbaseExcludes("org.apache.hbase" % "hbase-hadoop-compat" % hbaseVersion % "compile"),

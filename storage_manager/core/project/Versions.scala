@@ -8,8 +8,6 @@ object Versions {
 
   val log4j = "2.9.1"
 
-  val sparkOpenTSDBVersion = "2.0"
-
   val scalaTestVersion = "3.0.4"
 
   val betterFilesVersion = "2.17.1"

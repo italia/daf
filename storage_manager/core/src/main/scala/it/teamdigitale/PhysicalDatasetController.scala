@@ -1,30 +1,17 @@
 package it.teamdigitale
+
 import com.typesafe.config.Config
-import org.apache.spark.opentsdb.OpenTSDBContext
-import org.apache.spark.sql.{DataFrame, Row, SparkSession}
-import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.sql.{ DataFrame, SparkSession }
+import org.apache.spark.SparkConf
 import org.slf4j.{Logger, LoggerFactory}
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Try }
 
-/**
- *
- * @param defaultLimit
- * @param defaultChunkSize
- */
-class PhysicalDatasetController(
-  sparkSession: SparkSession,
-  kuduMaster: String,
-  keytab: Option[String] = None,
-  principal: Option[String] = None,
-  keytabLocalTempDir: Option[String] = None,
-  saltwidth: Option[Int] = None,
-  saltbucket: Option[Int] = None,
-  override val defaultLimit: Int = 1000,
-  defaultChunkSize: Int = 0
-) extends DatasetOperations {
+class PhysicalDatasetController(sparkSession: SparkSession,
+                                kuduMaster: String,
+                                override val defaultLimit: Int = 1000,
+                                defaultChunkSize: Int = 0) extends DatasetOperations {
 
-  lazy val openTSDB = new OpenTSDBController(sparkSession, keytab, principal, keytabLocalTempDir, saltwidth, saltbucket)
   lazy val kudu = new KuduController(sparkSession, kuduMaster)
   lazy val hdfs = new HDFSController(sparkSession)
   val logger: Logger = LoggerFactory.getLogger(this.getClass)
@@ -42,15 +29,6 @@ class PhysicalDatasetController(
       else l
 
     params.getOrElse("protocol", "hdfs") match {
-
-      case "opentsdb" =>
-        val metricOp = params.get("metric")
-        val tags = params.get("tags").map(_.asInstanceOf[Map[String, String]]).getOrElse(Map.empty[String, String])
-        val intervalOp = params.get("interval").map(_.asInstanceOf[(Long, Long)])
-        logger.info(s"Reading request for opentsdb with params: metric:$metricOp tags:$tags, interval: $intervalOp")
-
-        val res = metricOp.map(openTSDB.readData(_, tags, intervalOp).map(_.limit(limit)))
-        toTry(res, "Metric should be defined")
 
       case "kudu" =>
 
@@ -115,36 +93,6 @@ object PhysicalDatasetController {
 
     System.setProperty("sun.security.krb5.debug", "true")
 
-    val keytab: Option[String] = getOptionalString("opentsdb.context.keytab", configuration)
-    logger.info(s"OpenTSDBContext Keytab: $keytab")
-
-    val principal: Option[String] = getOptionalString("opentsdb.context.principal", configuration)
-    logger.info(s"OpenTSDBContext Principal: $principal")
-
-    val keytabLocalTempDir: Option[String] = getOptionalString("opentsdb.context.keytablocaltempdir", configuration)
-    logger.info(s"OpenTSDBContext Keytab Local Temp Dir: $keytabLocalTempDir")
-
-    val saltwidth: Option[Int] = getOptionalInt("opentsdb.context.saltwidth", configuration)
-    logger.info(s"OpenTSDBContext SaltWidth: $saltwidth")
-
-    val saltbucket: Option[Int] = getOptionalInt("opentsdb.context.saltbucket", configuration)
-    logger.info(s"OpenTSDBContext SaltBucket: $saltbucket")
-
-    val openTSDBContext: OpenTSDBContext = new OpenTSDBContext(sparkSession)
-    keytabLocalTempDir.foreach(openTSDBContext.keytabLocalTempDir = _)
-    keytab.foreach(openTSDBContext.keytab = _)
-    principal.foreach(openTSDBContext.principal = _)
-    saltwidth.foreach(OpenTSDBContext.saltWidth = _)
-    saltbucket.foreach(OpenTSDBContext.saltBuckets = _)
-
-    new PhysicalDatasetController(
-      sparkSession,
-      kuduMaster,
-      keytab,
-      principal,
-      keytabLocalTempDir,
-      saltwidth,
-      saltbucket
-    )
+    new PhysicalDatasetController(sparkSession, kuduMaster)
   }
 }

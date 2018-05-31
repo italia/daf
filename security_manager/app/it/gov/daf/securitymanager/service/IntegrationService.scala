@@ -261,7 +261,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
   def addUserToOrganization(groupCn:String, userName:String):Future[Either[Error,Success]] = {
 
     val result = for {
-      user <-  stepOverF( Try{apiClientIPA.findUserByUid(userName)} )
+      user <-  stepOverF( Try{apiClientIPA.findUser(Left(userName))} )
       a1<-  stepOver( Try{registrationService.testIfUserBelongsToThisGroup(user,groupCn)} )
       a2 <- step( Try{apiClientIPA.addMembersToGroup(groupCn,User(userName))} )
       supersetUserInfo <- stepOverF( a2, Try{supersetApiClient.findUser(userName)} )
@@ -298,7 +298,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
 
     val result = for {
-      user <- stepOverF(Try{apiClientIPA.findUserByUid(userName)})
+      user <- stepOverF(Try{apiClientIPA.findUser(Left(userName))})
 
       a1 <- step(Try{apiClientIPA.removeMembersFromGroup(groupCn, User(userName))})
 
@@ -346,7 +346,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
   def addUserToWorkgroup(groupCn:String, userName:String):Future[Either[Error,Success]] = {
 
     val result = for {
-      user <-  stepOverF( Try{apiClientIPA.findUserByUid(userName)} )
+      user <-  stepOverF( Try{apiClientIPA.findUser(Left(userName))} )
       a1<-  stepOver( Try{registrationService.testIfUserBelongsToThisGroup(user,groupCn)} )
       a2 <- step( Try{apiClientIPA.addMembersToGroup(groupCn,User(userName))} )
       supersetUserInfo <- stepOverF( a2, Try{supersetApiClient.findUser(userName)} )
@@ -381,7 +381,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
 
     val result = for {
-      user <- stepOverF(Try{apiClientIPA.findUserByUid(userName)})
+      user <- stepOverF(Try{apiClientIPA.findUser(Left(userName))})
 
       a1 <- step(Try{apiClientIPA.removeMembersFromGroup(groupCn, User(userName))})
 

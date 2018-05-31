@@ -7,6 +7,7 @@ import play.api.libs.json.{JsError, JsSuccess, JsValue}
 import security_manager.yaml.{Error, IpaUser, IpaUserMod, Success}
 import cats.implicits._
 import it.gov.daf.sso.{ApiClientIPA, User}
+import it.gov.daf.sso.OPEN_DATA_GROUP
 import play.api.Logger
 
 import scala.concurrent.Future
@@ -47,7 +48,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
     Logger.logger.info("requestResetPwd")
 
     val result = for {
-      user <- EitherT( apiClientIPA.findUserByMail(mail) )
+      user <- EitherT( apiClientIPA.findUser(Right(mail)) )
       b <- EitherT( checkResetPwd(mail) )
       c <- EitherT( wrapFuture0(writeRequestNsendMail(user)(MongoService.writeResetPwdData)) )
     } yield c
@@ -122,7 +123,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   private def checkUser(user:IpaUser):Future[Either[Error,String]] = {
 
-    apiClientIPA.findUserByUid(user.uid) map {
+    apiClientIPA.findUser(Left(user.uid)) map {
         case Right(r) => Left( Error(Option(1),Some("Username already registered"),None) )
         case Left(l) => Right("ok")
       }
@@ -132,7 +133,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   private def checkMail(user:IpaUser):Future[Either[Error,String]] = {
 
-    apiClientIPA.findUserByMail(user.mail)  map {
+    apiClientIPA.findUser(Right(user.mail))  map {
       case Right(r) => Left( Error(Option(1),Some("Mail already registered"),None) )
       case Left(l) => Right("ok")
     }
@@ -206,7 +207,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   private def checkMailUidNcreateUser(user:IpaUser):Future[Either[Error,Success]] = {
 
-    apiClientIPA.findUserByUid(user.uid) flatMap { result =>
+    apiClientIPA.findUser(Left(user.uid)) flatMap { result =>
 
       result match{
         case Right(r) => Future {Left(Error(Option(1), Some("Username already registered"), None))}
@@ -219,7 +220,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   def checkMailNcreateUser(user:IpaUser,isPredefinedOrgUser:Boolean):Future[Either[Error,Success]] = {
 
-    apiClientIPA.findUserByMail(user.mail) flatMap { result =>
+    apiClientIPA.findUser(Right(user.mail)) flatMap { result =>
 
       result match{
         case Right(r) => Future {Left(Error(Option(1), Some("Mail address already registered"), None))}
@@ -235,7 +236,8 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
     Logger.logger.info("createUser")
 
     val result = for {
-      a <- step( Try{apiClientIPA.createUser(user, isPredefinedOrgUser)} )
+      a <- step( Try.apply{apiClientIPA.createUser(user, isPredefinedOrgUser)} )
+      a0 <- stepOver( a, Try{apiClientIPA.addMembersToGroup(OPEN_DATA_GROUP, Member(user.uid))} )
       a1 <- stepOver( a, Try{apiClientIPA.changePassword(user.uid,a.success.fields.get,user.userpassword.get)} )
       //b <- stepOver( a, Try{apiClientIPA.addMembersToGroup(user.role.getOrElse(Role.Viewer.toString()),User(user.uid))} )
       c <-step( a, Try{evalInFuture0S(impalaService.createRole(user.uid,true))})
@@ -283,7 +285,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
     Logger.logger.info("deleteUser")
 
     val result = for {
-      user <- stepOverF( Try{apiClientIPA.findUserByUid(uid)} )
+      user <- stepOverF( Try{apiClientIPA.findUser(Left(uid))} )
       a1 <- stepOver( Try{testIfIsNotReferenceUser(user.uid)} )// cannot cancel predefined user
       a2 <- stepOver( Try{testIfUserBelongsToGroup(user)} )// cannot cancel user belonging to some orgs
 
@@ -330,7 +332,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
   private def testIfUserBelongsToGroup(user:IpaUser):Future[Either[Error,Success]] = {
 
     if( user.organizations.isEmpty || user.organizations.get.isEmpty ||
-        user.organizations.get.filter( p => !p.equals(ConfigReader.defaultOrganization) ).isEmpty
+        user.organizations.get.filter( p => !p.equals(OPEN_DATA_GROUP) ).isEmpty
     )
       Future.successful{Right( Success(Some("Ok"), Some("ok")))}
     else
@@ -379,7 +381,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
     val result = for {
       a1 <- EitherT( checkUserModsRoles(userMods.rolesToDelete, userMods.rolesToAdd) )
-      user <- EitherT( apiClientIPA.findUserByUid(uid) )
+      user <- EitherT( apiClientIPA.findUser(Left(uid)) )
       a <- EitherT( testIfIsNotReferenceUser(user.uid) )// cannot update reference user
 
       b <- EitherT( apiClientIPA.removeMemberFromGroups(userMods.rolesToDelete,User(uid)) )

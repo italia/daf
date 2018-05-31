@@ -596,6 +596,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
   }
 
+  /*
   def findUserByUid(userId: String):Future[Either[Error,IpaUser]]={
 
     val result = for{
@@ -605,7 +606,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
     } yield out
 
     result.value
-  }
+  }*/
 
 
   type UserId = String
@@ -748,12 +749,21 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
   }*/
 
-  def findUserByMail(mail: String):Future[Either[Error,IpaUser]]={
+  def findUser(param:Either[UserId,Mail]):Future[Either[Error,IpaUser]]= {
+
+    def listThis(fx: => Future[Either[Error, Seq[String]]]): Future[Either[Error, Seq[String]]] = {
+      fx.map {
+        case Left(Error(Some(1), Some(x), None)) => Right(Seq.empty[String])//println("1--->"+x);if(num==1)Right(Seq.empty[String]) else Left(Error(Some(num), Some(x), None))
+        case Left(x) => println("2--->"+x);Left(x)
+        case Right(x) => println("3--->"+x);Right(x)
+      }
+
+    }
 
     val result = for{
-      orgs <- EitherT(organizationList)
-      wrks <- EitherT(workgroupList)
-      out <- EitherT( performFindUser(Left(mail),wrks,orgs) )
+      orgs <- EitherT(listThis(organizationList))
+      wrks <- EitherT(listThis(workgroupList))
+      out <- EitherT( performFindUser(param,wrks,orgs) )
     } yield out
 
     result.value
@@ -826,7 +836,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
                                              "params": [
                                                  [""],
                                                  {
-                                                    "inGroup": "${memberOf}",
+                                                    "in_group": "${memberOf}",
                                                     "all": "false",
                                                     "raw": "true",
                                                     "version": "2.213"
@@ -834,7 +844,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
                                              ]
                                          }""")
 
-    Logger.logger.debug("findUserByMail request: "+ jsonRequest.toString())
+    Logger.logger.debug("groupList request: "+ jsonRequest.toString())
 
     val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonRequest,_,_)
 
@@ -845,7 +855,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
       val result = (json \ "result") \"result"
 
       if(count==0)
-        Left( Error(Option(1),Some("No organization founded"),None) )
+        Left( Error(Option(1),Some("No groups founded"),None) )
 
       else if(  result.isInstanceOf[JsUndefined]  )
         Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )

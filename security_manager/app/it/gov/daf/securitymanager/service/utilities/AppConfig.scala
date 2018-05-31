@@ -53,7 +53,7 @@ private class AppConfig @Inject()(playConfig: Configuration) {
   val tokenExpiration :Option[Long] = playConfig.getLong("token.expiration")
   val cookieExpiration :Option[Long] = playConfig.getLong("cookie.expiration")
 
-  val defaultOrganization:Option[String] = playConfig.getString("default.organization")
+  //val defaultOrganization:Option[String] = playConfig.getString("default.organization")
 
   val kyloUrl :Option[String] = playConfig.getString("kylo.url")
   val kyloUser :Option[String] = playConfig.getString("kylo.user")
@@ -76,7 +76,7 @@ object ConfigReader {
 
   private val config = new AppConfig(Configuration.load(Environment.simple()))
 
-  require(config.defaultOrganization.nonEmpty,"A default organization must be specified")
+  //require(config.defaultOrganization.nonEmpty,"A default organization must be specified")
   require(config.suspersetAdminUser.nonEmpty,"A superset admin must be specified")
   require(config.suspersetAdminPwd.nonEmpty,"A superset admin password must be specified")
   require(config.suspersetOrgAdminRole.nonEmpty,"A superset organization admin role must be specified")
@@ -157,7 +157,7 @@ object ConfigReader {
   def tokenExpiration:Long = config.tokenExpiration.getOrElse(60L*8L)// 8h by default
   def cookieExpiration:Long = config.cookieExpiration.getOrElse(30L)// 30 min by default
 
-  def defaultOrganization:String = config.defaultOrganization.get
+  //def defaultOrganization:String = config.defaultOrganization.get
 
   def kyloUrl :String = config.kyloUrl.get
   def kyloUser :String = config.kyloUser.get

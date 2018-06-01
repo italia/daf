@@ -236,12 +236,12 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
     Logger.logger.info("createUser")
 
     val result = for {
-      a <- step( Try.apply{apiClientIPA.createUser(user, isPredefinedOrgUser)} )
-      a0 <- stepOver( a, Try{apiClientIPA.addMembersToGroup(OPEN_DATA_GROUP, Member(user.uid))} )
-      a1 <- stepOver( a, Try{apiClientIPA.changePassword(user.uid,a.success.fields.get,user.userpassword.get)} )
+      a <- step( apiClientIPA.createUser(user, isPredefinedOrgUser) )
+      a0 <- stepOver( a, apiClientIPA.addMembersToGroup(OPEN_DATA_GROUP, User(user.uid)) )
+      a1 <- stepOver( a, apiClientIPA.changePassword(user.uid,a.success.fields.get,user.userpassword.get) )
       //b <- stepOver( a, Try{apiClientIPA.addMembersToGroup(user.role.getOrElse(Role.Viewer.toString()),User(user.uid))} )
-      c <-step( a, Try{evalInFuture0S(impalaService.createRole(user.uid,true))})
-      roleIds <- stepOverF( c, Try{supersetApiClient.findRoleIds(ConfigReader.suspersetOrgAdminRole)} )
+      c <-step( a, evalInFuture0S(impalaService.createRole(user.uid,true)) )
+      roleIds <- stepOverF( c, supersetApiClient.findRoleIds(ConfigReader.suspersetOrgAdminRole) )
       d <- step( c, supersetApiClient.createUserWithRoles(user,roleIds:_*) )
       //d <- step( c, Try{addNewUserToDefaultOrganization(user)} )
     } yield d
@@ -267,10 +267,10 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
     val result = for {
 
-      a <- step( Try{apiClientIPA.deleteUser(uid)} )
-      b <-step(a,Try{evalInFuture0S(impalaService.deleteRole(uid,true))})
-      userInfo <- stepOverF( b, Try{supersetApiClient.findUser(uid)} )
-      c <- step(b, Try{supersetApiClient.deleteUser(userInfo._1)} )
+      a <- step( apiClientIPA.deleteUser(uid) )
+      b <-step(a, evalInFuture0S(impalaService.deleteRole(uid,true)))
+      userInfo <- stepOverF( b, supersetApiClient.findUser(uid) )
+      c <- step(b, supersetApiClient.deleteUser(userInfo._1) )
       // Commented because ckan have problems to recreate again the same user TODO try to test a ckan config not create local users
       //defOrg <- EitherT( ckanApiClient.getOrganizationAsAdmin(ConfigReader.defaultOrganization) )
       //d <- EitherT( ckanApiClient.removeUserInOrganizationAsAdmin(uid,defOrg) )
@@ -280,14 +280,27 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   }
 
+  private[service] def callHardDeleteUser(uid:String):Future[Either[Error,Success]] = {
+
+    hardDeleteUser(uid).map{
+      case Right(r) => Right( Success(Some("User deleted"), Some("ok")) )
+      case Left(l) => if( l.steps == 0 )
+        Left(l.error)
+      else
+        throw new Exception( s"HardDeleteUser process issue: process steps=${l.steps}" )
+
+    }
+
+  }
+
   def deleteUser(uid:String):Future[Either[Error,Success]] = {
 
     Logger.logger.info("deleteUser")
 
     val result = for {
-      user <- stepOverF( Try{apiClientIPA.findUser(Left(uid))} )
-      a1 <- stepOver( Try{testIfIsNotReferenceUser(user.uid)} )// cannot cancel predefined user
-      a2 <- stepOver( Try{testIfUserBelongsToGroup(user)} )// cannot cancel user belonging to some orgs
+      user <- stepOverF( apiClientIPA.findUser(Left(uid)) )
+      a1 <- stepOver( testIfIsNotReferenceUser(user.uid) )// cannot cancel predefined user
+      a2 <- stepOver( testIfUserBelongsToGroup(user) )// cannot cancel user belonging to some orgs
 
       b <- EitherT( hardDeleteUser(uid) )
 

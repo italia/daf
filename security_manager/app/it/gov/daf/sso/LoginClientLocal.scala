@@ -96,6 +96,7 @@ class LoginClientLocal() extends LoginClient {
 
     val host = CKAN_URL.split(":")(1).replaceAll("""//""", "")
 
+    println("XXX URL->" +ckanUrl + "/ldap_login_handler")
 
     val url = wsClient.url(ckanUrl + "/ldap_login_handler")
       .withHeaders("host" -> host,

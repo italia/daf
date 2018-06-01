@@ -120,16 +120,16 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
     val result = for {
 
-      test <- stepOverF(Try {verifyPermissionString(permission)})
-      info <- stepOverF(Try {getDatasetInfo(datasetName)}); (datasetPath,owner)=info
+      test <- stepOverF( verifyPermissionString(permission) )
+      info <- stepOverF( getDatasetInfo(datasetName) ); (datasetPath,owner)=info
 
-      s <- stepOverF(testUser(owner))
+      s <- stepOverF( testUser(owner) )
 
-      k <- stepOverF(Try {deletePermissionIfPresent(datasetPath, groupName, groupType)})
+      k <- stepOverF( deletePermissionIfPresent(datasetPath, groupName, groupType) )
 
-      a <- step(Try {setDatasetHDFSPermission(datasetPath, true, createPermission)})
-      b <- step(a, Try {createImpalaGrant(datasetPath, groupName, groupType, permission)})
-      c <- step(b, Try {addAclToCatalog(datasetName, groupName, groupType, permission)})
+      a <- step( setDatasetHDFSPermission(datasetPath, true, createPermission) )
+      b <- step( a, createImpalaGrant(datasetPath, groupName, groupType, permission) )
+      c <- step( b, addAclToCatalog(datasetName, groupName, groupType, permission) )
 
     } yield c
 
@@ -188,9 +188,9 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
     val result = for {
 
-      a <- step(Try {setDatasetHDFSPermission(datasetPath, true, deletePermission)})
-      b <- step(a, Try {revokeImpalaGrant(datasetPath, groupName, groupType) })
-      c <- step(b, Try {deleteAclFromCatalog(datasetName, groupName, groupType)})
+      a <- step( setDatasetHDFSPermission(datasetPath, true, deletePermission) )
+      b <- step(a, revokeImpalaGrant(datasetPath, groupName, groupType) )
+      c <- step(b, deleteAclFromCatalog(datasetName, groupName, groupType) )
 
     } yield c
 
@@ -204,7 +204,7 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
     val result = for {
 
-      info <- stepOverF( Try {getDatasetInfo(datasetName)}) ; (datasetPath,owner)=info
+      info <- stepOverF( getDatasetInfo(datasetName) ) ; (datasetPath,owner)=info
 
       s <- stepOverF( testUser(owner) )
 

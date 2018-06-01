@@ -13,10 +13,13 @@ import play.api.libs.ws.{WSAuthScheme, WSClient, WSResponse}
 import security_manager.yaml.{Error, IpaGroup, IpaUser, Success}
 import cats.implicits._
 import it.gov.daf.securitymanager.service
+import it.gov.daf.securitymanager.service.ProcessHandler._
 
 import scala.concurrent.Future
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.Logger
+
+import scala.util.Try
 
 @Singleton
 class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClientLocal: LoginClientLocal,wsClient: WSClient){
@@ -317,14 +320,25 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
                                                     else
                                                       Future.successful{Left(Error(Option(0), Some("Workgroups needs a parent organization"), None))}
 
-
     val out = for{
-      we <- EitherT(testEmptyness)
-      a <- EitherT(createGroup(group.toString))
-      b <- EitherT(addMemberToGroups(parentGroupNames, group))
-    }yield a
+      we <- stepOver( testEmptyness )
+      a <- step( createGroup(group.toString) )
+      b <- stepOver( a, addMemberToGroups(parentGroupNames, group) )
+    }yield b
 
-    out.value
+
+    out.value.map{
+      case Right(r) => Right( Success(Some("Group created"), Some("ok")) )
+      case Left(l) => if(l.steps !=0) {
+        deleteGroup(group.toString).onSuccess { case e =>
+          if(e.isLeft)
+            throw new Exception( s"createGroup rollback issue" )
+        }
+
+      }
+        Left(l.error)
+    }
+
   }
 
 
@@ -352,6 +366,8 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
     def handleJson(json:JsValue) = {
       val result = (json \ "result") \"result"
+
+      println("----->"+result)
 
       if( result.isInstanceOf[JsUndefined] )
         Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
@@ -658,11 +674,8 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
       if(count==0)
         Left( Error(Option(1),Some("No user found"),None) )
-
-      if( result.isInstanceOf[JsUndefined] )
-
+      else if( result.isInstanceOf[JsUndefined] )
         Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
-
       else
 
         Right(
@@ -761,8 +774,8 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
     }
 
     val result = for{
-      orgs <- EitherT(listThis(organizationList))
-      wrks <- EitherT(listThis(workgroupList))
+      orgs <- EitherT( listThis(organizationList) )
+      wrks <- EitherT( listThis(workgroupList) )
       out <- EitherT( performFindUser(param,wrks,orgs) )
     } yield out
 

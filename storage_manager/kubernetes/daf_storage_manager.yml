@@ -99,12 +99,12 @@ spec:
         - name: client
           containerPort: 9000
         volumeMounts:
-        - name: config-volume
-          mountPath: /opt/docker/conf/mnt
-        - name: glusterfsvol
-          mountPath: /opt/docker/conf/production.conf
-          subPath: storage-manager/conf/production.conf
-          readOnly: true
+        #- name: config-volume
+        #  mountPath: /opt/docker/conf/mnt
+#        - name: glusterfsvol
+#          mountPath: /opt/docker/conf/production.conf
+#          subPath: storage-manager/conf/production.conf
+#          readOnly: true
         - name: glusterfsvol
           mountPath: /opt/docker/conf/logback.xml
           subPath: storage-manager/conf/logback.xml
@@ -124,9 +124,9 @@ spec:
       imagePullSecrets:
       - name: regsecret
       volumes:
-      - name: config-volume
-        configMap:
-          name: storage-manager-conf
+#      - name: config-volume
+#        configMap:
+#          name: storage-manager-conf
       - name: glusterfsvol
         persistentVolumeClaim:
           claimName: gluster-claim

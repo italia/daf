@@ -4,6 +4,7 @@ import java.net.URLEncoder
 import javax.security.auth.login.AppConfigurationEntry
 
 import catalog_manager.yaml.{Dataset, DatasetCatalogFlatSchema, MetaCatalog, MetadataCat, ResponseWrites, Success}
+import com.mongodb
 import com.mongodb.DBObject
 import com.mongodb.casbah.MongoClient
 import com.mongodb.casbah.Imports._
@@ -91,6 +92,34 @@ class CatalogRepositoryMongo extends  CatalogRepository{
   def catalogByName(name :String): Option[MetaCatalog] = {
     //val objectId : ObjectId = new ObjectId(catalogId)
     val query = MongoDBObject("dcatapit.name" -> name)
+    // val mongoClient = MongoClient(mongoHost, mongoPort)
+    val mongoClient = MongoClient(server, List(credentials))
+    val db = mongoClient(source)
+    val coll = db("catalog_test")
+    val result = coll.findOne(query)
+    mongoClient.close
+    val metaCatalog: Option[MetaCatalog] = result match {
+      case Some(x) => {
+        val jsonString = com.mongodb.util.JSON.serialize(x)
+        val json = Json.parse(jsonString) //.as[List[JsObject]]
+        val metaCatalogJs = json.validate[MetaCatalog]
+        val metaCatalog = metaCatalogJs match {
+          case s: JsSuccess[MetaCatalog] => Some(s.get)
+          case _: JsError => None
+        }
+        metaCatalog
+      }
+      case _ => None
+    }
+    metaCatalog
+  }
+
+  def publicCatalogByName(name :String): Option[MetaCatalog] = {
+    //val objectId : ObjectId = new ObjectId(catalogId)
+    import mongodb.casbah.query.Imports.$and
+
+
+    val query = $and(MongoDBObject("dcatapit.name" -> name), MongoDBObject("dcatapit.privatex" -> false))
     // val mongoClient = MongoClient(mongoHost, mongoPort)
     val mongoClient = MongoClient(server, List(credentials))
     val db = mongoClient(source)

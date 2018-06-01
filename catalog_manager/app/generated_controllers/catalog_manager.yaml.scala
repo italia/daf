@@ -49,7 +49,7 @@ import play.api.Logger
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                            
+                                        
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -454,6 +454,17 @@ package catalog_manager.yaml {
             val themeList: Seq[KeyValue] = VocServiceRegistry.vocRepository.listDcatSubtheme(themeid)
             Voc_dcatsubthemesgetbyid200(themeList)
             // ----- End of unmanaged code area for action  Catalog_managerYaml.voc_dcatsubthemesgetbyid
+        }
+        val publicdatasetcatalogbyname = publicdatasetcatalogbynameAction { (name: String) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.publicdatasetcatalogbyname
+            val catalog = ServiceRegistry.catalogService.publicCatalogByName(name)
+
+
+            catalog match {
+                case Some(c) => Publicdatasetcatalogbyname200(c)
+                case None => Publicdatasetcatalogbyname401("Error")
+            }
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.publicdatasetcatalogbyname
         }
         val getckanorganizationList = getckanorganizationListAction {  _ =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.getckanorganizationList

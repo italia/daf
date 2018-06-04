@@ -24,6 +24,7 @@
 
     <logger name="play" level="INFO" />
     <logger name="application" level="DEBUG" />
+    <logger name="it.gov.daf" level="DEBUG" />
 
     <root level="WARN">
         <appender-ref ref="STDOUT" />

@@ -44,7 +44,7 @@ import cats.implicits._
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -356,7 +356,7 @@ package security_manager.yaml {
             val result = for{
               wrk <- EitherT( apiClientIPA.showGroup(wrkName) )
               a <- EitherT( Future.successful( testAuthorization(wrk.memberof_group)) )
-              b <- EitherT( integrationService.deleteDafOrganization(wrkName) )
+              b <- EitherT( integrationService.deleteDafWorkgroup(wrkName) )
             } yield b
 
             result.value flatMap {

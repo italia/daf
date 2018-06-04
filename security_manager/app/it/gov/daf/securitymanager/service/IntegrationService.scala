@@ -4,13 +4,14 @@ import cats.data.EitherT
 import com.google.inject.{Inject, Singleton}
 import it.gov.daf.sso._
 import security_manager.yaml.{DafGroup, Error, IpaUser, Success}
+import ProcessHandler._
 
 import scala.concurrent.Future
 import cats.implicits._
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
-import ProcessHandler.{step, _}
 import IntegrationService._
 import it.gov.daf.common.sso.common.{Admin, Editor, Viewer}
+import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.util.Try
@@ -18,7 +19,11 @@ import scala.util.Try
 @Singleton
 class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient: SupersetApiClient, ckanApiClient: CkanApiClient, grafanaApiClient:GrafanaApiClient, registrationService: RegistrationService,kyloApiClient:KyloApiClient, impalaService:ImpalaService){
 
+  private val logger = Logger(IntegrationService.getClass.getName)
+
   def createDafOrganization(dafOrg:DafGroup):Future[Either[Error,Success]] = {
+
+    logger.info("createDafOrganization")
 
     val groupCn = dafOrg.groupCn
     val predefinedOrgIpaUser =     IpaUser(groupCn,
@@ -73,6 +78,8 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
   private def hardDeleteDafOrganization(groupCn:String):Future[Either[ErrorWrapper,SuccessWrapper]] = {
 
+    logger.info("hardDeleteDafOrganization")
+
     val result = for {
 
       a <- step( apiClientIPA.deleteGroup(groupCn) )
@@ -112,6 +119,8 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
   def deleteDafOrganization(groupCn:String):Future[Either[Error,Success]] = {
 
+    logger.info("deleteDafOrganization")
+
     val result = for {
 
       a <- stepOver( apiClientIPA.testGroupForDeletion(groupCn) )
@@ -132,7 +141,10 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
     }
   }
 
+
   def createDafWorkgroup(dafWrk:DafGroup, orgName:String):Future[Either[Error,Success]] = {
+
+    logger.info("createDafWorkgroup")
 
     val wrkName = dafWrk.groupCn
     val predefinedWrkIpaUser =     IpaUser(wrkName,
@@ -162,7 +174,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
     result.value.map{
       case Right(r) => Right( Success(Some("Workgroup created"), Some("ok")) )
-      case Left(l) => if( l.steps !=0 ) {
+      case Left(l) => println("stepss"+l.steps);if( l.steps !=0 ) {
         hardDeleteDafWorkgroup(wrkName).onSuccess { case e =>
 
           val steps = e.fold(ll=>ll.steps,rr=>rr.steps)
@@ -180,22 +192,27 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
   private def hardDeleteDafWorkgroup(groupCn:String):Future[Either[ErrorWrapper,SuccessWrapper]] = {
 
+    logger.info("hardDeleteDafWorkgroup")
+
     val result = for {
 
       a <- step( apiClientIPA.deleteGroup(groupCn) )
 
-      a4 <- step( a, evalInFuture0S(impalaService.deleteRole(groupCn,false)) )
+      a1 <- step( a, evalInFuture0S(impalaService.deleteRole(groupCn,false)) )
 
-      b <- stepOver( a4, apiClientIPA.deleteUser(toRefWrkUserName(groupCn)) )
+      b <- step( a1, registrationService.callHardDeleteUser(toRefWrkUserName(groupCn)) )
 
+      /*
+      b <- stepOver( a4, apiClientIPA.deleteUser(toRefOrgUserName(groupCn)) )
       userInfo <- stepOverF( b, supersetApiClient.findUser(toRefOrgUserName(groupCn)) )
       c <- step( b, supersetApiClient.deleteUser(userInfo._1) )
+      */
 
-      roleId <- stepOverF( c, supersetApiClient.findRoleId(toSupersetRole(groupCn)) )
-      d <- stepOver( c, supersetApiClient.deleteRole(roleId) )
+      roleId <- stepOverF( b, supersetApiClient.findRoleId(toSupersetRole(groupCn)) )
+      d <- stepOver( b, supersetApiClient.deleteRole(roleId) )
 
-      dbId <- stepOverF(c, supersetApiClient.findDatabaseId(toSupersetDS(groupCn)) )
-      e <- step( c, supersetApiClient.deleteDatabase(dbId) )
+      dbId <- stepOverF(d, supersetApiClient.findDatabaseId(toSupersetDS(groupCn)) )
+      e <- step( d, supersetApiClient.deleteDatabase(dbId) )
       //f <- stepOver( c, Try{clearSupersetPermissions(dbId, toSupersetDS(groupCn))} ) TODO to re-enable when Superset bug is resolved
       //i <- EitherT( grafanaApiClient.deleteOrganization(groupCn) ) TODO re-enable when Grafana is integrated
     } yield e
@@ -203,7 +220,10 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
     result.value
   }
 
+
   def deleteDafWorkgroup(groupCn:String):Future[Either[Error,Success]] = {
+
+    logger.info("deleteDafWorkgroup")
 
     val result = for {
       // TODO test user org role
@@ -263,6 +283,8 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
   def addUserToOrganization(groupCn:String, userName:String):Future[Either[Error,Success]] = {
 
+    logger.info("addUserToOrganization")
+
     val result = for {
       user <-  stepOverF( apiClientIPA.findUser(Left(userName)) )
       a1<-  stepOver( registrationService.testIfUserBelongsToThisGroup(user,groupCn) )
@@ -299,6 +321,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
   private def hardRemoveUserFromOrganization(groupCn:String, userName:String):Future[Either[ErrorWrapper,SuccessWrapper]] = {
 
+    logger.info("hardRemoveUserFromOrganization")
 
     val result = for {
       user <- stepOverF( apiClientIPA.findUser(Left(userName)) )
@@ -325,6 +348,8 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
   def removeUserFromOrganization(groupCn:String, userName:String):Future[Either[Error,Success]] = {
 
+    logger.info("removeUserFromOrganization")
+
     val result = for {
       //user <-  stepOverF( Try{apiClientIPA.findUserByUid(userName)} )
       a <- stepOver( registrationService.testIfIsNotReferenceUser(userName) )// cannot remove predefined user
@@ -347,6 +372,8 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
 
   def addUserToWorkgroup(groupCn:String, userName:String):Future[Either[Error,Success]] = {
+
+    logger.info("addUserToWorkgroup")
 
     val result = for {
       user <-  stepOverF( apiClientIPA.findUser(Left(userName)) )
@@ -382,6 +409,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
   private def hardRemoveUserFromWorkgroup(groupCn:String, userName:String):Future[Either[ErrorWrapper,SuccessWrapper]] = {
 
+    logger.info("hardRemoveUserFromWorkgroup")
 
     val result = for {
       user <- stepOverF( apiClientIPA.findUser(Left(userName)) )
@@ -405,6 +433,8 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
   def removeUserFromWorkgroup(groupCn:String, userName:String):Future[Either[Error,Success]] = {
 
+    logger.info("removeUserFromWorkgroup")
+
     val result = for {
       //user <-  stepOverF( Try{apiClientIPA.findUserByUid(userName)} )
       a <- stepOver( registrationService.testIfIsNotReferenceUser(userName) )// cannot remove predefined user
@@ -427,6 +457,8 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
   def createSupersetTable(dbName:String, schema:Option[String], tableName:String):Future[Either[Error,Success]] = {
 
+    logger.info("createSupersetTable")
+
     val result = for {
       dbId <-  EitherT( supersetApiClient.findDatabaseId(dbName) )
       a <-  EitherT( supersetApiClient.createTable(dbId,schema,tableName) )
@@ -442,6 +474,8 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
   }
 
   def getSupersetOrgTables(orgName:String):Future[Either[Error,Seq[String]]] = {
+
+    logger.info("getSupersetOrgTables")
 
     val result = for {
       dbId <-  EitherT( supersetApiClient.findDatabaseId(toSupersetDS(orgName)) )

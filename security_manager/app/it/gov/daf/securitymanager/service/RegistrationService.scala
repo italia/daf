@@ -22,11 +22,13 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
   import security_manager.yaml.BodyReads._
 
   private val tokenGenerator = new BearerTokenGenerator
+  private val logger = Logger(this.getClass.getName)
+
 
 
   def requestRegistration(userIn:IpaUser):Future[Either[Error,MailService]] = {
 
-    Logger.logger.info("requestRegistration")
+    logger.info("requestRegistration")
 
     def cui = checkUserInfo(userIn)
     val result = for {
@@ -45,7 +47,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   def requestResetPwd(mail:String):Future[Either[Error,MailService]] = {
 
-    Logger.logger.info("requestResetPwd")
+    logger.info("requestResetPwd")
 
     val result = for {
       user <- EitherT( apiClientIPA.findUser(Right(mail)) )
@@ -143,7 +145,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   private def writeRequestNsendMail(user:IpaUser)(writeData:(IpaUser,String)=>Either[String,String]) : Either[String,MailService] = {
 
-    Logger.logger.info("writeRequestNsendMail")
+    logger.info("writeRequestNsendMail")
     val token = tokenGenerator.generateMD5Token(user.uid)
 
     writeData(user,token) match{
@@ -195,12 +197,12 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   private def checkNcreateUser(json:JsValue):Future[Either[Error,Success]] = {
 
-    Logger.logger.debug("checkNcreateUser input json: "+json)
+    logger.debug("checkNcreateUser input json: "+json)
 
     val result = json.validate[IpaUser]
     result match {
       case s: JsSuccess[IpaUser] =>  checkMailUidNcreateUser(s.get)
-      case e: JsError => Logger.logger.error("data conversion errors"+e.errors); Future{ Left( Error(Option(0),Some("Error during user data conversion"),None) )}
+      case e: JsError => logger.error("data conversion errors"+e.errors); Future{ Left( Error(Option(0),Some("Error during user data conversion"),None) )}
     }
 
   }
@@ -218,25 +220,25 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
   }
 
 
-  def checkMailNcreateUser(user:IpaUser,isPredefinedOrgUser:Boolean):Future[Either[Error,Success]] = {
+  def checkMailNcreateUser(user:IpaUser,isReferenceUser:Boolean):Future[Either[Error,Success]] = {
 
     apiClientIPA.findUser(Right(user.mail)) flatMap { result =>
 
       result match{
         case Right(r) => Future {Left(Error(Option(1), Some("Mail address already registered"), None))}
-        case Left(l) =>  createUser(user,isPredefinedOrgUser)
+        case Left(l) =>  createUser(user,isReferenceUser)
       }
 
     }
   }
 
 
-  private def createUser(user:IpaUser, isPredefinedOrgUser:Boolean):Future[Either[Error,Success]] = {
+  private def createUser(user:IpaUser, isReferenceUser:Boolean):Future[Either[Error,Success]] = {
 
-    Logger.logger.info("createUser")
+    logger.info(s"createUser: ${user.uid}")
 
     val result = for {
-      a <- step( apiClientIPA.createUser(user, isPredefinedOrgUser) )
+      a <- step( apiClientIPA.createUser(user, isReferenceUser) )
       a0 <- stepOver( a, apiClientIPA.addMembersToGroup(OPEN_DATA_GROUP, User(user.uid)) )
       a1 <- stepOver( a, apiClientIPA.changePassword(user.uid,a.success.fields.get,user.userpassword.get) )
       //b <- stepOver( a, Try{apiClientIPA.addMembersToGroup(user.role.getOrElse(Role.Viewer.toString()),User(user.uid))} )
@@ -246,24 +248,34 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
       //d <- step( c, Try{addNewUserToDefaultOrganization(user)} )
     } yield d
 
-    result.value.map{
-      case Right(r) => Right( Success(Some("User created"), Some("ok")) )
-      case Left(l) => if( l.steps !=0 ) {
-        hardDeleteUser(user.uid).onSuccess { case e =>
+    logger.debug( s"createUser yelding: $result" )
 
-          val steps = e.fold(ll=>ll.steps,rr=>rr.steps)
-          if( l.steps != steps)
-            throw new Exception( s"CreateUser rollback issue: process steps=${l.steps} rollback steps=$steps" )
+    result.value.map{ in=>
+      logger.debug( s"createUser mapping: $result" )
+
+      in match {
+        case Right(r) => logger.debug( s"todelete1" );Right(Success(Some("User created"), Some("ok")))
+        case Left(l) => logger.debug( s"todelete2 ${l.steps}" );if (l.steps != 0) {
+          logger.debug( s"todelete3" )
+          hardDeleteUser(user.uid).onSuccess { case e =>
+
+            val steps = e.fold(ll => ll.steps, rr => rr.steps)
+            if (l.steps != steps)
+              throw new Exception(s"CreateUser rollback issue: process steps=${l.steps} rollback steps=$steps")
+
+          }
+
 
         }
-
+          Left(l.error)
       }
-        Left(l.error)
     }
 
   }
 
   private def hardDeleteUser(uid:String):Future[Either[ErrorWrapper,SuccessWrapper]] = {
+
+    logger.info(s"hardDeleteUser: $uid")
 
     val result = for {
 
@@ -282,6 +294,8 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   private[service] def callHardDeleteUser(uid:String):Future[Either[Error,Success]] = {
 
+    logger.info(s"callHardDeleteUser: $uid")
+
     hardDeleteUser(uid).map{
       case Right(r) => Right( Success(Some("User deleted"), Some("ok")) )
       case Left(l) => if( l.steps == 0 )
@@ -295,7 +309,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   def deleteUser(uid:String):Future[Either[Error,Success]] = {
 
-    Logger.logger.info("deleteUser")
+    logger.info(s"deleteUser: $uid")
 
     val result = for {
       user <- stepOverF( apiClientIPA.findUser(Left(uid)) )
@@ -391,6 +405,8 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
 
   def updateUser(uid: String, userMods:IpaUserMod):Future[Either[Error,Success]]= {
+
+    logger.info(s"updateUser: $uid")
 
     val result = for {
       a1 <- EitherT( checkUserModsRoles(userMods.rolesToDelete, userMods.rolesToAdd) )

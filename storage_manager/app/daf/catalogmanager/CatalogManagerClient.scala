@@ -17,22 +17,44 @@
 package daf.catalogmanager
 
 import java.net.URLEncoder
+import java.security.AccessControlException
 
+import it.gov.daf.common.config.Read
+import json._
+import org.slf4j.LoggerFactory
+import play.api.Configuration
 import play.api.libs.json.Json
+import scalaj.http.{ Http, HttpResponse }
 
-import scala.concurrent.{ExecutionContext, Future}
-import scalaj.http.Http
+import scala.util.{ Failure, Try, Success => TrySuccess }
 
-class CatalogManagerClient(serviceUrl: String)(implicit val ec: ExecutionContext) {
-  import json._
+class CatalogManagerClient(serviceUrl: String) {
 
-  def datasetCatalogByUid(authorization: String, catalogId: String): MetaCatalog =  {
-    val resp = Http(s"$serviceUrl/catalog-manager/v1/catalog-ds/get/${URLEncoder.encode(catalogId,"UTF-8")}")
+  val logger = LoggerFactory.getLogger("it.gov.daf.CatalogManager")
+
+  private def callService(authorization: String, catalogId: String) = Try {
+    Http(s"$serviceUrl/catalog-manager/v1/catalog-ds/get/${URLEncoder.encode(catalogId,"UTF-8")}")
       .header("Authorization", authorization)
       .asString
+  }
 
-    if (resp.is2xx) Json.parse(resp.body).as[MetaCatalog]
-    else throw new java.lang.RuntimeException("unexpected response status: " + resp.statusLine + " " + resp.body)
+  private def parseCatalog(response: HttpResponse[String]) =
+    if (response.code == 401)  Failure { new AccessControlException("Unauthorized") }
+    else if (response.isError) Failure { new RuntimeException(s"Error retrieving catalog data: [${response.code}] with body [${response.body}]") }
+    else Try { Json.parse(response.body).as[MetaCatalog] }
+
+  def getById(authorization: String, catalogId: String): Try[MetaCatalog] = for {
+    response <- callService(authorization, catalogId)
+    catalog  <- parseCatalog(response)
+  } yield catalog
+
+}
+
+object CatalogManagerClient {
+
+  def fromConfig(config: Configuration) = Read.string { "daf.catalog-url" }.!.read(config) match {
+    case TrySuccess(baseUrl) => new CatalogManagerClient(baseUrl)
+    case Failure(error)      => throw new RuntimeException("Unable to create catalog-manager client", error)
   }
 
 }

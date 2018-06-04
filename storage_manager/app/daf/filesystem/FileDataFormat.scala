@@ -70,3 +70,12 @@ object FileDataFormats {
   def fromName(name: String) = findCandidates { name.split("\\.").toList }.headOption getOrElse RawFileFormat
 
 }
+
+object DownloadableFormats {
+
+  def unapply(candidate: String): Option[FileDataFormat] =
+    if      (FileDataFormats.json.extensions contains candidate) Some { FileDataFormats.json }
+    else if (FileDataFormats.csv.extensions  contains candidate) Some { FileDataFormats.csv }
+    else None
+
+}

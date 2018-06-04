@@ -16,6 +16,7 @@
 
 package daf.dataset.export
 
+import daf.dataset.ExtraParams
 import daf.filesystem._
 import org.apache.hadoop.fs.Path
 import org.apache.livy.{ Job, JobContext }
@@ -24,14 +25,16 @@ import org.apache.spark.sql._
 import scala.util.{ Failure, Success, Try }
 
 /**
-  * Livy [[Job]] for converting a file from CSV, Parquet or JSON to CSV or JSON. Note that if the source and destination
+  * Livy `Job` for converting a file from CSV, Parquet or JSON to CSV or JSON. Note that if the source and destination
   * formats are identical, the Spark Job is '''still''' triggered.
   * @param from details representing the input data
   * @param to details representing the output data
+  * @param extraParams a map of additional parameters that can be passed to this job, such as a `separator` in cases
+  *                    where `to` is [[daf.filesystem.CsvFileFormat]]
   */
-class FileExportJob(val from: FileExportInfo, val to: FileExportInfo) extends Job[String] {
+class FileExportJob(val from: FileExportInfo, val to: FileExportInfo, val extraParams: Map[String, String]) extends Job[String] {
 
-  private val csvDelimiter     = ","
+  private val csvDelimiter     = extraParams.getOrElse("separator", ",")
   private val csvIncludeHeader = true
   private val csvInferSchema   = true
 
@@ -73,9 +76,10 @@ class FileExportJob(val from: FileExportInfo, val to: FileExportInfo) extends Jo
 
 object FileExportJob {
 
-  def create(inputPath: String, outputPath: String, from: FileDataFormat, to: FileDataFormat) = new FileExportJob(
+  def create(inputPath: String, outputPath: String, from: FileDataFormat, to: FileDataFormat, extraParams: ExtraParams = Map.empty[String, String]) = new FileExportJob(
     FileExportInfo(inputPath, from),
-    FileExportInfo(outputPath, to)
+    FileExportInfo(outputPath, to),
+    extraParams
   )
 
 }

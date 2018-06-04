@@ -19,15 +19,19 @@ package controllers
 import akka.actor.ActorSystem
 import com.google.inject.Inject
 import api.DatasetControllerAPI
-import daf.dataset.{ BulkDownload, Query }
+import config.FileExportConfig
+import daf.catalogmanager.CatalogManagerClient
+import daf.dataset.export.FileExportService
+import daf.dataset._
 import daf.dataset.json._
 import daf.instances.FileSystemInstance
 import daf.web._
-import daf.filesystem.FileDataFormats
+import daf.filesystem.{ DownloadableFormats, FileDataFormat }
+import it.gov.daf.common.config.{ ConfigReadException, Read }
 import org.apache.hadoop.conf.{ Configuration => HadoopConfiguration }
 import org.apache.hadoop.fs.FileSystem
 import org.pac4j.play.store.PlaySessionStore
-import play.api.{ Configuration, Logger }
+import play.api.Configuration
 import play.api.libs.ws.WSClient
 import play.api.mvc._
 
@@ -37,7 +41,6 @@ import scala.util.{ Failure, Success }
 class DatasetController @Inject()(configuration: Configuration,
                                   playSessionStore: PlaySessionStore,
                                   protected val ws: WSClient,
-                                  protected val parsers: BodyParsers,
                                   protected implicit val actorSystem: ActorSystem,
                                   protected implicit val ec: ExecutionContext)
   extends AbstractController(configuration, playSessionStore)
@@ -45,47 +48,57 @@ class DatasetController @Inject()(configuration: Configuration,
   with BulkDownload
   with FileSystemInstance {
 
-  private val log = Logger(this.getClass)
-
   implicit val fileSystem = FileSystem.get(new HadoopConfiguration)
 
-  private val queryJson = parsers.parse.json[Query]
+  private val queryJson = BodyParsers.parse.json[Query]
 
-  def getSchema(uri: String): Action[AnyContent] = Actions.hadoop(proxyUser).secured { (request, auth, _) =>
-    log.info(s"processing request=${request.method} for schema")
-
-    datasetService.schema(auth, uri) match {
-      case Success(st) =>
-        log.info(s"response request=${request.method} with value=$st")
-        Ok(st.prettyJson)
-      case Failure(ex) =>
-        log.error(s"processing request=${request.method} with uri=$uri error=${ex.getMessage}", ex)
-        BadRequest(ex.getMessage).as(JSON)
-    }
+  private val kuduMaster = Read.string { "kudu.master" }.!.read(configuration) match {
+    case Success(result) => result
+    case Failure(error)  => throw ConfigReadException(s"Unable to configure [dataset-manager]", error)
   }
 
-  def getDataset(uri: String, format: String = "csv"): Action[AnyContent] = Actions.basic.securedAsync { (request, auth, userId) =>
-    log.info(s"processing request=${request.method} with uri=$uri")
+  protected val exportConfig = FileExportConfig.reader.read(configuration) match {
+    case Success(result) => result
+    case Failure(error)  => throw ConfigReadException(s"Unable to configure [dataset-manager]", error)
+  }
 
+  protected val datasetService    = new DatasetService(configuration.underlying)
+  protected val downloadService   = new DownloadService(kuduMaster)
+  protected val fileExportService = new FileExportService(exportConfig, kuduMaster)
+
+  protected val catalogClient = CatalogManagerClient.fromConfig(configuration)
+
+  private def retrieveCatalog(auth: String, uri: String) = for {
+    catalog <- catalogClient.getById(auth, uri)
+    params  <- DatasetParams.fromCatalog(catalog)
+  } yield params
+
+  private def retrieveBulkData(uri: String, auth: String, userId: String, targetFormat: FileDataFormat) = retrieveCatalog(auth, uri) match {
+    case Success(params) => bulkDownload(params, userId, targetFormat)
+    case Failure(error)  => Future.failed { error }
+  }
+
+  // API
+
+  def getSchema(uri: String): Action[AnyContent] = Actions.hadoop(proxyUser).securedAttempt { (_, auth, _) =>
+    for {
+      params <- retrieveCatalog(auth, uri)
+      schema <- datasetService.schema(params)
+    } yield Ok { schema.prettyJson } as JSON
+  }
+
+  def getDataset(uri: String, format: String = "csv"): Action[AnyContent] = Actions.basic.securedAsync { (_, auth, userId) =>
     format.toLowerCase match {
-      case FileDataFormats(targetFormat) => bulkDownload(uri, auth, userId, targetFormat)
-      case _                             => Future.successful { Results.BadRequest(s"Invalid download format [$format], must be one of [csv | json]") }
+      case DownloadableFormats(targetFormat) => retrieveBulkData(uri, auth, userId, targetFormat)
+      case _                                 => Future.successful { Results.BadRequest(s"Invalid download format [$format], must be one of [csv | json]") }
     }
   }
 
-  def queryDataset(uri: String): Action[Query] = Actions.hadoop(proxyUser).secured(queryJson) { (request, auth, _) =>
-    log.info(s"processing request=${request.method} with uri=$uri")
-
-    datasetService.query(auth, uri, request.body) match {
-      case Success(df) =>
-        val records = s"[${df.toJSON.collect().mkString(",")}]"
-        log.info(s"response request=${request.method} with records=$records")
-        df.unpersist()
-        Ok(records)
-      case Failure(ex) =>
-        log.error(s"processing request=${request.method} with uri=$uri error=${ex.getMessage}", ex)
-        BadRequest(ex.getMessage).as(JSON)
-    }
+  def queryDataset(uri: String): Action[Query] = Actions.hadoop(proxyUser).securedAttempt(queryJson) { (request, auth, _) =>
+    for {
+      params <- retrieveCatalog(auth, uri)
+      data   <- datasetService.queryData(params, request.body)
+    } yield Ok { data.toJSON.collect() mkString "," } as JSON
   }
 
 }

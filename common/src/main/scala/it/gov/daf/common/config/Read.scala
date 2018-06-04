@@ -19,16 +19,25 @@ package it.gov.daf.common.config
 import play.api.Configuration
 
 import scala.concurrent.duration._
+import scala.collection.convert.decorateAsScala._
 
 object Read {
 
   def config(key: String): OptionalConfigReader[Configuration] = OptionalConfigReader(key) { _.getConfig(key) }
+
+  def configs(key: String): OptionalConfigReader[List[Configuration]] = OptionalConfigReader(key) {
+    _.getConfigList(key).map { _.asScala.toList }
+  }
 
   def int(key: String): OptionalConfigReader[Int] = OptionalConfigReader(key) { _.getInt(key) }
 
   def long(key: String): OptionalConfigReader[Long] = OptionalConfigReader(key) { _.getLong(key) }
 
   def string(key: String): OptionalConfigReader[String] = OptionalConfigReader(key) { _.getString(key) }
+
+  def strings(key: String): OptionalConfigReader[List[String]] = OptionalConfigReader(key) {
+    _.getStringList(key).map { _.asScala.toList }
+  }
 
   def double(key: String): OptionalConfigReader[Double] = OptionalConfigReader(key) { _.getDouble(key) }
 

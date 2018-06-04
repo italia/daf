@@ -33,38 +33,38 @@ class DatasetOperationsSpec extends FlatSpec with Matchers with BeforeAndAfterAl
   employees.show(10)
 
   "A DatasetOperationsSpec" should "select a column in a dataset" in {
-    val result = DatasetOperations.select(Try(employees), "salary")
+    val result = DatasetOperations.select(employees, "salary")
     result shouldBe 'Success
     result.get.count() should be > 0L
     result.foreach(_.show())
   }
 
   it should "select on multiple columns" in {
-    val result = DatasetOperations.select(Try(employees), List("salary", "type"))
+    val result = DatasetOperations.select(employees, List("salary", "type"))
     result shouldBe 'Success
     result.get.count() should be > 0L
     result.foreach(_.show())
   }
 
   it should "return an error if a non valid column is selected" in {
-    val result = DatasetOperations.select(Try(employees), "salary2")
+    val result = DatasetOperations.select(employees, "salary2")
     result shouldBe 'Failure
   }
 
   it should "return data for a valid where condition" in {
-    val result = DatasetOperations.where(Try(employees), List("salary > 1000"))
+    val result = DatasetOperations.where(employees, List("salary > 1000"))
     result shouldBe 'Success
     result.get.count() === 2L
     result.foreach(_.show())
   }
 
   it should "return an error for a invalid where condition" in {
-    val result = DatasetOperations.where(Try(employees), List("salary * 1000"))
+    val result = DatasetOperations.where(employees, List("salary * 1000"))
     result shouldBe 'Failure
   }
 
   it should "aggregate correctly for column -> count" in {
-    val result = DatasetOperations.groupBy(Try(employees), "type", "salary" -> "count")
+    val result = DatasetOperations.groupBy(employees, "type", "salary" -> "count")
     result shouldBe 'Success
     result.foreach(_.show())
   }
@@ -72,7 +72,7 @@ class DatasetOperationsSpec extends FlatSpec with Matchers with BeforeAndAfterAl
   it should "aggregate correctly for multiple conditions" in {
     // Selects the age of the oldest employee and then aggregate salary for each type payment
     val result = DatasetOperations.groupBy(
-      df = Try(employees),
+      df = employees,
       column = "type",
       groupByOps = "age" -> "max", "salary" -> "mean")
 
@@ -81,12 +81,12 @@ class DatasetOperationsSpec extends FlatSpec with Matchers with BeforeAndAfterAl
   }
 
   it should "return an error for a invalid groupBy condition" in {
-    val result = DatasetOperations.groupBy(Try(employees), "type", "salay" -> "avg")
+    val result = DatasetOperations.groupBy(employees, "type", "salay" -> "avg")
     result shouldBe 'Failure
   }
 
   it should "display only 2 record if limited to 2" in {
-    val result = DatasetOperations.limit(Try(employees), 2)
+    val result = DatasetOperations.limit(employees, 2)
     result shouldBe 'Success
     result.get.count() === 2L
     result.foreach(_.show())

@@ -39,7 +39,7 @@ class DatasetControllerSpec extends TestAbstractModule
 
   protected implicit lazy val materializer = ActorMaterializer.create { actorSystem }
 
-  private def withController[U](f: DatasetController => U) = f { new DatasetController(configuration, sessionStore, ws, bodyParsers, actorSystem, executionContext) }
+  private def withController[U](f: DatasetController => U) = f { new DatasetController(configuration, sessionStore, ws, actorSystem, executionContext) }
 
   private def request[A](method: String, uri: String, body: A, authorization: Option[String] = None, headers: Headers = Headers())(action: => Action[A]) = Await.result(
     action {

@@ -17,60 +17,79 @@
 package daf.dataset
 
 import akka.stream.scaladsl.StreamConverters
-import config.FileExportConfig
+import cats.syntax.show.toShowOps
 import controllers.DatasetController
-import daf.dataset.export.FileExportService
-import daf.filesystem.{ FileDataFormat, JsonFileFormat, RawFileFormat }
+import daf.filesystem.{ CsvFileFormat, FileDataFormat, JsonFileFormat, PathInfo, fileFormatShow }
 import daf.web._
 import daf.instances.FileSystemInstance
-import it.gov.daf.common.config.ConfigReadException
 
 import scala.concurrent.Future
 import scala.util.{ Failure, Success }
 
 trait BulkDownload { this: DatasetController with FileSystemInstance =>
 
-  private val exportConfig = FileExportConfig.reader.read(configuration) match {
-    case Success(result) => result
-    case Failure(error)  => throw ConfigReadException(s"Unable to configure [dataset-manager]", error)
-  }
-
-  protected lazy val datasetService    = new DatasetService(configuration.underlying, ws)(ec)
-  protected lazy val downloadService   = new DownloadService
-  protected lazy val fileExportService = new FileExportService(exportConfig)
-
-  private def prepareDirect(path: String, auth: String, targetFormat: FileDataFormat) = targetFormat match {
-    case JsonFileFormat => datasetService.jsonData(auth, path)
-    case RawFileFormat  => datasetService.csvData(auth, path)
+  private def prepareDirect(params: DatasetParams, targetFormat: FileDataFormat) = targetFormat match {
+    case JsonFileFormat => datasetService.jsonData(params)
+    case CsvFileFormat  => datasetService.csvData(params)
     case _              => Failure { new IllegalArgumentException("Unable to prepare download; only CSV and JSON are permitted") }
   }
 
-  private def prepareExport(path: String, targetFormat: FileDataFormat) = downloadService.info(path) match {
-    case Success(dataInfo) => fileExportService.export(dataInfo, targetFormat)
-    case Failure(error)    => Future.failed { error }
-  }
+  private def prepareFileExport(pathInfo: PathInfo, sourceFormat: FileDataFormat, targetFormat: FileDataFormat, extraParams: ExtraParams) = fileExportService.exportFile(pathInfo.path, sourceFormat, targetFormat, extraParams)
 
-  private def directDownload(path: String, auth: String, targetFormat: FileDataFormat) = prepareDirect(path, auth, targetFormat) match {
-    case Success(data)  => Future.successful { Ok.chunked(data) }
+  private def prepareTableExport(table: String, targetFormat: FileDataFormat) = fileExportService.exportTable(table, targetFormat)
+
+  private def directDownload(params: DatasetParams, targetFormat: FileDataFormat) = prepareDirect(params, targetFormat) match {
+    case Success(data)  => Future.successful {
+      Ok.chunked(data).withHeaders(
+        CONTENT_DISPOSITION -> s"""attachment; filename="${params.name}.${targetFormat.show}""""
+      )
+    }
     case Failure(error) => Future.failed { error }
   }
 
-  private def exportDownload(path: String, targetFormat: FileDataFormat) = prepareExport(path, targetFormat).map { downloadService.open }.flatMap {
+  private def fileExportDownload(pathInfo: PathInfo, sourceFormat: FileDataFormat, targetFormat: FileDataFormat, extraParams: ExtraParams) =
+    prepareFileExport(pathInfo, sourceFormat, targetFormat, extraParams).map { downloadService.openPath }.flatMap {
+      case Failure(error)  => Future.failed { error }
+      case Success(stream) => Future.successful {
+        Ok.chunked {
+          StreamConverters.fromInputStream { () => stream }
+        }.withHeaders(
+          CONTENT_DISPOSITION -> s"""attachment; filename="${pathInfo.path.getName}.${targetFormat.show}""""
+        )
+      }
+    }
+
+  private def tableExportDownload(table: String, targetFormat: FileDataFormat) = prepareTableExport(table, targetFormat).map { downloadService.openPath }.flatMap {
     case Failure(error)  => Future.failed { error }
     case Success(stream) => Future.successful {
       Ok.chunked {
         StreamConverters.fromInputStream { () => stream }
-      }
+      }.withHeaders(
+        CONTENT_DISPOSITION -> s"""attachment; filename="$table.${targetFormat.show}""""
+      )
     }
   }
 
-  private def retrieveFileInfo(path: String, userId: String) = (proxyUser as userId) { downloadService.info(path) }
+  private def retrieveFileInfo(path: String, userId: String) = (proxyUser as userId) { downloadService.fileInfo(path) }
 
-  protected def bulkDownload(path: String, auth: String, userId: String, targetFormat: FileDataFormat) = retrieveFileInfo(path, userId) match {
-    case Success(pathInfo) if pathInfo.estimatedSize <= exportConfig.sizeThreshold => directDownload(path, auth, targetFormat)
-    case Success(_)                                                                => exportDownload(path, targetFormat)
+  private def retrieveTableInfo(tableName: String, userId: String) = (proxyUser as userId) { downloadService.tableInfo(tableName) }
+
+  private def tableDownload(params: KuduDatasetParams, userId: String, targetFormat: FileDataFormat) = retrieveTableInfo(params.table, userId) match {
+    case Success(_)     => tableExportDownload(params.table, targetFormat)
+    case Failure(error) => Future.failed { error }
+  }
+
+  private def fileDownload(params: FileDatasetParams, userId: String, targetFormat: FileDataFormat) = retrieveFileInfo(params.path, userId) match {
+    case Success(pathInfo) if pathInfo.estimatedSize <= exportConfig.sizeThreshold => directDownload(params, targetFormat)
+    case Success(pathInfo)                                                         => fileExportDownload(pathInfo, params.format, targetFormat, params.extraParams)
     case Failure(error)                                                            => Future.failed { error }
   }
 
+  // API
+
+  protected def bulkDownload(params: DatasetParams, userId: String, targetFormat: FileDataFormat) = params match {
+    case kuduParams: KuduDatasetParams => tableDownload(kuduParams, userId, targetFormat)
+    case fileParams: FileDatasetParams => fileDownload(fileParams, userId, targetFormat)
+  }
 
 }

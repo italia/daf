@@ -16,61 +16,37 @@
 
 package controllers
 
+import cats.syntax.show.toShowOps
 import com.typesafe.config.Config
-import daf.dataset.DatasetOperations
-import org.apache.spark.sql.{ DataFrame, SparkSession }
+import daf.dataset.{ DatasetOperations, DatasetParams, FileDatasetParams, KuduDatasetParams }
+import daf.filesystem.fileFormatShow
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.SparkConf
-import org.slf4j.{Logger, LoggerFactory}
-
-import scala.util.{ Failure, Try }
+import org.slf4j.{ Logger, LoggerFactory }
 
 class PhysicalDatasetController(sparkSession: SparkSession,
                                 kuduMaster: String,
                                 override val defaultLimit: Int = 1000,
                                 defaultChunkSize: Int = 0) extends DatasetOperations {
 
-  lazy val kudu = new KuduController(sparkSession, kuduMaster)
-  lazy val hdfs = new HDFSController(sparkSession)
+  lazy val kuduController = new KuduController(sparkSession, kuduMaster)
+  lazy val hdfsController = new HDFSController(sparkSession)
+
   val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
-  private def toTry[T](option: Option[Try[DataFrame]], errorMessage: String): Try[DataFrame] = option match {
-    case Some(d) => d
-    case None => Failure(new IllegalArgumentException(errorMessage))
+  def kudu(params: KuduDatasetParams, limit: Int = defaultLimit) = {
+    logger.debug { s"Reading data from kudu table [${params.table}]" }
+    kuduController.readData(params.table).map { _ limit math.min(limit, defaultLimit) }
   }
 
-  def get(params: Map[String, String]): Try[DataFrame] = {
+  def hdfs(params: FileDatasetParams, limit: Int = defaultLimit) = {
+    logger.debug { s"Reading data from hdfs at path [${params.path}]" }
+    hdfsController.readData(params.path, params.format.show, params.param("separator")).map { _ limit math.min(limit, defaultLimit) }
+  }
 
-    val l: Int = params.get("limit").map(_.toInt).getOrElse(defaultLimit)
-    val limit =
-      if (l > defaultLimit) defaultLimit
-      else l
-
-    params.getOrElse("protocol", "hdfs") match {
-
-      case "kudu" =>
-
-        val tableOp = params.get("table")
-        logger.info(s"Reading request for kudu with params: table:$tableOp")
-
-        val res = tableOp.map(kudu.readData(_).map(_.limit(limit)))
-        toTry(res, "Table should be defined")
-
-      case "hdfs" =>
-
-        val format = params.getOrElse("format", "parquet")
-        val pathOp = params.get("path")
-        val separator = params.get("separator")
-        logger.info(s"Reading request for hdfs with params: path:$pathOp format: $format")
-
-        val res = pathOp.map(hdfs.readData(_, format, separator).map(_.limit(limit)))
-        toTry(res, "Path should be defined")
-
-      case other =>
-        logger.info(s"Reading request for $other is still not supported")
-        Failure(new IllegalArgumentException(s"$other is still not supported."))
-
-    }
-
+  def get(params: DatasetParams, limit: Int = defaultLimit) = params match {
+    case kuduParams: KuduDatasetParams => kudu(kuduParams, limit)
+    case hdfsParams: FileDatasetParams => hdfs(hdfsParams, limit)
   }
 
 }

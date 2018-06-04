@@ -20,14 +20,20 @@ import java.io.InputStream
 
 import daf.filesystem.{ DirectoryInfo, FileInfo, MergeStrategies, PathInfo, StringPathSyntax }
 import org.apache.hadoop.fs.FileSystem
+import org.apache.kudu.Schema
+import org.apache.kudu.client.KuduClient
+import org.apache.kudu.client.KuduClient.KuduClientBuilder
 
 import scala.util.{ Failure, Success, Try }
 
 /**
   * Service that allows interaction with the given file system for any operations aimed at facilitating downloads.
-  * @param fileSystem the [[FileSystem]] instance to have the service interact with.
+  * @param kuduMaster the location of the Kudu master
+  * @param fileSystem the `FileSystem` instance to have the service interact with.
   */
-class DownloadService(implicit fileSystem: FileSystem) {
+class DownloadService(kuduMaster: String)(implicit fileSystem: FileSystem) {
+
+  private val kuduClientBuilder = new KuduClientBuilder(kuduMaster)
 
   private def openFiles(files: Seq[FileInfo]) = Try {
     files.map { file => fileSystem.open(file.path) }
@@ -49,9 +55,18 @@ class DownloadService(implicit fileSystem: FileSystem) {
     directory.files.headOption.map { MergeStrategies.find } getOrElse MergeStrategies.default
   }
 
-  def info(path: String) = Try { PathInfo.fromHadoop(path.asHadoop) }
+  private def withKuduClient[A](f: KuduClient => A) = {
+    val client = Try { kuduClientBuilder.build() }
+    val attempt = client.map { f }
+    client.foreach { _.close() }
+    attempt
+  }
 
-  def open(directory: DirectoryInfo): Try[InputStream] = for {
+  def fileInfo(path: String) = Try { PathInfo.fromHadoop(path.asHadoop) }
+
+  def tableInfo(table: String): Try[Schema] = withKuduClient { _.openTable(table).getSchema }
+
+  def openDir(directory: DirectoryInfo): Try[InputStream] = for {
     nonEmptyChecked    <- checkNonEmpty(directory)
     compressionChecked <- checkCompression(nonEmptyChecked)
     formatChecked      <- checkFormats(compressionChecked)
@@ -60,11 +75,11 @@ class DownloadService(implicit fileSystem: FileSystem) {
   } yield mergeStrategy.merge(inputStreams)
 
 
-  def open(file: FileInfo): Try[InputStream] = Try { fileSystem.open(file.path) }
+  def openFile(file: FileInfo): Try[InputStream] = Try { fileSystem.open(file.path) }
 
-  def open(path: String): Try[InputStream] = info(path).flatMap {
-    case directory: DirectoryInfo => open(directory)
-    case file: FileInfo           => open(file)
+  def openPath(path: String): Try[InputStream] = fileInfo(path).flatMap {
+    case directory: DirectoryInfo => openDir(directory)
+    case file: FileInfo           => openFile(file)
   }
 
 

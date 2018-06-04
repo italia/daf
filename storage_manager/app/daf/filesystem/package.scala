@@ -20,9 +20,20 @@ import java.io.EOFException
 import java.nio.charset.Charset
 import java.util.Scanner
 
+import cats.Show
 import org.apache.hadoop.fs.{ FSDataInputStream, FileSystem, Path }
 
 package object filesystem {
+
+  implicit val fileFormatShow: Show[FileDataFormat] = new Show[FileDataFormat] {
+    def show(format: FileDataFormat) = format match {
+      case CsvFileFormat     => "csv"
+      case JsonFileFormat    => "json"
+      case ParquetFileFormat => "parquet"
+      case AvroFileFormat    => "avro"
+      case RawFileFormat     => "binary"
+    }
+  }
 
   implicit class StringPathSyntax(path: String) {
 

@@ -18,12 +18,14 @@ package it.gov.daf.common.web
 
 import cats.{ Applicative, Id }
 import cats.instances.future.catsStdInstancesForFuture
+import cats.instances.try_.catsStdInstancesForTry
 import it.gov.daf.common.authentication.Authentication
 import org.slf4j.{ Logger, LoggerFactory }
 import play.api.mvc._
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.higherKinds
+import scala.util.Try
 
 /**
   * Utility object to help with the creation of actions that perform common tasks. Intended to help alleviate the
@@ -75,6 +77,8 @@ sealed case class ActionBuilder(protected val errorHandler: ErrorHandler,
     }
   }
 
+  private def id[F[_], A](action: WebAction[F, A]): WebAction[F, A] = action
+
   /**
     * Adds an error handler at the end of the current list of handlers.
     * @note The fallback handler is applied automatically
@@ -102,10 +106,19 @@ sealed case class ActionBuilder(protected val errorHandler: ErrorHandler,
     wrap[Future, A](action).recover { loggedErrorHandler }
   }
 
+  def attempt[A](bodyParser: BodyParser[A])(action: SafeWebAction[A]): Action[A] = Action.async(bodyParser) {
+    wrap[Try, A](action).recover { loggedErrorHandler }.transform[Future]
+  }
+
   def apply(action: SyncWebAction[AnyContent]): Action[AnyContent] = Action { wrap[Id, AnyContent](action) }
+
 
   def async(action: AsyncWebAction[AnyContent])(implicit executionContext: ExecutionContext): Action[AnyContent] = Action.async {
     wrap[Future, AnyContent](action).recover { loggedErrorHandler }
+  }
+
+  def attempt(action: WebAction[Try, AnyContent]): Action[AnyContent] = Action.async {
+    wrap[Try, AnyContent](action).recover { loggedErrorHandler }.transform[Future]
   }
 
   def async(action: => Future[Result])(implicit executionContext: ExecutionContext): Action[AnyContent] = Action.async {
@@ -116,11 +129,19 @@ sealed case class ActionBuilder(protected val errorHandler: ErrorHandler,
 
   def secured(action: SyncSecureWebAction[AnyContent]): Action[AnyContent] = Action { secure[Id, AnyContent](action) }
 
+  def securedAttempt(action: SecureWebAction[Try, AnyContent]): Action[AnyContent] = Action.async {
+    secure[Try, AnyContent](action).recover { loggedErrorHandler }.transform[Future]
+  }
+
   def securedAsync(action: AsyncSecureWebAction[AnyContent])(implicit executionContext: ExecutionContext): Action[AnyContent] = Action.async {
     secure[Future, AnyContent](action).recover { loggedErrorHandler }
   }
 
   def secured[A](bodyParser: BodyParser[A])(action: SyncSecureWebAction[A]): Action[A] = Action(bodyParser) { secure[Id, A](action) }
+
+  def securedAttempt[A](bodyParser: BodyParser[A])(action: SafeSecureWebAction[A]): Action[A] = Action.async(bodyParser) {
+    secure[Try, A](action).recover { loggedErrorHandler }.transform[Future]
+  }
 
   def securedAsync[A](bodyParser: BodyParser[A])(action: AsyncSecureWebAction[A])(implicit executionContext: ExecutionContext): Action[A] = Action.async(bodyParser) {
     secure[Future, A](action).recover { loggedErrorHandler }
@@ -130,6 +151,8 @@ sealed case class ActionBuilder(protected val errorHandler: ErrorHandler,
 
 private object ActionBuilder {
 
-  def default = apply(ErrorHandlers.basic, Impersonations.none, ErrorHandlers.logger)
+  val logger = LoggerFactory.getLogger("it.gov.daf.Action")
+
+  def default = apply(ErrorHandlers.basic, Impersonations.none, logger)
 
 }

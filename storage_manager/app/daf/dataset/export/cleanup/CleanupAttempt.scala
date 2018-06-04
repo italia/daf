@@ -14,27 +14,24 @@
  * limitations under the License.
  */
 
-package controllers
+package daf.dataset.export.cleanup
 
-import daf.dataset.FileDatasetParams
-import daf.filesystem.ParquetFileFormat
-import daf.util.HDFSBase
+import org.apache.hadoop.fs.Path
 
-class PhysicalDatasetControllerHDFSSpec extends HDFSBase {
+sealed trait CleanupAttempt {
 
-  var physicalC: PhysicalDatasetController = _
+  def path: Path
 
-  "PhysicalDatasetController" should "get a dataset from hdfs" in {
+  def isSuccessful: Boolean
 
-    physicalC = new PhysicalDatasetController(getSparkSession, "master.kudu")
+  final def isFailed: Boolean = !isSuccessful
 
-    val hdfsParams = FileDatasetParams(pathParquet, ParquetFileFormat)
+}
 
-    val dfParquet = physicalC.get(hdfsParams)
-    dfParquet shouldBe 'Success
-    dfParquet.get.count() should be > 0L
-    dfParquet.foreach(_.show())
+sealed case class SuccessfulAttempt(path: Path) extends CleanupAttempt {
+  val isSuccessful = true
+}
 
-  }
-
+sealed case class FailedAttempt(path: Path, reason: Option[Throwable] = None) extends CleanupAttempt {
+  val isSuccessful = true
 }

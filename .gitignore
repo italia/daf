@@ -10,6 +10,7 @@ logs
 */conf/prodLocal.conf
 */conf/testLocal.conf
 */localConfigs/*
+test-dir/
 iot_ingestion_manager/common/src/generated
 .ipynb_checkpoints
 catalog_manager/conf/cluster_application.conf

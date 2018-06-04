@@ -23,6 +23,12 @@ import org.apache.hadoop.fs.FSDataInputStream
 
 trait MergeStrategy[+A <: FileDataFormat] {
 
+  /**
+    * Merges an ordered sequence of streams into one. The implementor need not guarantee that all streams will be
+    * merged as-is; on the contrary, callers should expect some manipulation before the streams are merged into one.
+    * @param streams '''ordered''' sequence of streams to be merged
+    * @return a single `InputStream` that is the result of merging the input
+    */
   def merge(streams: Seq[FSDataInputStream]): InputStream
 
 }
@@ -64,7 +70,7 @@ object MergeStrategies {
 
   def find(fileFormat: FileDataFormat): MergeStrategy[FileDataFormat] = fileFormat match {
     case JsonFileFormat => json
-    case RawFileFormat  => csv
+    case CsvFileFormat  => csv
     case other          => throw new IllegalArgumentException(s"Unable to find a merge strategy for file format of type [${other.getClass.getSimpleName}]")
   }
 

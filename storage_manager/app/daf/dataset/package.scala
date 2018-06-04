@@ -14,27 +14,10 @@
  * limitations under the License.
  */
 
-package controllers
+package daf
 
-import daf.dataset.FileDatasetParams
-import daf.filesystem.ParquetFileFormat
-import daf.util.HDFSBase
+package object dataset {
 
-class PhysicalDatasetControllerHDFSSpec extends HDFSBase {
-
-  var physicalC: PhysicalDatasetController = _
-
-  "PhysicalDatasetController" should "get a dataset from hdfs" in {
-
-    physicalC = new PhysicalDatasetController(getSparkSession, "master.kudu")
-
-    val hdfsParams = FileDatasetParams(pathParquet, ParquetFileFormat)
-
-    val dfParquet = physicalC.get(hdfsParams)
-    dfParquet shouldBe 'Success
-    dfParquet.get.count() should be > 0L
-    dfParquet.foreach(_.show())
-
-  }
+  type ExtraParams = Map[String, String]
 
 }

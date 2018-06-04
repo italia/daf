@@ -50,8 +50,11 @@ class FileExportActorSpec extends WordSpec with Matchers with ConfigurationInsta
   private lazy val actorRef = actorSystem.actorOf {
     FileExportActor.props(
       new FileExportLivyClientFactory,
-    "",
+      "",
+      None,
+      Seq.empty,
       new Properties,
+      "",
       workingDir.asUriString
     )
   }

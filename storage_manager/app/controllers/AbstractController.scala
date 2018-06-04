@@ -32,6 +32,4 @@ abstract class AbstractController(protected val configuration: Configuration, va
 
   protected implicit val proxyUser = UserGroupInformation.getCurrentUser
 
-
-
 }

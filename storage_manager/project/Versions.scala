@@ -22,7 +22,7 @@ object Versions {
 
   lazy val kudu           = "1.4.0-cdh5.12.0"
 
-  lazy val livyClient     = "0.5.0-incubating"
+  lazy val livyClient     = "0.6.0-incubating-SNAPSHOT"
 
   lazy val log4j          = "2.9.1"
 

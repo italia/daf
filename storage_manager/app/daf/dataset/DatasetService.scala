@@ -24,124 +24,57 @@ import java.util.Date
 import akka.stream.scaladsl.Source
 import com.typesafe.config.Config
 import controllers.PhysicalDatasetController
-import daf.catalogmanager.{ CatalogManagerClient, MetaCatalog }
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.types.StructType
 import play.api.Logger
-import play.api.libs.ws.WSClient
 
-import scala.concurrent.{ ExecutionContext, Future }
-import scala.util.{ Failure, Try }
+import scala.util.Try
 
-class DatasetService(config: Config, ws: WSClient)
-                    (implicit private val ec: ExecutionContext) {
+class DatasetService(config: Config) {
 
-  private val catalogClient = new CatalogManagerClient(config.getString("daf.catalog-url"))(ec)
   private val storageClient = PhysicalDatasetController(config)
 
   private val log = Logger(this.getClass)
 
-  def schema(auth: String, uri: String): Try[StructType] = {
-    val mc = catalogClient.datasetCatalogByUid(auth, uri)
-    log.debug(s"dataset catalog result $mc")
+  def schema(params: DatasetParams): Try[StructType] = storageClient.get(params, 1).map { _.schema }
 
-    extractParams(mc).map( _ + ("limit" -> "1")).flatMap(x => storageClient.get(x)).map(x => x.schema)
-  }
+  def data(params: DatasetParams): Try[DataFrame] = storageClient.get(params)
 
-  def data(auth: String, uri: String): Try[DataFrame] = {
-    val mc = catalogClient.datasetCatalogByUid(auth, uri)
-    log.debug(s"dataset catalog result $mc")
-    extractParams(mc).flatMap { storageClient.get }
-  }
+  def jsonData(params: DatasetParams) = data(params).map { json }
 
-  def jsonData(auth: String, uri: String) = data(auth, uri).map { dataFrame =>
-    Source[String] { dataFrame.toJSON.collect().toList }
-  }
+  def json(dataFrame: DataFrame) = Source[String] { dataFrame.toJSON.collect().toVector }.map { row => s"$row${System.lineSeparator}" }
+
+//  This code produces valid JSON but is inconsistent with Spark's JSON structure
+//  def json(dataFrame: DataFrame) = Source[String] { "<start>" +: dataFrame.toJSON.collect().toVector :+ "<end>"}.sliding(2, 2).map {
+//    case Seq("<start>", "<end>") => "[]"
+//    case Seq("<start>", row) => s"[${System.lineSeparator()}  $row"
+//    case Seq(row, "<end>")   => s",${System.lineSeparator()}  $row${System.lineSeparator()}]"
+//    case Seq("<end>")        => s"${System.lineSeparator()}]"
+//    case Seq(row1, row2)     => s",${System.lineSeparator()}  $row1,${System.lineSeparator}  $row2"
+//    case rows                => rows.map { row => s",${System.lineSeparator()}  $row" }.mkString
+//  }
 
   // TODO: split code without breaking Spark task serialization
-  def csvData(auth: String, uri: String) = data(auth, uri).map { data =>
-    Source[String] {
-      data.schema.fieldNames.map { h => s""""$h"""" }.mkString(",") ::
-      data.rdd.map { row =>
+  def csvData(params: DatasetParams) = data(params).map { csv }
+
+  def csv(dataFrame: DataFrame) = Source[String] {
+    dataFrame.schema.fieldNames.map { h => s""""$h"""" }.mkString(",") +:
+      dataFrame.rdd.map { row =>
         row.toSeq.map {
-          case s: String => s""""${s.replaceAll("\"", "\\\"")}""""
+          case null         => "<null>"
+          case s: String    => s""""${s.replaceAll("\"", "\\\"")}""""
           case t: Timestamp => LocalDateTime.from(t.toInstant).atOffset(ZoneOffset.UTC).format { DateTimeFormatter.ISO_OFFSET_DATE_TIME }
           case d: Date      => LocalDateTime.from(d.toInstant).atOffset(ZoneOffset.UTC).format { DateTimeFormatter.ISO_OFFSET_DATE }
           case d            => d.toString
         }.mkString(",")
-      }.collect().toList
-    }
-  }
+      }.collect().toVector
+  }.map { row => s"$row${System.lineSeparator}" }
 
-  def query(auth: String, uri: String, query: Query): Try[DataFrame] = {
-    val mc = catalogClient.datasetCatalogByUid(auth, uri)
-
-    log.debug(s"dataset catalog result $mc")
-    val tryDf = extractParams(mc).flatMap(params => storageClient.get(params))
-        //applying select and where
-        val df = for {
-          selectDf <- DatasetOperations.select(tryDf, query.select.getOrElse(List.empty))
-          whereDf  <- DatasetOperations.where(Try(selectDf), query.where.getOrElse(List.empty))
-        } yield whereDf
-
-        //applying groupBy
-        query.groupBy match {
-          case Some(GroupBy(groupColumn, conditions)) =>
-            val conditionsMap = conditions.map(c => c.column -> c.aggregationFunction)
-            DatasetOperations.groupBy(df, groupColumn, conditionsMap: _*)
-          case None => df
-        }
-  }
-
-
-  private def extractSeparator(catalog :MetaCatalog) : Option[String] =  {
-      val sep = """'separatorChar'.=.'.*'.,'""".r.findFirstIn(catalog.dataschema.kyloSchema.getOrElse("{}"))
-        .getOrElse(",").split(" ,")(0)
-        .replace("""\\\\""", "")
-        .replaceAll("'", "").split(" = ").last.trim
-      Option(sep)
-  }
-
-  private def extractParamsF(catalog: MetaCatalog): Future[Map[String, String]] =
-    Future.fromTry(extractParams(catalog))
-
-  private def extractParams(catalog: MetaCatalog): Try[Map[String, String]] = {
-    catalog.operational.storage_info match {
-      case Some(storage) =>
-        if (storage.hdfs.isDefined) {
-          Try(
-            Map(
-              "protocol" -> "hdfs",
-              "path" -> s"${catalog.operational.physical_uri.get}", //storage.hdfs.flatMap(_.path).map(_ + "/final.parquet").get
-              "format" -> storage.hdfs.flatMap(_.param).getOrElse("format=parquet").split("=").last,
-              "separator" -> extractSeparator(catalog).getOrElse(",")
-            )
-          )
-        } else if (storage.kudu.isDefined) {
-          Try(
-            Map(
-              "protocol" -> "kudu",
-              "table" -> storage.kudu.map(_.name).get
-            )
-          )
-        } //FIXME re enable after the merge
-        //        } else if (storage.hbase.isDefined) {
-        //          Try(
-        //            Map(
-        //              "protocol" -> "opentsdb",
-        //              "metric" -> storage.hbase.flatMap(_.metric).get,
-        //              //FIXME right now it encodes a list a as comma separated values of tags
-        //              "tags" -> storage.hbase.flatMap(_.tags).get.mkString(","),
-        //              //FIXME how to encode the interval?
-        //              "interval" -> ""
-        //            )
-        //          )
-        //        }
-        else Failure(new IllegalArgumentException("no storage configured into catalog.operational field"))
-
-      case None =>
-        Failure(new IllegalArgumentException("no storage_info configured"))
-    }
-  }
+  def queryData(params: DatasetParams, query: Query): Try[DataFrame] = for {
+    data    <- storageClient.get(params)
+    selectQ <- DatasetOperations.select(data, query)
+    whereQ  <- DatasetOperations.where(selectQ, query)
+    groupByQ <- DatasetOperations.groupBy(whereQ, query)
+  } yield groupByQ
 
 }

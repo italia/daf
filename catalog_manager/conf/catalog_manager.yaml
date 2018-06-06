@@ -1204,6 +1204,9 @@ definitions:
       - avro
       - flatSchema
      properties:
+      encoding:
+        type: string
+        description: the encoding for the dataset. It may be null, in which case DAF will try to infer it.
       avro:
         $ref: '#/definitions/Avro'
       flatSchema:
@@ -1378,6 +1381,9 @@ definitions:
         description: it is of type array, and it gives info about the hierarchy, if any, to which the property/column belongs to.
         items:
           type: string
+      field_group:
+        type: string
+        description: a unique ID linking together columns relating to the same aspect. In the future, this may be controlled or semi-controlled by the semantic context.
   Constr:
     type: object
     properties:

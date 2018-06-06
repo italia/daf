@@ -72,20 +72,23 @@ abstract class AbstractController @Inject()(configuration: Configuration, val pl
     }
   }
 
+  protected def withUserData(action: String => Request[AnyContent] => Result): Request[AnyContent] => Result = { request =>
+    action { Authentication.getProfiles(request).headOption.map { _.getId } getOrElse "anonymous" } apply request
+  }
+
+
+  protected def doImpersonation(action: Request[AnyContent] => Result): String => Request[AnyContent] => Result = { userId => request =>
+    UserGroupInformation.createProxyUser(userId, proxyUser).doAs {
+      new PrivilegedExceptionAction[Result]() { def run: Result = action(request) }
+    }
+  }
 
   /**
     * Impersonation (proxy user) as a service
     * @param action
     * @return
     */
-  def HadoopDoAsAction(action: Request[AnyContent] => Result) = (request: Request[AnyContent]) => {
-    val profiles = Authentication.getProfiles(request)
-    val user = profiles.headOption.map(_.getId).getOrElse("anonymous")
-    val ugi = UserGroupInformation.createProxyUser(user, proxyUser)
-    ugi.doAs(new PrivilegedExceptionAction[Result]() {
-      override def run: Result = action(request)
-    })
-  }
+  def HadoopDoAsAction(action: Request[AnyContent] => Result) = withUserData { doImpersonation(action) }
 
 
 }

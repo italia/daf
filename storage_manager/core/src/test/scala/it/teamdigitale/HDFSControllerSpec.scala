@@ -16,9 +16,9 @@ class HDFSControllerSpec extends HDFSbase {
 
   "A HDFS controller" should "get a dataset from hdfs when a path exists" in {
 
-    val dfParquet = HDFSController.readData(pathParquet, "parquet")
-    val dfAvro = HDFSController.readData(pathAvro, "avro")
-    val dfCsv = HDFSController.readData(pathCsv, "csv")
+    val dfParquet = HDFSController.readData(pathParquet, "parquet", None)
+    val dfAvro = HDFSController.readData(pathAvro, "avro", None)
+    val dfCsv = HDFSController.readData(pathCsv, "csv", None)
 
     dfParquet shouldBe 'Success
     dfParquet.get.count() should be > 0L
@@ -34,12 +34,12 @@ class HDFSControllerSpec extends HDFSbase {
   }
 
   it should "handle requests with wrong paths"in {
-    val df = HDFSController.readData(s"wrongPath/test.parquet", "parquet")
+    val df = HDFSController.readData(s"wrongPath/test.parquet", "parquet", None)
     df shouldBe 'Failure
   }
 
   it should "handle requests with wrong format" in {
-    val df = HDFSController.readData(s"wrongPath/test.parquet", "wrongFormat")
+    val df = HDFSController.readData(s"wrongPath/test.parquet", "wrongFormat", None)
     df shouldBe 'Failure
     df === Failure(new IllegalArgumentException(s"Format wrongFormat is not implemented"))
   }

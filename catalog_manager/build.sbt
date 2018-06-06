@@ -83,7 +83,7 @@ resolvers ++= Seq(
 )
 
 resolvers ++= { if(isStaging) Seq("daf repo" at "http://nexus.teamdigitale.test:8081/repository/maven-public/")
-                else Seq("daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/")}
+                else Seq("daf repo" at "http://nexus.daf.teamdigitale.it:8081/repository/maven-public/")}
 
 import com.typesafe.sbt.packager.MappingsHelper._
 mappings in Universal ++= directory(baseDirectory.value / "data")
@@ -115,15 +115,14 @@ dockerCommands := dockerCommands.value.flatMap {
 
 dockerExposedPorts := Seq(9000)
 
-dockerEntrypoint := {if(isStaging)Seq(s"bin/${name.value}", "-Dconfig.file=conf/productionNew.conf")
-                     else Seq(s"bin/${name.value}", "-Dconfig.file=conf/production.conf")}
+dockerEntrypoint := {Seq(s"bin/${name.value}", "-Dconfig.file=conf/production.conf")}
 
-dockerRepository := { if(isStaging)Option("nexus.teamdigitale.test") else Option("10.98.74.120:5000") }
+dockerRepository := { if(isStaging)Option("nexus.teamdigitale.test") else Option("nexus.daf.teamdigitale.it") }
 
 
 publishTo in ThisBuild := {
   val nexus = if(isStaging) "http://nexus.teamdigitale.test:8081/repository/"
-              else "http://nexus.default.svc.cluster.local:8081/repository/"
+              else "http://nexus.daf.teamdigitale.it:8081/repository/"
 
   if (isSnapshot.value)
     Some("snapshots" at nexus + "maven-snapshots/")
@@ -133,7 +132,7 @@ publishTo in ThisBuild := {
 
 credentials += {if(isStaging) Credentials(Path.userHome / ".ivy2" / ".credentialsTest") else Credentials(Path.userHome / ".ivy2" / ".credentials")}
 
-javaOptions in Test += "-Dconfig.resource=" + System.getProperty("config.resource", "integration.conf")
+javaOptions in Test += "-Dconfig.resource=" + System.getProperty("config.resource", "localConfigs/integration.conf")
 
 
 // Wart Remover Plugin Configuration

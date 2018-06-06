@@ -14,7 +14,7 @@ class Kylo @Inject()(ws :WSClient, config: ConfigurationProvider){
 
   val KYLOURL = config.get.getString("kylo.url").get
   val KYLOUSER = config.get.getString("kylo.user").getOrElse("dladmin")
-  val KYLOPWD = config.get.getString("kylo.password").getOrElse("XXXXXXXXXXX")
+  val KYLOPWD = config.get.getString("kylo.userpwd").getOrElse("XXXXXXXXXXX")
 
   import scala.concurrent.ExecutionContext.Implicits._
 

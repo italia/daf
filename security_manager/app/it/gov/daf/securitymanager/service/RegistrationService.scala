@@ -248,10 +248,10 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
       //d <- step( c, Try{addNewUserToDefaultOrganization(user)} )
     } yield d
 
-    logger.debug( s"createUser yelding: $result" )
+    //logger.debug( s"createUser yelding: $result" )
 
     result.value.map{ in=>
-      logger.debug( s"createUser mapping: $result" )
+      //logger.debug( s"createUser mapping: $in" )
 
       in match {
         case Right(r) => logger.debug( s"todelete1" );Right(Success(Some("User created"), Some("ok")))
@@ -313,8 +313,8 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
     val result = for {
       user <- stepOverF( apiClientIPA.findUser(Left(uid)) )
-      a1 <- stepOver( testIfIsNotReferenceUser(user.uid) )// cannot cancel predefined user
-      a2 <- stepOver( testIfUserBelongsToGroup(user) )// cannot cancel user belonging to some orgs
+      a1 <- stepOver( raiseErrorIfIsReferenceUser(user.uid) )// cannot cancel predefined user
+      a2 <- stepOver( raiseErrorIfUserBelongsToSomeGroup(user) )// cannot cancel user belonging to some orgs or workgroups
 
       b <- EitherT( hardDeleteUser(uid) )
 
@@ -347,7 +347,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
   }*/
 
 
-  def testIfIsNotReferenceUser(userName:String):Future[Either[Error,Success]] = {
+  def raiseErrorIfIsReferenceUser(userName:String):Future[Either[Error,Success]] = {
 
     if( !userName.endsWith(ORG_REF_USER_POSTFIX) )
       Future.successful{Right( Success(Some("Ok"), Some("ok")))}
@@ -356,25 +356,36 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   }
 
-  private def testIfUserBelongsToGroup(user:IpaUser):Future[Either[Error,Success]] = {
+  private def raiseErrorIfUserBelongsToSomeGroup(user:IpaUser):Future[Either[Error,Success]] = {
 
-    if( user.organizations.isEmpty || user.organizations.get.isEmpty ||
-        user.organizations.get.filter( p => !p.equals(OPEN_DATA_GROUP) ).isEmpty
-    )
+    val userGroups = user.organizations.getOrElse(Seq.empty[String]).toList ::: user.workgroups.getOrElse(Seq.empty[String]).toList
+
+    if( userGroups.isEmpty )
       Future.successful{Right( Success(Some("Ok"), Some("ok")))}
     else
-      Future.successful{Left(Error(Option(1), Some("User belongs to organization"), None))}
+      Future.successful{Left(Error(Option(1), Some("User belongs to some workgroup or organization"), None))}
 
   }
 
-  def testIfUserBelongsToThisGroup(user:IpaUser,groupCn:String):Future[Either[Error,Success]] = {
+  def raiseErrorIfUserAlreadyBelongsToThisGroup(user:IpaUser,groupCn:String):Future[Either[Error,Success]] = {
 
-    if( user.organizations.isEmpty || user.organizations.get.isEmpty ||
-      (!user.organizations.get.contains(groupCn))
-    )
+    val userGroups = user.organizations.getOrElse(Seq.empty[String]).toList ::: user.workgroups.getOrElse(Seq.empty[String]).toList
+
+    if( !userGroups.contains(groupCn) )
       Future.successful{Right( Success(Some("Ok"), Some("ok")))}
     else
-      Future.successful{Left(Error(Option(1), Some("User belongs to this organization"), None))}
+      Future.successful{Left(Error(Option(1), Some(s"User already belongs to this group: $groupCn"), None))}
+
+  }
+
+  def raiseErrorIfUserDoesNotBelongToThisGroup(user:IpaUser,groupCn:String):Future[Either[Error,Success]] = {
+
+    val userGroups = user.organizations.getOrElse(Seq.empty[String]).toList ::: user.workgroups.getOrElse(Seq.empty[String]).toList
+
+    if( userGroups.contains(groupCn) )
+      Future.successful{Right( Success(Some("Ok"), Some("ok")))}
+    else
+      Future.successful{Left(Error(Option(1), Some(s"User does not belong to this group: $groupCn"), None))}
 
   }
 
@@ -411,7 +422,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
     val result = for {
       a1 <- EitherT( checkUserModsRoles(userMods.rolesToDelete, userMods.rolesToAdd) )
       user <- EitherT( apiClientIPA.findUser(Left(uid)) )
-      a <- EitherT( testIfIsNotReferenceUser(user.uid) )// cannot update reference user
+      a <- EitherT( raiseErrorIfIsReferenceUser(user.uid) )// cannot update reference user
 
       b <- EitherT( apiClientIPA.removeMemberFromGroups(userMods.rolesToDelete,User(uid)) )
       b1 <- EitherT( apiClientIPA.addMemberToGroups(userMods.rolesToAdd,User(uid)) )

@@ -127,7 +127,7 @@ object ProcessHandler {
   private def handleTries[S,T](success:SuccessWrapper, fx: => Future[Either[Error,S]])( ff: S=>Right[ErrorWrapper,T] ): EitherT[Future,ErrorWrapper,T] = {
 
 
-    logger.debug("toDeleteTries1 "+success.steps)
+    logger.debug("handleTries step: "+success.steps)
 
     val out:Future[Either[ErrorWrapper,T]] =
       Try{
@@ -140,17 +140,18 @@ object ProcessHandler {
 
         }.recover{case e:Throwable=> scala.util.Failure(e)} map {
           case scala.util.Success(resp) => resp
-          case scala.util.Failure(f) => logger.error(s"Future Failure:${f.getMessage}",f);logger.debug("toDeleteTries2 "+success.steps)
+          case scala.util.Failure(f) => logger.error(s"Future Failure (step=${success.steps}) :${f.getMessage}",f)
                                         Left( ErrorWrapper(Error(Option(0),Some(f.getMessage),None),success.steps) )
         }
-      }match {
+      }match{
         case scala.util.Success(resp) => resp
-        case scala.util.Failure(f) => logger.error(f.getMessage,f)
+        case scala.util.Failure(f) => logger.error(s"Failure (step=${success.steps}) :${f.getMessage}",f)
                                       Future.successful{ Left( ErrorWrapper(Error(Option(0),Some(f.getMessage),None),success.steps) )}
       }
 
     EitherT(out)
   }
+
 
   private def handleTries2[S,T](success:SuccessWrapper, fx: => Future[Either[Error,S]])( ff: S=>Right[ErrorWrapper,T] ): EitherT[Future,ErrorWrapper,T] = {
 

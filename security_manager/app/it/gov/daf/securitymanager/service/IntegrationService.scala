@@ -123,7 +123,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
     val result = for {
 
-      a <- stepOver( apiClientIPA.testGroupForDeletion(groupCn) )
+      a <- stepOver( apiClientIPA.testGroupForDeletion(Organization(groupCn)) )
       dbId <- stepOverF( supersetApiClient.findDatabaseId(toSupersetDS(groupCn)) )
       b <- stepOver( supersetApiClient.checkDbTables(dbId) )
       c <- EitherT( hardDeleteDafOrganization(groupCn) )
@@ -167,7 +167,8 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
       c <- step( b, supersetApiClient.createDatabase(toSupersetDS(wrkName),predefinedWrkIpaUser.uid,dafWrk.predefinedUserPwd,dafWrk.supSetConnectedDbName) )
 
       //f <- EitherT( grafanaApiClient.createOrganization(groupCn) ) TODO da riabilitare
-      g <- stepOver( c, addUserToWorkgroup(wrkName,predefinedWrkIpaUser.uid) )
+      d <- stepOver( c, addUserToOrganization(orgName,predefinedWrkIpaUser.uid) )
+      g <- stepOver( d, addUserToWorkgroup(wrkName,predefinedWrkIpaUser.uid) )
       //g <- EitherT( grafanaApiClient.addUserInOrganization(groupCn,toUserName(groupCn)) )
     } yield g
 
@@ -227,7 +228,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
     val result = for {
       // TODO test user org role
-      a <- stepOver( apiClientIPA.testGroupForDeletion(groupCn) )
+      a <- stepOver( apiClientIPA.testGroupForDeletion(WorkGroup(groupCn)) )
       dbId <- stepOverF( supersetApiClient.findDatabaseId(toSupersetDS(groupCn)) )
       b <- stepOver( supersetApiClient.checkDbTables(dbId) )
       c <- EitherT( hardDeleteDafWorkgroup(groupCn) )
@@ -285,10 +286,13 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
     logger.info("addUserToOrganization")
 
+    val orgViewerRoleName= RoleGroup(Viewer.toString+groupCn).toString
+
     val result = for {
-      user <-  stepOverF( apiClientIPA.findUser(Left(userName)) )
-      a1<-  stepOver( registrationService.testIfUserBelongsToThisGroup(user,groupCn) )
-      a2 <- step( apiClientIPA.addMembersToGroup(groupCn,User(userName)) )
+      a <- stepOver( apiClientIPA.testIfIsOrganization(groupCn) )
+      user <- stepOverF( apiClientIPA.findUser(Left(userName)) )
+      a1<-  stepOver( registrationService.raiseErrorIfUserAlreadyBelongsToThisGroup(user,groupCn) )
+      a2 <- step( apiClientIPA.addMemberToGroups(Some(Seq(groupCn,orgViewerRoleName)),User(userName)) )
       supersetUserInfo <- stepOverF( a2, supersetApiClient.findUser(userName) )
       roleIds <- stepOverF( a2, supersetApiClient.findRoleIds(toSupersetRole(groupCn)::supersetUserInfo._2.toList:_*) )
 
@@ -323,10 +327,15 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
     logger.info("hardRemoveUserFromOrganization")
 
+    val orgGroups= Some(Seq(groupCn,
+                            RoleGroup(Viewer.toString+groupCn).toString,
+                            RoleGroup(Editor.toString+groupCn).toString,
+                            RoleGroup(Admin.toString+groupCn).toString))
+
     val result = for {
       user <- stepOverF( apiClientIPA.findUser(Left(userName)) )
 
-      a1 <- step( apiClientIPA.removeMembersFromGroup(groupCn, User(userName)) )
+      a1 <- step( apiClientIPA.removeMemberFromGroups(orgGroups,User(userName)) )
 
       supersetUserInfo <- stepOverF(a1, supersetApiClient.findUser(userName) )
       roleNames = supersetUserInfo._2.toList.filter(p => !p.equals(toSupersetRole(groupCn))); roleIds <- stepOverF(a1, supersetApiClient.findRoleIds(roleNames: _*) )
@@ -352,7 +361,8 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
     val result = for {
       //user <-  stepOverF( Try{apiClientIPA.findUserByUid(userName)} )
-      a <- stepOver( registrationService.testIfIsNotReferenceUser(userName) )// cannot remove predefined user
+      a0 <- stepOver( apiClientIPA.testIfIsOrganization(groupCn) )
+      a <- stepOver( registrationService.raiseErrorIfIsReferenceUser(userName) )// cannot remove predefined user
 
       b <-  EitherT( hardRemoveUserFromOrganization(groupCn,userName) )
 
@@ -369,15 +379,14 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
   }
 
-
-
   def addUserToWorkgroup(groupCn:String, userName:String):Future[Either[Error,Success]] = {
 
     logger.info("addUserToWorkgroup")
 
     val result = for {
-      user <-  stepOverF( apiClientIPA.findUser(Left(userName)) )
-      a1<-  stepOver( registrationService.testIfUserBelongsToThisGroup(user,groupCn) )
+      parentOrg <- stepOverF( apiClientIPA.getWorkgroupOrganization(groupCn) )
+      user <- stepOverF( apiClientIPA.findUser(Left(userName)) )
+      a1<- stepOver( registrationService.raiseErrorIfUserDoesNotBelongToThisGroup(user,parentOrg) )
       a2 <- step( apiClientIPA.addMembersToGroup(groupCn,User(userName)) )
       supersetUserInfo <- stepOverF( a2, supersetApiClient.findUser(userName) )
       roleIds <- stepOverF( a2, supersetApiClient.findRoleIds(toSupersetRole(groupCn)::supersetUserInfo._2.toList:_*) )
@@ -437,7 +446,8 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
     val result = for {
       //user <-  stepOverF( Try{apiClientIPA.findUserByUid(userName)} )
-      a <- stepOver( registrationService.testIfIsNotReferenceUser(userName) )// cannot remove predefined user
+      a0 <- stepOver( apiClientIPA.testIfIsWorkgroup(groupCn) )
+      a <- stepOver( registrationService.raiseErrorIfIsReferenceUser(userName) )// cannot remove predefined user
 
       b <-  EitherT( hardRemoveUserFromWorkgroup(groupCn,userName) )
 

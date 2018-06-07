@@ -44,7 +44,7 @@ import cats.implicits._
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -64,7 +64,16 @@ package security_manager.yaml {
 
       Authentication(configuration, playSessionStore)
 
-    val sftpHost: String = configuration.underlying.getString("sftp.host")
+      val sftpHost: String = configuration.underlying.getString("sftp.host")
+
+      private def testWorkgropAuthorization(parentGroups:Option[Seq[String]]):Either[Error,Success]={
+        if(parentGroups.isEmpty || !parentGroups.get.contains(sso.WORKGROUPS_GROUP))
+          Left(Error(Option(1), Some("The group is not a workgroup"), None))
+        else if( CredentialManager.isDafSysAdmin(currentRequest) || CredentialManager.isOrgsAdmin(currentRequest,parentGroups.get) )
+          Right(Success(Some("ok"), Some("ok")) )
+        else
+          Left(Error(Option(1), Some("Admin permissions required"), None))
+      }
 
 
         // ----- End of unmanaged code area for constructor Security_managerYaml
@@ -127,15 +136,29 @@ package security_manager.yaml {
         val userdelDAFworkgroup = userdelDAFworkgroupAction { (payload: UserAndGroup) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.userdelDAFworkgroup
             execInContext[Future[UserdelDAFworkgroupType[T] forSome { type T }]] ("userdelDAFworkgroup") { () =>
-            val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
 
+            //val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
+
+              val result = for{
+                wrk <- EitherT( apiClientIPA.showGroup(payload.groupCn) )
+                a <- EitherT( Future.successful(testWorkgropAuthorization(wrk.memberof_group)) )
+                b <- EitherT( integrationService.removeUserFromWorkgroup(payload.groupCn, payload.userId) )
+              } yield b
+
+              result.value flatMap {
+                case Right(success) => UserdelDAFworkgroup200(success)
+                case Left(err) => UserdelDAFworkgroup500(err)
+              }
+
+
+              /*
             if (CredentialManager.isOrgAdmin(currentRequest, payload.groupCn) || CredentialManager.isDafSysAdmin(currentRequest))
               integrationService.removeUserFromWorkgroup(payload.groupCn, payload.userId) flatMap {
                 case Right(success) => UserdelDAFworkgroup200(success)
                 case Left(err) => UserdelDAFworkgroup500(err)
               }
             else
-              UserdelDAFworkgroup500(Error(Option(1), Some("Permissions required"), None))
+              UserdelDAFworkgroup500(Error(Option(1), Some("Permissions required"), None))*/
           }
             // ----- End of unmanaged code area for action  Security_managerYaml.userdelDAFworkgroup
         }
@@ -344,6 +367,7 @@ package security_manager.yaml {
             // ----- Start of unmanaged code area for action  Security_managerYaml.deleteDAFworkgroup
             execInContext[Future[DeleteDAFworkgroupType[T] forSome { type T }]] ("deleteDAFworkgroup"){ () =>
 
+              /*
             def testAuthorization(parentGroups:Option[Seq[String]]):Either[Error,Success]={
               if(parentGroups.isEmpty || !parentGroups.get.contains(sso.WORKGROUPS_GROUP))
                 Left(Error(Option(1), Some("The group is not a workgroup"), None))
@@ -351,11 +375,11 @@ package security_manager.yaml {
                 Right(Success(Some("ok"), Some("ok")) )
               else
                 Left(Error(Option(1), Some("Admin permissions required"), None))
-            }
+            }*/
 
             val result = for{
               wrk <- EitherT( apiClientIPA.showGroup(wrkName) )
-              a <- EitherT( Future.successful( testAuthorization(wrk.memberof_group)) )
+              a <- EitherT( Future.successful(testWorkgropAuthorization(wrk.memberof_group)) )
               b <- EitherT( integrationService.deleteDafWorkgroup(wrkName) )
             } yield b
 
@@ -472,15 +496,36 @@ package security_manager.yaml {
         val useraddDAFworkgroup = useraddDAFworkgroupAction { (payload: UserAndGroup) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.useraddDAFworkgroup
             execInContext[Future[UseraddDAFworkgroupType[T] forSome { type T }]] ("useraddDAFworkgroup") { () =>
-            val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
+            //val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
+              /*
+            def testWorkgropAuthorization(parentGroups:Option[Seq[String]]):Either[Error,Success]={
+              if(parentGroups.isEmpty || !parentGroups.get.contains(sso.WORKGROUPS_GROUP))
+                Left(Error(Option(1), Some("The group is not a workgroup"), None))
+              else if( CredentialManager.isDafSysAdmin(currentRequest) || CredentialManager.isOrgsAdmin(currentRequest,parentGroups.get) )
+                Right(Success(Some("ok"), Some("ok")) )
+              else
+                Left(Error(Option(1), Some("Admin permissions required"), None))
+            }*/
 
+            val result = for{
+              wrk <- EitherT( apiClientIPA.showGroup(payload.groupCn) )
+              a <- EitherT( Future.successful(testWorkgropAuthorization(wrk.memberof_group)) )
+              b <- EitherT( integrationService.addUserToWorkgroup(payload.groupCn, payload.userId) )
+            } yield b
+
+            result.value flatMap {
+              case Right(success) => UseraddDAFworkgroup200(success)
+              case Left(err) => UseraddDAFworkgroup500(err)
+            }
+
+              /*
             if (CredentialManager.isOrgAdmin(currentRequest, payload.groupCn) || CredentialManager.isDafSysAdmin(currentRequest))
               integrationService.addUserToWorkgroup(payload.groupCn, payload.userId) flatMap {
                 case Right(success) => UseraddDAFworkgroup200(success)
                 case Left(err) => UseraddDAFworkgroup500(err)
               }
             else
-              UseraddDAFworkgroup500(Error(Option(1), Some("Permissions required"), None))
+              UseraddDAFworkgroup500(Error(Option(1), Some("Permissions required"), None))*/
           }
             // ----- End of unmanaged code area for action  Security_managerYaml.useraddDAFworkgroup
         }

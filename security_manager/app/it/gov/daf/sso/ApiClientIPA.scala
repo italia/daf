@@ -312,7 +312,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
       case Organization(_) => Some(Seq(ORGANIZATIONS_GROUP))
       case WorkGroup(_) => parentGroup match{
                                               case Some(x) => Some(Seq(WORKGROUPS_GROUP,x.toString))
-                                              case _ => None
+                                              case None => None// must raise an error (see testEmptyness)
       }
       case RoleGroup(_) => Some(Seq(ROLES_GROUP))
     }
@@ -434,13 +434,23 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
   }
 
 
-  def testGroupForDeletion(groupCn:String):Future[Either[Error,Success]] ={
+  def testGroupForDeletion(groupCn:Group):Future[Either[Error,Success]] ={
 
-    showGroup(groupCn) map{
+
+    val groupEither:Either[Organization,WorkGroup] = groupCn match{
+      case o:Organization => Left(o)
+      case w:WorkGroup => Right(w)
+    }
+
+    showGroup(groupCn.toString) map{
       case Right(r) =>  if( r.member_user.nonEmpty && r.member_user.get.exists(userName => !(userName.endsWith(service.ORG_REF_USER_POSTFIX)|| userName.endsWith(service.WRK_REF_USER_POSTFIX))) )
                           Left(Error(Option(1),Some("This group contains users"),None))
                         else if( r.member_group.nonEmpty && r.member_group.get.nonEmpty )
                           Left(Error(Option(1),Some("This group contains other groups"),None))
+                        else if( groupEither.isLeft && isOrganization(r).isLeft )
+                          Left(Error(Option(1),Some("Not an organization"),None))
+                        else if( groupEither.isRight && isWorkgroup(r).isLeft )
+                          Left(Error(Option(1),Some("Not an workgroup"),None))
                         else
                           Right(Success(Some("Empty group"), Some("ok")))
 
@@ -449,6 +459,69 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
   }
 
+  def testIfIsWorkgroup(groupCn:String):Future[Either[Error,Success]] ={
+
+    showGroup(groupCn) map{
+      case Right(r) =>  isWorkgroup(r)
+      case Left(l) => Left(l)
+    }
+
+  }
+
+  def testIfIsOrganization(groupCn:String):Future[Either[Error,Success]] ={
+
+    showGroup(groupCn) map{
+      case Right(r) =>  isOrganization(r)
+      case Left(l) => Left(l)
+    }
+
+  }
+
+  def getWorkgroupOrganization(wrkName:String):Future[Either[Error,String]]={
+
+    val result = for{
+      wrk <- EitherT( showGroup(wrkName) )
+      orgList <- EitherT( organizationList )
+    } yield ( ApiClientIPA.extractGroupsOf(wrk.memberof_group,orgList) )
+
+    result.value map{
+      case Right(Some(Seq(x))) => Right(x)
+      case Left(l) => Left(l)
+      case _ => Left(Error(Option(1),Some("Not a daf workgroup"),None))
+    }
+
+  }
+
+  private def isWorkgroup(ipaGroup:IpaGroup) = {
+
+    if( ipaGroup.memberof_group.getOrElse(List.empty[String]).contains(WORKGROUPS_GROUP) )
+      Right(Success(Some("Ok"), Some("ok")))
+    else
+      Left(Error(Option(1),Some("Not a workgroup"),None))
+
+  }
+
+  private def isOrganization(ipaGroup:IpaGroup)={
+
+    val groups= ipaGroup.memberof_group.getOrElse(List.empty[String])
+
+    if( groups.contains(ORGANIZATIONS_GROUP) && !groups.contains(WORKGROUPS_GROUP) )
+        Right(Success(Some("Ok"), Some("ok")))
+    else
+        Left(Error(Option(1),Some("Not an organization"),None))
+
+  }
+
+  private def isOrganizationRole(ipaGroup:IpaGroup)={
+
+    val groups= ipaGroup.memberof_group.getOrElse(List.empty[String])
+
+    if( groups.contains(ORGANIZATIONS_GROUP) && groups.contains(ROLES_GROUP) )
+      Right(Success(Some("Ok"), Some("ok")))
+    else
+      Left(Error(Option(1),Some("Not an organization role"),None))
+
+  }
 
   def deleteGroup(group: String):Future[Either[Error,Success]]= {
 
@@ -839,11 +912,16 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
   }*/
 
-  def organizationList():Future[Either[Error,Seq[String]]] = groupList(ORGANIZATIONS_GROUP)
+  def organizationList():Future[Either[Error,Seq[String]]] = groupList( ORGANIZATIONS_GROUP,Some(WORKGROUPS_GROUP) )
   def workgroupList():Future[Either[Error,Seq[String]]] = groupList(WORKGROUPS_GROUP)
   def roleList():Future[Either[Error,Seq[String]]] = groupList(ROLES_GROUP)
 
-  private def groupList(memberOf:String):Future[Either[Error,Seq[String]]]={
+  private def groupList(memberOf:String,notMemberOf:Option[String]=None):Future[Either[Error,Seq[String]]]={
+
+    val notMemberOfCondition = notMemberOf match{
+                                  case Some(x) => s""""not_in_group": "$x", """
+                                  case None => ""
+                                }
 
     val jsonRequest:JsValue = Json.parse(s"""{
                                              "id": 0,
@@ -851,7 +929,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
                                              "params": [
                                                  [""],
                                                  {
-                                                    "in_group": "${memberOf}",
+                                                    "in_group": "${memberOf}", $notMemberOfCondition
                                                     "all": "false",
                                                     "raw": "true",
                                                     "version": "2.213"
@@ -928,15 +1006,12 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
 object ApiClientIPA {
 
-  //val whiteList = Seq( Role.Admin.toString(), Role.Editor.toString(), Role.Viewer.toString() )
-  //val blackList = Seq( Role.Admin.toString(), Role.Editor.toString(), Role.Viewer.toString(), "ipausers" )
-
   def extractRole( in:Option[Seq[String]] ): Option[Seq[String]] = {
 
     if(in.isEmpty)
       None
     else
-      Some(in.get.filter(group => Role.rolesPrefixs.filter(group.startsWith(_)).length>0 ))
+      Some( in.get.filter(group => Role.rolesPrefixs.exists(group.startsWith _)) )
 
   }
 

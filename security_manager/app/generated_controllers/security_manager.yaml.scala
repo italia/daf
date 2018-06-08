@@ -40,7 +40,7 @@ import it.gov.daf.securitymanager.service.utilities.Utils
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-    
+                    
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -58,10 +58,6 @@ package security_manager.yaml {
         // ----- Start of unmanaged code area for constructor Security_managerYaml
 
       Authentication(configuration, playSessionStore)
-
-    val sftpHostInternal: String = configuration.underlying.getString("sftp.host.internal")
-    val sftphostExternal: String = configuration.underlying.getString("sftp.host.external")
-
 
         // ----- End of unmanaged code area for constructor Security_managerYaml
         val registrationconfirm = registrationconfirmAction { (token: String) =>  
@@ -292,9 +288,9 @@ package security_manager.yaml {
 
             if (CredentialManager.isDafAdmin(currentRequest) || CredentialManager.isDafEditor(currentRequest)) {
               val result = credentials.flatMap { crd =>
-                val sftpInternal = new SftpHandler(crd.username, crd.password, sftpHostInternal)
+                val sftpInternal = new SftpHandler(crd.username, crd.password, ConfigReader.sftpHostInternal)
                 val resultInternal = sftpInternal.mkdir(path_to_create)
-                val sftpExternal = new SftpHandler(crd.username, crd.password, sftphostExternal)
+                val sftpExternal = new SftpHandler(crd.username, crd.password, ConfigReader.sftphostExternal)
                 val resultExternal = sftpExternal.mkdir(path_to_create)
                 resultExternal
               }

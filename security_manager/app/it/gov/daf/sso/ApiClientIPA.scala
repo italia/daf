@@ -745,13 +745,18 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
       //println("------------------->>>>>>"+MDC.get("user-id") )
 
       val count = ((json \ "result") \ "count").asOpt[Int].getOrElse(-1)
-      val result = (json \ "result") \"result"
+      val tempoResult = (json \ "result") \"result"
 
       if(count==0)
         Left( Error(Option(1),Some("No user found"),None) )
-      else if( result.isInstanceOf[JsUndefined] )
+      else if( tempoResult.isInstanceOf[JsUndefined] )
         Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
-      else
+      else {
+
+        val result:JsLookupResult = param match {
+          case Right(mail) => tempoResult(0)
+          case Left(userId) => tempoResult
+        }
 
         Right(
           IpaUser(
@@ -759,13 +764,15 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
             givenname = (result \ "givenname") (0).asOpt[String].getOrElse(""),
             mail = (result \ "mail") (0).asOpt[String].getOrElse(""),
             uid = (result \ "uid") (0).asOpt[String].getOrElse(""),
-            roles = ApiClientIPA.extractRole( (result \ "memberof_group").asOpt[Seq[String]] ),
-            workgroups = ApiClientIPA.extractGroupsOf( (result \ "memberof_group").asOpt[Seq[String]], wrkGroups ),
+            roles = ApiClientIPA.extractRole((result \ "memberof_group").asOpt[Seq[String]]),
+            workgroups = ApiClientIPA.extractGroupsOf((result \ "memberof_group").asOpt[Seq[String]], wrkGroups),
             title = (result \ "title") (0).asOpt[String],
             userpassword = None,
-            organizations = ApiClientIPA.extractGroupsOf( (result \ "memberof_group").asOpt[Seq[String]], orgs )
+            organizations = ApiClientIPA.extractGroupsOf((result \ "memberof_group").asOpt[Seq[String]], orgs)
           )
         )
+      }
+
     }
 
     secInvokeManager.manageRestServiceCall(loginInfo,serviceInvoke,200).map {

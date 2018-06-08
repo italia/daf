@@ -12,6 +12,7 @@ import play.api.Logger
 
 import scala.concurrent.Future
 import ProcessHandler._
+import it.gov.daf.common.sso.common.{Admin, Editor, SysAdmin, Viewer}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.util.Try
@@ -389,26 +390,26 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   }
 
-  private def checkUserModsRoles(roleTodeletes:Option[Seq[String]], roleToAdds:Option[Seq[String]]):Future[Either[Error,Success]] = {
+  private def checkUserModsRoles(roleTodeletes:Option[Seq[String]], roleToAdds:Option[Seq[String]], userOrgs:Option[Seq[String]]):Either[Error,Success] = {
 
-      val deletes = roleTodeletes.getOrElse(Seq(Nil)).toSet
-      val adds = roleToAdds.getOrElse(Seq(Nil)).toSet
+      val possibleRoles = userOrgs.getOrElse(Seq.empty[String]).foldRight[List[String]](List(SysAdmin.toString)){ (curs, out) => out ::: List( Admin+curs.toString,
+                                                                                                                                      Editor+curs.toString,
+                                                                                                                                      Viewer+curs.toString)
+                                                                                                        }.toSet
+
+      val deletes = roleTodeletes.getOrElse(Seq.empty[String]).toSet[String]
+      val adds = roleToAdds.getOrElse(Seq.empty[String]).toSet[String]
       val intersection = deletes intersect adds
 
       if( intersection.nonEmpty )
-        Future.successful{Left(Error(Option(1), Some("Same roles founded to add and to delete"), None))}
+        Left(Error(Option(1), Some("Same roles founded to add and to delete"), None))
       else{
         val union = deletes union adds
-        apiClientIPA.roleList().map{
 
-          case Right(list) => if(union subsetOf list.toSet)
-                                Right(Success(Some("Ok"), Some("ok")))
-                              else
-                                Left(Error(Option(1), Some("Same roles does not exists"), None))
-
-          case Left(l) => Left(l)
-        }
-
+        if( union subsetOf possibleRoles )
+          Right(Success(Some("Ok"), Some("ok")))
+        else
+          Left(Error(Option(1), Some("Some roles does not exist, or does not belong to user organizations"), None))
 
       }
 
@@ -420,8 +421,9 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
     logger.info(s"updateUser: $uid")
 
     val result = for {
-      a1 <- EitherT( checkUserModsRoles(userMods.rolesToDelete, userMods.rolesToAdd) )
+
       user <- EitherT( apiClientIPA.findUser(Left(uid)) )
+      a1 <- EitherT( Future.successful(checkUserModsRoles(userMods.rolesToDelete, userMods.rolesToAdd, user.organizations)) )
       a <- EitherT( raiseErrorIfIsReferenceUser(user.uid) )// cannot update reference user
 
       b <- EitherT( apiClientIPA.removeMemberFromGroups(userMods.rolesToDelete,User(uid)) )

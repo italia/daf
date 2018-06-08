@@ -3,7 +3,6 @@ package it.gov.daf.securitymanager.service
 
 import com.google.inject.{Inject, Singleton}
 import security_manager.yaml.{AclPermission, Error, Success}
-
 import scala.concurrent.Future
 import cats.implicits._
 import ProcessHandler.{stepOverF, _}
@@ -22,29 +21,31 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
   private def testUser(owner:String ):Future[Either[Error,String]] = {
 
-    def methodCall = if(owner == getUsername()) Right("user is the owner") else Left("The user is not the owner of the dataset")
-    evalInFuture1(methodCall)
+    evalInFuture1{
+      if(owner == getUsername()) Right("user is the owner")
+      else Left("The user is not the owner of the dataset")
+    }
+
   }
 
   private def getDatasetInfo(datasetPath:String ):Future[Either[Error,(String,String)]] = {
 
-    def methodCall = MongoService.getDatasetInfo(datasetPath)
-    evalInFuture0(methodCall)
+    evalInFuture0( MongoService.getDatasetInfo(datasetPath) )
   }
 
   private def addAclToCatalog(datasetName:String, groupName:String, groupType:String, permission:String ):Future[Either[Error,Success]] = {
 
-    def methodCall = MongoService.addACL(datasetName, groupName, groupType, permission)
-    evalInFuture0S(methodCall)
+    evalInFuture0S( MongoService.addACL(datasetName, groupName, groupType, permission) )
   }
 
 
   private def createImpalaGrant(datasetPath:String, groupName:String, groupType:String, permission:String ):Future[Either[Error,Success]] = {
 
-    val tableName = toTableName(datasetPath)
+    evalInFuture0S{
+      val tableName = toTableName(datasetPath)
+      impalaService.createGrant(tableName, groupName, permission)
+    }
 
-    def methodCall = impalaService.createGrant(tableName, groupName, permission)
-    evalInFuture0S(methodCall)
   }
 
 
@@ -106,10 +107,11 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
   private def verifyPermissionString(permission:String):Future[Either[Error,Success]]={
 
-    def methodCall =  if (Permission.permissions.map(_.toString) contains (permission)) Right("ok")
-                      else Left(s"Permisson cab be: ${Permission.permissions}")
+    wrapInFuture1S{
+      if (Permission.permissions.map(_.toString) contains (permission)) Right("ok")
+      else Left(s"Permisson cab be: ${Permission.permissions}")
+    }
 
-    wrapInFuture1S(methodCall)
   }
 
   def setACLPermission(datasetName:String, groupName:String, groupType:String, permission:String) :Future[Either[Error,Success]] = {
@@ -118,16 +120,16 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
     val result = for {
 
-      test <- stepOverF(Try {verifyPermissionString(permission)})
-      info <- stepOverF(Try {getDatasetInfo(datasetName)}); (datasetPath,owner)=info
+      test <- stepOverF( verifyPermissionString(permission) )
+      info <- stepOverF( getDatasetInfo(datasetName) ); (datasetPath,owner)=info
 
-      s <- stepOverF(testUser(owner))
+      s <- stepOverF( testUser(owner) )
 
-      k <- stepOverF(Try {deletePermissionIfPresent(datasetPath, groupName, groupType)})
+      k <- stepOverF( deletePermissionIfPresent(datasetPath, groupName, groupType) )
 
-      a <- step(Try {setDatasetHDFSPermission(datasetPath, true, createPermission)})
-      b <- step(a, Try {createImpalaGrant(datasetPath, groupName, groupType, permission)})
-      c <- step(b, Try {addAclToCatalog(datasetName, groupName, groupType, permission)})
+      a <- step( setDatasetHDFSPermission(datasetPath, true, createPermission) )
+      b <- step( a, createImpalaGrant(datasetPath, groupName, groupType, permission) )
+      c <- step( b, addAclToCatalog(datasetName, groupName, groupType, permission) )
 
     } yield c
 
@@ -151,17 +153,16 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
   private def deleteAclFromCatalog(datasetName:String, groupName:String, groupType:String ):Future[Either[Error,Success]] = {
 
-    def methodCall = MongoService.removeAllACL(datasetName, groupName, groupType)
-    evalInFuture0S(methodCall)
+    evalInFuture0S( MongoService.removeAllACL(datasetName, groupName, groupType) )
   }
 
 
   private def revokeImpalaGrant(datasetPath:String, groupName:String, groupType:String):Future[Either[Error,Success]] = {
 
-    val tableName = toTableName(datasetPath)
-
-    def methodCall = impalaService.revokeGrant(tableName, groupName)
-    evalInFuture0S(methodCall)
+    evalInFuture0S{
+      val tableName = toTableName(datasetPath)
+      impalaService.revokeGrant(tableName, groupName)
+    }
   }
 
   private def revokeHDFSPermission(datasetPath:String, isDirectory:Boolean, groupName:String, groupType:String):Future[Either[Error,Success]] = {
@@ -187,9 +188,9 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
     val result = for {
 
-      a <- step(Try {setDatasetHDFSPermission(datasetPath, true, deletePermission)})
-      b <- step(a, Try {revokeImpalaGrant(datasetPath, groupName, groupType) })
-      c <- step(b, Try {deleteAclFromCatalog(datasetName, groupName, groupType)})
+      a <- step( setDatasetHDFSPermission(datasetPath, true, deletePermission) )
+      b <- step(a, revokeImpalaGrant(datasetPath, groupName, groupType) )
+      c <- step(b, deleteAclFromCatalog(datasetName, groupName, groupType) )
 
     } yield c
 
@@ -203,7 +204,7 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
     val result = for {
 
-      info <- stepOverF( Try {getDatasetInfo(datasetName)}) ; (datasetPath,owner)=info
+      info <- stepOverF( getDatasetInfo(datasetName) ) ; (datasetPath,owner)=info
 
       s <- stepOverF( testUser(owner) )
 

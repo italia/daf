@@ -47,7 +47,7 @@ class BearerTokenGenerator {
   private def generateToken(tokenLength: Int) : String = {
     val charLen = TOKEN_CHARS.length()
     def generateTokenAccumulator(accumulator: String, number: Int) : String = {
-      if (number == 0) return accumulator
+      if (number == 0) accumulator
       else
         generateTokenAccumulator(accumulator + TOKEN_CHARS(secureRandom.nextInt(charLen)).toString, number - 1)
     }

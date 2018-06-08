@@ -18,7 +18,7 @@ package it.gov.daf.common.sso.common
 
 import java.util
 
-import it.gov.daf.common.authentication.{Authentication, Role}
+import it.gov.daf.common.authentication.Authentication
 import it.gov.daf.common.utils._
 import org.apache.commons.codec.binary.Base64
 //import org.apache.commons.net.util.Base64
@@ -102,24 +102,48 @@ object CredentialManager {
     Try{readCredentialFromRequest(requestHeader)}
   }
 
-
-  def isDafAdmin(request:Request[Any]):Boolean ={
+  def isDafSysAdmin( request:Request[Any]):Boolean ={
     val groups = readCredentialFromRequest(request).groups
     Logger.logger.info(s"belonging to groups: ${groups.toList}" )
-    groups.contains(Role.Admin.toString)
+    groups.contains(SysAdmin.toString)
   }
 
-  def isDafEditor(request:Request[Any]):Boolean ={
+  def isOrgAdmin( request:Request[Any], orgName:String ):Boolean ={
     val groups = readCredentialFromRequest(request).groups
     Logger.logger.info(s"belonging to groups: ${groups.toList}" )
-    groups.contains(Role.Editor.toString)
+    groups.contains(Admin.toString+orgName)
   }
 
+  def isOrgsAdmin( request:Request[Any], orgsNames:Seq[String] ):Boolean ={
+    val userGroups = readCredentialFromRequest(request).groups
+    Logger.logger.info(s"belonging to groups: ${userGroups.toList}" )
+    (orgsNames.map(Admin.toString+_).toSet intersect userGroups.toSet).nonEmpty
+  }
 
-  def isBelongingToGroup( request:Request[Any], group:String ):Boolean ={
+  def isOrgEditor( request:Request[Any], orgName:String ):Boolean ={
     val groups = readCredentialFromRequest(request).groups
     Logger.logger.info(s"belonging to groups: ${groups.toList}" )
-    groups.contains(group)
+    groups.contains(Editor.toString+orgName)
+  }
+
+  def isOrgsEditor( request:Request[Any], orgsNames:Seq[String] ):Boolean ={
+    val userGroups = readCredentialFromRequest(request).groups
+    Logger.logger.info(s"belonging to groups: ${userGroups.toList}" )
+    (orgsNames.map(Editor.toString+_).toSet intersect userGroups.toSet).nonEmpty
+  }
+
+  def isBelongingToOrgAs( request:Request[Any], orgName:String ):Option[Role] ={
+    val groups = readCredentialFromRequest(request).groups
+    Logger.logger.info(s"belonging to groups: ${groups.toList}" )
+
+    Role.pickRole(groups,orgName)
+  }
+
+  def getUserGroups( request:Request[Any]):Option[String] ={
+    val groups = readCredentialFromRequest(request).groups
+    Logger.logger.info(s"belonging to groups: ${groups.toList}" )
+
+    Some(groups.mkString("|"))
   }
 
 }

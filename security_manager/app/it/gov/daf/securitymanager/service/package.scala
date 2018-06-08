@@ -9,7 +9,10 @@ import scala.concurrent.Future
 
 package object service {
 
-  def wrapFuture1[T](in:Either[String,T]):Future[Either[security_manager.yaml.Error,T]]={
+  val ORG_REF_USER_POSTFIX: String = "_org_rif"
+  val WRK_REF_USER_POSTFIX: String = "_wrk_rif"
+
+  def wrapFuture1[T](in: =>Either[String,T]):Future[Either[security_manager.yaml.Error,T]]={
     Future.successful {
       in match {
         case Right(r) => Right(r)
@@ -19,7 +22,7 @@ package object service {
 
   }
 
-  def wrapFuture0[T](in:Either[String,T]):Future[Either[security_manager.yaml.Error,T]]={
+  def wrapFuture0[T](in: =>Either[String,T]):Future[Either[security_manager.yaml.Error,T]]={
     Future.successful {
       in match {
         case Right(r) => Right(r)
@@ -29,7 +32,7 @@ package object service {
 
   }
 
-  def evalInFuture1[T](in:Either[String,T]):Future[Either[security_manager.yaml.Error,T]]={
+  def evalInFuture1[T](in: =>Either[String,T]):Future[Either[security_manager.yaml.Error,T]]={
     Future {
       in match {
         case Right(r) => Right(r)
@@ -39,7 +42,7 @@ package object service {
 
   }
 
-  def evalInFuture0[T](in:Either[String,T]):Future[Either[security_manager.yaml.Error,T]]={
+  def evalInFuture0[T](in: =>Either[String,T]):Future[Either[security_manager.yaml.Error,T]]={
     Future {
       in match {
         case Right(r) => Right(r)
@@ -49,7 +52,7 @@ package object service {
 
   }
 
-  def evalInFuture1S(in:Either[String,String]):Future[Either[security_manager.yaml.Error,security_manager.yaml.Success]]={
+  def evalInFuture1S(in: =>Either[String,String]):Future[Either[security_manager.yaml.Error,security_manager.yaml.Success]]={
     Future {
       in match {
         case Right(r) => Right( security_manager.yaml.Success(Some(r), Some("ok")) )
@@ -59,7 +62,7 @@ package object service {
 
   }
 
-  def wrapInFuture1S(in:Either[String,String]):Future[Either[security_manager.yaml.Error,security_manager.yaml.Success]]={
+  def wrapInFuture1S(in: =>Either[String,String]):Future[Either[security_manager.yaml.Error,security_manager.yaml.Success]]={
     Future.successful {
       in match {
         case Right(r) => Right( security_manager.yaml.Success(Some(r), Some("ok")) )
@@ -69,7 +72,7 @@ package object service {
 
   }
 
-  def evalInFuture0S(in:Either[String,String]):Future[Either[security_manager.yaml.Error,security_manager.yaml.Success]]={
+  def evalInFuture0S(in: =>Either[String,String]):Future[Either[security_manager.yaml.Error,security_manager.yaml.Success]]={
     Future {
       in match {
         case Right(r) => Right( security_manager.yaml.Success(Some(r), Some("ok")) )

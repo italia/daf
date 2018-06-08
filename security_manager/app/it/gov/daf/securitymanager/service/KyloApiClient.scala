@@ -34,6 +34,8 @@ class KyloApiClient @Inject()(wSClient: WSClient){
 
     Logger.logger.debug("createCategory: "+ jsonRequest.toString())
 
+    //throw new java.net.UnknownHostException("weee")
+
     val response = wSClient.url(ConfigReader.kyloUrl + "/proxy/v1/feedmgr/categories")
                     .withHeaders("Accept" -> "application/json")
                     .withAuth(ConfigReader.kyloUser,ConfigReader.kyloUserPwd,WSAuthScheme.BASIC)

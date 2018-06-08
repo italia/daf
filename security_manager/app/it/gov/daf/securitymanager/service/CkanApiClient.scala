@@ -91,6 +91,7 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
 
 
     def serviceInvoke(cookie: String, wsClient: WSClient): Future[WSResponse] = {
+      println("XXX_>"+ckaninfo._1 + "/api/3/action/organization_create" + "  Cookie:"+cookie)
       wsClient.url(ckaninfo._1 + "/api/3/action/organization_create").withHeaders("Cookie" -> cookie).post(jsonRequest)
     }
 

@@ -4,7 +4,8 @@ object AppConstants {
 
   // -- application genreic constants
 
-  def PredefinedOrgUserTitle = "Predefined organization user"
-  def OrganizationIpaGroupDescription = "Organization Group"
+  def ReferenceUserTitle = "Daf Reference User"
+  def UserTitle = "Daf User"
+  def IpaGroupDescription = "Daf Group"
 
 }

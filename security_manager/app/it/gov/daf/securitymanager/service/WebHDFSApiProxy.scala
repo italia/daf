@@ -14,6 +14,7 @@ class WebHDFSApiProxy @Inject()(secInvokeManager: SecuredInvocationManager,impli
 
   import play.api.libs.concurrent.Execution.Implicits._
 
+  private val logger = Logger(this.getClass.getName)
   private val HADOOP_URL = ConfigReader.hadoopUrl
 
 
@@ -21,10 +22,10 @@ class WebHDFSApiProxy @Inject()(secInvokeManager: SecuredInvocationManager,impli
 
     val loginInfo = readLoginInfo()
 
-    secInvokeManager.manageRestServiceCallWithResp(loginInfo, serviceInvoke, 200,201,400,401,403,404).map {
+    secInvokeManager.manageRestServiceCallWithResp(loginInfo, serviceInvoke, 200,201,307,400,401,403,404).map {
       case Right(resp) => if(resp.httpCode<400) Right(resp)
                           else Left(resp)
-      case Left(l) =>  Left(RestServiceResponse(JsString(l),500))
+      case Left(l) =>  Left(RestServiceResponse(JsString(l),500,None))
     }
   }
 
@@ -36,8 +37,10 @@ class WebHDFSApiProxy @Inject()(secInvokeManager: SecuredInvocationManager,impli
 
     def serviceInvoke(cookie: String, wsClient: WSClient): Future[WSResponse] = {
       val prmList = params.toList
-      Logger.logger.debug(s"---->$prmList")
-      wsClient.url(s"$HADOOP_URL/webhdfs/v1/$path").withHeaders("Cookie" -> cookie).withMethod(httpMethod).withQueryString(prmList:_*).execute
+      logger.debug(s"---->$prmList")
+      val response = wsClient.url(s"$HADOOP_URL/webhdfs/v1/$path").withHeaders("Cookie" -> cookie).withFollowRedirects(false).withMethod(httpMethod).withQueryString(prmList:_*).execute
+      logger.debug(s"callHdfsService Response: $response")
+      response
     }
 
     handleServiceCall(serviceInvoke)

@@ -35,7 +35,7 @@ class WebHDFSApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cac
 
     secInvokeManager.manageRestServiceCallWithResp(loginInfo, serviceInvoke, 200,201,400,401,403,404).map {
       case Right(resp) => handleJson(resp)
-      case Left(l) =>  Left(RestServiceResponse(JsString(l),500))
+      case Left(l) =>  Left(RestServiceResponse(JsString(l),500,None))
     }
   }
 

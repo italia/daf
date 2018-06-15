@@ -24,7 +24,7 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 import play.api.Logger
 
-final case class RestServiceResponse(jsValue:JsValue, httpCode:Int)
+final case class RestServiceResponse(jsValue:JsValue, httpCode:Int, locationHeader:Option[String])
 
 @SuppressWarnings(
   Array(
@@ -106,9 +106,9 @@ class SecuredInvocationManager @Inject()(loginClient:LoginClient, cacheWrapper: 
       Try{
         if( acceptableHttpCodes.contains(response.status) ) {
           if(response.body.trim().length==0)
-            RestServiceResponse(JsString("{no-content}"), response.status)
+            RestServiceResponse( JsString("{no-content}"), response.status, response.header("location") )
           else
-            RestServiceResponse(response.json, response.status)
+            RestServiceResponse( response.json, response.status, response.header("location") )
         }else
           throw new Exception(s"Error while invoking the service. Unespected http code returned: ${response.status}")
       }

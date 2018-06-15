@@ -19,7 +19,7 @@ import scala.util.Try
 @Singleton
 class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient: SupersetApiClient, ckanApiClient: CkanApiClient, grafanaApiClient:GrafanaApiClient, registrationService: RegistrationService,kyloApiClient:KyloApiClient, impalaService:ImpalaService){
 
-  private val logger = Logger(IntegrationService.getClass.getName)
+  private val logger = Logger(this.getClass.getName)
 
   def createDafOrganization(dafOrg:DafGroup):Future[Either[Error,Success]] = {
 

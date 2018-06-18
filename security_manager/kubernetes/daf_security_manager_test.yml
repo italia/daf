@@ -117,5 +117,5 @@ spec:
       - name: krb5conf
         hostPath:
           path: /etc/krb5.conf
-#      nodeSelector:
-#        nifi: "false"
+      nodeSelector:
+        nifi: "false"

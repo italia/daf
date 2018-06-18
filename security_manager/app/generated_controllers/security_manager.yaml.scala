@@ -44,7 +44,7 @@ import cats.implicits._
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -312,7 +312,12 @@ package security_manager.yaml {
         val token = tokenAction {  _ =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.token
             execInContext[Future[TokenType[T] forSome { type T }]] ("token"){ () =>
-            Token200(Authentication.getStringToken(currentRequest, ConfigReader.tokenExpiration).getOrElse(""))
+
+              if( CredentialManager.readCredentialFromRequest(currentRequest).groups.contains(sso.OPEN_DATA_GROUP) )
+                Token200(Authentication.getStringToken(currentRequest, ConfigReader.tokenExpiration).getOrElse(""))
+              else
+                Token500(Error(Option(1), Some("Not a DAF user"), None))
+
           }
             // ----- End of unmanaged code area for action  Security_managerYaml.token
         }

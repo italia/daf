@@ -84,10 +84,14 @@ paths:
           description: The JWT token
           schema:
             type: string
-        default:
-          description: Unexpected error
+        500:
+          description: Error Message
           schema:
             $ref: '#/definitions/Error'
+#        default:
+#          description: Unexpected error
+#          schema:
+#            $ref: '#/definitions/Error'
   "/daf/user":
     post:
       tags:

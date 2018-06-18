@@ -7,11 +7,14 @@ import akka.util.ByteString
 import it.gov.daf.securitymanager.service.{WebHDFSApiClient, WebHDFSApiProxy}
 import it.gov.daf.securitymanager.service.utilities.RequestContext.execInContext
 import play.api.Logger
+import play.api.http.HttpEntity
 import play.api.libs.streams
 import play.api.libs.ws.{StreamedBody, WSClient}
 import play.api.mvc._
+
 import scala.concurrent.Future
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+
 
 
 class HdfsController @Inject()(ws: WSClient, webHDFSApiClient:WebHDFSApiClient, webHDFSApiProxy:WebHDFSApiProxy) extends Controller {
@@ -42,8 +45,11 @@ class HdfsController @Inject()(ws: WSClient, webHDFSApiClient:WebHDFSApiClient, 
       logger.debug("Request:" + request)
 
       webHDFSApiProxy.callHdfsService(request.method, path, queryString).flatMap {
-        case Right(r) =>  if( request.method == "PUT" && r.httpCode == 307 && r.locationHeader.nonEmpty)
-                            callPutFileService(r.locationHeader.get,request.body)
+        case Right(r) =>  if( r.httpCode == 307 && r.locationHeader.nonEmpty)
+                            request.method match{
+                              case "GET" => callGetFileService(r.locationHeader.get)
+                              case "PUT" => callPutFileService(r.locationHeader.get,request.body)
+                            }
                           else
                             Future.successful{Ok(r.jsValue)}
 
@@ -69,8 +75,37 @@ class HdfsController @Inject()(ws: WSClient, webHDFSApiClient:WebHDFSApiClient, 
         if(resp.status < 400 )
           Ok("File succesfully uploaded")
         else
-          new Status(resp.status).apply(resp.body)
+          Status(resp.status).apply(resp.body)
       }
+
+  }
+
+
+  def callGetFileService(location:String):Future[Result]={
+
+    logger.debug("callGetFileService")
+
+    ws.url(location).withMethod("GET").stream().map { strResponse =>
+
+        val response = strResponse.headers
+        val body = strResponse.body
+
+        logger.debug("exiting callGetFileService")
+
+        if (response.status < 300) {
+
+          val contentType = response.headers.get("Content-Type").flatMap(_.headOption).getOrElse("application/octet-stream")
+
+          response.headers.get("Content-Length") match {
+            case Some(Seq(length)) =>
+              Ok.sendEntity(HttpEntity.Streamed(body, Some(length.toLong), Some(contentType)))
+            case _ =>
+              Ok.chunked(body).as(contentType)
+          }
+        } else {
+          Status(response.status)
+        }
+    }
 
   }
 

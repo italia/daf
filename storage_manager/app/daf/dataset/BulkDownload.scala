@@ -17,7 +17,7 @@
 package daf.dataset
 
 import akka.stream.scaladsl.StreamConverters
-import cats.syntax.show.toShowOps
+import cats.syntax.show.toShow
 import controllers.DatasetController
 import daf.filesystem.{ CsvFileFormat, FileDataFormat, JsonFileFormat, PathInfo, fileFormatShow }
 import daf.web._

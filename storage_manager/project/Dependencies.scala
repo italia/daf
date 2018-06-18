@@ -72,6 +72,10 @@ object Dependencies {
 
     }
 
+    val hiveJdbc            = "org.apache.hive"  % "hive-jdbc"            % Versions.hive
+
+    val doobie              = "org.tpolecat"    %% "doobie-core"          % Versions.doobie
+
     val typesafeConfig      = "com.typesafe"     % "config"               % Versions.typesafeConfig
 
     val catsCore            = "org.typelevel"   %% "cats-core"            % Versions.catsCore
@@ -94,6 +98,8 @@ object Dependencies {
 
     lazy val all = {
       internal.common     +:
+      doobie              +:
+      hiveJdbc            +:
       typesafeConfig      +:
       catsCore            +:
       livyClient          +:

@@ -10,15 +10,19 @@ object Versions {
 
   lazy val betterFiles    = "2.17.1"
 
-  lazy val catsCore       = "0.9.0"
+  lazy val catsCore       = "1.1.0"
 
   lazy val dockerJava     = "3.0.13"
+
+  lazy val doobie         = "0.6.0-M1"
 
   lazy val guava          = "16.0.1"
 
   lazy val hadoop         = "2.6.0-cdh5.12.0"
 
   lazy val hbase          = "1.2.0-cdh5.12.0"
+
+  lazy val hive           = "1.1.0-cdh5.12.0"
 
   lazy val kudu           = "1.4.0-cdh5.12.0"
 

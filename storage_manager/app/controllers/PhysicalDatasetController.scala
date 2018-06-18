@@ -16,7 +16,7 @@
 
 package controllers
 
-import cats.syntax.show.toShowOps
+import cats.syntax.show.toShow
 import com.typesafe.config.Config
 import daf.dataset.{ DatasetOperations, DatasetParams, FileDatasetParams, KuduDatasetParams }
 import daf.filesystem.fileFormatShow

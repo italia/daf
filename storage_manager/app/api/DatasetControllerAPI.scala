@@ -18,7 +18,7 @@ package api
 
 import daf.dataset.Query
 import io.swagger.annotations._
-import javax.ws.rs.{ PathParam, QueryParam }
+import javax.ws.rs.QueryParam
 import play.api.mvc.{ Action, AnyContent }
 
 @Api(value = "dataset-manager")

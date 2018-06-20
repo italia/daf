@@ -51,6 +51,10 @@ class ColumnFormatsSpec extends WordSpec with MustMatchers with JsonParsing {
         a[JsResultException] should be thrownBy read(ColumnJson.valueArrayColumn) { ColumnFormats.reader }
       }
 
+      "reading nested aggregations" in {
+        a[JsResultException] should be thrownBy read(ColumnJson.nestedAggregation) { ColumnFormats.reader }
+      }
+
     }
 
   }
@@ -131,6 +135,17 @@ private object ColumnJson {
       |  "count": {
       |    "value": 0,
       |    "alias": "count_*"
+      |  }
+      |}
+    """.stripMargin
+
+  val nestedAggregation =
+    """
+      |{
+      |  "count": {
+      |    "sum": {
+      |      "value": 1
+      |    }
       |  }
       |}
     """.stripMargin

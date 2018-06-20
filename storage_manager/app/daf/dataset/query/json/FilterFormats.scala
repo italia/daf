@@ -1,6 +1,7 @@
 package daf.dataset.query.json
 
 import daf.dataset.query._
+import daf.web.json.CommonReads
 import play.api.libs.json._
 
 object ComparisonOperatorFormats {
@@ -27,21 +28,31 @@ object ComparisonOperatorFormats {
   private def readOperator(name: String)(f: (Column, Column) => FilterOperator): Reads[FilterOperator] =
     { (__ \ name).read[JsValue] andThen readOperands }.map { case (left, right) => f(left, right) }
 
+  private val invalidComparisonOperator = Reads[FilterOperator] { jsValue =>
+    JsError { s"Invalid filter representation encountered: [$jsValue]" }
+  }
+
   val reader: Reads[FilterOperator] =
     readOperator("gt")  { Gt  } orElse
     readOperator("gte") { Gte } orElse
     readOperator("lt")  { Lt  } orElse
     readOperator("lte") { Lte } orElse
     readOperator("eq")  { Eq  } orElse
-    readOperator("neq") { Neq }
+    readOperator("neq") { Neq } orElse
+    invalidComparisonOperator
 
 }
 
-object LogicalOperators {
+object LogicalOperatorFormats {
 
-  private def readOperator: Reads[FilterOperator] = ComparisonOperatorFormats.reader orElse reader
+  private def readOperator: Reads[FilterOperator] = CommonReads.choice {
+    case "not" => readNot
+    case "or"  => readOr
+    case "and" => readAnd
+    case _     => ComparisonOperatorFormats.reader
+  }
 
-  private def readNot: Reads[FilterOperator] = (__ \ "not").read[JsObject] andThen readOperator
+  private def readNot: Reads[FilterOperator] = (__ \ "not").read[JsObject] andThen readOperator map { Not }
 
   private def readAnd: Reads[FilterOperator] = (__ \ "and").read[JsArray].map { jsArray =>
     And {
@@ -55,13 +66,16 @@ object LogicalOperators {
     }
   }
 
-  val reader: Reads[FilterOperator] = readNot orElse readAnd orElse readOr
+  lazy val reader: Reads[FilterOperator] = readNot orElse readAnd orElse readOr
 
 }
 
 
 object FilterFormats {
 
-  val reader: Reads[FilterOperator] = ComparisonOperatorFormats.reader orElse LogicalOperators.reader
+  val reader: Reads[FilterOperator] = CommonReads.choice {
+    case "not" | "and" | "or" => LogicalOperatorFormats.reader
+    case _                    => ComparisonOperatorFormats.reader
+  }
 
 }

@@ -10,11 +10,11 @@ object QueryFormats {
   private val havingWithoutGroupBy = ValidationError { "Query with [having] clause is missing [groupBy]" }
 
   val reader: Reads[Query] = for {
-    select  <- SelectClauseFormats.reader.optional
-    where   <- WhereClauseFormats.reader.optional
-    groupBy <- GroupByClauseFormats.reader.optional
-    having  <- HavingClauseFormats.reader.optional.filter(havingWithoutGroupBy) { _ => groupBy.isDefined }
-    limit   <- LimitClauseFormats.reader.optional
+    select  <- SelectClauseFormats.reader.optional("select")
+    where   <- WhereClauseFormats.reader.optional("where")
+    groupBy <- GroupByClauseFormats.reader.optional("groupBy")
+    having  <- HavingClauseFormats.reader.optional("having").filterNot(havingWithoutGroupBy) { clause => clause.nonEmpty && groupBy.isEmpty }
+    limit   <- LimitClauseFormats.reader.optional("limit")
   } yield Query(
     select  = select getOrElse SelectClause.*,
     where   = where,

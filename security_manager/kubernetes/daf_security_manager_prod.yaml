@@ -68,7 +68,7 @@ spec:
           - "idm"
       containers:
       - name: security-manager
-        image: nexus.daf.teamdigitale.it/daf-security-manager:1.0.1-SNAPSHOT
+        image: nexus.daf.teamdigitale.it/daf-security-manager:1.0.2-SNAPSHOT
         #        image: 10.98.74.120:5000/daf-security-manager:${SECURITY_MANAGER_VERSION}
         #-Djavax.net.ssl.trustStore=cert/jssecacerts
         env:

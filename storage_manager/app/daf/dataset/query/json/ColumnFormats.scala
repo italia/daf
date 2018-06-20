@@ -17,7 +17,10 @@ object SimpleColumnFormats {
     case unsupported        => JsError { s"Invalid value [$unsupported] representation: must be a string, number or boolean" }
   }
 
-  private val readNamedColumn: Reads[Column] = (__ \ "name").read[String].map { NamedColumn }
+  private val readNamedColumn: Reads[Column] = (__ \ "name").read[String].map {
+    case "*"     => WildcardColumn
+    case colName => NamedColumn(colName)
+  }
   private val readValueColumn: Reads[Column] = (__ \ "value").read[JsValue] andThen readValue
 
   val reader = for {

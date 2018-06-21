@@ -1161,6 +1161,19 @@ definitions:
         type: string
       value:
         type: string
+  KeyValueArray:
+      type: object
+      required:
+        - key
+        - value
+      description: Generic Key/Value pair object, where value is an array for more generic usage
+      properties:
+        key:
+          type: string
+        value:
+          type: array
+          items:
+            type: string
 
   VocKeyValueSubtheme:
       type: object
@@ -1428,8 +1441,17 @@ definitions:
         type: string
         description: Name of the standard format used
       param:
-        type: string
+        type: array
         description: It contains parameters needed (if needed) by the specific type of FormatStd.
+        items:
+          $ref: '#/definitions/KeyValue'
+      conv:
+        type: array
+        description: It contains name and properties of
+        items:
+          $ref: '#/definitions/KeyValueArray'
+
+
   FieldProfile:
     type: object
     properties:

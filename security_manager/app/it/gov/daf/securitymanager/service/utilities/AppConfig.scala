@@ -69,6 +69,9 @@ private class AppConfig @Inject()(playConfig: Configuration) {
 
   val localEnv:Option[Boolean] = playConfig.getBoolean("localEnv")
 
+  val sftpHostInternal :Option[String] = playConfig.getString("sftp.host.internal")
+  val sftphostExternal: Option[String] = playConfig.getString("sftp.host.external")
+
 }
 
 
@@ -109,6 +112,9 @@ object ConfigReader {
 
   require(config.impalaAdminUser.nonEmpty,"Impala admin user must be specified")
   require(config.impalaAdminUserPwd.nonEmpty,"Impala admin user pwd must be specified")
+
+  require(config.sftpHostInternal.nonEmpty,"sftpHostInternal must be specified")
+  require(config.sftphostExternal.nonEmpty,"sftphostExternal pwd must be specified")
 
 
   //def userIdHeader: String = config.userIdHeader.getOrElse("userid")
@@ -172,6 +178,9 @@ object ConfigReader {
   def impalaAdminUserPwd :String = config.impalaAdminUserPwd.get
 
   def localEnv:Boolean = config.localEnv.getOrElse(false)
+
+  def sftpHostInternal :String = config.sftpHostInternal.get
+  def sftphostExternal: String = config.sftphostExternal.get
 
 }
 

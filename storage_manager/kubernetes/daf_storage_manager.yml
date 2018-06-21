@@ -70,19 +70,41 @@ spec:
           - "idm"
       containers:
       - name: storage-manager
-        image: 10.98.74.120:5000/daf-storage-manager:1.0.0-SNAPSHOT
+        image: nexus.daf.teamdigitale.it/daf-storage-manager:1.0.0-SNAPSHOT
         imagePullPolicy: Always
         env:
         - name: JAVA_OPTS
           value: "-server -XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:+PerfDisableSharedMem -XX:+ParallelRefProcEnabled -Xmx2g -Xms2g -XX:MaxPermSize=1024m"
+        - name: PLAY_CRYPTO
+          valueFrom:
+             secretKeyRef:
+               name: daf-secret
+               key: play_crypto
+        - name: PAC4J_CRYPTO
+          valueFrom:
+             secretKeyRef:
+               name: daf-secret
+               key: pac4j_crypto
+        - name: LDAP_USER_PWD
+          valueFrom:
+            secretKeyRef:
+              name: daf-secret
+              key: ldap_user_pwd
+        - name: FREEIPA_ADMIN_PWD
+          valueFrom:
+              secretKeyRef:
+                name: daf-secret
+                key: freeipa_admin_pwd
         ports:
         - name: client
           containerPort: 9000
         volumeMounts:
-        - name: glusterfsvol
-          mountPath: /opt/docker/conf/production.conf
-          subPath: storage-manager/conf/production.conf
-          readOnly: true
+        #- name: config-volume
+        #  mountPath: /opt/docker/conf/mnt
+#        - name: glusterfsvol
+#          mountPath: /opt/docker/conf/production.conf
+#          subPath: storage-manager/conf/production.conf
+#          readOnly: true
         - name: glusterfsvol
           mountPath: /opt/docker/conf/logback.xml
           subPath: storage-manager/conf/logback.xml
@@ -102,6 +124,9 @@ spec:
       imagePullSecrets:
       - name: regsecret
       volumes:
+#      - name: config-volume
+#        configMap:
+#          name: storage-manager-conf
       - name: glusterfsvol
         persistentVolumeClaim:
           claimName: gluster-claim
@@ -114,3 +139,5 @@ spec:
       - name: hbaseconf
         hostPath:
           path: /etc/hbase/conf
+      nodeSelector:
+        nifi: "false"

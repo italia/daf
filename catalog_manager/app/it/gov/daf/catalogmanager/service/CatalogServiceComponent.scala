@@ -31,9 +31,18 @@ trait CatalogServiceComponent {
       catalogRepository.catalogByName(name)
     }
 
+    def publicCatalogByName(name :String): Option[MetaCatalog] = {
+      catalogRepository.publicCatalogByName(name)
+    }
+
     def createCatalog(metaCatalog: MetaCatalog, callingUserid :MetadataCat, ws :WSClient) :Success = {
       println("Service : " +  callingUserid)
       catalogRepository.createCatalog(metaCatalog, callingUserid, ws)
+    }
+
+    def createCatalogExtOpenData(metaCatalog: MetaCatalog, callingUserid :MetadataCat, ws :WSClient) :Success = {
+      println("Service : " +  callingUserid)
+      catalogRepository.createCatalogExtOpenData(metaCatalog, callingUserid, ws)
     }
 
     def isPresentOnCatalog(name :String) :Option[Boolean] = {

@@ -144,7 +144,7 @@ resolvers ++= Seq(
   Resolver.mavenLocal,
   Resolver.sonatypeRepo("releases"),
   "cloudera" at "https://repository.cloudera.com/artifactory/cloudera-repos/",
-  "daf repo" at "http://nexus.default.svc.cluster.local:8081/repository/maven-public/"
+  "daf repo" at "http://nexus.daf.teamdigitale.it/repository/maven-public/"
 )
 
 
@@ -161,7 +161,7 @@ libraryDependencies ++= Seq(
   //++ logLibraries.map(x => x.exclude("org.slf4j", "*"))
 
 publishTo := {
-  val nexus = "http://nexus.default.svc.cluster.local:8081/repository/"
+  val nexus = "http://nexus.daf.teamdigitale.it:8081/repository/"
   if (isSnapshot.value)
     Some("snapshots" at nexus + "maven-snapshots/")
   else

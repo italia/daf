@@ -33,6 +33,9 @@ spec:
         ports:
         - name: client
           containerPort: 9000
+        resources:
+          limits:
+            memory: 1024Mi
         env:
         - name: JAVA_OPTS
           value: "-server -XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:+PerfDisableSharedMem -XX:+ParallelRefProcEnabled -Xmx2g -Xms2g -XX:MaxPermSize=1024m"

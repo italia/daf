@@ -108,7 +108,9 @@ sealed trait Column
 
 sealed trait FunctionColumn extends Column
 
-sealed trait AggregationColumn extends FunctionColumn
+sealed trait AggregationColumn extends FunctionColumn {
+  def column: Column
+}
 
 case class Max(column: Column) extends AggregationColumn
 case class Min(column: Column) extends AggregationColumn

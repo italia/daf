@@ -30,27 +30,33 @@ object WebHDFSLogin {
         (o: String) => {out.append(s"$o\n");()},
         (e: String) => {err.append(s"$e\n");()} )
 
-      val scriptName =  if(ConfigReader.localEnv )"./script/kb_init_local_test.sh"
+      val scriptName =  if(System.getProperty("STAGING") != null) "./script/kb_init_test.sh"
                         else "./script/kb_init.sh"
 
-      val command = s"timeout 10 $scriptName $usrName $HADOOP_URL" // Process should hang: command timeout needed
+      //val scriptName =  if(ConfigReader.localEnv )"./script/kb_init_local_test.sh"
+                        //else "./script/kb_init.sh"
 
-      Logger.logger.debug("Launching command: "+command)
-
-      val pb = Process(command)
+      val commandStr = s"timeout 5 $scriptName $usrName $HADOOP_URL"  // Process should hang: command timeout needed
+      Logger.logger.debug(s"Launching $commandStr")
+      val pb = Process(commandStr)
 
       val bos = new ByteArrayOutputStream()
       val exitCode = pb #< new ByteArrayInputStream(s"$pwd\n".toCharArray.map(_.toByte)) #> bos ! logger
 
       result.append(new String(bos.toByteArray, StandardCharsets.UTF_8))
 
+
       if (exitCode == 0) {
         Right(result.toString().split("\r?\n").filter(_.startsWith("Set-Cookie")).head.replaceFirst("Set-Cookie:", "").trim)
-      } else if (exitCode == 1)
-        Left(s"Error in kinit script  \n$result\n$out\n$err")
-      else
-        Left(s"Error in kinit script: timeout  \n$result\n$out\n$err")
-
+      } else if (exitCode == 1) {
+        val outMsg = s"Error in kinit script  \n$result\n$out\n$err"
+        Logger.logger.error(outMsg)
+        Left(outMsg)
+      }else {
+        val outMsg = s"Error in kinit script: timeout  \n$result\n$out\n$err"
+        Logger.logger.error(outMsg)
+        Left(outMsg)
+      }
     } catch {
       case t: Throwable => Left(s"Error in during webHDFS init \n$result\n$out\n$err")
     }

@@ -151,6 +151,36 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  "/public/catalog-ds/getbyname/{name}":
+    get:
+        #security:
+        #- basicAuth: []
+        summary: DatasetCatalog
+        description: |
+          DatasetCatalog data
+        tags:
+          - DatasetCatalog
+        operationId: publicdatasetcatalogbyname
+        parameters:
+          - name: name
+            in: path
+            description: Name of catalog
+            required: true
+            type: string
+        responses:
+          200:
+            description: A Catalog
+            schema:
+              type:
+              $ref: '#/definitions/MetaCatalog'
+          401:
+            description: Error Message
+            schema:
+              type: string
+          default:
+            description: Unexpected error
+            schema:
+              $ref: '#/definitions/Error'
   "/catalog-ds/getbyname/{name}":
     get:
       #security:
@@ -221,6 +251,41 @@ paths:
       tags:
         - DatasetCatalog
       operationId: createdatasetcatalog
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+      - name: catalog
+        in: body
+        description: Dataset Catalog
+        required: true
+        schema:
+          $ref: '#/definitions/MetaCatalog'
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            $ref: '#/definitions/Success'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/catalog-ds/ext/add":
+    post:
+      #security:
+      #- basicAuth: []
+      summary: DatasetCatalog
+      description: |
+        The DatasetCatalog for ....
+      tags:
+        - DatasetCatalog
+      operationId: createdatasetcatalogExtOpenData
       consumes:
         - application/json
       produces:
@@ -1358,7 +1423,7 @@ definitions:
         description: Name of the standard format used
       param:
         type: string
-        description: It contains the type of personal data
+        description: It contains parameters needed (if needed) by the specific type of FormatStd.
   FieldProfile:
     type: object
     properties:
@@ -1375,7 +1440,7 @@ definitions:
           type: string
       standardization:
         type: array
-        description: contains info on the standardization procedure to be performed on the field.
+        description: contains info on the standardization procedure to be performed on the field (Kylo Standardization).
         items: 
           type: string
   Operational:

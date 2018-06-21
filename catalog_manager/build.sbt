@@ -132,7 +132,7 @@ publishTo in ThisBuild := {
 
 credentials += {if(isStaging) Credentials(Path.userHome / ".ivy2" / ".credentialsTest") else Credentials(Path.userHome / ".ivy2" / ".credentials")}
 
-javaOptions in Test += "-Dconfig.resource=" + System.getProperty("config.resource", "integration.conf")
+javaOptions in Test += "-Dconfig.resource=" + System.getProperty("config.resource", "localConfigs/integration.conf")
 
 
 // Wart Remover Plugin Configuration

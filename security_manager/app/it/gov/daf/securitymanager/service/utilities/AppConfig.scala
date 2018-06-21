@@ -36,9 +36,10 @@ private class AppConfig @Inject()(playConfig: Configuration) {
   val supersetUrl :Option[String] = playConfig.getString("superset.url")
   val suspersetAdminUser:Option[String] = playConfig.getString("superset.adminUser")
   val suspersetAdminPwd:Option[String] = playConfig.getString("superset.adminPwd")
-  val suspersetOrgAdminRole:Option[String] = playConfig.getString("superset.orgAdminRole")
   val suspersetDbUri:Option[String] = playConfig.getString("superset.dbUri")
 
+  val suspersetOrgAdminRole:Option[String] = playConfig.getString("superset.orgAdminRole")
+  val suspersetOpenDataRole: Option[String] = playConfig.getString("superset.openDataRole")
 
   val metabaseUrl :Option[String] = playConfig.getString("metabase.url")
   val metabaseAdminUser :Option[String] = playConfig.getString("metabase.adminUser")
@@ -69,6 +70,10 @@ private class AppConfig @Inject()(playConfig: Configuration) {
 
   val localEnv:Option[Boolean] = playConfig.getBoolean("localEnv")
 
+  val sftpHostInternal :Option[String] = playConfig.getString("sftp.host.internal")
+  val sftphostExternal: Option[String] = playConfig.getString("sftp.host.external")
+
+
 }
 
 
@@ -80,6 +85,8 @@ object ConfigReader {
   require(config.suspersetAdminUser.nonEmpty,"A superset admin must be specified")
   require(config.suspersetAdminPwd.nonEmpty,"A superset admin password must be specified")
   require(config.suspersetOrgAdminRole.nonEmpty,"A superset organization admin role must be specified")
+  require(config.suspersetOpenDataRole.nonEmpty,"A superset open data role must be specified")
+
   require(config.suspersetDbUri.nonEmpty,"A superset db uri must be specified")
   require(config.ckanHost.nonEmpty,"A ckan host must be specified")
   require(config.ckanAdminUser.nonEmpty,"A ckan admin must be specified")
@@ -109,6 +116,9 @@ object ConfigReader {
 
   require(config.impalaAdminUser.nonEmpty,"Impala admin user must be specified")
   require(config.impalaAdminUserPwd.nonEmpty,"Impala admin user pwd must be specified")
+
+  require(config.sftpHostInternal.nonEmpty,"sftpHostInternal must be specified")
+  require(config.sftphostExternal.nonEmpty,"sftphostExternal pwd must be specified")
 
 
   //def userIdHeader: String = config.userIdHeader.getOrElse("userid")
@@ -142,6 +152,8 @@ object ConfigReader {
   def suspersetAdminUser:String = config.suspersetAdminUser.get
   def suspersetAdminPwd:String = config.suspersetAdminPwd.get
   def suspersetOrgAdminRole:String = config.suspersetOrgAdminRole.get
+  def suspersetOpenDataRole:String = config.suspersetOpenDataRole.get
+
   def suspersetDbUri:String = config.suspersetDbUri.get
 
   def metabaseUrl:String = config.metabaseUrl.get
@@ -172,6 +184,9 @@ object ConfigReader {
   def impalaAdminUserPwd :String = config.impalaAdminUserPwd.get
 
   def localEnv:Boolean = config.localEnv.getOrElse(false)
+
+  def sftpHostInternal :String = config.sftpHostInternal.get
+  def sftphostExternal: String = config.sftphostExternal.get
 
 }
 

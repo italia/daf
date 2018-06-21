@@ -3,7 +3,6 @@ package daf.dataset.query.jdbc
 import daf.dataset.query._
 import org.scalatest.{ MustMatchers, WordSpec }
 import doobie.implicits.toSqlInterpolator
-import doobie.util.fragment.Fragment
 
 import scala.annotation.tailrec
 import scala.util.Success

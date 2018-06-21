@@ -13,8 +13,6 @@ import scala.util.{ Failure, Try }
 
 object SelectFragment {
 
-  private type Trampoline[A] = Free[Try, A]
-
   @tailrec
   private def buildReference(columns: List[Column], columnReference: ColumnReference = ColumnReferenceInstances.empty): ColumnReference = columns match {
     case WildcardColumn :: tail             => buildReference(tail, columnReference)
@@ -43,9 +41,7 @@ object SelectFragment {
     case ValueColumn(value: String) => Free.pure[Try, String] { s"'$value'" }
     case ValueColumn(value)         => Free.pure[Try, String] { value.toString }
     case agg: AggregationColumn     => writeAggregation(agg)
-    case _                          => Free.liftF[Try, String] {
-      Failure { new IllegalArgumentException("Invalid column type in [select] fragment") }
-    }
+    case _                          => recursionError { new IllegalArgumentException("Invalid column type in [select] fragment") }
   }
 
   private def writeColumns(columns: List[Column]): Trampoline[List[String]] = columns.traverse[Trampoline, String] { writeColumn }

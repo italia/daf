@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export KRB5_CONFIG="/etc/krb5-test.conf"
+export KRB5_CONFIG="/etc/krb5-test/krb5.conf"
 kinit -V -l 20 -r 30 -c /tmp/$1 $1@DAF.GOV.IT
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 

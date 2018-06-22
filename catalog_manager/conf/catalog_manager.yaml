@@ -1821,19 +1821,6 @@ definitions:
       formula:
         type: string
         description: the formula to be applied to the field to get the partition value.
-  DatasetInfo:
-    type: object
-    description: It contains the name and the organization of the dataset
-    required:
-      - name
-      - org
-    properties:
-      name:
-        type: string
-        description: The name of the dataset
-      org:
-        type: string
-        description: The organization of the dataset
   DatasetProc:
     type: object
     description: It contains procedural info that helps to manage the ingestion and egestion of the dataset.

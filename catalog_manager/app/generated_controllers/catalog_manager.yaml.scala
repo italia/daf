@@ -17,7 +17,6 @@ import scala.util._
 
 import javax.inject._
 
-import java.io.File
 import de.zalando.play.controllers.PlayBodyParsing._
 import it.gov.daf.catalogmanager.listeners.IngestionListenerImpl
 import it.gov.daf.catalogmanager.service.{CkanRegistry,ServiceRegistry}
@@ -31,7 +30,6 @@ import it.gov.daf.common.utils.WebServiceUtil
 import it.gov.daf.catalogmanager.service.VocServiceRegistry
 import play.api.libs.ws.WSClient
 import java.net.URLEncoder
-import it.gov.daf.catalogmanager.utilities.ConfigReader
 import play.api.libs.ws.WSResponse
 import play.api.libs.ws.WSAuthScheme
 import java.io.FileInputStream
@@ -41,7 +39,6 @@ import catalog_manager.yaml
 import it.gov.daf.catalogmanager.kylo.Kylo
 import it.gov.daf.common.sso.common.CredentialManager
 import play.api.Logger
-import it.gov.daf.catalogmanager
 
 /**
  * This controller is re-generated after each change in the specification.

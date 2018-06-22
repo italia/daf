@@ -80,7 +80,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
         val randomPwd = (((json \ "result")\"result")\"randompassword").asOpt[String]
         randomPwd match{
-          case Some(rpwd) => loginCkan(user.uid, rpwd).map ( _ => Right(Success(Some("User created"), randomPwd)) )
+          case Some(rpwd) => loginCkanGeo(user.uid, rpwd).map ( _ => Right(Success(Some("User created"), randomPwd)) )
           case None => Future{Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )}
         }
 
@@ -987,11 +987,11 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
   }
 
 
-  private def loginCkan(userName:String, pwd:String):Future[String] = {
+  private def loginCkanGeo(userName:String, pwd:String):Future[String] = {
 
-    logger.info("login ckan")
+    logger.info("login ckan geo")
 
-    val loginInfo = new LoginInfo(userName,pwd,LoginClientLocal.CKAN)
+    val loginInfo = new LoginInfo(userName,pwd,LoginClientLocal.CKAN_GEO)
     val wsResponse = loginClientLocal.login(loginInfo,wsClient)
 
     wsResponse.map(_=>"ok")

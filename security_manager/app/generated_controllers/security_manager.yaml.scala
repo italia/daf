@@ -44,7 +44,7 @@ import cats.implicits._
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-
+            
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -133,7 +133,7 @@ package security_manager.yaml {
             //CreateIPAgroup500(Error(Option(1),Some("The service is deprecated"),None))
             // ----- End of unmanaged code area for action  Security_managerYaml.createIPAgroup
         }
-        val userdelDAFworkgroup = userdelDAFworkgroupAction { (payload: UserAndGroup) =>
+        val userdelDAFworkgroup = userdelDAFworkgroupAction { (payload: UserAndGroup) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.userdelDAFworkgroup
             execInContext[Future[UserdelDAFworkgroupType[T] forSome { type T }]] ("userdelDAFworkgroup") { () =>
 
@@ -162,7 +162,7 @@ package security_manager.yaml {
           }
             // ----- End of unmanaged code area for action  Security_managerYaml.userdelDAFworkgroup
         }
-        val createDAForganization = createDAForganizationAction { (organization: DafGroup) =>
+        val createDAForganization = createDAForganizationAction { (organization: DafGroup) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.createDAForganization
             execInContext[Future[CreateDAForganizationType[T] forSome { type T }]] ("createDAForganization") { () =>
             if (!CredentialManager.isDafSysAdmin(currentRequest))
@@ -190,7 +190,7 @@ package security_manager.yaml {
           }
             // ----- End of unmanaged code area for action  Security_managerYaml.findIpauserByName
         }
-        val listDAFworkgroup = listDAFworkgroupAction {  _ =>
+        val listDAFworkgroup = listDAFworkgroupAction {  _ =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.listDAFworkgroup
             execInContext[Future[ListDAFworkgroupType[T] forSome { type T }]] ("listDAFworkgroup"){ () =>
             apiClientIPA.workgroupList() flatMap {
@@ -200,7 +200,7 @@ package security_manager.yaml {
           }
             // ----- End of unmanaged code area for action  Security_managerYaml.listDAFworkgroup
         }
-        val deleteDAForganization = deleteDAForganizationAction { (orgName: String) =>
+        val deleteDAForganization = deleteDAForganizationAction { (orgName: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.deleteDAForganization
             execInContext[Future[DeleteDAForganizationType[T] forSome { type T }]] ("deleteDAForganization"){ () =>
             if (!CredentialManager.isDafSysAdmin(currentRequest))
@@ -257,7 +257,7 @@ package security_manager.yaml {
             }
             // ----- End of unmanaged code area for action  Security_managerYaml.deleteACLPermission
         }
-        val createSupersetTable = createSupersetTableAction { (payload: SupersetTable) =>
+        val createSupersetTable = createSupersetTableAction { (payload: SupersetTable) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.createSupersetTable
             execInContext[Future[CreateSupersetTableType[T] forSome { type T }]] ("createSupersetTable"){ () =>
             integrationService.createSupersetTable(payload.dbName, payload.schema, payload.tableName) flatMap {
@@ -297,7 +297,7 @@ package security_manager.yaml {
             }
             // ----- End of unmanaged code area for action  Security_managerYaml.setACLPermission
         }
-        val getDatasetACL = getDatasetACLAction { (datasetName: String) =>
+        val getDatasetACL = getDatasetACLAction { (datasetName: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.getDatasetACL
             execInContext[Future[GetDatasetACLType[T] forSome {type T}]]("getDatasetACL") { () =>
 
@@ -309,7 +309,7 @@ package security_manager.yaml {
           }
             // ----- End of unmanaged code area for action  Security_managerYaml.getDatasetACL
         }
-        val token = tokenAction {  _ =>
+        val token = tokenAction {  _ =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.token
             execInContext[Future[TokenType[T] forSome { type T }]] ("token"){ () =>
 
@@ -368,7 +368,7 @@ package security_manager.yaml {
           }
             // ----- End of unmanaged code area for action  Security_managerYaml.findIpauserByMail
         }
-        val deleteDAFworkgroup = deleteDAFworkgroupAction { (wrkName: String) =>
+        val deleteDAFworkgroup = deleteDAFworkgroupAction { (wrkName: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.deleteDAFworkgroup
             execInContext[Future[DeleteDAFworkgroupType[T] forSome { type T }]] ("deleteDAFworkgroup"){ () =>
 
@@ -501,7 +501,7 @@ package security_manager.yaml {
           }
             // ----- End of unmanaged code area for action  Security_managerYaml.registrationrequest
         }
-        val useraddDAFworkgroup = useraddDAFworkgroupAction { (payload: UserAndGroup) =>
+        val useraddDAFworkgroup = useraddDAFworkgroupAction { (payload: UserAndGroup) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.useraddDAFworkgroup
             execInContext[Future[UseraddDAFworkgroupType[T] forSome { type T }]] ("useraddDAFworkgroup") { () =>
             //val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
@@ -551,7 +551,7 @@ package security_manager.yaml {
           }
             // ----- End of unmanaged code area for action  Security_managerYaml.createDAFworkgroup
         }
-
+    
      // Dead code for absent methodSecurity_managerYaml.createDefaultDAForganization
      /*
             // ----- Start of unmanaged code area for action  Security_managerYaml.createDefaultDAForganization
@@ -567,6 +567,6 @@ package security_manager.yaml {
             // ----- End of unmanaged code area for action  Security_managerYaml.createDefaultDAForganization
      */
 
-
+    
     }
 }

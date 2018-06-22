@@ -44,7 +44,7 @@ import cats.implicits._
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-            
+                
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -63,8 +63,6 @@ package security_manager.yaml {
         // ----- Start of unmanaged code area for constructor Security_managerYaml
 
       Authentication(configuration, playSessionStore)
-
-      val sftpHost: String = configuration.underlying.getString("sftp.host")
 
       private def testWorkgropAuthorization(parentGroups:Option[Seq[String]]):Either[Error,Success]={
         if(parentGroups.isEmpty || !parentGroups.get.contains(sso.WORKGROUPS_GROUP))

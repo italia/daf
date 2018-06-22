@@ -91,6 +91,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
       c <- step( a4, registrationService.callHardDeleteUser(toRefOrgUserName(groupCn)) )
 
+
         /*
       b <- stepOver( a4, apiClientIPA.deleteUser(toRefOrgUserName(groupCn)) )
       userInfo <- stepOverF( b, supersetApiClient.findUser(toRefOrgUserName(groupCn)) )

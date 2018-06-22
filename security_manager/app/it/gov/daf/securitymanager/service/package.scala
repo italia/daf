@@ -9,7 +9,8 @@ import scala.concurrent.Future
 
 package object service {
 
-  val ORG_REF_USER_POSTFIX: String = "_org_rif"
+  //val ORG_REF_USER_POSTFIX: String = "_org_rif"
+  val ORG_REF_USER_POSTFIX: String = "_default_admin" // for compatibility with old security model
   val WRK_REF_USER_POSTFIX: String = "_wrk_rif"
 
   def wrapFuture1[T](in: =>Either[String,T]):Future[Either[security_manager.yaml.Error,T]]={

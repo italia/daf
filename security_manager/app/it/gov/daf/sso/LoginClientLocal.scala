@@ -21,15 +21,15 @@ import scala.concurrent.stm.Txn.ExplicitRetryCause
 class LoginClientLocal() extends LoginClient {
 
   private val logger = Logger(this.getClass.getName)
-
+/*
   private val CKAN = "ckan"
   private val FREE_IPA = "freeIPA"
   private val SUPERSET = "superset"
   private val METABASE = "metabase"
   private val JUPYTER = "jupyter"
   private val GRAFANA = "grafana"
-
-  private val CKAN_URL = ConfigReader.ckanHost
+*/
+  //private val CKAN_URL = ConfigReader.ckanHost
   private val CKAN_GEO_URL = ConfigReader.ckanGeoHost
   private val IPA_URL = ConfigReader.ipaUrl
   private val SUPERSET_URL = ConfigReader.supersetUrl
@@ -42,7 +42,7 @@ class LoginClientLocal() extends LoginClient {
   def login(loginInfo: LoginInfo, wsClient: WSClient): Future[Cookie] = {
 
     loginInfo.appName match {
-      case LoginClientLocal.CKAN => loginCkan(loginInfo.user, loginInfo.password, wsClient)
+      //case LoginClientLocal.CKAN => loginCkan(loginInfo.user, loginInfo.password, wsClient)
       case LoginClientLocal.CKAN_GEO => loginCkanGeo(loginInfo.user, loginInfo.password, wsClient)
       case LoginClientLocal.FREE_IPA => loginIPA(loginInfo.user, loginInfo.password, wsClient)
       case LoginClientLocal.SUPERSET => loginSuperset(loginInfo.user, loginInfo.password, wsClient)
@@ -58,7 +58,7 @@ class LoginClientLocal() extends LoginClient {
   def loginFE(loginInfo: LoginInfo, wsClient: WSClient): Future[Seq[Cookie]] = {
 
     loginInfo.appName match {
-      case LoginClientLocal.CKAN => loginCkan(loginInfo.user, loginInfo.password, wsClient).map(Seq(_))
+      //case LoginClientLocal.CKAN => loginCkan(loginInfo.user, loginInfo.password, wsClient).map(Seq(_))
       case LoginClientLocal.CKAN_GEO => loginCkanGeo(loginInfo.user, loginInfo.password, wsClient).map(Seq(_))
       case LoginClientLocal.FREE_IPA => loginIPA(loginInfo.user, loginInfo.password, wsClient).map(Seq(_))
       case LoginClientLocal.SUPERSET => loginSuperset(loginInfo.user, loginInfo.password, wsClient).map(Seq(_))
@@ -75,7 +75,7 @@ class LoginClientLocal() extends LoginClient {
   def loginAdmin(appName: String, wsClient: WSClient): Future[Cookie] = {
 
     appName match {
-      case LoginClientLocal.CKAN => loginCkan( ConfigReader.ckanAdminUser, ConfigReader.ckanAdminPwd, wsClient)
+      //case LoginClientLocal.CKAN => loginCkan( ConfigReader.ckanAdminUser, ConfigReader.ckanAdminPwd, wsClient)
       case LoginClientLocal.CKAN_GEO => loginCkanGeo(ConfigReader.ckanGeoAdminUser, ConfigReader.ckanGeoAdminPwd, wsClient)
       case LoginClientLocal.FREE_IPA => loginIPA( ConfigReader.ipaUser, ConfigReader.ipaUserPwd, wsClient)
       case LoginClientLocal.SUPERSET => loginSuperset( ConfigReader.suspersetAdminUser, ConfigReader.suspersetAdminPwd, wsClient)
@@ -88,7 +88,7 @@ class LoginClientLocal() extends LoginClient {
 
   }
 
-  private def loginCkan( userName: String, pwd: String, wsClient: WSClient): Future[Cookie] = loginCkan(CKAN_URL,userName,pwd,wsClient)
+  //private def loginCkan( userName: String, pwd: String, wsClient: WSClient): Future[Cookie] = loginCkan(CKAN_URL,userName,pwd,wsClient)
 
   private def loginCkanGeo( userName: String, pwd: String, wsClient: WSClient): Future[Cookie] = loginCkan(CKAN_GEO_URL,userName,pwd,wsClient)
 
@@ -271,7 +271,7 @@ class LoginClientLocal() extends LoginClient {
 
 object LoginClientLocal {
 
-  val CKAN = "ckan"
+  //val CKAN = "ckan"
   val CKAN_GEO = "ckan-geo"
   val FREE_IPA = "freeIPA"
   val SUPERSET = "superset"

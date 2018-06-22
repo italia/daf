@@ -50,8 +50,8 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
       c <- step( b, supersetApiClient.createDatabase(toSupersetDS(groupCn),predefinedOrgIpaUser.uid,dafOrg.predefinedUserPwd,dafOrg.supSetConnectedDbName) )
       d <- stepOver( c, kyloApiClient.createCategory(dafOrg.groupCn) )
 
-      e <- step( c, ckanApiClient.createOrganizationAsAdmin(groupCn) )
-      e1 <- step( c, ckanApiClient.createOrganizationInGeoCkanAsAdmin(groupCn) )
+      //e <- step( c, ckanApiClient.createOrganizationAsAdmin(groupCn) ) non si usa + ckan
+      e <- step( c, ckanApiClient.createOrganizationInGeoCkanAsAdmin(groupCn) )
       //f <- EitherT( grafanaApiClient.createOrganization(groupCn) ) TODO da riabilitare
       g <- stepOver( e, addUserToOrganization(groupCn,predefinedOrgIpaUser.uid) )
       //g <- EitherT( grafanaApiClient.addUserInOrganization(groupCn,toUserName(groupCn)) )
@@ -105,11 +105,11 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
       //f <- stepOver( c, Try{clearSupersetPermissions(dbId, toSupersetDS(groupCn))} ) TODO to re-enable when Superset bug is resolved
 
 
-      g <- stepOver( e, ckanApiClient.deleteOrganization(groupCn) )
-      h <- step( g, ckanApiClient.purgeOrganization(groupCn) )
+      //g <- stepOver( e, ckanApiClient.deleteOrganization(groupCn) )
+      //h <- step( g, ckanApiClient.purgeOrganization(groupCn) )
 
-      g1 <- stepOver( e, ckanApiClient.deleteOrganizationInGeoCkan(groupCn) )
-      h1 <- step( g, ckanApiClient.purgeOrganizationInGeoCkan(groupCn) )
+      g <- stepOver( e, ckanApiClient.deleteOrganizationInGeoCkan(groupCn) )
+      h <- step( g, ckanApiClient.purgeOrganizationInGeoCkan(groupCn) )
 
       //i <- EitherT( grafanaApiClient.deleteOrganization(groupCn) ) TODO re-enable when Grafana is integrated
     } yield h
@@ -301,8 +301,8 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
       a <- EitherT( supersetApiClient.deleteUser(supersetUserInfo._1) )
       b <- EitherT( supersetApiClient.createUserWithRoles(user,roleIds:_*) )
       */
-      org <- stepOverF( a, ckanApiClient.getOrganizationAsAdmin(groupCn) )
-      c <- step( a, ckanApiClient.putUserInOrganizationAsAdmin(userName,org) )
+      org <- stepOverF( a, ckanApiClient.getOrganizationAsAdminInGeoCkan(groupCn) )
+      c <- step( a, ckanApiClient.putUserInOrganizationAsAdminInGeoCkan(userName,org) )
 
       //d <- EitherT( grafanaApiClient.addUserInOrganization(groupCn,userName) ) TODO re-enable when Grafana is integrated
     } yield c
@@ -345,8 +345,8 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
       a <- EitherT( supersetApiClient.deleteUser(supersetUserInfo._1) )
       b <- EitherT( supersetApiClient.createUserWithRoles(user,roleIds:_*) )*/
 
-      org <- stepOverF(a, ckanApiClient.getOrganizationAsAdmin(groupCn) )
-      c <- step(a, ckanApiClient.removeUserInOrganizationAsAdmin(userName, org) )
+      org <- stepOverF(a, ckanApiClient.getOrganizationAsAdminInGeoCkan(groupCn) )
+      c <- step(a, ckanApiClient.removeUserInOrganizationAsAdminInGeoCkan(userName, org) )
 
       //d <- EitherT( grafanaApiClient ) TODO re-enable when Grafana is integrated (review)
     } yield c

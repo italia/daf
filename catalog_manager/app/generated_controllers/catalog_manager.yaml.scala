@@ -41,6 +41,7 @@ import catalog_manager.yaml
 import it.gov.daf.catalogmanager.kylo.Kylo
 import it.gov.daf.common.sso.common.CredentialManager
 import play.api.Logger
+import it.gov.daf.catalogmanager
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -49,7 +50,7 @@ import play.api.Logger
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-        
+                                                                                                                                                                                                                                            
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -150,6 +151,21 @@ package catalog_manager.yaml {
             Voc_subthemesgetall200(subthemeList)
             // ----- End of unmanaged code area for action  Catalog_managerYaml.voc_subthemesgetall
         }
+        val deleteCatalog = deleteCatalogAction { input: (String, String) =>
+            val (name, org) = input
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.deleteCatalog
+            val user = CredentialManager.readCredentialFromRequest(currentRequest).username
+            val feedName = s"${org}.${org}_o_${name}"
+            val futureDeleteFromKylo: Future[Either[Error, Success]] = for{
+                _ <- ServiceRegistry.catalogService.deleteCatalogByName(name, user)
+                res <- kylo.deleteFeed(feedName, user).map(b => b)
+            }yield res
+
+            futureDeleteFromKylo.flatMap(res => if(res.isRight) DeleteCatalog200(res.right.get) else DeleteCatalog400(res.left.get))
+
+//          NotImplementedYet
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.deleteCatalog
+        }
         val datasetcatalogs = datasetcatalogsAction { input: (MetadataRequired, Dataset_catalogsGetLimit) =>
             val (page, limit) = input
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.datasetcatalogs
@@ -190,7 +206,8 @@ package catalog_manager.yaml {
         }
         val datasetcatalogbyname = datasetcatalogbynameAction { (name: String) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbyname
-            val catalog = ServiceRegistry.catalogService.catalogByName(name)
+            val groups = CredentialManager.readCredentialFromRequest(currentRequest).groups.toList
+            val catalog = ServiceRegistry.catalogService.catalogByName(name, groups)
 
             /*
             val resutl  = catalog match {
@@ -564,6 +581,22 @@ package catalog_manager.yaml {
            // NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.startKyloFedd
         }
+    
+     // Dead code for absent methodCatalog_managerYaml.deleteMetaCatalog
+     /*
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.deleteMetaCatalog
+            NotImplementedYet
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.deleteMetaCatalog
+     */
+
+    
+     // Dead code for absent methodCatalog_managerYaml.deleteCatalog1
+     /*
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.deleteCatalog1
+            NotImplementedYet
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.deleteCatalog1
+     */
+
     
     }
 }

@@ -17,6 +17,7 @@
   import scala.util.Failure
   import scala.util.Try
   import catalog_manager.yaml.Success
+  import scala.concurrent.Future
 
 
   /**
@@ -130,7 +131,7 @@
     }
 
 
-    def catalogByName(name :String): Option[MetaCatalog] = {
+    def catalogByName(name :String, groups: List[String]): Option[MetaCatalog] = {
       println(name)
       println("####################")
       val file: File = Environment.simple().getFile("data/data-mgt/data_test.json")
@@ -287,5 +288,9 @@
      def standardUris(): List[String] = List("ale", "raf")
 
     def isDatasetOnCatalog(name :String) = None
+
+    def deleteCatalogByName(nameCatalog: String, user: String): Future[Success] = {
+      Future.successful(Success("delete", None))
+    }
 
   }

@@ -311,6 +311,44 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  "/catalog-ds/delete":
+    delete:
+      summary: delete a DatasetCatalog
+      description: delete DatasetCatalog identified by the name in path
+      tags:
+       - DatasetCatalog
+      operationId: deleteCatalog
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+      - name: name
+        in: path
+        description: name of the dataset to delete
+        required: true
+        type: string
+      - name: org
+        in: path
+        description: organization of the feed to delete
+        required: true
+        type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            $ref: '#/definitions/Success'
+        400:
+          description: Error
+          schema:
+            type: object
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            type: object
+            $ref: '#/definitions/Error'
   "/ckan/create/dataset":
     post:
       #security:
@@ -1783,6 +1821,19 @@ definitions:
       formula:
         type: string
         description: the formula to be applied to the field to get the partition value.
+  DatasetInfo:
+    type: object
+    description: It contains the name and the organization of the dataset
+    required:
+      - name
+      - org
+    properties:
+      name:
+        type: string
+        description: The name of the dataset
+      org:
+        type: string
+        description: The organization of the dataset
   DatasetProc:
     type: object
     description: It contains procedural info that helps to manage the ingestion and egestion of the dataset.

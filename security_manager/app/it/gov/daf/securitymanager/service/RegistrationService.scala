@@ -244,7 +244,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
       a1 <- stepOver( a, apiClientIPA.changePassword(user.uid,a.success.fields.get,user.userpassword.get) )
       //b <- stepOver( a, Try{apiClientIPA.addMembersToGroup(user.role.getOrElse(Role.Viewer.toString()),User(user.uid))} )
       c <-step( a, evalInFuture0S(impalaService.createRole(user.uid,true)) )
-      roleIds <- stepOverF( c, supersetApiClient.findRoleIds(ConfigReader.suspersetOrgAdminRole,ConfigReader.suspersetOpenDataRole) )
+      roleIds <- stepOverF( c, supersetApiClient.findRoleIds(ConfigReader.suspersetOrgAdminRole))//,ConfigReader.suspersetOpenDataRole) )
       d <- step( c, supersetApiClient.createUserWithRoles(user,roleIds:_*) )
 
       //d <- step( c, Try{addNewUserToDefaultOrganization(user)} )

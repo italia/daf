@@ -1,9 +1,10 @@
 package it.gov.daf.catalogmanager.kylo
 
-import catalog_manager.yaml.{InputSrcSrv_pullOpt, MetaCatalog, Success, Error}
+import catalog_manager.yaml.{Error, InputSrcSrv_pullOpt, MetaCatalog, Success}
 import play.api.libs.json.{JsObject, JsResult, JsValue}
 import play.api.libs.ws.{WSAuthScheme, WSClient, WSResponse}
 import com.google.inject.{Inject, Singleton}
+import it.gov.daf.catalogmanager.utilities.ConfigReader
 import play.api.Logger
 
 import scala.util.Try
@@ -15,9 +16,9 @@ import scala.concurrent.Future
 @Singleton
 class Kylo @Inject()(ws :WSClient, config: ConfigurationProvider){
 
-  val KYLOURL = config.get.getString("kylo.url").get
-  val KYLOUSER = config.get.getString("kylo.user").getOrElse("dladmin")
-  val KYLOPWD = config.get.getString("kylo.pwd").getOrElse("XXXXXXXXXXX")
+  val KYLOURL = ConfigReader.kyloUrl
+  val KYLOUSER = ConfigReader.kyloUser
+  val KYLOPWD = ConfigReader.kyloPwd
 
   import scala.concurrent.ExecutionContext.Implicits._
 

@@ -53,7 +53,7 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
     val queryString: Map[String, String] =Map("op"->"LISTSTATUS")
 
-    webHDFSApiProxy.callHdfsService("GET",datasetPath,queryString) map{
+    webHDFSApiProxy.callHdfsService("GET",datasetPath,queryString,None) map{
       case Right(r) =>Right {
         (r.jsValue \ "FileStatuses" \ "FileStatus").as[JsArray].value.toList map { jsv =>
           val fileName = (jsv \ "pathSuffix").as[String]
@@ -98,7 +98,7 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
     val queryString: Map[String, String] =Map("op"->"MODIFYACLENTRIES","aclspec"->aclString)
 
-    webHDFSApiProxy.callHdfsService("PUT",datasetPath,queryString) map{
+    webHDFSApiProxy.callHdfsService("PUT",datasetPath,queryString,None) map{
       case Right(r) => Right( Success(Some("HDFS ACL updated"),Some("ok")) )
       case Left(l) => Left(Error(Option(0), Some(l.jsValue.toString()), None))
     }
@@ -174,7 +174,7 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
     val queryString: Map[String, String] =Map("op"->"REMOVEACLENTRIES","aclspec"->aclString)
 
-    webHDFSApiProxy.callHdfsService("PUT",datasetPath,queryString) map{
+    webHDFSApiProxy.callHdfsService("PUT",datasetPath,queryString,None) map{
       case Right(r) => Right( Success(Some("HDFS ACL deleted"),Some("ok")) )
       case Left(l) => Left(Error(Option(0), Some(l.jsValue.toString()), None))
     }

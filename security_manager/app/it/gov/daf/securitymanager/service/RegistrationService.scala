@@ -11,14 +11,13 @@ import it.gov.daf.sso.OPEN_DATA_GROUP
 import play.api.Logger
 
 import scala.concurrent.Future
-import ProcessHandler._
+import ProcessHandler.{step, _}
 import it.gov.daf.common.sso.common.{Admin, Editor, SysAdmin, Viewer}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-import scala.util.Try
 
 @Singleton
-class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient: SupersetApiClient, ckanApiClient: CkanApiClient, grafanaApiClient: GrafanaApiClient, impalaService:ImpalaService) {
+class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient: SupersetApiClient, ckanApiClient: CkanApiClient, grafanaApiClient: GrafanaApiClient, impalaService:ImpalaService, webHDFSApiClient: WebHDFSApiClient) {
 
   import security_manager.yaml.BodyReads._
 
@@ -242,8 +241,10 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
       a <- step( apiClientIPA.createUser(user, isReferenceUser) )
       a0 <- stepOver( a, apiClientIPA.addMembersToGroup(OPEN_DATA_GROUP, User(user.uid)) )
       a1 <- stepOver( a, apiClientIPA.changePassword(user.uid,a.success.fields.get,user.userpassword.get) )
+
+      a2 <- step( a, webHDFSApiClient.createHomeDir(user.uid) )
       //b <- stepOver( a, Try{apiClientIPA.addMembersToGroup(user.role.getOrElse(Role.Viewer.toString()),User(user.uid))} )
-      c <-step( a, evalInFuture0S(impalaService.createRole(user.uid,true)) )
+      c <-step( a2, evalInFuture0S(impalaService.createRole(user.uid,true)) )
       roleIds <- stepOverF( c, supersetApiClient.findRoleIds(ConfigReader.suspersetOrgAdminRole))//,ConfigReader.suspersetOpenDataRole) )
       d <- step( c, supersetApiClient.createUserWithRoles(user,roleIds:_*) )
 
@@ -282,7 +283,8 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
     val result = for {
 
       a <- step( apiClientIPA.deleteUser(uid) )
-      b <-step(a, evalInFuture0S(impalaService.deleteRole(uid,true)))
+      a1 <- step(a, webHDFSApiClient.deleteHomeDir(uid) )
+      b <-step(a1, evalInFuture0S(impalaService.deleteRole(uid,true)))
       userInfo <- stepOverF( b, supersetApiClient.findUser(uid) )
       c <- step(b, supersetApiClient.deleteUser(userInfo._1) )
       // Commented because ckan have problems to recreate again the same user TODO try to test a ckan config not create local users

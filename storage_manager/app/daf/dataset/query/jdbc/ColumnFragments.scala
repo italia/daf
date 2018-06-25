@@ -9,9 +9,9 @@ import daf.dataset.query._
 import doobie.util.fragment.Fragment
 
 import scala.annotation.tailrec
-import scala.util.{ Failure, Try }
+import scala.util.Try
 
-object SelectFragment {
+object ColumnFragments {
 
   @tailrec
   private def buildReference(columns: List[Column], columnReference: ColumnReference = ColumnReferenceInstances.empty): ColumnReference = columns match {
@@ -48,12 +48,11 @@ object SelectFragment {
 
   private def buildFragment(columns: Seq[String]) = Try { Fragment.const(s"SELECT ${columns mkString ", "}") }
 
-  def writer(select: SelectClause) = QueryFragmentWriter[ColumnReference] {
+  def select(select: SelectClause) = QueryFragmentWriter[ColumnReference] {
     for {
       columns  <- writeColumns(select.columns.toList).runTailRec
       fragment <- buildFragment(columns)
     } yield fragment -> buildReference(select.columns.toList)
   }
-
 
 }

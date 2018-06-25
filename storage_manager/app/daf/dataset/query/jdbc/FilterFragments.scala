@@ -8,7 +8,7 @@ import cats.free.Free.catsFreeMonadForFree
 import daf.dataset.query._
 import doobie.util.fragment.Fragment
 
-object WhereFragment {
+object FilterFragments {
 
   private def writeColumn(column: Column): Trampoline[String] = column match {
     case ValueColumn(value: String) => Free.pure { s"'$value'" }
@@ -42,8 +42,12 @@ object WhereFragment {
     case comparison: ComparisonOperator => Free.defer { writeComparisonOp(comparison) }
   }
 
-  def writer(whereClause: WhereClause) = QueryFragmentWriter.ask {
+  def where(whereClause: WhereClause) = QueryFragmentWriter.ask {
     writeFilterOp { whereClause.filter }.runTailRec.map { s => Fragment.const(s"WHERE $s") }
+  }
+
+  def having(havingClause: HavingClause) = QueryFragmentWriter.ask {
+    writeFilterOp { havingClause.filter }.runTailRec.map { s => Fragment.const(s"HAVING $s") }
   }
 
 }

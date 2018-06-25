@@ -12,6 +12,8 @@ sealed case class ColumnReference(names: Set[String], aliases: Set[String]) {
     aliases = this.aliases + alias
   )
 
+  def contains(s: String) = names.contains(s) || aliases.contains(s)
+
 }
 
 private object ColumnReferenceInstances extends Monoid[ColumnReference] {

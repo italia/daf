@@ -9,16 +9,16 @@ import scala.util.Success
 
 class SelectFragmentSpec extends WordSpec with MustMatchers {
 
-  "A select fragment writer" must {
+  "A [select] fragment writer" must {
 
-    "serialize a select clause in SQL" in {
-      SelectFragment.writer { SelectClauses.simple }.run.map { _._1.toString } must be {
+    "serialize a [select] clause in SQL" in {
+      ColumnFragments.select { SelectClauses.simple }.run.map { _._1.toString } must be {
         Success { fr"SELECT col1, col2 AS alias1, 1, 'string' AS alias2, MAX(col3) AS alias3, SUM(true)".toString }
       }
     }
 
     "create a column/alias reference set" in {
-      SelectFragment.writer { SelectClauses.simple }.run.get._2 must have (
+      ColumnFragments.select { SelectClauses.simple }.run.get._2 must have (
         ColumnReferenceMatchers hasColumn "col1",
         ColumnReferenceMatchers hasColumn "col2",
         ColumnReferenceMatchers hasColumn "1",
@@ -31,8 +31,8 @@ class SelectFragmentSpec extends WordSpec with MustMatchers {
       )
     }
 
-    "serialize a very long select without stack overflow" in {
-      SelectFragment.writer { SelectClauses.nested }.run must be { 'Success }
+    "serialize a very long [select] without stack overflow" in {
+      ColumnFragments.select { SelectClauses.nested }.run must be { 'Success }
     }
 
   }

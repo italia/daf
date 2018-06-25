@@ -59,15 +59,7 @@ class DatasetService(config: Config) {
 
   def csv(dataFrame: DataFrame) = Source[String] {
     dataFrame.schema.fieldNames.map { h => s""""$h"""" }.mkString(",") +:
-      dataFrame.rdd.map { row =>
-        row.toSeq.map {
-          case null         => "<null>"
-          case s: String    => s""""${s.replaceAll("\"", "\\\"")}""""
-          case t: Timestamp => LocalDateTime.from(t.toInstant).atOffset(ZoneOffset.UTC).format { DateTimeFormatter.ISO_OFFSET_DATE_TIME }
-          case d: Date      => LocalDateTime.from(d.toInstant).atOffset(ZoneOffset.UTC).format { DateTimeFormatter.ISO_OFFSET_DATE }
-          case d            => d.toString
-        }.mkString(",")
-      }.collect().toVector
+    dataFrame.rdd.map { _.toSeq.map { cleanCsv }.mkString(",") }.collect().toVector
   }.map { row => s"$row${System.lineSeparator}" }
 
   def queryData(params: DatasetParams, query: Query): Try[DataFrame] = for {

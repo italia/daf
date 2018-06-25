@@ -36,6 +36,7 @@ object ColumnFragments {
   }
 
   private def writeColumn(column: Column): Trampoline[String] = column match {
+    case WildcardColumn             => Free.pure[Try, String] { "*" }
     case AliasColumn(inner, alias)  => Free.defer { writeColumn(inner) }.map { col => s"$col AS $alias" }
     case NamedColumn(name)          => Free.pure[Try, String] { name }
     case ValueColumn(value: String) => Free.pure[Try, String] { s"'$value'" }

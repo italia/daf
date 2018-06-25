@@ -16,8 +16,27 @@
 
 package daf
 
+import java.sql.Timestamp
+import java.time.{ LocalDateTime, ZoneOffset }
+import java.time.format.DateTimeFormatter
+import java.util.Date
+
 package object dataset {
 
   type ExtraParams = Map[String, String]
+
+  private def quote(s: String) = s""""$s""""
+
+  def cleanCsv(any: Any): String = any match {
+    case null         => "<null>"
+    case s: String    => quote { s.replaceAll("\"", "\\\"") }
+    case t: Timestamp => quote {
+      t.toLocalDateTime.atOffset(ZoneOffset.UTC).format { DateTimeFormatter.ISO_OFFSET_DATE_TIME }
+    }
+    case d: Date      => quote {
+      LocalDateTime.from(d.toInstant).atOffset(ZoneOffset.UTC).format { DateTimeFormatter.ISO_OFFSET_DATE }
+    }
+    case d            => d.toString
+  }
 
 }

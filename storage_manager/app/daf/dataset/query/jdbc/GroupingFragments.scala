@@ -24,8 +24,8 @@ object GroupingFragments {
   def groupBy(groupByClause: GroupByClause, reference: ColumnReference) = QueryFragmentWriter.ask {
     for {
       columns   <- validateColumns(groupByClause.columns)
-      validated <- validateReference(columns.toSet, reference)
-    } yield Fragment.const { s"GROUP BY ${validated mkString ", "}" }
+//      validated <- validateReference(columns.toSet, reference)
+    } yield Fragment.const { s"GROUP BY ${columns mkString ", "}" }
   }
 
 }

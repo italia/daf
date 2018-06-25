@@ -18,6 +18,8 @@ object Versions {
 
   lazy val guava          = "16.0.1"
 
+  lazy val h2             = "1.4.197"
+
   lazy val hadoop         = "2.6.0-cdh5.12.0"
 
   lazy val hbase          = "1.2.0-cdh5.12.0"

@@ -190,6 +190,8 @@ object Dependencies {
 
     val julSlf4j      = "org.slf4j"              % "jul-to-slf4j"        % Versions.slf4j         % Test
 
+    val h2            = "com.h2database"         % "h2"                  % Versions.h2            % Test
+
     val all = {
       logback       +:
       playSpecs2    +:
@@ -199,6 +201,7 @@ object Dependencies {
       betterFiles   +:
       dockerJava    +:
       dockerJava    +:
+      h2            +:
       (hbase.all ++ hadoop.all ++ spark.all ++ kudu.all)
     }.map { Exclusions.slf4j } :+
     slf4j :+

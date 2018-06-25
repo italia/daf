@@ -24,11 +24,11 @@ class JdbcQueryService(transactor: Transactor[IO]) {
 object JdbcQueryOps {
 
   val header: ResultSetIO[Header] = FRS.getMetaData.map { metadata =>
-    1 to metadata.getColumnCount map { metadata.getCatalogName }
+    1 to metadata.getColumnCount map { metadata.getColumnName }
   }
 
   val genericRow: ResultSetIO[Row] = FRS.getMetaData.flatMap { metadata =>
-    List.range(1, metadata.getColumnCount).traverse[ResultSetIO, AnyRef] { FRS.getObject }
+    List.range(1, metadata.getColumnCount + 1).traverse[ResultSetIO, AnyRef] { FRS.getObject }
   }
 
   val genericStream: ResultSetIO[Stream[Row]] = genericRow.whileM[Stream] { HRS.next }

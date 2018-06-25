@@ -1,9 +1,9 @@
 package daf.dataset.query.jdbc
 
-import doobie.implicits.toSqlInterpolator
+import doobie.util.fragment.Fragment
 
 object TableFragments {
 
-  def from(tableName: String): QueryFragmentWriter[Unit] = QueryFragmentWriter.tell { fr"FROM $tableName" }
+  def from(tableName: String): QueryFragmentWriter[Unit] = QueryFragmentWriter.tell { Fragment.const(s"FROM $tableName") }
 
 }

@@ -2,6 +2,7 @@ package it.gov.daf.catalogmanager.repository.catalog
 
 import catalog_manager.yaml._
 import play.api.libs.ws.WSClient
+import scala.concurrent.Future
 
 
 /**
@@ -14,12 +15,13 @@ trait CatalogRepository {
 
     def listCatalogs(page :Option[Int], limit :Option[Int]) :Seq[MetaCatalog]
     def catalog(catalogId :String): Option[MetaCatalog]
-    def catalogByName(name :String): Option[MetaCatalog]
+    def catalogByName(name :String, groups: List[String]): Option[MetaCatalog]
     def publicCatalogByName(name: String):Option[MetaCatalog]
     def createCatalog(metaCatalog: MetaCatalog,callingUserid :MetadataCat, ws :WSClient) :Success
     def createCatalogExtOpenData(metaCatalog: MetaCatalog,callingUserid :MetadataCat, ws :WSClient) :Success
     def standardUris() : List[String]
     def isDatasetOnCatalog(name :String): Option[Boolean]
+    def deleteCatalogByName(nameCatalog: String, user: String): Future[Success]
 
 
     // DO NOT DELETE

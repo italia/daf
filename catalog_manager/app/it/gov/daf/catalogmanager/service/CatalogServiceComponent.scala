@@ -1,7 +1,7 @@
 package it.gov.daf.catalogmanager.service
 
 
-import catalog_manager.yaml.{Dataset, MetaCatalog, MetadataCat, Success}
+import catalog_manager.yaml.{Dataset, Error, MetaCatalog, MetadataCat, Success}
 import it.gov.daf.catalogmanager.repository.catalog.CatalogRepositoryComponent
 import play.api.libs.json.JsValue
 
@@ -27,8 +27,8 @@ trait CatalogServiceComponent {
       catalogRepository.catalog(catalogId)
     }
 
-    def catalogByName(name :String): Option[MetaCatalog] = {
-      catalogRepository.catalogByName(name)
+    def catalogByName(name :String, groups: List[String]): Option[MetaCatalog] = {
+      catalogRepository.catalogByName(name, groups)
     }
 
     def publicCatalogByName(name :String): Option[MetaCatalog] = {
@@ -47,6 +47,10 @@ trait CatalogServiceComponent {
 
     def isPresentOnCatalog(name :String) :Option[Boolean] = {
       catalogRepository.isDatasetOnCatalog(name)
+    }
+
+    def deleteCatalogByName(nameCatalog: String, user: String): Future[Success] = {
+      catalogRepository.deleteCatalogByName(nameCatalog, user)
     }
 
   }

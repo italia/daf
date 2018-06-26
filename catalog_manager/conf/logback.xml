@@ -26,7 +26,7 @@
   <logger name="play" level="INFO" />
   <logger name="application" level="DEBUG" />
 
-  <root level="DEBUG">
+  <root level="ERROR">
     <appender-ref ref="STDOUT" />
     <!--<appender-ref ref="TIME_BASED_FILE" />-->
   </root>

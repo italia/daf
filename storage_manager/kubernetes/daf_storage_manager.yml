@@ -115,11 +115,13 @@ spec:
           readOnly: true
         - name: krb5conf
           mountPath: /etc/krb5.conf
-        - name: hadoopconf
+        - name: glusterfsvol
           mountPath: /etc/hadoop/conf
+          subPath: cloudera/hive-conf
           readOnly: true
-        - name: hbaseconf
+        - name: glusterfsvol
           mountPath: /etc/hbase/conf
+          subPath: cloudera/hbase-conf
           readOnly: true
       imagePullSecrets:
       - name: regsecret
@@ -133,12 +135,5 @@ spec:
       - name: krb5conf
         hostPath:
           path: /etc/krb5.conf
-      - name: hadoopconf
-        hostPath:
-          path: /etc/hadoop/conf
-      - name: hbaseconf
-        hostPath:
-          path: /etc/hbase/conf
       nodeSelector:
         nifi: "false"
-        edge: "true"

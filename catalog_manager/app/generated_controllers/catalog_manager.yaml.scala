@@ -17,7 +17,6 @@ import scala.util._
 
 import javax.inject._
 
-import java.io.File
 import de.zalando.play.controllers.PlayBodyParsing._
 import it.gov.daf.catalogmanager.listeners.IngestionListenerImpl
 import it.gov.daf.catalogmanager.service.{CkanRegistry,ServiceRegistry}
@@ -31,7 +30,6 @@ import it.gov.daf.common.utils.WebServiceUtil
 import it.gov.daf.catalogmanager.service.VocServiceRegistry
 import play.api.libs.ws.WSClient
 import java.net.URLEncoder
-import it.gov.daf.catalogmanager.utilities.ConfigReader
 import play.api.libs.ws.WSResponse
 import play.api.libs.ws.WSAuthScheme
 import java.io.FileInputStream
@@ -150,6 +148,21 @@ package catalog_manager.yaml {
             Voc_subthemesgetall200(subthemeList)
             // ----- End of unmanaged code area for action  Catalog_managerYaml.voc_subthemesgetall
         }
+        val deleteCatalog = deleteCatalogAction { input: (String, String) =>
+            val (name, org) = input
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.deleteCatalog
+            val user = CredentialManager.readCredentialFromRequest(currentRequest).username
+            val feedName = s"${org}.${org}_o_${name}"
+            val futureDeleteFromKylo: Future[Either[Error, Success]] = for{
+                _ <- ServiceRegistry.catalogService.deleteCatalogByName(name, user)
+                res <- kylo.deleteFeed(feedName, user).map(b => b)
+            }yield res
+
+            futureDeleteFromKylo.flatMap(res => if(res.isRight) DeleteCatalog200(res.right.get) else DeleteCatalog400(res.left.get))
+
+//          NotImplementedYet
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.deleteCatalog
+        }
         val datasetcatalogs = datasetcatalogsAction { input: (MetadataRequired, Dataset_catalogsGetLimit) =>
             val (page, limit) = input
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.datasetcatalogs
@@ -190,7 +203,8 @@ package catalog_manager.yaml {
         }
         val datasetcatalogbyname = datasetcatalogbynameAction { (name: String) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbyname
-            val catalog = ServiceRegistry.catalogService.catalogByName(name)
+            val groups = CredentialManager.readCredentialFromRequest(currentRequest).groups.toList
+            val catalog = ServiceRegistry.catalogService.catalogByName(name, groups)
 
             /*
             val resutl  = catalog match {
@@ -564,6 +578,22 @@ package catalog_manager.yaml {
            // NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.startKyloFedd
         }
+    
+     // Dead code for absent methodCatalog_managerYaml.deleteMetaCatalog
+     /*
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.deleteMetaCatalog
+            NotImplementedYet
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.deleteMetaCatalog
+     */
+
+    
+     // Dead code for absent methodCatalog_managerYaml.deleteCatalog1
+     /*
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.deleteCatalog1
+            NotImplementedYet
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.deleteCatalog1
+     */
+
     
     }
 }

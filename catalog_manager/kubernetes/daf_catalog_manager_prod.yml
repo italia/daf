@@ -112,6 +112,9 @@ spec:
         securityContext:
           privileged: true
           runAsUser: 0
+        resources:
+          limits:
+            memory: 2548Mi
         volumeMounts:
         - name: config-volume
           mountPath: /opt/docker/conf/mnt

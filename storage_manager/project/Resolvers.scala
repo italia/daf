@@ -9,8 +9,8 @@ object Resolvers {
   val all = Seq(
     Resolver.mavenLocal,
     Resolver.sonatypeRepo("releases"),
-    cloudera,
-    daf
+    cloudera
+//    daf
   )
 
 }

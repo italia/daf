@@ -19,15 +19,20 @@ package controllers
 import akka.actor.ActorSystem
 import com.google.inject.Inject
 import api.DatasetControllerAPI
-import config.FileExportConfig
+import cats.effect.IO
+import config.{ FileExportConfig, ImpalaConfig }
 import daf.catalogmanager.CatalogManagerClient
 import daf.dataset.export.FileExportService
 import daf.dataset._
-import daf.dataset.json._
+import daf.dataset.query.jdbc.JdbcQueryService
+import daf.dataset.query.{ Query => NewQuery }
+import daf.dataset.query.json.QueryFormats.reader
 import daf.instances.FileSystemInstance
 import daf.web._
 import daf.filesystem.{ DownloadableFormats, FileDataFormat }
+import doobie.util.transactor.Transactor
 import it.gov.daf.common.config.{ ConfigReadException, Read }
+import org.apache.commons.dbcp.BasicDataSource
 import org.apache.hadoop.conf.{ Configuration => HadoopConfiguration }
 import org.apache.hadoop.fs.FileSystem
 import org.pac4j.play.store.PlaySessionStore
@@ -45,12 +50,13 @@ class DatasetController @Inject()(configuration: Configuration,
                                   protected implicit val ec: ExecutionContext)
   extends AbstractController(configuration, playSessionStore)
   with DatasetControllerAPI
+  with QueryExecution
   with BulkDownload
   with FileSystemInstance {
 
   implicit val fileSystem = FileSystem.get(new HadoopConfiguration)
 
-  private val queryJson = BodyParsers.parse.json[Query]
+  private val queryJson = BodyParsers.parse.json[NewQuery]
 
   private val kuduMaster = Read.string { "kudu.master" }.!.read(configuration) match {
     case Success(result) => result
@@ -62,7 +68,24 @@ class DatasetController @Inject()(configuration: Configuration,
     case Failure(error)  => throw ConfigReadException(s"Unable to configure [dataset-manager]", error)
   }
 
+  protected val impalaConfig = ImpalaConfig.reader.read(this.configuration) match {
+    case Success(config) => config
+    case Failure(error)  => throw ConfigReadException(s"Unable to configure [impala-jdbc]", error)
+  }
+
+  private def configDataSource(dataSource: BasicDataSource = new BasicDataSource) = {
+    dataSource.setUrl             { impalaConfig.jdbcUrl }
+    dataSource.setMaxActive       { impalaConfig.poolConfig.maxActive }
+    dataSource.setMaxIdle         { impalaConfig.poolConfig.maxIdle }
+    dataSource.setMaxWait         { impalaConfig.poolConfig.maxWait.toMillis }
+    dataSource.setDriverClassName { impalaConfig.poolConfig.driverClass }
+    dataSource
+  }
+
+  protected val transactor = Transactor.fromDataSource[IO] { configDataSource() }
+
   protected val datasetService    = new DatasetService(configuration.underlying)
+  protected val queryService      = new JdbcQueryService(transactor)
   protected val downloadService   = new DownloadService(kuduMaster)
   protected val fileExportService = new FileExportService(exportConfig, kuduMaster)
 
@@ -76,6 +99,10 @@ class DatasetController @Inject()(configuration: Configuration,
   private def retrieveBulkData(uri: String, auth: String, userId: String, targetFormat: FileDataFormat) = retrieveCatalog(auth, uri) match {
     case Success(params) => bulkDownload(params, userId, targetFormat)
     case Failure(error)  => Future.failed { error }
+  }
+
+  private def executeQuery(query: NewQuery, uri: String, auth: String, targetFormat: FileDataFormat) = retrieveCatalog(auth, uri).flatMap {
+    exec(_, query, targetFormat)
   }
 
   // API
@@ -94,11 +121,11 @@ class DatasetController @Inject()(configuration: Configuration,
     }
   }
 
-  def queryDataset(uri: String): Action[Query] = Actions.hadoop(proxyUser).securedAttempt(queryJson) { (request, auth, _) =>
-    for {
-      params <- retrieveCatalog(auth, uri)
-      data   <- datasetService.queryData(params, request.body)
-    } yield Ok { data.toJSON.collect() mkString "," } as JSON
+  def queryDataset(uri: String, format: String = "csv"): Action[NewQuery] = Actions.hadoop(proxyUser).securedAttempt(queryJson) { (request, auth, _) =>
+    format.toLowerCase match {
+      case DownloadableFormats(targetFormat) => executeQuery(request.body, uri, auth, targetFormat)
+      case _                                 => Success { Results.BadRequest(s"Invalid download format [$format], must be one of [csv | json]") }
+    }
   }
 
 }

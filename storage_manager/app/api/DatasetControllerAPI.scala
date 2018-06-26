@@ -16,7 +16,7 @@
 
 package api
 
-import daf.dataset.Query
+import daf.dataset.query.Query
 import io.swagger.annotations._
 import javax.ws.rs.QueryParam
 import play.api.mvc.{ Action, AnyContent }
@@ -65,6 +65,9 @@ trait DatasetControllerAPI {
     )
   ))
   def queryDataset(@ApiParam(value = "the uri to access the dataset", required = true)
-                   uri: String): Action[Query]
+                   uri: String,
+                   @ApiParam(value = "the format the downloaded data should be converted", required = true)
+                   @QueryParam("format")
+                   format: String): Action[Query]
 
 }

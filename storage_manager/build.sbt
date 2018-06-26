@@ -50,6 +50,8 @@ resolvers           ++= Resolvers.all
 libraryDependencies ++= Dependencies.compile.all
 libraryDependencies ++= Dependencies.test.all
 
+unmanagedBase := file("libext")
+
 // Licenses
 
 licenses       += Licenses.apache2

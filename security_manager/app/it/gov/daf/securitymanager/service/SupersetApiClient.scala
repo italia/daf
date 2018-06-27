@@ -328,7 +328,6 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
     handleServiceCall(serviceInvoke,handleJson)
 
-
   }
 
   def findDbTables(dbId:Long):Future[Either[Error,Seq[String]]] = {
@@ -358,7 +357,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
 
 
-  def checkTable(dbId:Long, schema:Option[String], tableName:String):Future[Either[Error,Success]] = {
+  def checkTable(dbId:Long, schema:Option[String], tableName:String):Future[Either[Error,Long]] = {
 
     def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
 
@@ -375,9 +374,36 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
     def handleJson(json:JsValue)={
 
-      json(0).validate[JsValue] match {
-        case s: JsSuccess[JsValue] =>  Right(Success(Some("Tables presents"), Some("ok")))
+      (json(0) \ "id").validate[Long] match {
+        case s: JsSuccess[Long] =>  Right(s.value)
         case e: JsError =>  Left(Error(Option(1), Some("Table does not exists"), None))
+      }
+    }
+
+    handleServiceCall(serviceInvoke,handleJson)
+
+  }
+
+
+  def deleteTable(id: Long): Future[Either[Error, Success]] = {
+
+    def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
+
+      Logger.logger.debug("deleteTable id: " + id)
+
+      wSClient.url(ConfigReader.supersetUrl + s"/tablemodelview/api/delete/$id").withHeaders("Content-Type" -> "application/json",
+        "Accept" -> "application/json",
+        "Cookie" -> sessionCookie
+      ).delete()
+    }
+
+    Logger.logger.debug("deleteTable id: " + id)
+
+    def handleJson(json:JsValue)={
+
+      (json \ "message").validate[String] match {
+        case s: JsSuccess[String] => Right(Success(Some("table deleted"), Some("ok")))
+        case e: JsError => Left(Error(Option(0), Some("Error in deleteTable"), None))
       }
     }
 

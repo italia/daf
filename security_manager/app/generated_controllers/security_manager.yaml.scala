@@ -44,7 +44,7 @@ import cats.implicits._
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                    
+                                                    
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -300,7 +300,8 @@ package security_manager.yaml {
             execInContext[Future[GetDatasetACLType[T] forSome {type T}]]("getDatasetACL") { () =>
 
             profilingService.getPermissions(datasetName) flatMap {
-              case Right(success) => GetDatasetACL200(success)
+              case Right(Some(success)) => GetDatasetACL200(success)
+              case Right(None) => GetDatasetACL500(Error(Option(1),Some("No ACL founded"),None))
               case Left(err) => GetDatasetACL500(err)
             }
 

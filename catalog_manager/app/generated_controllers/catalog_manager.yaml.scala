@@ -49,7 +49,7 @@ import play.api.Logger
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-        
+                        
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -121,11 +121,11 @@ package catalog_manager.yaml {
         val createdatasetcatalogExtOpenData = createdatasetcatalogExtOpenDataAction { (catalog: MetaCatalog) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalogExtOpenData
             val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
-            if( CredentialManager.isDafEditor(currentRequest) || CredentialManager.isDafAdmin(currentRequest) ) {
+            if( CredentialManager.isDafSysAdmin(currentRequest) ) {
                 val created: Success = ServiceRegistry.catalogService.createCatalogExtOpenData(catalog, Option(credentials.username), ws)
                 CreatedatasetcatalogExtOpenData200(created)
             }else
-                CreatedatasetcatalogExtOpenData401("Admin or editor permissions required")
+                CreatedatasetcatalogExtOpenData401("System Admin permissions required")
             // ----- End of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalogExtOpenData
         }
         val getckandatasetList = getckandatasetListAction {  _ =>  
@@ -237,12 +237,13 @@ package catalog_manager.yaml {
         }
         val createdatasetcatalog = createdatasetcatalogAction { (catalog: MetaCatalog) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalog
+            val datasetOrg = catalog.dcatapit.owner_org.getOrElse("EMPTY ORG!")
             val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
-            if( CredentialManager.isDafEditor(currentRequest) || CredentialManager.isDafAdmin(currentRequest) ) {
+            if( CredentialManager.isOrgAdmin(currentRequest,datasetOrg) || CredentialManager.isOrgEditor(currentRequest,datasetOrg) ) {
                 val created: Success = ServiceRegistry.catalogService.createCatalog(catalog, Option(credentials.username), ws)
                 Createdatasetcatalog200(created)
             }else
-                Createdatasetcatalog401("Admin or editor permissions required")
+                Createdatasetcatalog401(s"Admin or editor permissions required (organization: $datasetOrg)")
             //NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalog
         }

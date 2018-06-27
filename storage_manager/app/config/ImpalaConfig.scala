@@ -18,9 +18,13 @@ package config
 
 import it.gov.daf.common.config.Read
 
-case class ImpalaConfig(host: String, port: Int, kerberosPrincipal: String, poolConfig: JdbcPoolConfig) {
+case class ImpalaConfig(host: String, port: Int, kerberosConfig: ImpalaKerberosConfig, sslConfig: Option[ImpalaSSLConfig]) {
 
-  val jdbcUrl = s"jdbc:hive2://$host:$port/;principal=$kerberosPrincipal"
+  private def sslPart = sslConfig.map { config => s";SSL=1;SSLKeyStore=${config.keystore};SSLKeyStorePwd=${config.password}" } getOrElse ""
+
+  private def kerberosPart = s";KrbRealm=${kerberosConfig.realm};KrbHostFQDN=${kerberosConfig.domain};KrbServiceName=${kerberosConfig.service}"
+
+  val jdbcUrl = s"jdbc:impala://$host:$port/;AuthMech=1$kerberosPart$sslPart"
 
 }
 
@@ -28,21 +32,18 @@ object ImpalaConfig {
 
   private def readConfig = Read.config { "impala" }.!
 
-  private def readJdbcPool = Read.config { "daf.jdbc.impala" }.! ~> JdbcPoolConfig.read
-
-  private def readValues(jdbcPoolConfig: JdbcPoolConfig) = for {
-    host      <- Read.string { "host" }.!
-    port      <- Read.int    { "port" }.!
-    principal <- Read.string { "principal" }.!
+  private def readValues = for {
+    host           <- Read.string { "host" }.!
+    port           <- Read.int    { "port" }.!
+    kerberosConfig <- ImpalaKerberosConfig.reader
+    sslConfig      <- ImpalaSSLConfig.reader
   } yield ImpalaConfig(
-    host              = host,
-    port              = port,
-    kerberosPrincipal = principal,
-    poolConfig        = jdbcPoolConfig)
+    host      = host,
+    port      = port,
+    kerberosConfig = kerberosConfig,
+    sslConfig = sslConfig
+  )
 
-  def reader = for {
-    jdbcPoolConfig <- readJdbcPool
-    impalaConfig   <- readConfig ~> readValues(jdbcPoolConfig)
-  } yield impalaConfig
+  def reader = readConfig ~> readValues
 
 }

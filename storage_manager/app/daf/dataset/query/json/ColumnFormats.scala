@@ -48,19 +48,26 @@ object SimpleColumnFormats {
 
 object AggregationColumnFormats {
 
+  private val readAlias = (__ \ "alias").readNullable[String]
+
   private def readColumn(name: String) = (__ \ name).read[JsValue] andThen SimpleColumnFormats.reader
 
   private val invalidAggregationReader = Reads[Column] { jsValue =>
     JsError { s"Invalid aggregation representation encountered - must be one of max, min, avg, count or sum: [$jsValue]" }
   }
 
-  val reader: Reads[Column] =
+  private val readAggregation: Reads[Column] =
     readColumn("max").map[Column]   { Max   } orElse
     readColumn("min").map[Column]   { Min   } orElse
     readColumn("avg").map[Column]   { Avg   } orElse
     readColumn("count").map[Column] { Count } orElse
     readColumn("sum").map[Column]   { Sum   } orElse
     invalidAggregationReader
+
+  val reader: Reads[Column] = for {
+    alias       <- readAlias
+    aggregation <- readAggregation
+  } yield aggregation asOpt alias
 
 }
 

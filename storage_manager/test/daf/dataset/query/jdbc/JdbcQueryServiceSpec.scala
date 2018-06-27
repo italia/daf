@@ -24,7 +24,6 @@ import doobie.implicits.{ toConnectionIOOps, toSqlInterpolator }
 import doobie.util.transactor.Transactor
 import doobie.util.update.Update
 import org.apache.commons.dbcp.BasicDataSource
-import org.apache.hive.jdbc.HiveDriver
 import org.scalatest.{ BeforeAndAfterAll, MustMatchers, WordSpec }
 
 import scala.util.Success
@@ -60,22 +59,23 @@ object JdbcQueries {
   type User = (String, String, Int, String)
 
   private def configureDatasource(dataSource: BasicDataSource = new BasicDataSource) = {
-    dataSource.setDriverClassName("org.apache.hive.jdbc.HiveDriver")
     dataSource.setUrl("jdbc:h2:mem:")
     dataSource
   }
 
   private def configureImpala(dataSource: ImpalaDataSource = new ImpalaDataSource) = {
     dataSource.setURL(
-      "jdbc:impala://slave1.novalocal:21050/;" +
-        "AuthMech=1;" +
-        "KrbRealm=PLATFORM.DAF.LOCAL;" +
-        "KrbHostFQDN=slave1.novalocal;" +
-        "KrbServiceName=impala;" +
-        "SSL=1;" +
-        "SSLKeyStore=/Library/Java/JavaVirtualMachines/jdk1.8.0_172.jdk/Contents/Home/jre/lib/security/jssecacerts;" +
-        "SSLKeyStorePwd=changeitagain;" +
-        "userGSSCredential=daf@DAF.GOV.IT"
+      "jdbc:impala://slave1.novalocal:21050/;AuthMech=1;KrbRealm=PLATFORM.DAF.LOCAL;KrbHostFQDN=slave1.novalocal;KrbServiceName=impala;SSL=1;SSLKeyStore=/Library/Java/JavaVirtualMachines/jdk1.8.0_172.jdk/Contents/Home/jre/lib/security/jssecacerts;SSLKeyStorePwd=changeitagain"
+//      "jdbc:impala://slave1.novalocal:21050/;" +
+//        "AuthMech=1;" +
+//        "KrbRealm=PLATFORM.DAF.LOCAL;" +
+//        "KrbHostFQDN=slave1.novalocal;" +
+//        "KrbServiceName=impala;" +
+//        "SSL=1;" +
+//        "SSLKeyStore=/Library/Java/JavaVirtualMachines/jdk1.8.0_172.jdk/Contents/Home/jre/lib/security/jssecacerts;" +
+//        "SSLKeyStorePwd=changeitagain"
+//        +
+//        "userGSSCredential=daf@DAF.GOV.IT"
     )
     dataSource
   }

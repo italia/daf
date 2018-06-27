@@ -16,6 +16,9 @@
 
 package it.gov.daf.common.config
 
+import cats.syntax.traverse.toTraverseOps
+import cats.instances.option.catsStdInstancesForOption
+import cats.instances.try_.catsStdInstancesForTry
 import play.api.Configuration
 
 import scala.util.{ Try, Success, Failure }
@@ -71,6 +74,19 @@ sealed abstract class ConfigReader[A](val read: Configuration => Try[A]) {
     * @return a reader that will first apply this reader's [[read]] and then `otherReader`'s
     */
   final def ~>[B](otherReader: ConfigReader[B])(implicit ev: A =:= Configuration): ConfigReader[B] = mapAttempt { a => otherReader.read(ev(a)) }
+
+  /**
+    * Similar to [[~>]] only it assumes that the current config reader returns an optional configuration. This allows
+    * composition over optional configuration fragments, with mandatory contents.
+    *
+    * @param otherReader the reader to compose after this one
+    * @param ev implicit evidence that shows that this reader reads `Option[play.api.Configuration]`
+    * @tparam B return type of `otherReader`
+    * @return a reader that will first apply this reader's [[read]] and then `otherReader`'s
+    */
+  final def ~?>[B](otherReader: ConfigReader[B])(implicit ev: A =:= Option[Configuration]): ConfigReader[Option[B]] = map { ev }.mapAttempt {
+    _.traverse[Try, B] { otherReader.read }
+  }
 
 }
 

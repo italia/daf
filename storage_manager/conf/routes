@@ -33,4 +33,4 @@ GET         /storage-manager/*file                              controllers.Asse
 
 GET         /dataset-manager/v1/dataset/:uri                    controllers.DatasetController.getDataset(uri: String, format: String ?= "csv")
 GET         /dataset-manager/v1/dataset/:uri/schema             controllers.DatasetController.getSchema(uri: String)
-POST        /dataset-manager/v1/dataset/:uri/search             controllers.DatasetController.queryDataset(uri: String)
+POST        /dataset-manager/v1/dataset/:uri/search             controllers.DatasetController.queryDataset(uri: String, format: String ?= "csv")

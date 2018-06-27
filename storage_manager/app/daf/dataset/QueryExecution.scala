@@ -33,13 +33,15 @@ trait QueryExecution { this: DatasetController =>
 
   private def extractTableName(params: DatasetParams): Try[String] = params match {
     case kudu: KuduDatasetParams => Success { kudu.table }
-    case file: FileDatasetParams => extractTableName(file.name.asHadoop)
+    case file: FileDatasetParams => extractTableName(file.path.asHadoop.resolve)
   }
 
   private def transform(jdbcResult: JdbcResult, targetFormat: FileDataFormat) = targetFormat match {
-    case CsvFileFormat  => Try { Source[String](jdbcResult.toCsv) }
+    case CsvFileFormat  => Try {
+      Source[String](jdbcResult.toCsv).map { csv => s"$csv${System.lineSeparator}" }
+    }
     case JsonFileFormat => Try {
-      Source[JsValue](jdbcResult.toJson).map { _.toString }
+      Source[JsValue](jdbcResult.toJson).map { json => s"$json${System.lineSeparator}"}
     }
     case _              => Failure { new IllegalArgumentException(s"Invalid target format [$targetFormat]; must be [csv | json]") }
   }

@@ -38,7 +38,7 @@ case class JdbcResult(header: Header, rows: Stream[Row]) {
     case number: JavaInteger       => Free.pure[Try, JsValue]  { JsNumber(BigDecimal(number)) }
     case number: JavaLong          => Free.pure[Try, JsValue]  { JsNumber(BigDecimal(number)) }
     case number: JavaDouble        => Free.pure[Try, JsValue]  { JsNumber(BigDecimal(number)) }
-    case number: JavaFloat         => Free.pure[Try, JsValue]  { JsNumber(BigDecimal(number)) }
+    case number: JavaFloat         => Free.pure[Try, JsValue]  { JsNumber(BigDecimal.decimal(number)) }
     case boolean: JavaBoolean      => Free.pure[Try, JsValue]  { JsBoolean(Boolean.unbox(boolean)) }
     case s: String                 => Free.pure[Try, JsValue]  { JsString(s) }
     case _: JdbcArray | _: JdbcStruct => Free.defer[Try, JsValue] { complexJson(value) }

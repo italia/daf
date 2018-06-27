@@ -99,16 +99,17 @@ object MongoService {
 
   }
 
-  def getACL(datasetName:String): Either[String,JsValue] = {
-
+  def getACL(datasetName:String): Either[String,Option[JsValue]] = {
+    // Left if dataset is not found
+    // Right(None) if acl is not found
     val result = findData( CATALOG_COLLECTION_NAME, "dcatapit.name", datasetName  )
     result match{
       case Right(json) => ((json \ "operational") \ "acl").toOption match{
-        case Some(x) => Right(x)
+        case Some(x) => Right(Some(x))
         case None =>  Logger.logger.warn( "No Acl found: "+result )
-                      Left("No Acl found")
+                      Right(None)
       }
-      case _ => result
+      case Left(l) => Left(l)
     }
 
   }

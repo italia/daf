@@ -41,9 +41,9 @@ object Role{
 
     if( appo.contains(Admin.toString+group) )
       Some(Admin)
-    if( appo.contains(Editor.toString+group) )
+    else if( appo.contains(Editor.toString+group) )
       Some(Editor)
-    if( appo.contains(Viewer.toString+group) )
+    else if( appo.contains(Viewer.toString+group) )
       Some(Viewer)
     else
       None

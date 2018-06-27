@@ -43,9 +43,10 @@ class KyloApiClient @Inject()(wSClient: WSClient){
 
     response.map{response =>
 
-      if( response.status != 200 )
-        Left( Error(Option(0),Some("Error in during kylo category creation: bad http code"+response.status),None) )
-      else{
+      if( response.status != 200 ) {
+        Logger.logger.debug("RESPONSE:"+response)
+        Left(Error(Option(0), Some("Error in during kylo category creation: bad http code" + response.status), None))
+      }else{
         Logger.logger.debug("RESPONSE:"+response.json)
         val result = response.json \ "id"
         if( result.isInstanceOf[JsUndefined] )

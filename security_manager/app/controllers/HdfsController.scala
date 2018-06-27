@@ -44,7 +44,7 @@ class HdfsController @Inject()(ws: WSClient, webHDFSApiClient:WebHDFSApiClient, 
 
       logger.debug("Request:" + request)
 
-      webHDFSApiProxy.callHdfsService(request.method, path, queryString).flatMap {
+      webHDFSApiProxy.callHdfsService(request.method, path, queryString, None).flatMap {
         case Right(r) =>  if( r.httpCode == 307 && r.locationHeader.nonEmpty)
                             request.method match{
                               case "GET" => callGetFileService(r.locationHeader.get)
@@ -61,7 +61,7 @@ class HdfsController @Inject()(ws: WSClient, webHDFSApiClient:WebHDFSApiClient, 
   }
 
 
-  def callPutFileService(location:String, requestBody:SourceWrapper):Future[Result]={
+  private def callPutFileService(location:String, requestBody:SourceWrapper):Future[Result]={
 
     logger.debug("callPutFileService")
 
@@ -81,7 +81,7 @@ class HdfsController @Inject()(ws: WSClient, webHDFSApiClient:WebHDFSApiClient, 
   }
 
 
-  def callGetFileService(location:String):Future[Result]={
+  private def callGetFileService(location:String):Future[Result]={
 
     logger.debug("callGetFileService")
 
@@ -110,7 +110,7 @@ class HdfsController @Inject()(ws: WSClient, webHDFSApiClient:WebHDFSApiClient, 
   }
 
 
-  def wehdfsBodyParser: BodyParser[SourceWrapper] = BodyParser { reqHd =>
+  private def wehdfsBodyParser: BodyParser[SourceWrapper] = BodyParser { reqHd =>
 
     streams.Accumulator.source[ByteString].map{ source =>
       Right(SourceWrapper(source))

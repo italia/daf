@@ -30,7 +30,7 @@ object WebHDFSLogin {
         (o: String) => {out.append(s"$o\n");()},
         (e: String) => {err.append(s"$e\n");()} )
 
-      val scriptName =  if(System.getProperty("STAGING") != null) "./script/kb_init_test.sh"
+      val scriptName =  if(System.getProperty("STAGING") != null) "./script/kb_init_local_test.sh"
                         else "./script/kb_init.sh"
 
       //val scriptName =  if(ConfigReader.localEnv )"./script/kb_init_local_test.sh"

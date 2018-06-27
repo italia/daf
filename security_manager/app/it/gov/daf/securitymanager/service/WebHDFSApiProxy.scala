@@ -1,16 +1,17 @@
 package it.gov.daf.securitymanager.service
 
 import com.google.inject.{Inject, Singleton}
-import it.gov.daf.common.sso.common.{CacheWrapper, RestServiceResponse, SecuredInvocationManager}
-import it.gov.daf.securitymanager.service.utilities.{ConfigReader}
+import it.gov.daf.common.sso.common.{CacheWrapper, LoginInfo, RestServiceResponse, SecuredInvocationManager}
+import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import play.api.Logger
 import play.api.libs.json._
 import play.api.libs.ws.{WSClient, WSResponse}
+
 import scala.concurrent.Future
 
 
 @Singleton
-class WebHDFSApiProxy @Inject()(secInvokeManager: SecuredInvocationManager,implicit val cacheWrapper:CacheWrapper){
+class WebHDFSApiProxy @Inject()(secInvokeManager: SecuredInvocationManager, implicit val cacheWrapper:CacheWrapper){
 
   import play.api.libs.concurrent.Execution.Implicits._
 
@@ -18,9 +19,10 @@ class WebHDFSApiProxy @Inject()(secInvokeManager: SecuredInvocationManager,impli
   private val HADOOP_URL = ConfigReader.hadoopUrl
 
 
-  private def handleServiceCall(serviceInvoke:(String,WSClient)=> Future[WSResponse] )={
+  private def handleServiceCall( serviceInvoke:(String,WSClient)=> Future[WSResponse], loginInfoParam:Option[LoginInfo] )={
 
-    val loginInfo = readLoginInfo()
+
+    val loginInfo = loginInfoParam.getOrElse(readLoginInfo)
 
     secInvokeManager.manageRestServiceCallWithResp(loginInfo, serviceInvoke, 200,201,307,400,401,403,404).map {
       case Right(resp) => if(resp.httpCode<400) Right(resp)
@@ -30,7 +32,7 @@ class WebHDFSApiProxy @Inject()(secInvokeManager: SecuredInvocationManager,impli
   }
 
 
-  def callHdfsService( httpMethod: String, path:String, params:Map[String,String] ):Future[Either[RestServiceResponse,RestServiceResponse]] = {
+  def callHdfsService( httpMethod: String, path:String, params:Map[String,String], loginInfoParam:Option[LoginInfo] ):Future[Either[RestServiceResponse,RestServiceResponse]] = {
 
     Logger.logger.debug(s"callService on path:$path with method:$httpMethod and params: $params")
 
@@ -43,7 +45,7 @@ class WebHDFSApiProxy @Inject()(secInvokeManager: SecuredInvocationManager,impli
       response
     }
 
-    handleServiceCall(serviceInvoke)
+    handleServiceCall(serviceInvoke,loginInfoParam)
 
   }
 

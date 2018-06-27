@@ -91,6 +91,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
       c <- step( a4, registrationService.callHardDeleteUser(toRefOrgUserName(groupCn)) )
 
+
         /*
       b <- stepOver( a4, apiClientIPA.deleteUser(toRefOrgUserName(groupCn)) )
       userInfo <- stepOverF( b, supersetApiClient.findUser(toRefOrgUserName(groupCn)) )
@@ -467,7 +468,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
   def createSupersetTable(dbName:String, schema:Option[String], tableName:String):Future[Either[Error,Success]] = {
 
-    logger.info("createSupersetTable")
+    logger.info(s"createSupersetTable dbName=$dbName schema=$schema tableName=$tableName")
 
     val result = for {
       dbId <-  EitherT( supersetApiClient.findDatabaseId(dbName) )
@@ -478,6 +479,25 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
     result.value.map{
       case Right(r) => Right( Success(Some("Table created"), Some("ok")) )
+      case Left(l) => Left(l)
+    }
+
+  }
+
+
+  def deleteSupersetTable(dbName:String, schema:Option[String], tableName:String):Future[Either[Error,Success]] = {
+
+    logger.info(s"deleteSupersetTable dbName=$dbName schema=$schema tableName=$tableName")
+
+    val result = for {
+      dbId <-  EitherT( supersetApiClient.findDatabaseId(dbName) )
+      tableId <-  EitherT( supersetApiClient.checkTable(dbId,schema,tableName) )
+      b <- EitherT( supersetApiClient.deleteTable(tableId) )
+    } yield b
+
+
+    result.value.map{
+      case Right(r) => Right( Success(Some("Table deleted"), Some("ok")) )
       case Left(l) => Left(l)
     }
 

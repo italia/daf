@@ -21,9 +21,14 @@ import java.lang.reflect.UndeclaredThrowableException
 
 import it.gov.daf.common.web.ErrorHandler
 import org.apache.spark.sql.AnalysisException
+import org.ietf.jgss.GSSException
 import play.api.mvc.Results
 
 object ErrorHandlers {
+
+  val security: ErrorHandler = {
+    case _: GSSException => Results.Unauthorized
+  }
 
   val spark: ErrorHandler = {
     case _: FileNotFoundException => Results.NotFound

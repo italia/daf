@@ -38,8 +38,8 @@ object ErrorHandlers {
     * A default fallback that simply returns `InternalServerError` for any exception encountered.
     * @note this handler does not log exceptions.
     */
-  val defaultFallback: DefiniteErrorHandler = { error =>
-    Results.InternalServerError { s"An unexpected error occurred: [${error.getMessage}]" }
+  val defaultFallback: DefiniteErrorHandler = { _ =>
+    Results.InternalServerError { "An unexpected error has occurred" }
   }
 
   /**

@@ -16,7 +16,7 @@
 
 package controllers
 
-import javax.sql.DataSource
+import java.sql.Driver
 
 import akka.actor.ActorSystem
 import com.google.inject.Inject
@@ -35,6 +35,7 @@ import daf.web._
 import daf.filesystem.{ DownloadableFormats, FileDataFormat }
 import doobie.util.transactor.Transactor
 import it.gov.daf.common.config.{ ConfigReadException, Read }
+import javax.sql.DataSource
 import org.apache.hadoop.conf.{ Configuration => HadoopConfiguration }
 import org.apache.hadoop.fs.FileSystem
 import org.pac4j.play.store.PlaySessionStore
@@ -75,14 +76,12 @@ class DatasetController @Inject()(configuration: Configuration,
     case Failure(error)  => throw ConfigReadException(s"Unable to configure [impala-jdbc]", error)
   }
 
-  private def createDataSource(): DataSource = {
-    val dataSource = new ImpalaDataSource
-    println { impalaConfig.jdbcUrl }
-    dataSource.setURL { impalaConfig.jdbcUrl }
+  private def configureDataSource(dataSource: ImpalaDataSource = new ImpalaDataSource) = {
+    dataSource.setURL(impalaConfig.jdbcUrl)
     dataSource
   }
 
-  protected val transactor = Transactor.fromDataSource[IO] { createDataSource() }
+  private val transactor = Transactor.fromConnection[IO] { configureDataSource().getConnection }
 
   protected val datasetService    = new DatasetService(configuration.underlying)
   protected val queryService      = new JdbcQueryService(transactor)

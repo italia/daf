@@ -23,6 +23,6 @@ object Actions {
 
   def hadoop(implicit proxyUser: UserGroupInformation): ActionBuilder = DefaultActions.impersonated { Impersonations.hadoop }.checkedWith { ErrorHandlers.spark }
 
-  def basic: ActionBuilder = DefaultActions.basic.checkedWith { ErrorHandlers.spark }
+  def basic: ActionBuilder = DefaultActions.basic.checkedWith { ErrorHandlers.security orElse ErrorHandlers.spark }
 
 }

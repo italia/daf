@@ -16,38 +16,42 @@
 
 package daf.dataset.query.jdbc
 
+import java.security.PrivilegedAction
+
 import cats.effect.IO
 import cats.instances.list.catsStdInstancesForList
-import com.cloudera.impala.jdbc41.{ DataSource => ImpalaDataSource }
 import daf.dataset.query.{ Count, GroupByClause, Gt, NamedColumn, Query, SelectClause, ValueColumn, WhereClause }
 import doobie.implicits.{ toConnectionIOOps, toSqlInterpolator }
 import doobie.util.transactor.Transactor
 import doobie.util.update.Update
 import org.apache.commons.dbcp.BasicDataSource
+import org.apache.hadoop.security.UserGroupInformation
 import org.scalatest.{ BeforeAndAfterAll, MustMatchers, WordSpec }
-
-import scala.util.Success
 
 class JdbcQueryServiceSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
 
   private lazy val service = new JdbcQueryService(JdbcQueries.transactor)
 
-//  override def beforeAll(): Unit = JdbcQueries.prepare.transact { JdbcQueries.transactor }.unsafeRunSync() match {
-//    case (_     , rows) if rows == 0   => throw new RuntimeException("Unable to start test: [rows] were not created")
-//    case (_, _)                        => // do nothing
-//  }
+  UserGroupInformation.loginUserFromSubject(null)
+
+  private def asCurrentUser[A](f: => A): A = UserGroupInformation.getCurrentUser.doAs {
+    new PrivilegedAction[A] { def run() = f }
+  }
+
+  override def beforeAll(): Unit = JdbcQueries.prepare.transact { JdbcQueries.transactor }.unsafeRunSync() match {
+    case (_     , rows) if rows == 0   => throw new RuntimeException("Unable to start test: [rows] were not created")
+    case (_, _)                        => // do nothing
+  }
 
   "A jdbc query service" must {
 
-    "run queries" in {
-      service.exec(JdbcQueries.select, "user").map { _.toCsv.toList } must be {
-        Success {
-          List(
-            """"COUNTRY", "COUNTS"""",
-            """"Italy", 2""",
-            """"Netherlands", 1"""
-          )
-        }
+    "run queries" in  {
+      service.exec(JdbcQueries.select, "user").map { _.toCsv.toList }.get must be {
+        List(
+          """"COUNTRY", "COUNTS"""",
+          """"Italy", 2""",
+          """"Netherlands", 1"""
+        )
       }
     }
   }
@@ -58,29 +62,14 @@ object JdbcQueries {
 
   type User = (String, String, Int, String)
 
-  private def configureDatasource(dataSource: BasicDataSource = new BasicDataSource) = {
-    dataSource.setUrl("jdbc:h2:mem:")
+  val jdbcUrl = s"jdbc:h2:mem:"
+
+  def configureDataSource(dataSource: BasicDataSource = new BasicDataSource) = {
+    dataSource.setUrl(jdbcUrl)
     dataSource
   }
 
-  private def configureImpala(dataSource: ImpalaDataSource = new ImpalaDataSource) = {
-    dataSource.setURL(
-      "jdbc:impala://slave1.novalocal:21050/;AuthMech=1;KrbRealm=PLATFORM.DAF.LOCAL;KrbHostFQDN=slave1.novalocal;KrbServiceName=impala;SSL=1;SSLKeyStore=/Library/Java/JavaVirtualMachines/jdk1.8.0_172.jdk/Contents/Home/jre/lib/security/jssecacerts;SSLKeyStorePwd=changeitagain"
-//      "jdbc:impala://slave1.novalocal:21050/;" +
-//        "AuthMech=1;" +
-//        "KrbRealm=PLATFORM.DAF.LOCAL;" +
-//        "KrbHostFQDN=slave1.novalocal;" +
-//        "KrbServiceName=impala;" +
-//        "SSL=1;" +
-//        "SSLKeyStore=/Library/Java/JavaVirtualMachines/jdk1.8.0_172.jdk/Contents/Home/jre/lib/security/jssecacerts;" +
-//        "SSLKeyStorePwd=changeitagain"
-//        +
-//        "userGSSCredential=daf@DAF.GOV.IT"
-    )
-    dataSource
-  }
-
-  lazy val transactor = Transactor.fromDataSource[IO] { configureImpala() }
+  lazy val transactor = Transactor.fromDataSource[IO] { configureDataSource() }
 
   val ddl =
     sql"""

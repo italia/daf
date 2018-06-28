@@ -24,23 +24,16 @@ import cats.instances.stream.catsStdInstancesForStream
 import daf.dataset.query.Query
 import doobie._
 import doobie.implicits._
-import org.slf4j.LoggerFactory
 
 import scala.util.Try
 
 class JdbcQueryService(transactor: Transactor[IO]) {
 
-  private val logger = LoggerFactory.getLogger("it.gov.daf.QueryService")
-
   private def exec(fragment: Fragment) = fragment.execWith {
     HPS.executeQuery { JdbcQueryOps.result }
   }
 
-  def exec(query: Query, table: String): Try[JdbcResult] = for {
-    fragment <- Writers.sql(query, table).write
-    _        <- Try { logger.debug(s"Executing query fragment: [$fragment]") }
-    result   <- Try { exec(fragment).transact(transactor).unsafeRunSync }
-  } yield result
+  def exec(query: Query, table: String): Try[JdbcResult] = Writers.sql(query, table).write.map { exec(_).transact(transactor).unsafeRunSync }
 
 }
 

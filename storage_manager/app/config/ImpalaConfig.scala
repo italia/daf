@@ -20,11 +20,14 @@ import it.gov.daf.common.config.Read
 
 case class ImpalaConfig(host: String, port: Int, kerberosConfig: ImpalaKerberosConfig, sslConfig: Option[ImpalaSSLConfig]) {
 
-  private def sslPart = sslConfig.map { config => s";SSL=1;SSLKeyStore=${config.keystore};SSLKeyStorePwd=${config.password}" } getOrElse ""
+  private def impalaKerberosPart = s";KrbRealm=${kerberosConfig.realm};KrbHostFQDN=${kerberosConfig.domain};KrbServiceName=${kerberosConfig.service}"
 
-  private def kerberosPart = s";KrbRealm=${kerberosConfig.realm};KrbHostFQDN=${kerberosConfig.domain};KrbServiceName=${kerberosConfig.service}"
+  val impalaUrl = s"jdbc:impala://$host:$port/;AuthMech=1$impalaKerberosPart"
 
-  val jdbcUrl = s"jdbc:impala://$host:$port/;AuthMech=1$kerberosPart$sslPart"
+
+  private def hiveKerberosPart = s";principal=${kerberosConfig.principal}"
+
+  val hiveUrl = s"jdbc:hive2://$host:$port/$hiveKerberosPart"
 
 }
 

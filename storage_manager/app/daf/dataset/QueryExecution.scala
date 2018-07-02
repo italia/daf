@@ -52,9 +52,9 @@ trait QueryExecution { this: DatasetController =>
     )
   }
 
-  protected def exec(params: DatasetParams, query: NewQuery, targetFormat: FileDataFormat) = for {
+  protected def exec(params: DatasetParams, query: NewQuery, targetFormat: FileDataFormat, userId: String) = for {
     tableName  <- extractTableName(params)
-    jdbcResult <- queryService.exec(query, tableName)
+    jdbcResult <- queryService.exec(query, tableName, userId)
     data       <- transform(jdbcResult, targetFormat)
     response   <- respond(params, data, targetFormat)
   } yield response

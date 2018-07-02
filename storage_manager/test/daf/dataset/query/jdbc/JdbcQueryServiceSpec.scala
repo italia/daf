@@ -16,29 +16,22 @@
 
 package daf.dataset.query.jdbc
 
-import java.security.PrivilegedAction
-
 import cats.effect.IO
 import cats.instances.list.catsStdInstancesForList
 import daf.dataset.query.{ Count, GroupByClause, Gt, NamedColumn, Query, SelectClause, ValueColumn, WhereClause }
+import daf.instances.H2TransactorInstance
+import doobie.free.KleisliInterpreter
 import doobie.implicits.{ toConnectionIOOps, toSqlInterpolator }
-import doobie.util.transactor.Transactor
+import doobie.util.transactor.{ Strategy, Transactor }
 import doobie.util.update.Update
 import org.apache.commons.dbcp.BasicDataSource
-import org.apache.hadoop.security.UserGroupInformation
 import org.scalatest.{ BeforeAndAfterAll, MustMatchers, WordSpec }
 
 class JdbcQueryServiceSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
 
-  private lazy val service = new JdbcQueryService(JdbcQueries.transactor)
+  private lazy val service = new JdbcQueryService(null) with H2TransactorInstance
 
-  UserGroupInformation.loginUserFromSubject(null)
-
-  private def asCurrentUser[A](f: => A): A = UserGroupInformation.getCurrentUser.doAs {
-    new PrivilegedAction[A] { def run() = f }
-  }
-
-  override def beforeAll(): Unit = JdbcQueries.prepare.transact { JdbcQueries.transactor }.unsafeRunSync() match {
+  override def beforeAll(): Unit = JdbcQueries.prepare.transact { service.transactor("") }.unsafeRunSync() match {
     case (_     , rows) if rows == 0   => throw new RuntimeException("Unable to start test: [rows] were not created")
     case (_, _)                        => // do nothing
   }
@@ -46,7 +39,7 @@ class JdbcQueryServiceSpec extends WordSpec with MustMatchers with BeforeAndAfte
   "A jdbc query service" must {
 
     "run queries" in  {
-      service.exec(JdbcQueries.select, "user").map { _.toCsv.toList }.get must be {
+      service.exec(JdbcQueries.select, "user", "").map { _.toCsv.toList }.get must be {
         List(
           """"COUNTRY", "COUNTS"""",
           """"Italy", 2""",
@@ -55,21 +48,15 @@ class JdbcQueryServiceSpec extends WordSpec with MustMatchers with BeforeAndAfte
       }
     }
   }
-
 }
 
 object JdbcQueries {
 
   type User = (String, String, Int, String)
 
-  val jdbcUrl = s"jdbc:h2:mem:"
-
-  def configureDataSource(dataSource: BasicDataSource = new BasicDataSource) = {
-    dataSource.setUrl(jdbcUrl)
-    dataSource
-  }
-
-  lazy val transactor = Transactor.fromDataSource[IO] { configureDataSource() }
+  private def createTransactor(dataSource: BasicDataSource) = Transactor[IO, BasicDataSource](
+    dataSource, a => IO(a.getConnection), KleisliInterpreter[IO].ConnectionInterpreter, Strategy.void
+  )
 
   val ddl =
     sql"""

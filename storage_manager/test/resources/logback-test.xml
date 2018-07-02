@@ -14,7 +14,7 @@
     <logger name="it.teamdigitale" level="DEBUG" />
     <logger name="it.gov" level="DEBUG" />
 
-    <root level="ERROR">
+    <root level="DEBUG">
         <appender-ref ref="STDOUT"/>
     </root>
 

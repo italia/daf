@@ -16,24 +16,27 @@
 
 package daf.dataset.query.jdbc
 
-import cats.effect.IO
 import cats.syntax.traverse.toTraverseOps
 import cats.syntax.monad.catsSyntaxMonad
 import cats.instances.list.catsStdInstancesForList
 import cats.instances.stream.catsStdInstancesForStream
+import config.ImpalaConfig
 import daf.dataset.query.Query
+import daf.instances.TransactorInstance
 import doobie._
 import doobie.implicits._
 
 import scala.util.Try
 
-class JdbcQueryService(transactor: Transactor[IO]) {
+class JdbcQueryService(protected val impalaConfig: ImpalaConfig) { this: TransactorInstance =>
 
   private def exec(fragment: Fragment) = fragment.execWith {
     HPS.executeQuery { JdbcQueryOps.result }
   }
 
-  def exec(query: Query, table: String): Try[JdbcResult] = Writers.sql(query, table).write.map { exec(_).transact(transactor).unsafeRunSync }
+  def exec(query: Query, table: String, userId: String): Try[JdbcResult] = Writers.sql(query, table).write.map {
+    exec(_).transact { transactor(userId) }.unsafeRunSync
+  }
 
 }
 

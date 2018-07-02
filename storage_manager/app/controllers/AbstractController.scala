@@ -29,6 +29,7 @@ abstract class AbstractController(protected val configuration: Configuration, va
 
   UserGroupInformation.loginUserFromSubject(null)
   Authentication(configuration, playSessionStore)
+  System.setProperty("javax.security.auth.useSubjectCredsOnly", "false")
 
   protected implicit val proxyUser = UserGroupInformation.getCurrentUser
 

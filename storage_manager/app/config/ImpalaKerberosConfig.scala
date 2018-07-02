@@ -18,7 +18,11 @@ package config
 
 import it.gov.daf.common.config.Read
 
-case class ImpalaKerberosConfig(realm: String, domain: String, service: String)
+case class ImpalaKerberosConfig(realm: String, domain: String, service: String) {
+
+  val principal = s"$service/$domain@$realm"
+
+}
 
 object ImpalaKerberosConfig {
 

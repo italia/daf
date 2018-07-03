@@ -24,6 +24,9 @@ import cats.free.Free.catsFreeMonadForFree
 import daf.dataset.query._
 import doobie.util.fragment.Fragment
 
+/**
+  * Creates `Writer` instances that read filter data from queries and composes over the `Writer` into SQL fragments.
+  */
 object FilterFragments {
 
   private def writeColumn(column: Column): Trampoline[String] = column match {
@@ -58,10 +61,16 @@ object FilterFragments {
     case comparison: ComparisonOperator => Free.defer { writeComparisonOp(comparison) }
   }
 
+  /**
+    * Creates a [[QueryFragmentWriter]] for `WHERE` clauses in a query.
+    */
   def where(whereClause: WhereClause) = QueryFragmentWriter.ask {
     writeFilterOp { whereClause.filter }.runTailRec.map { s => Fragment.const(s"WHERE $s") }
   }
 
+  /**
+    * Creates a [[QueryFragmentWriter]] for `HAVING` clauses in a query.
+    */
   def having(havingClause: HavingClause) = QueryFragmentWriter.ask {
     writeFilterOp { havingClause.filter }.runTailRec.map { s => Fragment.const(s"HAVING $s") }
   }

@@ -18,15 +18,29 @@ package config
 
 import it.gov.daf.common.config.Read
 
+/**
+  * Container for configuration settings for the impala JDBC client.
+  * @note This container exposes two flavors of JDBC urls: one connecting impala clients and another connecting hive2.
+  * @param host the host name for an impala daemon
+  * @param port the port where the hive2 server is running on the impala daemon
+  * @param kerberosConfig the kerberos configuration
+  * @param sslConfig optional SSL configuration to be used by the JDBC client
+  */
 case class ImpalaConfig(host: String, port: Int, kerberosConfig: ImpalaKerberosConfig, sslConfig: Option[ImpalaSSLConfig]) {
 
   private def impalaKerberosPart = s";KrbRealm=${kerberosConfig.realm};KrbHostFQDN=${kerberosConfig.domain};KrbServiceName=${kerberosConfig.service}"
 
+  /**
+    * The JDBC url for connecting impala JDBC clients.
+    */
   val impalaUrl = s"jdbc:impala://$host:$port/;AuthMech=1$impalaKerberosPart"
 
 
   private def hiveKerberosPart = s";principal=${kerberosConfig.principal}"
 
+  /**
+    * The JDBC url for conntecting hive2 JDBC clients
+    */
   val hiveUrl = s"jdbc:hive2://$host:$port/$hiveKerberosPart"
 
 }

@@ -19,8 +19,14 @@ package daf.dataset.query.jdbc
 import daf.dataset.query.LimitClause
 import doobie.util.fragment.Fragment
 
+/**
+  * Creates `Writer` instances that transform row-affecting clauses and composes over the `Writer` into SQL fragments.
+  */
 object RowFragments {
 
+  /**
+    * Creates a [[QueryFragmentWriter]] for `LIMIT` clauses in a query.
+    */
   def limit(limitClause: LimitClause) = QueryFragmentWriter.tell {
     Fragment.const { s"LIMIT ${limitClause.limit}" }
   }

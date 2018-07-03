@@ -18,6 +18,11 @@ package config
 
 import it.gov.daf.common.config.Read
 
+/**
+  * Container for the SSL keystore location and password.
+  * @param keystore the location of the keystore
+  * @param password the password of the keystore, defaults to `changeit`
+  */
 case class ImpalaSSLConfig(keystore: String, password: String)
 
 object ImpalaSSLConfig {

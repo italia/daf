@@ -28,18 +28,33 @@ import doobie.implicits._
 
 import scala.util.Try
 
+/**
+  * Given a `Transactor` instance, this class serves as a bridge for execution of [[Query]] data.
+  * @param impalaConfig the configuration for impala JDBC client
+  */
 class JdbcQueryService(protected val impalaConfig: ImpalaConfig) { this: TransactorInstance =>
 
   private def exec(fragment: Fragment) = fragment.execWith {
     HPS.executeQuery { JdbcQueryOps.result }
   }
 
+  /**
+    * Executes the [[Query]] on the given table name (usually inclusive of the database name), impersonating the given
+    * `userId`.
+    * @param query the [[Query]] to execute
+    * @param table the table on which to run the query, generally including the database name
+    * @param userId the id of the user on behalf of whom the query should be executed
+    * @return
+    */
   def exec(query: Query, table: String, userId: String): Try[JdbcResult] = Writers.sql(query, table).write.map {
     exec(_).transact { transactor(userId) }.unsafeRunSync
   }
 
 }
 
+/**
+  * Internal object that provides `ResultIO` instance to facilitate composition of doobie actions.
+  */
 object JdbcQueryOps {
 
   val header: ResultSetIO[Header] = FRS.getMetaData.map { metadata =>

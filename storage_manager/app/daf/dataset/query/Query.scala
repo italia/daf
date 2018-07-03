@@ -17,29 +17,7 @@
 package daf.dataset.query
 
 /**
-  * {
-  *   "select": [
-  *     {
-  *       "max": {
-  *         "name": "col1",
-  *         "alias": "max_col1"
-  *       }
-  *     }, {
-  *       "name": "col2"
-  *     }, {
-  *       "value": 5
-  *     }
-  *   ],
-  *   "where": {
-  *     "not": {
-  *       "or": [{
-  *         "gt": { "left": "col1", "right": 5 }
-  *       }, {
-  *         "eq": { "left": "col2", "right": "'string'" }
-  *       }]
-  *     }
-  *   }
-  * }
+  * Internal representation of a query that can be translated by lower layers and passed to various execution engines.
   */
 case class Query(select: SelectClause,
                  where: Option[WhereClause],

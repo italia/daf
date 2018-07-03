@@ -24,9 +24,9 @@ import daf.catalogmanager.CatalogManagerClient
 import daf.dataset.export.FileExportService
 import daf.dataset._
 import daf.dataset.query.jdbc.JdbcQueryService
-import daf.dataset.query.{ Query => NewQuery }
+import daf.dataset.query.Query
 import daf.dataset.query.json.QueryFormats.reader
-import daf.instances.{ FileSystemInstance, HiveTransactorInstance }
+import daf.instances.{ FileSystemInstance, ImpalaTransactorInstance }
 import daf.web._
 import daf.filesystem.{ DownloadableFormats, FileDataFormat }
 import it.gov.daf.common.config.{ ConfigReadException, Read }
@@ -53,7 +53,7 @@ class DatasetController @Inject()(configuration: Configuration,
 
   implicit val fileSystem = FileSystem.get(new HadoopConfiguration)
 
-  private val queryJson = BodyParsers.parse.json[NewQuery]
+  private val queryJson = BodyParsers.parse.json[Query]
 
   private val kuduMaster = Read.string { "kudu.master" }.!.read(configuration) match {
     case Success(result) => result
@@ -71,7 +71,7 @@ class DatasetController @Inject()(configuration: Configuration,
   }
 
   protected val datasetService    = new DatasetService(configuration.underlying)
-  protected val queryService      = new JdbcQueryService(impalaConfig) with HiveTransactorInstance
+  protected val queryService      = new JdbcQueryService(impalaConfig) with ImpalaTransactorInstance
   protected val downloadService   = new DownloadService(kuduMaster)
   protected val fileExportService = new FileExportService(exportConfig, kuduMaster)
 
@@ -87,7 +87,7 @@ class DatasetController @Inject()(configuration: Configuration,
     case Failure(error)  => Future.failed { error }
   }
 
-  private def executeQuery(query: NewQuery, uri: String, auth: String, userId: String, targetFormat: FileDataFormat) = retrieveCatalog(auth, uri).flatMap {
+  private def executeQuery(query: Query, uri: String, auth: String, userId: String, targetFormat: FileDataFormat) = retrieveCatalog(auth, uri).flatMap {
     exec(_, query, targetFormat, userId)
   }
 
@@ -107,7 +107,7 @@ class DatasetController @Inject()(configuration: Configuration,
     }
   }
 
-  def queryDataset(uri: String, format: String = "csv"): Action[NewQuery] = Actions.basic.securedAttempt(queryJson) { (request, auth, userId) =>
+  def queryDataset(uri: String, format: String = "csv"): Action[Query] = Actions.basic.securedAttempt(queryJson) { (request, auth, userId) =>
     format.toLowerCase match {
       case DownloadableFormats(targetFormat) => executeQuery(request.body, uri, auth, userId, targetFormat)
       case _                                 => Success { Results.BadRequest(s"Invalid download format [$format], must be one of [csv | json]") }

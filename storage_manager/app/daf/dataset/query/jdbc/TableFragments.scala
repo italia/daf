@@ -18,8 +18,14 @@ package daf.dataset.query.jdbc
 
 import doobie.util.fragment.Fragment
 
+/**
+  * Creates `Writer` instances that read table names and composes over the `Writer` into SQL fragments.
+  */
 object TableFragments {
 
+  /**
+    * Creates a [[QueryFragmentWriter]] for `FROM` clauses in a query, validating against a `ColumnReference` instance.
+    */
   def from(tableName: String): QueryFragmentWriter[Unit] = QueryFragmentWriter.tell { Fragment.const(s"FROM $tableName") }
 
 }

@@ -18,16 +18,33 @@ package daf.dataset.query.jdbc
 
 import cats.Monoid
 
+/**
+  * Basic container class for name and aliases as read from query clauses and various column types.
+  * @note There will be an overlap of names and aliases, in the sense that a column that has an alias will be found in
+  *       this reference by both its name '''and''' it alias.
+  * @param names the `Set` of column names
+  * @param aliases the `Set` of column aliases
+  */
 sealed case class ColumnReference(names: Set[String], aliases: Set[String]) {
 
+  /**
+    * Adds a column name to this reference
+    */
   def addName(name: String) = this.copy(
     names = this.names + name
   )
 
+  /**
+    * Adds an alias to this reference
+    */
   def addAlias(alias: String) = this.copy(
     aliases = this.aliases + alias
   )
 
+  /**
+    * Checks whether the given string is contained in this reference, either as a name or an alias.
+    * @param s the name or alias to be checked
+    */
   def contains(s: String) = names.contains(s) || aliases.contains(s)
 
 }

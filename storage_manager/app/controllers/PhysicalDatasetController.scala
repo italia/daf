@@ -18,7 +18,7 @@ package controllers
 
 import cats.syntax.show.toShow
 import com.typesafe.config.Config
-import daf.dataset.{ DatasetOperations, DatasetParams, FileDatasetParams, KuduDatasetParams }
+import daf.dataset.{ DatasetParams, FileDatasetParams, KuduDatasetParams }
 import daf.filesystem.fileFormatShow
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.SparkConf
@@ -26,8 +26,8 @@ import org.slf4j.{ Logger, LoggerFactory }
 
 class PhysicalDatasetController(sparkSession: SparkSession,
                                 kuduMaster: String,
-                                override val defaultLimit: Int = 1000,
-                                defaultChunkSize: Int = 0) extends DatasetOperations {
+                                defaultLimit: Int = 1000,
+                                defaultChunkSize: Int = 0) {
 
   lazy val kuduController = new KuduController(sparkSession, kuduMaster)
   lazy val hdfsController = new HDFSController(sparkSession)

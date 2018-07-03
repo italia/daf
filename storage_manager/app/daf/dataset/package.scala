@@ -27,6 +27,11 @@ package object dataset {
 
   private def quote(s: String) = s""""$s""""
 
+  /**
+    * Converts anything into a string representation that may be used in CSV data.
+    * @note In case `any` is `null`, the output is a string {{{"<null>"}}}.
+    *       Dates are also formatted to ISO standard, with `T` separator, zoned at UTC.
+    */
   def cleanCsv(any: Any): String = any match {
     case null         => "<null>"
     case s: String    => quote { s.replaceAll("\"", "\\\"") }

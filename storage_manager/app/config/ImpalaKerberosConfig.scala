@@ -18,8 +18,17 @@ package config
 
 import it.gov.daf.common.config.Read
 
+/**
+  * Container for Kerberos configuration for impala clients.
+  * @param realm the string representing the realm to connect to, as configured in krb5
+  * @param domain the fully-qualified domain name of the host that the principal should apply on
+  * @param service the name of the principal, for example `impala` or `hive`
+  */
 case class ImpalaKerberosConfig(realm: String, domain: String, service: String) {
 
+  /**
+    * The string representing the full principal name.
+    */
   val principal = s"$service/$domain@$realm"
 
 }
@@ -29,8 +38,8 @@ object ImpalaKerberosConfig {
   private def readKerberosCOnfig = Read.config { "kerberos" }.!
 
   private def readKerberosValues = for {
-    realm   <- Read.string { "realm" }.!
-    domain  <- Read.string { "domain" }.!
+    realm   <- Read.string { "realm"   }.!
+    domain  <- Read.string { "domain"  }.!
     service <- Read.string { "service" }.!
   } yield ImpalaKerberosConfig(realm, domain, service)
 

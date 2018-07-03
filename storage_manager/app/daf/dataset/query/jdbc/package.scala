@@ -37,22 +37,43 @@ package object jdbc {
 
   implicit class QueryFragmentWriterSyntax[A](writer: QueryFragmentWriter[A]) {
 
+    /**
+      * Writes out the `Fragment`, ignoring the `A` value.
+      */
     def write: Try[Fragment] = writer.run.map { _._1 }
 
   }
 
+  /**
+    * Utility companion object for the [[QueryFragmentWriter]] synthetic type.
+    */
   object QueryFragmentWriter {
 
+    /**
+      * Creates a [[QueryFragmentWriter]] instance directly from an attempt.
+      */
     def apply[A](f: => Try[(Fragment, A)]): QueryFragmentWriter[A] = WriterT { f }
 
+    /**
+      * Creates a [[QueryFragmentWriter]] instance directly from a `Fragment`, not caring about errors.
+      */
     def tell(f: => Fragment): QueryFragmentWriter[Unit] = WriterT.tell[Try, Fragment] { f }
 
+    /**
+      * Creates a [[QueryFragmentWriter]] instance directly from a `Fragment`.
+      */
     def ask(f: => Try[Fragment]): QueryFragmentWriter[Unit] = WriterT[Try, Fragment, Unit] {
       f.map { (_, ()) }
     }
 
+    /**
+      * Creates successful but empty [[QueryFragmentWriter]] instance.
+      */
     def empty[A](implicit M: Monoid[A]): QueryFragmentWriter[A] = WriterT.liftF[Try, Fragment, A] { Success(M.empty) }
 
+    /**
+      * Creates a [[QueryFragmentWriter]] instance that does nothing.
+      */
     def unit: QueryFragmentWriter[Unit] = empty[Unit]
 
   }

@@ -20,7 +20,7 @@ import akka.stream.scaladsl.Source
 import cats.syntax.show.toShow
 import controllers.DatasetController
 import daf.dataset.query.jdbc.JdbcResult
-import daf.dataset.query.{ Query => NewQuery }
+import daf.dataset.query.Query
 import daf.filesystem._
 import org.apache.hadoop.fs.Path
 import play.api.libs.json.JsValue
@@ -52,7 +52,7 @@ trait QueryExecution { this: DatasetController =>
     )
   }
 
-  protected def exec(params: DatasetParams, query: NewQuery, targetFormat: FileDataFormat, userId: String) = for {
+  protected def exec(params: DatasetParams, query: Query, targetFormat: FileDataFormat, userId: String) = for {
     tableName  <- extractTableName(params)
     jdbcResult <- queryService.exec(query, tableName, userId)
     data       <- transform(jdbcResult, targetFormat)

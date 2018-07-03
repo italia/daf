@@ -24,6 +24,9 @@ import doobie.util.fragment.Fragment
 
 import scala.util.{ Failure, Success, Try }
 
+/**
+  * Creates `Writer` instances that read filter data from queries and composes over the `Writer` into SQL fragments.
+  */
 object GroupingFragments {
 
   private def validateColumns(columns: Seq[Column]) = columns.toList.traverse[Try, String] {
@@ -32,16 +35,18 @@ object GroupingFragments {
     case _: FunctionColumn   => Failure { new IllegalArgumentException(s"Illegal function column found in [groupBy]") }
   }
 
-  def validateReference(columns: Set[String], reference: ColumnReference) = reference.names.toList.traverse[Try, String] {
+  private def validateReference(columns: Set[String], reference: ColumnReference) = reference.names.toList.traverse[Try, String] {
     case column if columns contains column => Success { column }
     case column                            => Failure { new IllegalArgumentException(s"Invalid column reference [$column] found; not in [groupBy]") }
   }
 
+  /**
+    * Creates a [[QueryFragmentWriter]] for `GROUP BY` clauses in a query, validating against a `ColumnReference` instance.
+    */
   def groupBy(groupByClause: GroupByClause, reference: ColumnReference) = QueryFragmentWriter.ask {
-    for {
-      columns   <- validateColumns(groupByClause.columns)
-//      validated <- validateReference(columns.toSet, reference)
-    } yield Fragment.const { s"GROUP BY ${columns mkString ", "}" }
+    validateColumns(groupByClause.columns).map { columns =>
+      Fragment.const { s"GROUP BY ${columns mkString ", "}" }
+    }
   }
 
 }

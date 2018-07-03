@@ -20,11 +20,17 @@ package object query {
 
   implicit class ColumnOps(column: Column) {
 
+    /**
+      * Adds an alias to this `column`.
+      */
     def as(alias: String): Column = column match {
       case _: AliasColumn => column
       case _              => AliasColumn(column, alias)
     }
 
+    /**
+      * Adds an optional alias to this `column`, or leaves it alone.
+      */
     def asOpt(alias: Option[String]): Column = alias.map { as } getOrElse column
 
     def >(otherColumn: Column): ComparisonOperator   = Gt(column, otherColumn)
@@ -38,6 +44,16 @@ package object query {
 
   implicit class FilterOperatorOps(operator: FilterOperator) {
 
+    /**
+      * Composes this filter with another.
+      *
+      * When both `this` and `otherOperator` are [[And]], the contents of the two are simply concatenated.
+      *
+      * When `this` is [[And]] while `otherOperator` is not, the `otherOperator` is added to `this`, representing
+      * `this AND otherOperator`.
+      *
+      * Otherwise, then a new [[And]] is created by `this AND otherOperator`.
+      */
     def and(otherOperator: FilterOperator) = (operator, otherOperator) match {
       case (and1: And, and2: And) => and1 ++ and2.filters
       case (and1: And, _)         => and1 ++ Seq(otherOperator)
@@ -45,6 +61,16 @@ package object query {
       case (_        , _)         => And { Seq(operator, otherOperator) }
     }
 
+    /**
+      * Composes this filter with another.
+      *
+      * When both `this` and `otherOperator` are [[Or]], the contents of the two are simply concatenated.
+      *
+      * When `this` is [[Or]] while `otherOperator` is not, the `otherOperator` is added to `this`, representing
+      * `this OR otherOperator`.
+      *
+      * Otherwise, then a new [[Or]] is created by `this OR otherOperator`.
+      */
     def or(otherOperator: FilterOperator) = (operator, otherOperator) match {
       case (or1: Or, or2: Or) => or1 ++ or2.filters
       case (or1: Or, _)       => or1 ++ Seq(otherOperator)
@@ -54,6 +80,9 @@ package object query {
 
   }
 
+  /**
+    * Wraps `filterOperator` in [[Not]].
+    */
   def not(filterOperator: FilterOperator): FilterOperator = Not(filterOperator)
 
 }

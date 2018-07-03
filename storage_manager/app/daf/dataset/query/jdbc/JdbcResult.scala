@@ -30,6 +30,9 @@ import play.api.libs.json._
 
 import scala.util.Try
 
+/**
+  * Container and bridge class for JDBC results, containing the header information as well as a lazy stream of rows.
+  */
 case class JdbcResult(header: Header, rows: Stream[Row]) {
 
   private val index = header.zipWithIndex.map { case (col, i) => i -> col}.toMap[Int, String]
@@ -62,10 +65,16 @@ case class JdbcResult(header: Header, rows: Stream[Row]) {
     }
   }
 
+  /**
+    * Converts the data contained in this instance into a `Stream` of CSV data.
+    */
   def toCsv: Stream[String] =
     header.map { h => s""""$h"""" }.mkString(", ") +:
     rows.map { _.map { cleanCsv }.mkString(", ") }
 
+  /**
+    * Converts the data contained in this instance into a `Stream` of JSON data.
+    */
   def toJson: Stream[JsObject] = rows.map { json(_).runTailRec.get } // let throw in case of error
 }
 

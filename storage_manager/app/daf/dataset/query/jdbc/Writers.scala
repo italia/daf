@@ -19,6 +19,9 @@ package daf.dataset.query.jdbc
 import cats.instances.try_.catsStdInstancesForTry
 import daf.dataset.query.Query
 
+/**
+  * Groups all different `Writer` generators under one roof.
+  */
 object Writers {
 
   def select(query: Query): QueryFragmentWriter[ColumnReference] = ColumnFragments.select { query.select }

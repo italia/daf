@@ -27,6 +27,9 @@ import doobie.util.fragment.Fragment
 import scala.annotation.tailrec
 import scala.util.Try
 
+/**
+  * Creates `Writer` instances that read column data from queries and composes over the `Writer` into SQL fragments.
+  */
 object ColumnFragments {
 
   @tailrec
@@ -51,6 +54,7 @@ object ColumnFragments {
     case Sum(inner)   => _writeColumn(inner) { col => s"SUM($col)" }
   }
 
+  // Recursion is stackless in this case, meaning that it should never overflow the stack
   private def writeColumn(column: Column): Trampoline[String] = column match {
     case WildcardColumn             => Free.pure[Try, String] { "*" }
     case AliasColumn(inner, alias)  => Free.defer { writeColumn(inner) }.map { col => s"$col AS $alias" }
@@ -65,6 +69,9 @@ object ColumnFragments {
 
   private def buildFragment(columns: Seq[String]) = Try { Fragment.const(s"SELECT ${columns mkString ", "}") }
 
+  /**
+    * Creates a [[QueryFragmentWriter]] for `SELECT` clauses in a query.
+    */
   def select(select: SelectClause) = QueryFragmentWriter[ColumnReference] {
     for {
       columns  <- writeColumns(select.columns.toList).runTailRec

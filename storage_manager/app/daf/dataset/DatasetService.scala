@@ -29,8 +29,6 @@ class DatasetService(config: Config) {
 
   private val storageClient = PhysicalDatasetController(config)
 
-  private val log = Logger(this.getClass)
-
   def schema(params: DatasetParams): Try[StructType] = storageClient.get(params, 1).map { _.schema }
 
   def data(params: DatasetParams): Try[DataFrame] = storageClient.get(params)
@@ -56,12 +54,5 @@ class DatasetService(config: Config) {
     dataFrame.schema.fieldNames.map { h => s""""$h"""" }.mkString(",") +:
     dataFrame.rdd.map { _.toSeq.map { cleanCsv }.mkString(",") }.collect().toVector
   }.map { row => s"$row${System.lineSeparator}" }
-
-  def queryData(params: DatasetParams, query: Query): Try[DataFrame] = for {
-    data    <- storageClient.get(params)
-    selectQ <- DatasetOperations.select(data, query)
-    whereQ  <- DatasetOperations.where(selectQ, query)
-    groupByQ <- DatasetOperations.groupBy(whereQ, query)
-  } yield groupByQ
 
 }

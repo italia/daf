@@ -311,7 +311,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  "/catalog-ds/delete":
+  "/catalog-ds/delete/{name}/{org}":
     delete:
       summary: delete a DatasetCatalog
       description: delete DatasetCatalog identified by the name in path

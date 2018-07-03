@@ -91,11 +91,12 @@ class CatalogRepositoryMongo extends  CatalogRepository{
   def catalogByName(name :String, groups: List[String]): Option[MetaCatalog] = {
     import mongodb.casbah.query.Imports._
 
-    val queryPrivate = $and(MongoDBObject("dcatapit.name" -> name), ("dcatapit.owner_org" $in groups), MongoDBObject("dcatapit.privatex" -> true))
-    val queryPub = $and(MongoDBObject("dcatapit.name" -> name), MongoDBObject("dcatapit.privatex" -> false))
-    val query = $or(queryPub, queryPrivate)
-//    val mongoClient = MongoClient(server, List(credentials))
-    val mongoClient = MongoClient(server)
+  //  val queryPrivate = $and(MongoDBObject("dcatapit.name" -> name), ("dcatapit.owner_org" $in groups), MongoDBObject("dcatapit.privatex" -> true))
+  //  val queryPub = $and(MongoDBObject("dcatapit.name" -> name), MongoDBObject("dcatapit.privatex" -> false))
+  //  val query = $or(queryPub, queryPrivate)
+    val query = MongoDBObject("dcatapit.name" -> name)
+    val mongoClient = MongoClient(server, List(credentials))
+    //val mongoClient = MongoClient(server)
     val db = mongoClient(source)
     val coll = db("catalog_test")
     val result = coll.findOne(query)

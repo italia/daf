@@ -16,9 +16,14 @@ import scala.concurrent.Future
 @Singleton
 class Kylo @Inject()(ws :WSClient, config: ConfigurationProvider){
 
-  val KYLOURL = ConfigReader.kyloUrl
-  val KYLOUSER = ConfigReader.kyloUser
-  val KYLOPWD = ConfigReader.kyloPwd
+  // Not working
+  //val KYLOURL = ConfigReader.kyloUrl
+  //val KYLOUSER = ConfigReader.kyloUser
+  //val KYLOPWD = ConfigReader.kyloPwd
+
+  val KYLOURL = config.get.getString("kylo.url").get
+  val KYLOUSER = config.get.getString("kylo.user").getOrElse("dladmin")
+  val KYLOPWD = config.get.getString("kylo.userpwd").getOrElse("XXXXXXXXXXX")
 
   import scala.concurrent.ExecutionContext.Implicits._
 
@@ -33,7 +38,9 @@ class Kylo @Inject()(ws :WSClient, config: ConfigurationProvider){
         val json = resp.json
         val id = (json \ "feedId").get.toString().replace("\"", "")
         val creator = (json \ "userProperties" \\ "value").map(v => v.toString().replace("\"", ""))
-        if(creator.contains(user)) Right(id)
+        //if(creator.contains(user)) Right(id)
+        //else Left(Error("error in get info", Some(400), None))
+        if(id.nonEmpty) Right(id)
         else Left(Error("error in get info", Some(400), None))
     }
 
@@ -201,6 +208,8 @@ class Kylo @Inject()(ws :WSClient, config: ConfigurationProvider){
   }
 
 
+
+  //WsResponse passed as parameter only fro chaining the call
   def categoryFuture(meta :MetaCatalog): Future[JsValue] = {
     val categoriesWs = ws.url(KYLOURL + "/api/v1/feedmgr/categories")
       .withAuth(KYLOUSER, KYLOPWD, scheme = WSAuthScheme.BASIC)

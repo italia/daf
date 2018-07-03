@@ -39,6 +39,8 @@ import catalog_manager.yaml
 import it.gov.daf.catalogmanager.kylo.Kylo
 import it.gov.daf.common.sso.common.CredentialManager
 import play.api.Logger
+import scala.concurrent.duration._
+import scala.concurrent.Await
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -47,7 +49,7 @@ import play.api.Logger
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-        
+                        
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -76,6 +78,21 @@ package catalog_manager.yaml {
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.autocompletedummy
             NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.autocompletedummy
+        }
+        val deleteCatalog = deleteCatalogAction { input: (String, String) =>
+            val (name, org) = input
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.deleteCatalog
+            val user = CredentialManager.readCredentialFromRequest(currentRequest).username
+            val feedName = s"${org}.${org}_o_${name}"
+            val futureDeleteFromKylo: Future[Either[Error, Success]] = for{
+                _ <- ServiceRegistry.catalogService.deleteCatalogByName(name, user)
+                res <- kylo.deleteFeed(feedName, user).map(b => b)
+            }yield res
+
+            futureDeleteFromKylo.flatMap(res => if(res.isRight) DeleteCatalog200(res.right.get) else DeleteCatalog400(res.left.get))
+
+//          NotImplementedYet
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.deleteCatalog
         }
         val searchdataset = searchdatasetAction { input: (MetadataCat, MetadataCat, ResourceSize, ResourceSize) =>
             val (q, sort, rows, start) = input
@@ -147,21 +164,6 @@ package catalog_manager.yaml {
             val subthemeList: Seq[VocKeyValueSubtheme] = VocServiceRegistry.vocRepository.listSubthemeAll()
             Voc_subthemesgetall200(subthemeList)
             // ----- End of unmanaged code area for action  Catalog_managerYaml.voc_subthemesgetall
-        }
-        val deleteCatalog = deleteCatalogAction { input: (String, String) =>
-            val (name, org) = input
-            // ----- Start of unmanaged code area for action  Catalog_managerYaml.deleteCatalog
-            val user = CredentialManager.readCredentialFromRequest(currentRequest).username
-            val feedName = s"${org}.${org}_o_${name}"
-            val futureDeleteFromKylo: Future[Either[Error, Success]] = for{
-                _ <- ServiceRegistry.catalogService.deleteCatalogByName(name, user)
-                res <- kylo.deleteFeed(feedName, user).map(b => b)
-            }yield res
-
-            futureDeleteFromKylo.flatMap(res => if(res.isRight) DeleteCatalog200(res.right.get) else DeleteCatalog400(res.left.get))
-
-//          NotImplementedYet
-            // ----- End of unmanaged code area for action  Catalog_managerYaml.deleteCatalog
         }
         val datasetcatalogs = datasetcatalogsAction { input: (MetadataRequired, Dataset_catalogsGetLimit) =>
             val (page, limit) = input
@@ -516,7 +518,7 @@ package catalog_manager.yaml {
                 case "ws" => kylo.wsIngest(file_type, feed)
             }
 
-            val categoryFuture = kylo.categoryFuture(feed)
+           // val categoryFuture = kylo.categoryFuture(feed)
 
             val streamKyloTemplate = new FileInputStream(Environment.simple().getFile("/data/kylo/template.json"))
 
@@ -547,20 +549,25 @@ package catalog_manager.yaml {
             val feedCreation  = ws.url(KYLOURL + "/api/v1/feedmgr/feeds")
               .withAuth(KYLOUSER, KYLOPWD, WSAuthScheme.BASIC)
 
-            val feedData = for {
+            // it is a try i know is not a good practice
+            Await.result(createDir.get(), 50000 millis)
+            //Await.ready(createDir.get, 50000 millis)
+
+            val feedData: Future[JsResult[JsObject]] = for {
                 (template, templates) <- templateProperties
-                created <-  createDir.get()
-                category <- categoryFuture
-                trasformed <-  Future(kyloTemplate.transform(
-                    KyloTrasformers.feedTrasform(feed,
-                        template,
-                        templates,
-                        inferJson,
-                        category,
-                        file_type,
-                        skipHeader)
+                //created <-  createDir.get()
+                category <- kylo.categoryFuture(feed)
+                trasformed <- Future(kyloTemplate.transform(
+                        KyloTrasformers.feedTrasform(feed,
+                            template,
+                            templates,
+                            inferJson,
+                            category,
+                            file_type,
+                            skipHeader)
                     )
                 )
+
             } yield trasformed
 
             val createFeed: Future[WSResponse] = feedData.flatMap {

@@ -122,7 +122,7 @@ class CatalogRepositoryDev extends CatalogRepository{
 
   def isDatasetOnCatalog(name :String) = None
 
-  def deleteCatalogByName(nameCatalog: String, user: String, isAdmin: Boolean, groups: List[String]): Either[Error, Success] = {
+  def deleteCatalogByName(nameCatalog: String, user: String, isAdmin: Boolean): Either[Error, Success] = {
     Right(Success("delete", None))
   }
 }

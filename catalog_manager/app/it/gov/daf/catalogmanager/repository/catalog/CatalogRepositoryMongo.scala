@@ -115,7 +115,7 @@ class CatalogRepositoryMongo extends  CatalogRepository{
     metaCatalog
   }
 
-  def deleteCatalogByName(nameCatalog: String, user: String, isAdmin: Boolean, groups: List[String]): Either[Error, Success] = {
+  def deleteCatalogByName(nameCatalog: String, user: String, isAdmin: Boolean): Either[Error, Success] = {
     import mongodb.casbah.query.Imports.$and
     val query = if(isAdmin) MongoDBObject("dcatapit.name" -> nameCatalog)
       else $and(MongoDBObject("dcatapit.name" -> nameCatalog), MongoDBObject("dcatapit.author" -> user))

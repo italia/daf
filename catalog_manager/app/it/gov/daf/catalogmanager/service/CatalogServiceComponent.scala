@@ -49,8 +49,8 @@ trait CatalogServiceComponent {
       catalogRepository.isDatasetOnCatalog(name)
     }
 
-    def deleteCatalogByName(nameCatalog: String, user: String, isAdmin: Boolean, groups: List[String]): Either[Error, Success] = {
-      catalogRepository.deleteCatalogByName(nameCatalog, user, isAdmin, groups)
+    def deleteCatalogByName(nameCatalog: String, user: String, isAdmin: Boolean): Either[Error, Success] = {
+      catalogRepository.deleteCatalogByName(nameCatalog, user, isAdmin)
     }
 
   }

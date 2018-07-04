@@ -49,7 +49,7 @@ import scala.concurrent.Await
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                        
+    
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -82,14 +82,17 @@ package catalog_manager.yaml {
         val deleteCatalog = deleteCatalogAction { input: (String, String) =>
             val (name, org) = input
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.deleteCatalog
-            val user = CredentialManager.readCredentialFromRequest(currentRequest).username
-            val feedName = s"${org}.${org}_o_${name}"
-            val futureDeleteFromKylo: Future[Either[Error, Success]] = for{
-                _ <- ServiceRegistry.catalogService.deleteCatalogByName(name, user)
-                res <- kylo.deleteFeed(feedName, user).map(b => b)
-            }yield res
+            val credential = CredentialManager.readCredentialFromRequest(currentRequest)
 
-            futureDeleteFromKylo.flatMap(res => if(res.isRight) DeleteCatalog200(res.right.get) else DeleteCatalog400(res.left.get))
+            val isAdmin = CredentialManager.isDafAdmin(currentRequest)
+
+            val feedName = s"${org}.${org}_o_${name}"
+
+            val deleteFromMongo = ServiceRegistry.catalogService.deleteCatalogByName(name, credential.username, isAdmin, credential.groups.toList)
+            kylo.deleteFeed(feedName, credential.username)
+
+
+            if(deleteFromMongo.isRight) DeleteCatalog200(deleteFromMongo.right.get) else DeleteCatalog400(deleteFromMongo.left.get)
 
 //          NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.deleteCatalog

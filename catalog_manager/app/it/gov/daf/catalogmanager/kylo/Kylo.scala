@@ -4,7 +4,6 @@ import catalog_manager.yaml.{Error, InputSrcSrv_pullOpt, MetaCatalog, Success}
 import play.api.libs.json.{JsObject, JsResult, JsValue}
 import play.api.libs.ws.{WSAuthScheme, WSClient, WSResponse}
 import com.google.inject.{Inject, Singleton}
-import it.gov.daf.catalogmanager.utilities.ConfigReader
 import play.api.Logger
 
 import scala.util.Try
@@ -56,7 +55,7 @@ class Kylo @Inject()(ws :WSClient, config: ConfigurationProvider){
     } yield resDelete
 
     responseDelete onComplete(res =>
-      Logger.logger.debug(s"response delete: ${res.isSuccess}")
+      Logger.logger.debug(s"$user delete $feedName: ${res.isSuccess}")
       )
 
     responseDelete.map { res =>

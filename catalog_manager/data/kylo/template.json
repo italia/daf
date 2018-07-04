@@ -132,6 +132,20 @@
         "missingName": false,
         "missingValue": false
       }
+    },
+    {
+      "description": null,
+      "displayName": null,
+      "locked": false,
+      "order": 5,
+      "required": false,
+      "systemName": "daf_owner",
+      "value": "",
+      "$error": {
+        "duplicate": false,
+        "missingName": false,
+        "missingValue": false
+      }
     }
   ],
   "options": {

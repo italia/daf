@@ -12,7 +12,6 @@ spec:
     name: http
   selector:
     app: storage-manager
-
 ---
 apiVersion: apps/v1beta1
 kind: Deployment
@@ -25,12 +24,10 @@ spec:
       labels:
         app: storage-manager
     spec:
+      containers:
       - name: storage-manager
         image: nexus.teamdigitale.test/daf-storage-manager:1.0.1-alpha.1-SNAPSHOT
         imagePullPolicy: Always
-        ports:
-        - name: client
-          containerPort: 9000
         env:
         - name: JAVA_OPTS
           value: "-server -XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:+PerfDisableSharedMem -XX:+ParallelRefProcEnabled -Xmx2g -Xms2g -XX:MaxPermSize=1024m"
@@ -59,22 +56,40 @@ spec:
             secretKeyRef:
               name: daf-secret
               key: ssl_keystore_pwd
+        ports:
+        - name: client
+          containerPort: 9000
         volumeMounts:
+        # daf config
         - name: config-volume
-          mountPath: /opt/docker/conf
-        - name: glusterfsvol
-          mountPath: /opt/docker/conf/logback.xml
-          subPath: storage-manager/conf/logback.xml
+          mountPath: /opt/docker/conf/mnt
+#        # log config
+#        - name: glusterfsvol
+#          mountPath: /opt/docker/conf/logback.xml
+#          subPath: storage-manager/conf/logback.xml
+#          readOnly: true
+        # hadoop config
+        - name: hadoopconf
+          mountPath: /etc/hadoop/conf
           readOnly: true
+        - name: hbaseconf
+          mountPath: /etc/hbase/conf
+          readOnly: true
+        # logging
         - name: glusterfsvol
           mountPath: /opt/docker/logs
           subPath: storage-manager/logs
+        # kerberos
+        - name: glusterfsvol
+          mountPath: /opt/docker/conf/daf.keytab
+          subPath: storage-manager/conf/daf.keytab
+        - name: krb5conf
+          mountPath: /etc/krb5.conf
+        # ssl
         - name: glusterfsvol
           mountPath: /opt/docker/cert/master-impala.jks
           subPath: storage-manager/cert/master-impala.jks
           readOnly: true
-        - name: krb5conf
-          mountPath: /etc/krb5.conf
       imagePullSecrets:
       - name: regsecret
       volumes:
@@ -87,5 +102,11 @@ spec:
       - name: krb5conf
         hostPath:
           path: /etc/krb5.conf
+      - name: hadoopconf
+        hostPath:
+          path: /etc/hadoop/conf
+      - name: hbaseconf
+        hostPath:
+          path: /etc/hbase/conf
       nodeSelector:
         nifi: "false"

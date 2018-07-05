@@ -52,6 +52,7 @@ class FileExportActorSpec extends WordSpec with Matchers with ConfigurationInsta
       new FileExportLivyClientFactory,
       "",
       None,
+      false,
       Seq.empty,
       new Properties,
       "",

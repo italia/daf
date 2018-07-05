@@ -49,6 +49,6 @@ object Docker {
     case (head, tail) => head ++ updateKrb5Commands ++ addKeystore ++ tail
   }
 
-  def entryPoint(artifactName: String) = Seq(s"bin/$artifactName", s"-Dconfig.file=conf/$target/daf.conf")
+  def entryPoint(artifactName: String) = Seq(s"bin/$artifactName", s"-Dconfig.file=conf/mnt/daf.conf")
 }
 

@@ -55,15 +55,18 @@ import scala.util.{ Failure, Success, Try }
 class FileExportActor(livyFactory: LivyClientFactory,
                       livyHost: String,
                       livyAuth: Option[String],
+                      livySSL: Boolean,
                       livyAppJars: Seq[String],
                       livyProps: Properties,
                       kuduMaster: String,
                       exportPath: String,
                       fileSystem: FileSystem) extends Actor {
 
+  private val livyClientScheme = if (livySSL) "https" else "http"
+
   private val livyUrl = livyAuth.map { auth => new String(Base64.decodeBase64(auth)) } match {
-    case Some(auth) => s"https://$auth@$livyHost/"
-    case None       => s"http://$livyHost/"
+    case Some(auth) => s"$livyClientScheme://$auth@$livyHost/"
+    case None       => s"$livyClientScheme://$livyHost/"
   }
 
   private lazy val livyClient = livyFactory.createClient(URI.create(livyUrl), livyProps)
@@ -125,6 +128,7 @@ object FileExportActor {
     livyFactory,
     exportServiceConfig.livyHost,
     exportServiceConfig.livyAuth,
+    exportServiceConfig.livySSL,
     exportServiceConfig.livyAppJars,
     exportServiceConfig.livyProperties,
     kuduMaster,
@@ -134,6 +138,7 @@ object FileExportActor {
   def props(livyFactory: LivyClientFactory,
             livyHost: String,
             livyAuth: Option[String],
+            livySSL: Boolean,
             livyAppJars: Seq[String],
             livyProps: Properties,
             kuduMaster: String,
@@ -142,6 +147,7 @@ object FileExportActor {
       livyFactory,
       livyHost,
       livyAuth,
+      livySSL,
       livyAppJars,
       livyProps,
       kuduMaster,

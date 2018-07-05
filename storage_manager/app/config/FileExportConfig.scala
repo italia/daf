@@ -41,6 +41,7 @@ case class FileExportConfig(numSessions: Int,
                             exportPath: String,
                             livyHost: String,
                             livyAuth: Option[String],
+                            livySSL: Boolean,
                             livyAppJars: List[String],
                             livyProperties: Properties,
                             cleanup: FileExportCleanupConfig)
@@ -85,6 +86,7 @@ object FileExportConfig {
     exportPath      <- Read.string  { "export_path"    }.!
     livyHost        <- Read.string  { "livy.host"      }.!
     livyAuth        <- Read.string  { "livy.auth"      }
+    livySSL         <- Read.boolean { "livy.ssl"       } default true
     livyAppJars     <- Read.strings { "livy.jars"      } default List.empty[String]
     livyProperties  <- readLivyConfig ~> readLivyProperties()
     cleanup         <- FileExportCleanupConfig.read
@@ -95,6 +97,7 @@ object FileExportConfig {
     exportPath     = exportPath,
     livyHost       = livyHost,
     livyAuth       = livyAuth,
+    livySSL        = livySSL,
     livyAppJars    = livyAppJars,
     livyProperties = livyProperties,
     cleanup        = cleanup

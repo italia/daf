@@ -16,6 +16,8 @@
 
 package daf.dataset.export.cleanup
 
+import java.io.FileNotFoundException
+
 import akka.actor.{ Actor, Props }
 import config.FileExportConfig
 import daf.filesystem.StringPathSyntax
@@ -58,8 +60,10 @@ class FileExportCleanupActor(pollInterval: FiniteDuration,
 
   private val maxAgeMillis = maxAge.toMillis
 
-  private def collect(timestamp: Long) = Try {
-    fileSystem.listStatus(exportPath.asHadoop).toList.filter { status => timestamp - status.getModificationTime > maxAgeMillis }
+  private def collect(timestamp: Long) = Try { fileSystem.listStatus(exportPath.asHadoop) }.recover {
+    case _: FileNotFoundException => Array.empty[FileStatus]
+  }.map {
+    _.toList.filter { status => timestamp - status.getModificationTime > maxAgeMillis }
   }
 
   private def attemptClean(dir: FileStatus): CleanupAttempt = Try { fileSystem.delete(dir.getPath, true) } match {

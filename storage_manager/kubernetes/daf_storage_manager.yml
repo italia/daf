@@ -95,6 +95,11 @@ spec:
               secretKeyRef:
                 name: daf-secret
                 key: freeipa_admin_pwd
+        - name: SSL_KEYSTORE_PWD
+          valueFrom:
+            secretKeyRef:
+              name: daf-secret
+              key: ssl_keystore_pwd
         ports:
         - name: client
           containerPort: 9000

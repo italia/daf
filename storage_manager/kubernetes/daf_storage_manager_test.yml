@@ -54,6 +54,11 @@ spec:
             secretKeyRef:
               name: daf-secret
               key: ldap_user_pwd
+        - name: SSL_KEYSTORE_PWD
+          valueFrom:
+            secretKeyRef:
+              name: daf-secret
+              key: ssl_keystore_pwd
         volumeMounts:
         - name: config-volume
           mountPath: /opt/docker/conf

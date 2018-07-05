@@ -1,2 +1,4 @@
 opendata
 kubernetes/output.yml
+kubernetes/secrets-test.yml
+kubernetes/secrets-prod.yml

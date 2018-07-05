@@ -26,7 +26,7 @@ name := "common"
 
 Seq(gitStampSettings: _*)
 
-version in ThisBuild := sys.env.getOrElse("COMMON_VERSION", "1.0-alpha.1")
+version in ThisBuild := sys.env.getOrElse("COMMON_VERSION", "1.0.1-alpha.1-SNAPSHOT")
 
 //version := "1.0.1-SNAPSHOT"
 

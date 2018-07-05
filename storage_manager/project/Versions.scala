@@ -1,6 +1,8 @@
 object Versions {
 
-  lazy val defaultVersion = sys.env.getOrElse("COMMON_VERSION", "1.0-alpha.1")
+  lazy val defaultVersion = sys.env.getOrElse("COMMON_VERSION", "1.0.1-alpha.1-SNAPSHOT")
+
+  lazy val isSnapshot = Versions.defaultVersion.endsWith("SNAPSHOT")
 
   // internal
 
@@ -28,7 +30,7 @@ object Versions {
 
   lazy val kudu           = "1.4.0-cdh5.12.0"
 
-  lazy val livyClient     = "0.6.0-incubating-SNAPSHOT"
+  lazy val livyClient     = "0.5.0-incubating"
 
   lazy val log4j          = "2.9.1"
 
@@ -55,5 +57,7 @@ object Versions {
   lazy val swaggerUI      = "3.0.7"
 
   lazy val typesafeConfig = "1.3.1"
+
+  def choose[A](whenSnapshot: => A, whenRelease: => A): A = if (isSnapshot) whenSnapshot else whenRelease
 
 }

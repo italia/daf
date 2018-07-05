@@ -17,7 +17,7 @@
 package controllers
 
 import akka.actor.ActorSystem
-import com.google.inject.Inject
+import com.google.inject.{ Inject, Singleton }
 import api.DatasetControllerAPI
 import config.{ FileExportConfig, ImpalaConfig }
 import daf.catalogmanager.CatalogManagerClient

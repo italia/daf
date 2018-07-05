@@ -73,12 +73,8 @@ object PhysicalDatasetController {
 
   def apply(configuration: Config): PhysicalDatasetController = {
 
-    val defaultLimit = configuration.getInt("daf.limit_row")
-
-    //private val defaultChunkSize = configuration.getInt("chunk_size").getOrElse(throw new Exception("it shouldn't happen"))
-
     val sparkConfig = new SparkConf()
-    sparkConfig.set("spark.driver.memory", configuration.getString("spark_driver_memory"))
+    sparkConfig.set("spark.driver.memory", configuration.getString("spark.driver.memory"))
 
     val sparkSession = SparkSession.builder().master("local").config(sparkConfig).getOrCreate()
 

@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import com.typesafe.sbt.packager.docker.DockerPlugin.autoImport.{ Docker => DockerGoal }
+
 organization := "it.gov.daf"
 
 name         := "daf-storage-manager"
@@ -34,8 +36,6 @@ scalacOptions ++= Seq(
   "-Ywarn-dead-code",
   "-Xfuture"
 )
-
-javaOptions in Universal += "-jvm-debug 5005"
 
 enablePlugins(
   PlayScala,
@@ -61,11 +61,13 @@ headerMappings += (HeaderFileType.conf -> HeaderCommentStyle.HashLineComment)
 
 // Docker
 
-dockerBaseImage    := Docker.base
-dockerCommands     ~= Docker.appendKrb5
-dockerEntrypoint   := Docker.entryPoint { name.value }
-dockerExposedPorts := Docker.ports
-dockerRepository   := Docker.repository
+dockerBaseImage                      := Docker.base
+dockerPackageMappings in DockerGoal ++= Docker.mappings
+dockerCommands                       ~= Docker.appendSecurity
+dockerCommands                       ~= Docker.updateEnvironment("DAF_STORAGE_MANAGER_ARTIFACT", s"it.gov.daf.daf-storage-manager-${Versions.defaultVersion}-sans-externalized.jar")
+dockerEntrypoint                     := Docker.entryPoint { name.value }
+dockerExposedPorts                   := Docker.ports
+dockerRepository                     := Docker.repository
 
 // Publish
 

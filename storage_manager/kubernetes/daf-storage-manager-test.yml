@@ -69,11 +69,13 @@ spec:
           subPath: storage-manager/conf/logback.xml
           readOnly: true
         # hadoop config
-        - name: hadoopconf
+        - name: glusterfsvol
           mountPath: /etc/hadoop/conf
+          subPath: cloudera/hadoop-conf
           readOnly: true
-        - name: hbaseconf
+        - name: glusterfsvol
           mountPath: /etc/hbase/conf
+          subPath: cloudera/hbase-conf
           readOnly: true
         # logging
         - name: glusterfsvol
@@ -102,11 +104,5 @@ spec:
       - name: krb5conf
         hostPath:
           path: /etc/krb5.conf
-      - name: hadoopconf
-        hostPath:
-          path: /etc/hadoop/conf
-      - name: hbaseconf
-        hostPath:
-          path: /etc/hbase/conf
       nodeSelector:
         nifi: "false"

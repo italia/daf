@@ -10,9 +10,6 @@ spec:
   - port: 9000
     protocol: TCP
     name: http
-  - port: 5005
-    protocol: TCP
-    name: debug
   selector:
     app: storage-manager
 ---
@@ -27,74 +24,33 @@ spec:
       labels:
         app: storage-manager
     spec:
-      hostAliases:
-      - ip: "192.168.0.23"
-        hostnames:
-          - "master.platform.daf.gov.it"
-          - "master"
-      - ip: "192.168.0.22"
-        hostnames:
-          - "slave1.platform.daf.gov.it"
-          - "slave1"
-      - ip: "192.168.0.24"
-        hostnames:
-          - "slave2.platform.daf.gov.it"
-          - "slave2"
-      - ip: "192.168.0.36"
-        hostnames:
-          - "slave3.platform.daf.gov.it"
-          - "slave3"
-      - ip: "192.168.0.26"
-        hostnames:
-          - "slave4.platform.daf.gov.it"
-          - "slave4"
-      - ip: "192.168.0.26"
-        hostnames:
-          - "slave4.platform.daf.gov.it"
-          - "slave4"
-      - ip: "192.168.0.20"
-        hostnames:
-          - "edge1.platform.daf.gov.it"
-          - "edge1"
-      - ip: "192.168.0.21"
-        hostnames:
-          - "edge2.platform.daf.gov.it"
-          - "edge2"
-      - ip: "192.168.0.27"
-        hostnames:
-          - "edge3.platform.daf.gov.it"
-          - "edge3"
-      - ip: "192.168.0.29"
-        hostnames:
-          - "idm.daf.gov.it"
-          - "idm"
       containers:
       - name: storage-manager
-        image: nexus.daf.teamdigitale.it/daf-storage-manager:1.0.0-SNAPSHOT
+        image: nexus.teamdigitale.test/daf-storage-manager:1.0.1-alpha.1-SNAPSHOT
         imagePullPolicy: Always
         env:
         - name: JAVA_OPTS
           value: "-server -XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:+PerfDisableSharedMem -XX:+ParallelRefProcEnabled -Xmx2g -Xms2g -XX:MaxPermSize=1024m"
+        - name: FREEIPA_ADMIN_PWD
+          valueFrom:
+            secretKeyRef:
+              name: daf-secret
+              key: freeipa_admin_pwd
         - name: PLAY_CRYPTO
           valueFrom:
-             secretKeyRef:
-               name: daf-secret
-               key: play_crypto
+            secretKeyRef:
+              name: daf-secret
+              key: play_crypto
         - name: PAC4J_CRYPTO
           valueFrom:
-             secretKeyRef:
-               name: daf-secret
-               key: pac4j_crypto
+            secretKeyRef:
+              name: daf-secret
+              key: pac4j_crypto
         - name: LDAP_USER_PWD
           valueFrom:
             secretKeyRef:
               name: daf-secret
               key: ldap_user_pwd
-        - name: FREEIPA_ADMIN_PWD
-          valueFrom:
-              secretKeyRef:
-                name: daf-secret
-                key: freeipa_admin_pwd
         - name: SSL_KEYSTORE_PWD
           valueFrom:
             secretKeyRef:
@@ -104,12 +60,10 @@ spec:
         - name: client
           containerPort: 9000
         volumeMounts:
-        #- name: config-volume
-        #  mountPath: /opt/docker/conf/mnt
-#        - name: glusterfsvol
-#          mountPath: /opt/docker/conf/production.conf
-#          subPath: storage-manager/conf/production.conf
-#          readOnly: true
+        # daf config
+        - name: config-volume
+          mountPath: /opt/docker/conf/app
+        # log config
         - name: glusterfsvol
           mountPath: /opt/docker/conf/logback.xml
           subPath: storage-manager/conf/logback.xml
@@ -120,6 +74,7 @@ spec:
           readOnly: true
         - name: krb5conf
           mountPath: /etc/krb5.conf
+        # hadoop config
         - name: glusterfsvol
           mountPath: /etc/hadoop/conf
           subPath: cloudera/hive-conf
@@ -128,12 +83,27 @@ spec:
           mountPath: /etc/hbase/conf
           subPath: cloudera/hbase-conf
           readOnly: true
+        # logging
+        - name: glusterfsvol
+          mountPath: /opt/docker/logs
+          subPath: storage-manager/logs
+        # kerberos
+        - name: glusterfsvol
+          mountPath: /opt/docker/conf/daf.keytab
+          subPath: storage-manager/conf/daf.keytab
+        - name: krb5conf
+          mountPath: /etc/krb5.conf
+        # ssl
+        - name: glusterfsvol
+          mountPath: /opt/docker/cert/master-impala.jks
+          subPath: storage-manager/cert/master-impala.jks
+          readOnly: true
       imagePullSecrets:
       - name: regsecret
       volumes:
-#      - name: config-volume
-#        configMap:
-#          name: storage-manager-conf
+      - name: config-volume
+        configMap:
+          name: storage-manager-conf
       - name: glusterfsvol
         persistentVolumeClaim:
           claimName: gluster-claim

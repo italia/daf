@@ -62,12 +62,12 @@ spec:
         volumeMounts:
         # daf config
         - name: config-volume
-          mountPath: /opt/docker/conf/mnt
-#        # log config
-#        - name: glusterfsvol
-#          mountPath: /opt/docker/conf/logback.xml
-#          subPath: storage-manager/conf/logback.xml
-#          readOnly: true
+          mountPath: /opt/docker/conf/app
+        # log config
+        - name: glusterfsvol
+          mountPath: /opt/docker/conf/logback.xml
+          subPath: storage-manager/conf/logback.xml
+          readOnly: true
         # hadoop config
         - name: hadoopconf
           mountPath: /etc/hadoop/conf

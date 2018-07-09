@@ -52,7 +52,7 @@ class CatalogManagerClient(serviceUrl: String) {
 
 object CatalogManagerClient {
 
-  def fromConfig(config: Configuration) = Read.string { "daf.catalog-url" }.!.read(config) match {
+  def fromConfig(config: Configuration) = Read.string { "daf.catalog_url" }.!.read(config) match {
     case TrySuccess(baseUrl) => new CatalogManagerClient(baseUrl)
     case Failure(error)      => throw new RuntimeException("Unable to create catalog-manager client", error)
   }

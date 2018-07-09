@@ -33,6 +33,11 @@ package object jdbc {
   type QueryFragmentWriter[A] = WriterT[Try, Fragment, A]
   type Trampoline[A] = Free[Try, A]
 
+  implicit val monoid: Monoid[JdbcQueryAnalysis] = new Monoid[JdbcQueryAnalysis] {
+    def empty = JdbcQueryAnalysis.empty
+    def combine(x: JdbcQueryAnalysis, y: JdbcQueryAnalysis) = x combine y
+  }
+
   private[jdbc] def recursionError[A](error: Throwable): Trampoline[A] = Free.liftF[Try, A] { Failure(error) }
 
   implicit class QueryFragmentWriterSyntax[A](writer: QueryFragmentWriter[A]) {

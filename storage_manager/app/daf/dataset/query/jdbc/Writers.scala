@@ -18,6 +18,7 @@ package daf.dataset.query.jdbc
 
 import cats.instances.try_.catsStdInstancesForTry
 import daf.dataset.query.Query
+import doobie.util.fragment.Fragment
 
 /**
   * Groups all different `Writer` generators under one roof.
@@ -43,6 +44,11 @@ object Writers {
     _         <- groupBy(query, reference)
     _         <- having(query)
     _         <- limit(query)
+  } yield ()
+
+  def explain(query: Query, table: String): QueryFragmentWriter[Unit] = for {
+    _ <- QueryFragmentWriter.tell { Fragment.const("EXPLAIN") }
+    _ <- sql(query, table)
   } yield ()
 
 }

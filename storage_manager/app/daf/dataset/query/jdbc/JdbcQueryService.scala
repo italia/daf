@@ -38,6 +38,10 @@ class JdbcQueryService(protected val impalaConfig: ImpalaConfig) { this: Transac
     HPS.executeQuery { JdbcQueryOps.result }
   }
 
+  private def explain(fragment: Fragment) = fragment.execWith {
+    HPS.executeQuery { JdbcQueryOps.explanation }
+  }
+
   /**
     * Executes the [[Query]] on the given table name (usually inclusive of the database name), impersonating the given
     * `userId`.
@@ -48,6 +52,10 @@ class JdbcQueryService(protected val impalaConfig: ImpalaConfig) { this: Transac
     */
   def exec(query: Query, table: String, userId: String): Try[JdbcResult] = Writers.sql(query, table).write.map {
     exec(_).transact { transactor(userId) }.unsafeRunSync
+  }
+
+  def explain(query: Query, table: String, userId: String): Try[JdbcQueryAnalysis] = Writers.explain(query, table).write.map {
+    explain(_).transact { transactor(userId) }.unsafeRunSync
   }
 
 }
@@ -67,9 +75,15 @@ object JdbcQueryOps {
 
   val genericStream: ResultSetIO[Stream[Row]] = genericRow.whileM[Stream] { HRS.next }
 
+  private val parseAnalysis: ResultSetIO[JdbcQueryAnalysis] = FRS.getString(1).map { JdbcQueryAnalysis.fromString }
+
   val result: ResultSetIO[JdbcResult] = for {
     h      <- header
     stream <- genericStream
   } yield JdbcResult(h, stream)
+
+  val explanation: ResultSetIO[JdbcQueryAnalysis] = parseAnalysis.whileM[List] { HRS.next }.map {
+    _.foldLeft(JdbcQueryAnalysis.empty) { _ combine _ }
+  }
 
 }

@@ -22,7 +22,7 @@ trait SparkSessionInstance {
 
   protected lazy val sparkSession = SparkSession.builder()
     .appName(s"TestSpark_${System.currentTimeMillis()}")
-    .master(s"local[*]")
+    .master(s"local")
     .config("spark.executor.cores", "2")
     .config("spark.dynamicAllocation.enabled", "true")
     .config("spark.dynamicAllocation.minExecutors", "2")

@@ -70,25 +70,25 @@ class AbstractControllerSpec extends TestAbstractModule
       }
     }
 
-    "performing spark jobs" must {
-
-      "not share user information across concurrent threads" in withController { controller =>
-        Await.result(
-          Future.sequence { spark(controller) },
-          30.seconds
-        )
-      }
-    }
-
-    "performing complex asynchronous operations" must {
-
-      "share user information across concurrent threads" in withController { controller =>
-        a [RuntimeException] should be thrownBy Await.result(
-          Future.sequence { async(controller) },
-          30.seconds
-        )
-      }
-    }
+//    "performing spark jobs" must {
+//
+//      "not share user information across concurrent threads" in withController { controller =>
+//        Await.result(
+//          Future.sequence { spark(controller) },
+//          30.seconds
+//        )
+//      }
+//    }
+//
+//    "performing complex asynchronous operations" must {
+//
+//      "share user information across concurrent threads" in withController { controller =>
+//        a [RuntimeException] should be thrownBy Await.result(
+//          Future.sequence { async(controller) },
+//          30.seconds
+//        )
+//      }
+//    }
   }
 
 }

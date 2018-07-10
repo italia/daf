@@ -95,10 +95,10 @@ class DatasetControllerSpec extends TestAbstractModule
         }.header.status should be { 400 }
       }
 
-      "return 404 when the data files do not exist" in withController { controller =>
+      "return 400 when the format is valid but unsupported" in withController { controller =>
         request[AnyContent]("GET", "/dataset-manager/v1/dataset/data/path", AnyContentAsEmpty, Some("Basic:token")) {
           controller.getDataset("data/path", "avro")
-        }.header.status should be { 404 }
+        }.header.status should be { 400 }
       }
 
     }

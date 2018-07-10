@@ -23,9 +23,6 @@ trait ConfigurationInstance {
 
   protected val configFile = "test.conf"
 
-  println { s"Configuration = ${ConfigFactory.load(configFile)}" }
-
   protected val configuration = Configuration { ConfigFactory.load(configFile) }
-
 
 }

@@ -17,20 +17,36 @@
 package controllers
 
 import it.gov.daf.common.authentication.Authentication
+import it.gov.daf.common.config.Read
 import org.apache.hadoop.security.UserGroupInformation
 import org.pac4j.play.store.PlaySessionStore
 import play.api.Configuration
 import play.api.mvc._
+
+import scala.util.{ Failure, Success, Try }
 
 /**
   * This class authenticates users through LDAP and provides the Hadoop impersonation `proxyUser`
   */
 abstract class AbstractController(protected val configuration: Configuration, val playSessionStore: PlaySessionStore) extends Controller {
 
-  UserGroupInformation.loginUserFromSubject(null)
-  Authentication(configuration, playSessionStore)
-  System.setProperty("javax.security.auth.useSubjectCredsOnly", "false")
+  private def loginUserFromConf = for {
+    user <- Read.string { "kerberos.principal" }.!
+    path <- Read.string { "kerberos.keytab"    }.!
+  } yield UserGroupInformation.loginUserFromKeytab(user, path)
 
-  protected implicit val proxyUser = UserGroupInformation.getCurrentUser
+  private def prepareAuth() = Try { Authentication(configuration, playSessionStore) }
+
+  private def initUser() = for {
+    _ <- loginUserFromConf.read { configuration }
+    _ <- prepareAuth()
+    _ <- Try { System.setProperty("javax.security.auth.useSubjectCredsOnly", "false") }
+  } yield UserGroupInformation.getLoginUser
+
+  protected implicit val proxyUser = initUser() match {
+    case Success(null)  => throw new RuntimeException("Unable to initialize user for application")
+    case Success(user)  => user
+    case Failure(error) => throw new RuntimeException("Unable to initialize user for application", error)
+  }
 
 }

@@ -50,7 +50,8 @@ resolvers           ++= Resolvers.all
 libraryDependencies ++= Dependencies.compile.all
 libraryDependencies ++= Dependencies.test.all
 
-unmanagedBase := file("libext")
+unmanagedBase                        := file("libext")
+scriptClasspath in bashScriptDefines ~= { "/etc/hadoop/conf" +: _ }
 
 // Licenses
 
@@ -78,6 +79,8 @@ credentials += Repositories.credential
 // Misc
 
 parallelExecution in Test := false
+
+fork in Test := true
 
 autoAPIMappings := true
 

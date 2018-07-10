@@ -26,7 +26,7 @@ import play.api.mvc._
 import scala.util.{ Failure, Success, Try }
 
 /**
-  * This class authenticates users through LDAP and provides the Hadoop impersonation `proxyUser`
+  * This class authenticates users through a keytab and provides the Hadoop impersonation `proxyUser`
   */
 abstract class AbstractController(protected val configuration: Configuration, val playSessionStore: PlaySessionStore) extends Controller {
 

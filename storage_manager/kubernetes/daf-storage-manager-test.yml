@@ -82,9 +82,13 @@ spec:
           mountPath: /opt/docker/logs
           subPath: storage-manager/logs
         # kerberos
-        - name: glusterfsvol
+#        - name: glusterfsvol
+#          mountPath: /opt/docker/conf/daf.keytab
+#          subPath: storage-manager/conf/daf.keytab
+        - name: daf-keytab
           mountPath: /opt/docker/conf/daf.keytab
-          subPath: storage-manager/conf/daf.keytab
+          subPath: keytab/daf.keytab
+          readOnly: true
         - name: krb5conf
           mountPath: /etc/krb5.conf
         # ssl
@@ -95,6 +99,12 @@ spec:
       imagePullSecrets:
       - name: regsecret
       volumes:
+      - name: daf-keytab
+        secret:
+          secretName: keytab
+          items:
+          - key: daf.keytab
+            path: keytab/daf.keytab
       - name: config-volume
         configMap:
           name: storage-manager-conf

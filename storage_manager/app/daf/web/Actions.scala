@@ -21,8 +21,8 @@ import org.apache.hadoop.security.UserGroupInformation
 
 object Actions {
 
-  def hadoop(implicit proxyUser: UserGroupInformation): ActionBuilder = DefaultActions.impersonated { Impersonations.hadoop }.checkedWith { ErrorHandlers.spark }
+  def hadoop(implicit proxyUser: UserGroupInformation): ActionBuilder = DefaultActions.impersonated { Impersonations.hadoop }.checkedWith { ErrorHandlers.api orElse ErrorHandlers.spark }
 
-  def basic: ActionBuilder = DefaultActions.basic.checkedWith { ErrorHandlers.security orElse ErrorHandlers.spark }
+  def basic: ActionBuilder = DefaultActions.basic.checkedWith { ErrorHandlers.api orElse ErrorHandlers.security orElse ErrorHandlers.spark }
 
 }

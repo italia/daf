@@ -19,6 +19,7 @@ package daf.web
 import java.io.FileNotFoundException
 import java.lang.reflect.UndeclaredThrowableException
 
+import daf.error.InvalidRequestException
 import it.gov.daf.common.web.ErrorHandler
 import org.apache.spark.sql.AnalysisException
 import org.ietf.jgss.GSSException
@@ -34,6 +35,10 @@ object ErrorHandlers {
     case _: FileNotFoundException => Results.NotFound
     case _: AnalysisException     => Results.NotFound
     case error: UndeclaredThrowableException if error.getUndeclaredThrowable.isInstanceOf[AnalysisException] => Results.NotFound
+  }
+
+  val api: ErrorHandler = {
+    case error: InvalidRequestException => Results.BadRequest { error.getMessage }
   }
 
 }

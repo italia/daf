@@ -31,11 +31,15 @@ sealed trait DatasetParams {
 
   def extraParams: ExtraParams
 
+  def catalogUri: String
+
   final def param(key: String): Option[String] = extraParams.get(key)
 
 }
 
-case class KuduDatasetParams(table: String, extraParams: ExtraParams = Map.empty[String, String]) extends DatasetParams {
+case class KuduDatasetParams(table: String,
+                             catalogUri: String,
+                             extraParams: ExtraParams = Map.empty[String, String]) extends DatasetParams {
 
   final val name = table
 
@@ -47,7 +51,10 @@ case class KuduDatasetParams(table: String, extraParams: ExtraParams = Map.empty
 
 }
 
-case class FileDatasetParams(path: String, format: FileDataFormat, extraParams: ExtraParams = Map.empty[String, String]) extends DatasetParams {
+case class FileDatasetParams(path: String,
+                             catalogUri: String,
+                             format: FileDataFormat,
+                             extraParams: ExtraParams = Map.empty[String, String]) extends DatasetParams {
 
   final val name = path.asHadoop.getName
 
@@ -100,11 +107,14 @@ object DatasetParams {
     extraParams <- addParam("separator", separator)
   } yield FileDatasetParams(
     path        = path,
+    catalogUri  = catalog.operational.logical_uri,
     format      = format,
     extraParams = extraParams
   )
 
-  private def fromKudu(catalog: MetaCatalog, kuduInfo: StorageKudu) = readTable(catalog, kuduInfo).map { KuduDatasetParams(_) }
+  private def fromKudu(catalog: MetaCatalog, kuduInfo: StorageKudu) = readTable(catalog, kuduInfo).map {
+    KuduDatasetParams(_, catalog.operational.logical_uri)
+  }
 
   def fromCatalog(catalog: MetaCatalog): Try[DatasetParams] = catalog.operational.storage_info.flatMap { info => info.hdfs orElse info.kudu } match {
     case Some(hdfsInfo: StorageHdfs) => fromHdfs(catalog, hdfsInfo)

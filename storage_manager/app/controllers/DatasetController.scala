@@ -19,6 +19,8 @@ package controllers
 import akka.actor.ActorSystem
 import com.google.inject.Inject
 import api.DatasetControllerAPI
+import cats.MonadError
+import cats.instances.future.catsStdInstancesForFuture
 import config.{ FileExportConfig, ImpalaConfig }
 import daf.catalogmanager.CatalogManagerClient
 import daf.dataset.export.FileExportService
@@ -26,6 +28,7 @@ import daf.dataset._
 import daf.dataset.query.jdbc.JdbcQueryService
 import daf.dataset.query.Query
 import daf.dataset.query.json.QueryFormats.reader
+import daf.error.InvalidRequestException
 import daf.instances.{ FileSystemInstance, ImpalaTransactorInstance }
 import daf.web._
 import daf.filesystem.{ DownloadableFormats, FileDataFormat }
@@ -38,6 +41,7 @@ import play.api.libs.ws.WSClient
 import play.api.mvc._
 
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.language.higherKinds
 import scala.util.{ Failure, Success }
 
 class DatasetController @Inject()(configuration: Configuration,
@@ -82,13 +86,23 @@ class DatasetController @Inject()(configuration: Configuration,
     params  <- DatasetParams.fromCatalog(catalog)
   } yield params
 
-  private def retrieveBulkData(uri: String, auth: String, userId: String, targetFormat: FileDataFormat) = retrieveCatalog(auth, uri) match {
-    case Success(params) => bulkDownload(params, userId, targetFormat)
+  private def retrieveBulkData(uri: String, auth: String, userId: String, targetFormat: FileDataFormat, method: DownloadMethod) = retrieveCatalog(auth, uri) match {
+    case Success(params) => download(params, userId, targetFormat, method)
     case Failure(error)  => Future.failed { error }
   }
 
   private def executeQuery(query: Query, uri: String, auth: String, userId: String, targetFormat: FileDataFormat) = retrieveCatalog(auth, uri).flatMap {
     exec(_, query, targetFormat, userId)
+  }
+
+  private def checkTargetFormat[M[_]](format: String)(implicit M: MonadError[M, Throwable]): M[FileDataFormat] = format.toLowerCase match {
+    case DownloadableFormats(targetFormat) => M.pure { targetFormat }
+    case _                                 => M.raiseError { InvalidRequestException(s"Invalid download format [$format], must be one of [csv | json]") }
+  }
+
+  private def checkDownloadMethod[M[_]](method: String)(implicit M: MonadError[M, Throwable]): M[DownloadMethod] = method.toLowerCase match {
+    case DownloadMethods(downloadMethod) => M.pure { downloadMethod }
+    case _                               => M.raiseError { InvalidRequestException(s"Invalid download method [$method], must be one of [quick | batch]") }
   }
 
   // API
@@ -100,11 +114,12 @@ class DatasetController @Inject()(configuration: Configuration,
     } yield Ok { schema.prettyJson } as JSON
   }
 
-  def getDataset(uri: String, format: String = "json"): Action[AnyContent] = Actions.basic.securedAsync { (_, auth, userId) =>
-    format.toLowerCase match {
-      case DownloadableFormats(targetFormat) => retrieveBulkData(uri, auth, userId, targetFormat)
-      case _                                 => Future.successful { Results.BadRequest(s"Invalid download format [$format], must be one of [csv | json]") }
-    }
+  def getDataset(uri: String, format: String = "json", method: String = "batch"): Action[AnyContent] = Actions.basic.securedAsync { (_, auth, userId) =>
+    for {
+      targetFormat   <- checkTargetFormat[Future](format)
+      downloadMethod <- checkDownloadMethod[Future](method)
+      result         <- retrieveBulkData(uri, auth, userId, targetFormat, downloadMethod)
+    } yield result
   }
 
   def queryDataset(uri: String, format: String = "json"): Action[Query] = Actions.basic.securedAttempt(queryJson) { (request, auth, userId) =>

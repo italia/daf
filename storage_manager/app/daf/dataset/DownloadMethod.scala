@@ -14,27 +14,20 @@
  * limitations under the License.
  */
 
-package controllers
+package daf.dataset
 
-import daf.dataset.FileDatasetParams
-import daf.filesystem.ParquetFileFormat
-import daf.util.HDFSBase
+trait DownloadMethod
 
-class PhysicalDatasetControllerHDFSSpec extends HDFSBase {
+case object QuickDownloadMethod extends DownloadMethod
 
-  var physicalC: PhysicalDatasetController = _
+case object BatchDownloadMethod extends DownloadMethod
 
-  "PhysicalDatasetController" should "get a dataset from hdfs" in {
+object DownloadMethods {
 
-    physicalC = new PhysicalDatasetController(getSparkSession, "master.kudu")
-
-    val hdfsParams = FileDatasetParams(pathParquet, "", ParquetFileFormat)
-
-    val dfParquet = physicalC.get(hdfsParams)
-    dfParquet shouldBe 'Success
-    dfParquet.get.count() should be > 0L
-    dfParquet.foreach(_.show())
-
+  def unapply(s: String): Option[DownloadMethod] = s match {
+    case "quick" | "fast" | "direct" => Some { QuickDownloadMethod }
+    case "batch" | "slow" | "export" => Some { BatchDownloadMethod }
+    case _                           => None
   }
 
 }

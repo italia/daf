@@ -50,8 +50,7 @@ resolvers           ++= Resolvers.all
 libraryDependencies ++= Dependencies.compile.all
 libraryDependencies ++= Dependencies.test.all
 
-unmanagedBase                        := file("libext")
-scriptClasspath in bashScriptDefines ~= { "/etc/hadoop/conf" +: _ }
+unmanagedBase       := file("libext")
 
 // Licenses
 

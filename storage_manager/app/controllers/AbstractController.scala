@@ -18,6 +18,7 @@ package controllers
 
 import it.gov.daf.common.authentication.Authentication
 import it.gov.daf.common.config.Read
+import javax.security.auth.login.LoginContext
 import org.apache.hadoop.security.UserGroupInformation
 import org.pac4j.play.store.PlaySessionStore
 import play.api.Configuration
@@ -30,6 +31,8 @@ import scala.util.{ Failure, Success, Try }
   */
 abstract class AbstractController(protected val configuration: Configuration, val playSessionStore: PlaySessionStore) extends Controller {
 
+  private def prepareEnv() = Try { System.setProperty("javax.security.auth.useSubjectCredsOnly", "false") }
+
   private def loginUserFromConf = for {
     user <- Read.string { "kerberos.principal" }.!
     path <- Read.string { "kerberos.keytab"    }.!
@@ -38,9 +41,9 @@ abstract class AbstractController(protected val configuration: Configuration, va
   private def prepareAuth() = Try { Authentication(configuration, playSessionStore) }
 
   private def initUser() = for {
+    _ <- prepareEnv()
     _ <- loginUserFromConf.read { configuration }
     _ <- prepareAuth()
-    _ <- Try { System.setProperty("javax.security.auth.useSubjectCredsOnly", "false") }
   } yield UserGroupInformation.getLoginUser
 
   protected implicit val proxyUser = initUser() match {

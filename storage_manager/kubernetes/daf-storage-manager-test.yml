@@ -82,6 +82,7 @@ spec:
           mountPath: /opt/docker/logs
           subPath: storage-manager/logs
         # kerberos
+#        Replaced by a secret daf.keytab
 #        - name: glusterfsvol
 #          mountPath: /opt/docker/conf/daf.keytab
 #          subPath: storage-manager/conf/daf.keytab

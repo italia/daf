@@ -49,7 +49,7 @@ import scala.concurrent.Await
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-
+                                                                
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -82,18 +82,33 @@ package catalog_manager.yaml {
         val deleteCatalog = deleteCatalogAction { input: (String, String) =>
             val (name, org) = input
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.deleteCatalog
+            def extractMessage(response: Either[Error, Success]) = {
+                if(response.isRight) response.right.get.message
+                else response.left.get.message
+            }
+
             val user = CredentialManager.readCredentialFromRequest(currentRequest).username
 
             val isAdmin = CredentialManager.isDafAdmin(currentRequest)
-
             val feedName = s"${org}.${org}_o_${name}"
 
-            val deleteFromMongo = ServiceRegistry.catalogService.deleteCatalogByName(name, user, isAdmin)
-            kylo.deleteFeed(feedName, user)
+            val responseMongo = ServiceRegistry.catalogService.deleteCatalogByName(name, user, isAdmin)
 
+            val futureResponseKylo = responseMongo match {
+                case Right(_) => kylo.deleteFeed(feedName, user)
+                case Left(_) => Future.successful(Left(Error(s"unauthorized to delete $feedName", None, None)))
+            }
 
-            if(deleteFromMongo.isRight) DeleteCatalog200(deleteFromMongo.right.get) else DeleteCatalog400(deleteFromMongo.left.get)
-
+            val futureResponses: Future[Either[Error, Success]] = futureResponseKylo.map{ responseKylo =>
+              if(responseMongo.isRight && responseKylo.isRight)
+                  Right(Success(s"${extractMessage(responseMongo)}, ${extractMessage(responseKylo)}", None))
+              else
+                  Left(Error(s"${extractMessage(responseMongo)}, ${extractMessage(responseKylo)}", Some(500), None))
+            }
+            futureResponses.flatMap{
+                case Right(s) => DeleteCatalog200(s)
+                case Left(e) => DeleteCatalog500(e)
+            }
 //          NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.deleteCatalog
         }

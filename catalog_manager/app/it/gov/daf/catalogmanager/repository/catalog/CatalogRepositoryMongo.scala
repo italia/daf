@@ -122,16 +122,10 @@ class CatalogRepositoryMongo extends  CatalogRepository{
     val mongoClient = MongoClient(server, List(credentials))
     val db = mongoClient(source)
     val coll = db("catalog_test")
-    val result = queryDeleteCatalogByName(nameCatalog, user, coll, query)
+    val result = if(coll.remove(query).getN > 0) Right(Success(s"catalog $nameCatalog deleted", None)) else Left(Error(s"catalog $nameCatalog not found", Some(404), None))
     mongoClient.close()
-    Logger.logger.debug(s"$user delete $nameCatalog from catalog_test result: ${result.isRight}")
+    Logger.logger.debug(s"$user deleted $nameCatalog from catalog_test result: ${result.isRight}")
     result
-  }
-
-  private def queryDeleteCatalogByName(nameCatalog: String, user: String, collection: MongoCollection, query: DBObject): Either[Error, Success] = {
-    val result: casbah.TypeImports.WriteResult = collection.remove(query)
-    if(result.getN > 0) Right(Success(s"dataset $nameCatalog delete", None))
-    else Left(Error(s"$nameCatalog not found", Some(404), None))
   }
 
   def publicCatalogByName(name :String): Option[MetaCatalog] = {

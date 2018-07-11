@@ -34,45 +34,53 @@ trait BulkDownload { this: DatasetController with FileSystemInstance =>
     case _              => Failure { new IllegalArgumentException("Unable to prepare download; only CSV and JSON are permitted") }
   }
 
-  private def prepareFileExport(pathInfo: PathInfo, sourceFormat: FileDataFormat, targetFormat: FileDataFormat, extraParams: ExtraParams) = fileExportService.exportFile(pathInfo.path, sourceFormat, targetFormat, extraParams)
+  private def prepareFileExport(pathInfo: PathInfo, sourceFormat: FileDataFormat, targetFormat: FileDataFormat, extraParams: ExtraParams) =
+    fileExportService.exportFile(pathInfo.path, sourceFormat, targetFormat, extraParams).map { downloadService.openPath }.flatMap {
+      case Success(stream) => Future.successful {
+        StreamConverters.fromInputStream { () => stream }
+      }
+      case Failure(error)  => Future.failed { error }
+    }
 
-  private def prepareTableExport(table: String, targetFormat: FileDataFormat) = fileExportService.exportTable(table, targetFormat)
+  private def prepareTableExport(table: String, targetFormat: FileDataFormat) =
+    fileExportService.exportTable(table, targetFormat).map { downloadService.openPath }.flatMap {
+      case Success(stream) => Future.successful {
+        StreamConverters.fromInputStream { () => stream }
+      }
+      case Failure(error)  => Future.failed { error }
+    }
+
+  private def retrieveFileInfo(path: String, userId: String) = (proxyUser as userId) { downloadService.fileInfo(path) }
+
+  private def retrieveTableInfo(tableName: String, userId: String) = (proxyUser as userId) { downloadService.tableInfo(tableName) }
+
+  // Web
 
   private def directDownload(params: DatasetParams, targetFormat: FileDataFormat) = prepareDirect(params, targetFormat) match {
     case Success(data)  => Future.successful {
       Ok.chunked(data).withHeaders(
-        CONTENT_DISPOSITION -> s"""attachment; filename="${params.name}.${targetFormat.show}""""
+        CONTENT_DISPOSITION -> s"""attachment; filename="${params.name}.${targetFormat.show}"""",
+        CONTENT_TYPE        -> contentType(targetFormat)
       )
     }
     case Failure(error) => Future.failed { error }
   }
 
   private def fileExportDownload(pathInfo: PathInfo, sourceFormat: FileDataFormat, targetFormat: FileDataFormat, extraParams: ExtraParams) =
-    prepareFileExport(pathInfo, sourceFormat, targetFormat, extraParams).map { downloadService.openPath }.flatMap {
-      case Failure(error)  => Future.failed { error }
-      case Success(stream) => Future.successful {
-        Ok.chunked {
-          StreamConverters.fromInputStream { () => stream }
-        }.withHeaders(
-          CONTENT_DISPOSITION -> s"""attachment; filename="${pathInfo.path.getName}.${targetFormat.show}""""
-        )
-      }
-    }
-
-  private def tableExportDownload(table: String, targetFormat: FileDataFormat) = prepareTableExport(table, targetFormat).map { downloadService.openPath }.flatMap {
-    case Failure(error)  => Future.failed { error }
-    case Success(stream) => Future.successful {
-      Ok.chunked {
-        StreamConverters.fromInputStream { () => stream }
-      }.withHeaders(
-        CONTENT_DISPOSITION -> s"""attachment; filename="$table.${targetFormat.show}""""
+    prepareFileExport(pathInfo, sourceFormat, targetFormat, extraParams).map { formatExport(_, targetFormat) }.map {
+      Ok.chunked(_).withHeaders(
+        CONTENT_DISPOSITION -> s"""attachment; filename="${pathInfo.path.getName}.${targetFormat.show}"""",
+        CONTENT_TYPE        -> contentType(targetFormat)
       )
     }
-  }
 
-  private def retrieveFileInfo(path: String, userId: String) = (proxyUser as userId) { downloadService.fileInfo(path) }
-
-  private def retrieveTableInfo(tableName: String, userId: String) = (proxyUser as userId) { downloadService.tableInfo(tableName) }
+  private def tableExportDownload(table: String, targetFormat: FileDataFormat) =
+    prepareTableExport(table, targetFormat).map { formatExport(_, targetFormat) }.map {
+      Ok.chunked(_).withHeaders(
+        CONTENT_DISPOSITION -> s"""attachment; filename="$table.${targetFormat.show}"""",
+        CONTENT_TYPE        -> contentType(targetFormat)
+      )
+    }
 
   private def tableDownload(params: KuduDatasetParams, userId: String, targetFormat: FileDataFormat) = retrieveTableInfo(params.table, userId) match {
     case Success(_)     => tableExportDownload(params.table, targetFormat)

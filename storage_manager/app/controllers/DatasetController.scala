@@ -17,7 +17,7 @@
 package controllers
 
 import akka.actor.ActorSystem
-import com.google.inject.{ Inject, Singleton }
+import com.google.inject.Inject
 import api.DatasetControllerAPI
 import config.{ FileExportConfig, ImpalaConfig }
 import daf.catalogmanager.CatalogManagerClient
@@ -100,14 +100,14 @@ class DatasetController @Inject()(configuration: Configuration,
     } yield Ok { schema.prettyJson } as JSON
   }
 
-  def getDataset(uri: String, format: String = "csv"): Action[AnyContent] = Actions.basic.securedAsync { (_, auth, userId) =>
+  def getDataset(uri: String, format: String = "json"): Action[AnyContent] = Actions.basic.securedAsync { (_, auth, userId) =>
     format.toLowerCase match {
       case DownloadableFormats(targetFormat) => retrieveBulkData(uri, auth, userId, targetFormat)
       case _                                 => Future.successful { Results.BadRequest(s"Invalid download format [$format], must be one of [csv | json]") }
     }
   }
 
-  def queryDataset(uri: String, format: String = "csv"): Action[Query] = Actions.basic.securedAttempt(queryJson) { (request, auth, userId) =>
+  def queryDataset(uri: String, format: String = "json"): Action[Query] = Actions.basic.securedAttempt(queryJson) { (request, auth, userId) =>
     format.toLowerCase match {
       case DownloadableFormats(targetFormat) => executeQuery(request.body, uri, auth, userId, targetFormat)
       case _                                 => Success { Results.BadRequest(s"Invalid download format [$format], must be one of [csv | json]") }

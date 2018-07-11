@@ -34,7 +34,9 @@ class DatasetService(config: Config) {
 
   def jsonData(params: DatasetParams) = data(params).map { json }
 
-  def json(dataFrame: DataFrame) = Source[String] { dataFrame.toJSON.collect().toVector }.map { row => s"$row${System.lineSeparator}" }
+  def json(dataFrame: DataFrame) = wrapJson {
+    Source[String] { dataFrame.toJSON.collect().toVector }
+  }
 
 //  This code produces valid JSON but is inconsistent with Spark's JSON structure
 //  def json(dataFrame: DataFrame) = Source[String] { "<start>" +: dataFrame.toJSON.collect().toVector :+ "<end>"}.sliding(2, 2).map {

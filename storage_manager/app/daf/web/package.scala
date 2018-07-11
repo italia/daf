@@ -18,6 +18,7 @@ package daf
 
 import java.security.PrivilegedExceptionAction
 
+import daf.filesystem.{ FileDataFormat, JsonFileFormat }
 import org.apache.hadoop.security.UserGroupInformation
 
 package object web {
@@ -28,6 +29,11 @@ package object web {
       new PrivilegedExceptionAction[U]() { def run: U = action }
     }
 
+  }
+
+  def contentType(targetFormat: FileDataFormat) = targetFormat match {
+    case JsonFileFormat => "application/json; charset=utf-8"
+    case _              => "text/plain; charset=utf-8"
   }
 
 }

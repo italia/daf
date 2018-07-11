@@ -21,6 +21,7 @@ import cats.syntax.show.toShow
 import controllers.DatasetController
 import daf.dataset.query.jdbc.JdbcResult
 import daf.dataset.query.Query
+import daf.web._
 import daf.filesystem._
 import org.apache.hadoop.fs.Path
 import play.api.libs.json.JsValue
@@ -41,14 +42,17 @@ trait QueryExecution { this: DatasetController =>
       Source[String](jdbcResult.toCsv).map { csv => s"$csv${System.lineSeparator}" }
     }
     case JsonFileFormat => Try {
-      Source[JsValue](jdbcResult.toJson).map { json => s"$json${System.lineSeparator}"}
+      wrapJson {
+        Source[JsValue](jdbcResult.toJson).map { _.toString }
+      }
     }
     case _              => Failure { new IllegalArgumentException(s"Invalid target format [$targetFormat]; must be [csv | json]") }
   }
 
   private def respond(params: DatasetParams, data: Source[String, _], targetFormat: FileDataFormat) = Try {
     Ok.chunked(data).withHeaders(
-      CONTENT_DISPOSITION -> s"""attachment; filename="${params.name}.${targetFormat.show}""""
+      CONTENT_DISPOSITION -> s"""attachment; filename="${params.name}.${targetFormat.show}"""",
+      CONTENT_TYPE        -> contentType(targetFormat)
     )
   }
 

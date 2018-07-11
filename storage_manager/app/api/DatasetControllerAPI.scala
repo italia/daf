@@ -43,7 +43,7 @@ trait DatasetControllerAPI {
   )
   def getDataset(@ApiParam(value = "the uri to access the dataset", required = true)
                  uri: String,
-                 @ApiParam(value = "the format the downloaded data should be converted", required = true)
+                 @ApiParam(value = "the format the downloaded data should be converted", required = false, defaultValue = "json")
                  @QueryParam("format")
                  format: String): Action[AnyContent]
 
@@ -66,7 +66,7 @@ trait DatasetControllerAPI {
   ))
   def queryDataset(@ApiParam(value = "the uri to access the dataset", required = true)
                    uri: String,
-                   @ApiParam(value = "the format the downloaded data should be converted", required = true)
+                   @ApiParam(value = "the format the downloaded data should be converted", required = false, defaultValue = "json")
                    @QueryParam("format")
                    format: String): Action[Query]
 

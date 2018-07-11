@@ -339,11 +339,11 @@ paths:
           schema:
             type: object
             $ref: '#/definitions/Success'
-        400:
+        500:
           description: Error
           schema:
-            type: object
-            $ref: '#/definitions/Error'
+           type: object
+           $ref: '#/definitions/Error'
         default:
           description: Unexpected error
           schema:

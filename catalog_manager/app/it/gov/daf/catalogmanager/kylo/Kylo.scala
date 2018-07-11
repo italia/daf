@@ -1,11 +1,11 @@
 package it.gov.daf.catalogmanager.kylo
 
 import catalog_manager.yaml.{Error, InputSrcSrv_pullOpt, MetaCatalog, Success}
-import play.api.libs.json.{JsObject, JsResult, JsValue}
+import play.api.libs.json._
 import play.api.libs.ws.{WSAuthScheme, WSClient, WSResponse}
 import com.google.inject.{Inject, Singleton}
-import it.gov.daf.catalogmanager.utilities.ConfigReader
 import play.api.Logger
+import play.libs.Json
 
 import scala.util.Try
 //import org.apache.hadoop.hdfs.protocol.proto.HdfsProtos.HdfsFileStatusProto.FileType
@@ -32,64 +32,68 @@ class Kylo @Inject()(ws :WSClient, config: ConfigurationProvider){
       .withAuth(KYLOUSER, KYLOPWD, WSAuthScheme.BASIC)
       .get()
 
-
     val res = futureResponseFeedInfo.map{
       resp =>
-        val json = resp.json
-        val id = (json \ "feedId").get.toString().replace("\"", "")
-        val creator = (json \ "userProperties" \\ "value").map(v => v.toString().replace("\"", ""))
+        val json: JsValue = Try(resp.json).getOrElse(JsNull)
+        val id = (json \ "feedId").getOrElse(JsNull).toString().replace("\"", "")
+//        val creator = (json \ "userProperties" \\ "value").map(v => v.toString().replace("\"", ""))
         //if(creator.contains(user)) Right(id)
         //else Left(Error("error in get info", Some(400), None))
         if(id.nonEmpty) Right(id)
-        else Left(Error("error in get info", Some(400), None))
+        else Left(Error("feed not found", Some(404), None))
     }
-
     res
   }
 
   def deleteFeed(feedName: String, user: String): Future[Either[Error, Success]] = {
-    val responseDelete: Future[WSResponse] = for{
-      idFeed <- getFeedInfo(feedName, user)
-      if idFeed.isRight
-      _ <- disableFeed(idFeed.right.get)
-      resDelete <- delete(idFeed.right.get)
-    } yield resDelete
-
-    responseDelete onComplete(res =>
-      Logger.logger.debug(s"response delete: ${res.isSuccess}")
-      )
-
-    responseDelete.map { res =>
-      if (res.status == 204) Right(Success(s"$user delete $feedName", None))
-      else Left(Error(res.statusText, Some(res.status), None))
+    getFeedInfo(feedName, user).flatMap{
+      case Right(idFeed) =>
+        disableFeed(idFeed)
+          .flatMap{_ => delete(idFeed)
+            .map{res =>
+              if(res.status == 204) {
+                Logger.logger.debug(s"$user deleted $feedName")
+                Right(Success(s"$feedName deleted", None))
+              }
+              else{
+                Logger.logger.debug(s"$user not deleted $feedName")
+                Left(Error(s"kylo feed $feedName ${res.statusText}", Some(res.status), None))
+              }
+            }
+          }
+      case Left(error) => Future.successful(Right(Success(error.message, None)))
     }
   }
 
   private def disableFeed(feedId: String): Future[Either[Error, Success]] = {
     val disbleFeedResponse: Future[WSResponse] = ws.url(KYLOURL + "/api/v1/feedmgr/feeds/disable/" + feedId)
-      .withAuth(KYLOUSER, KYLOPWD, WSAuthScheme.BASIC)
+      .withAuth(KYLOUSER, KYLOPWD, WSAuthScheme.BASIC).withHeaders("Content-Type" -> "application/json")
       .post("")
 
-    disbleFeedResponse.onComplete( r =>
-      if(r.isSuccess)Logger.logger.debug(s"$feedId disabled")
-      else Logger.logger.debug(s"$feedId not disabled")
-    )
+    val futureResponseDisableFeed = disbleFeedResponse
+      .map { res =>
+        if (res.status == 200) {
+          Logger.logger.debug(s"$feedId disabled")
+          Right(Success(s"$feedId disabled", None))
+        }
+        else {
+          Logger.logger.debug(s"$feedId not disabled")
+          Left(Error(s"$feedId not disabled", Some(res.status), None))
+        }
+      }
 
-    disbleFeedResponse
-      .map(res =>
-        if(res.status == 200) Right(Success(s"$feedId disable", None))
-        else Left(Error(s"$feedId not disable", Some(res.status), None))
-      )
+    futureResponseDisableFeed
   }
 
   private def delete(feedId: String): Future[WSResponse] = {
-    val futureResponseDelete = ws.url(KYLOURL + "/api/v1/feedmgr/feeds/" + feedId)
+    val futureResponseDelete: Future[WSResponse] = ws.url(KYLOURL + "/api/v1/feedmgr/feeds/" + feedId)
       .withAuth(KYLOUSER, KYLOPWD, WSAuthScheme.BASIC)
       .delete()
-    futureResponseDelete.onComplete(r =>
-      if(r.isSuccess) Logger.logger.debug(s"$feedId delete")
-      else Logger.logger.debug(s"$feedId not delete")
-    )
+
+    futureResponseDelete.onComplete { r =>
+      if (r.get.status == 204) Logger.logger.debug(s"$feedId deleted")
+      else Logger.logger.debug(s"$feedId not deleted")
+    }
     futureResponseDelete
   }
 

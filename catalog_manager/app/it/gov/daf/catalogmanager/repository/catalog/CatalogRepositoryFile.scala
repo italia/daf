@@ -289,8 +289,8 @@
 
     def isDatasetOnCatalog(name :String) = None
 
-    def deleteCatalogByName(nameCatalog: String, user: String): Future[Success] = {
-      Future.successful(Success("delete", None))
+    def deleteCatalogByName(nameCatalog: String, user: String, isAdmin: Boolean): Either[Error, Success] = {
+      Right(Success("delete", None))
     }
 
   }

@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
       - name: storage-manager
-        image: nexus.teamdigitale.test/daf-storage-manager:1.0.1-alpha.1-SNAPSHOT
+        image: nexus.teamdigitale.test/daf-storage-manager:1.0.2
         imagePullPolicy: Always
         env:
         - name: JAVA_OPTS

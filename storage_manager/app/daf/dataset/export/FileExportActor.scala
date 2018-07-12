@@ -80,7 +80,9 @@ class FileExportActor(livyFactory: LivyClientFactory,
 
   private def outputPath(inputPath: String) = exportPath / s"${inputPath.asHadoop.getName}-$suffix"
 
-  private def outputTable(name: String) = exportPath / s"tables/$name-$suffix"
+  private def outputTable(name: String) = exportPath / s"$name-$suffix"
+
+  private def outputQuery = exportPath / s"query-$suffix-$suffix"
 
   private def copy(inputPath: String, outputPath: String) = Try {
     FileUtil.copy(
@@ -96,12 +98,16 @@ class FileExportActor(livyFactory: LivyClientFactory,
     case false => Failure { new RuntimeException("Failed to copy files; check that the destination directory is accessible or can be created") }
   }
 
-  private def submit(inputPath: String, outputPath: String, fromFormat: FileDataFormat, toFormat: FileDataFormat, params: ExtraParams) = Try {
+  private def submitFileExport(inputPath: String, outputPath: String, fromFormat: FileDataFormat, toFormat: FileDataFormat, params: ExtraParams) = Try {
     livyClient.run { FileExportJob.create(inputPath, outputPath, fromFormat, toFormat, params) }.get
   }
 
-  private def submit(tableName: String, outputPath: String, toFormat: FileDataFormat) = Try {
-    livyClient.run { KuduExportJob.create(tableName, kuduMaster, outputPath, toFormat) }.get
+  private def submitKuduExport(tableName: String, outputPath: String, toFormat: FileDataFormat, params: ExtraParams) = Try {
+    livyClient.run { KuduExportJob.create(tableName, kuduMaster, outputPath, toFormat, params) }.get
+  }
+
+  private def submitQueryExport(query: String, outputPath: String, toFormat: FileDataFormat, params: ExtraParams) = Try {
+    livyClient.run { QueryExportJob.create(query, outputPath, toFormat, params) }.get
   }
 
   override def preStart() = {
@@ -114,8 +120,9 @@ class FileExportActor(livyFactory: LivyClientFactory,
 
   def receive = {
     case ExportFile(path, from, to, _)      if from == to => sender ! copy(path, outputPath(path))
-    case ExportFile(path, from, to, params)               => sender ! submit(path, outputPath(path), from, to, params)
-    case ExportTable(name, to)                            => sender ! submit(name, outputTable(name), to)
+    case ExportFile(path, from, to, params)               => sender ! submitFileExport(path, outputPath(path), from, to, params)
+    case ExportTable(name, to, params)                    => sender ! submitKuduExport(name, outputTable(name), to, params)
+    case ExportQuery(query, to, params)                   => sender ! submitQueryExport(query, outputQuery, to, params)
   }
 
 }
@@ -161,4 +168,5 @@ object FileExportActor {
 sealed trait ExportMessage
 
 case class ExportFile(path: String, sourceFormat: FileDataFormat, targetFormat: FileDataFormat, extraParams: Map[String, String] = Map.empty[String, String]) extends ExportMessage
-case class ExportTable(name: String, targetFormat: FileDataFormat) extends ExportMessage
+case class ExportTable(name: String, targetFormat: FileDataFormat, extraParams: Map[String, String] = Map.empty[String, String]) extends ExportMessage
+case class ExportQuery(query: String, targetFormat: FileDataFormat, extraParams: Map[String, String] = Map.empty[String, String]) extends ExportMessage

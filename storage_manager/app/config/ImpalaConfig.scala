@@ -23,10 +23,12 @@ import it.gov.daf.common.config.Read
   * @note This container exposes two flavors of JDBC urls: one connecting impala clients and another connecting hive2.
   * @param host the host name for an impala daemon
   * @param port the port where the hive2 server is running on the impala daemon
+  * @param memoryEstimationLimit the maximum amount of '''estimated''' memory in MB that a query is allowed to consume for it
+  *                              to be eligible to be executed in Impala
   * @param kerberosConfig the kerberos configuration
   * @param sslConfig optional SSL configuration to be used by the JDBC client
   */
-case class ImpalaConfig(host: String, port: Int, kerberosConfig: ImpalaKerberosConfig, sslConfig: Option[ImpalaSSLConfig]) {
+case class ImpalaConfig(host: String, port: Int, memoryEstimationLimit: Int, kerberosConfig: ImpalaKerberosConfig, sslConfig: Option[ImpalaSSLConfig]) {
 
   private def impalaKerberosPart = s";KrbRealm=${kerberosConfig.realm};KrbHostFQDN=${kerberosConfig.domain};KrbServiceName=${kerberosConfig.service}"
 
@@ -50,15 +52,17 @@ object ImpalaConfig {
   private def readConfig = Read.config { "impala" }.!
 
   private def readValues = for {
-    host           <- Read.string { "host" }.!
-    port           <- Read.int    { "port" }.!
-    kerberosConfig <- ImpalaKerberosConfig.reader
-    sslConfig      <- ImpalaSSLConfig.reader
+    host                  <- Read.string { "host" }.!
+    port                  <- Read.int    { "port" }.!
+    memoryEstimationLimit <- Read.int    { "memory_estimation_limit" }.!
+    kerberosConfig        <- ImpalaKerberosConfig.reader
+    sslConfig             <- ImpalaSSLConfig.reader
   } yield ImpalaConfig(
-    host      = host,
-    port      = port,
-    kerberosConfig = kerberosConfig,
-    sslConfig = sslConfig
+    host                  = host,
+    port                  = port,
+    memoryEstimationLimit = memoryEstimationLimit,
+    kerberosConfig        = kerberosConfig,
+    sslConfig             = sslConfig
   )
 
   def reader = readConfig ~> readValues

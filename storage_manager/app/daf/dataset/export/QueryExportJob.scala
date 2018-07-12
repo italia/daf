@@ -16,36 +16,30 @@
 
 package daf.dataset.export
 
-import daf.filesystem.{ CsvFileFormat, FileDataFormat, JsonFileFormat }
+import daf.dataset.ExtraParams
+import daf.filesystem._
 import org.apache.livy.{ Job, JobContext }
-import org.apache.kudu.spark.kudu._
 import org.apache.spark.sql._
 
 import scala.util.{ Failure, Success, Try }
 
 /**
-  * Livy `Job` for converting a Kudu table to CSV or JSON.
-  *
-  * @param table       the name of the Kudu table to export
-  * @param to          details representing the output data
-  * @param master      the location of the Kudu master
+  * Livy `Job` for querying tables using Spark-SQL functionality in a hive context.
+  * @param query the HiveQL query to execute in Spark
+  * @param to the target output format of the query result
   * @param extraParams a map of additional parameters that can be passed to this job, such as a `separator` in cases
   *                    where `to` is [[daf.filesystem.CsvFileFormat]]
   */
-class KuduExportJob(val table: String, val master: String, val to: FileExportInfo, extraParams: Map[String, String]) extends Job[String] {
+class QueryExportJob(val query: String, val to: FileExportInfo, val extraParams: Map[String, String]) extends Job[String] {
 
   private val csvDelimiter     = extraParams.getOrElse("separator", ",")
   private val csvIncludeHeader = true
 
+  // Export
+
   private def prepareCsvWriter(writer: DataFrameWriter[Row]) = writer
     .option("header",    csvIncludeHeader)
     .option("delimiter", csvDelimiter)
-
-  private def prepareReader(reader: DataFrameReader) = reader
-    .option("kudu.master", master)
-    .option("kudu.table", table)
-
-  private def read(session: SparkSession) = prepareReader { session.read }.kudu
 
   private def write(data: DataFrame) = to match {
     case FileExportInfo(path, CsvFileFormat)  => prepareCsvWriter(data.write).csv(path)
@@ -54,23 +48,22 @@ class KuduExportJob(val table: String, val master: String, val to: FileExportInf
   }
 
   private def doExport(session: SparkSession) = for {
-    data <- Try { read(session) }
+    data <- Try { session.sql(query) }
     _    <- Try { write(data) }
   } yield ()
 
-  def call(jobContext: JobContext) = doExport { jobContext.sqlctx().sparkSession } match {
+  override def call(jobContext: JobContext) = doExport { jobContext.sqlctx().sparkSession } match {
     case Success(_)     => to.path
     case Failure(error) => throw new RuntimeException("Export Job execution failed", error)
   }
 
 }
 
-object KuduExportJob {
+object QueryExportJob {
 
-  def create(table: String, master: String, outputPath: String, outputFormat: FileDataFormat, extraParams: Map[String, String] = Map.empty[String, String]) = new KuduExportJob(
-    table,
-    master,
-    FileExportInfo(outputPath, outputFormat),
+  def create(query: String, outputPath: String, to: FileDataFormat, extraParams: ExtraParams = Map.empty[String, String]) = new QueryExportJob(
+    query,
+    FileExportInfo(outputPath, to),
     extraParams
   )
 

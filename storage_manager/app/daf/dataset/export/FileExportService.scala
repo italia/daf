@@ -58,8 +58,23 @@ class FileExportService(fileExportConfig: FileExportConfig, kuduMaster: String)(
     * @param toFormat the [[daf.filesystem.FileDataFormat]] of the expected output file
     * @return `Future` containing the path to the exported file
     */
-  def exportTable(table: String, toFormat: FileDataFormat): Future[String] =
-    { exportRouter ? ExportTable(table, toFormat) }.flatMap {
+  def exportTable(table: String, toFormat: FileDataFormat, extraParams: ExtraParams = Map.empty[String, String]): Future[String] =
+    { exportRouter ? ExportTable(table, toFormat, extraParams) }.flatMap {
+      case Success(dataPath: String) => Future.successful { dataPath }
+      case Success(invalidValue)     => Future.failed { new IllegalArgumentException(s"Unexpected value received from export service; expected a string but got: [$invalidValue]") }
+      case Failure(error)            => Future.failed { error }
+      case unexpectedValue           => Future.failed { new IllegalArgumentException(s"Unexpected value received from export service; expected a Try[String], but received [$unexpectedValue]") }
+    }
+
+  /**
+    * Export the result of running an SQL query to a file, written in the given format.
+    * @param query the SQL to run
+    * @param toFormat the [[daf.filesystem.FileDataFormat]] of the expected output file
+    * @param extraParams a `Map[String, String]` of additional parameters to be passed to the export job
+    * @return a `Future` containing the parth to the exported file
+    */
+  def exportQuery(query: String, toFormat: FileDataFormat, extraParams: ExtraParams = Map.empty[String, String]): Future[String] =
+    { exportRouter ? ExportQuery(query, toFormat, extraParams) }.flatMap {
       case Success(dataPath: String) => Future.successful { dataPath }
       case Success(invalidValue)     => Future.failed { new IllegalArgumentException(s"Unexpected value received from export service; expected a string but got: [$invalidValue]") }
       case Failure(error)            => Future.failed { error }

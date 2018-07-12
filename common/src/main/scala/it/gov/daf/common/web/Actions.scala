@@ -20,6 +20,7 @@ import cats.{ Applicative, Id }
 import cats.instances.future.catsStdInstancesForFuture
 import cats.instances.try_.catsStdInstancesForTry
 import it.gov.daf.common.authentication.Authentication
+import it.gov.daf.common.utils.tryFutureNat
 import org.slf4j.{ Logger, LoggerFactory }
 import play.api.mvc._
 

@@ -42,8 +42,8 @@ trait BulkDownload { this: DatasetController with FileSystemInstance =>
       case Failure(error)  => Future.failed { error }
     }
 
-  private def prepareTableExport(table: String, targetFormat: FileDataFormat) =
-    fileExportService.exportTable(table, targetFormat).map { downloadService.openPath }.flatMap {
+  private def prepareTableExport(table: String, targetFormat: FileDataFormat, extraParams: ExtraParams) =
+    fileExportService.exportTable(table, targetFormat, extraParams).map { downloadService.openPath }.flatMap {
       case Success(stream) => Future.successful {
         StreamConverters.fromInputStream { () => stream }
       }
@@ -71,8 +71,8 @@ trait BulkDownload { this: DatasetController with FileSystemInstance =>
       )
     }
 
-  private def tableExportDownload(table: String, targetFormat: FileDataFormat) =
-    prepareTableExport(table, targetFormat).map { formatExport(_, targetFormat) }.map {
+  private def tableExportDownload(table: String, targetFormat: FileDataFormat, extraParams: ExtraParams) =
+    prepareTableExport(table, targetFormat, extraParams).map { formatExport(_, targetFormat) }.map {
       Ok.chunked(_).withHeaders(
         CONTENT_DISPOSITION -> s"""attachment; filename="$table.${targetFormat.show}"""",
         CONTENT_TYPE        -> contentType(targetFormat)
@@ -94,7 +94,7 @@ trait BulkDownload { this: DatasetController with FileSystemInstance =>
   private def retrieveTableInfo(tableName: String, userId: String) = (proxyUser as userId) { downloadService.tableInfo(tableName) }
 
   private def tableDownload(params: KuduDatasetParams, userId: String, targetFormat: FileDataFormat) = retrieveTableInfo(params.table, userId) match {
-    case Success(_)     => tableExportDownload(params.table, targetFormat)
+    case Success(_)     => tableExportDownload(params.table, targetFormat, params.extraParams)
     case Failure(error) => Future.failed { error }
   }
 

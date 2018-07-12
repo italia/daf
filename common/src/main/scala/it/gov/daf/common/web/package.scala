@@ -43,13 +43,6 @@ package object web {
   type ErrorHandler = PartialFunction[Throwable, Result]
   type DefiniteErrorHandler = Throwable => Result
 
-  implicit val tryFutureNat: (Try ~> Future) = new (Try ~> Future) {
-    def apply[A](fa: Try[A]): Future[A] = fa match {
-      case Success(a)     => Future.successful(a)
-      case Failure(error) => Future.failed[A](error)
-    }
-  }
-
   implicit class SyncWebActionSyntax[A](action: SyncWebAction[A]) {
 
     /**

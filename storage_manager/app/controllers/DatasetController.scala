@@ -91,8 +91,9 @@ class DatasetController @Inject()(configuration: Configuration,
     case Failure(error)  => Future.failed { error }
   }
 
-  private def executeQuery(query: Query, uri: String, auth: String, userId: String, targetFormat: FileDataFormat) = retrieveCatalog(auth, uri).flatMap {
-    exec(_, query, targetFormat, userId)
+  private def executeQuery(query: Query, uri: String, auth: String, userId: String, targetFormat: FileDataFormat, method: DownloadMethod) = retrieveCatalog(auth, uri) match {
+    case Success(params) => exec(params, query, userId, targetFormat, method)
+    case Failure(error)  => Future.failed { error }
   }
 
   private def checkTargetFormat[M[_]](format: String)(implicit M: MonadError[M, Throwable]): M[FileDataFormat] = format.toLowerCase match {
@@ -122,11 +123,12 @@ class DatasetController @Inject()(configuration: Configuration,
     } yield result
   }
 
-  def queryDataset(uri: String, format: String = "json"): Action[Query] = Actions.basic.securedAttempt(queryJson) { (request, auth, userId) =>
-    format.toLowerCase match {
-      case DownloadableFormats(targetFormat) => executeQuery(request.body, uri, auth, userId, targetFormat)
-      case _                                 => Success { Results.BadRequest(s"Invalid download format [$format], must be one of [csv | json]") }
-    }
+  def queryDataset(uri: String, format: String = "json", method: String = "batch"): Action[Query] = Actions.basic.securedAsync(queryJson) { (request, auth, userId) =>
+    for {
+      targetFormat   <- checkTargetFormat[Future](format)
+      downloadMethod <- checkDownloadMethod[Future](method)
+      result         <- executeQuery(request.body, uri, auth, userId, targetFormat, downloadMethod)
+    } yield result
   }
 
 }

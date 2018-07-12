@@ -112,9 +112,10 @@ object DatasetParams {
     extraParams = extraParams
   )
 
-  private def fromKudu(catalog: MetaCatalog, kuduInfo: StorageKudu) = readTable(catalog, kuduInfo).map {
-    KuduDatasetParams(_, catalog.operational.logical_uri)
-  }
+  private def fromKudu(catalog: MetaCatalog, kuduInfo: StorageKudu) = for {
+    table       <- readTable(catalog, kuduInfo)
+    extraParams <- addParam("separator", Some(","))
+  } yield KuduDatasetParams(table, catalog.operational.logical_uri, extraParams)
 
   def fromCatalog(catalog: MetaCatalog): Try[DatasetParams] = catalog.operational.storage_info.flatMap { info => info.hdfs orElse info.kudu } match {
     case Some(hdfsInfo: StorageHdfs) => fromHdfs(catalog, hdfsInfo)

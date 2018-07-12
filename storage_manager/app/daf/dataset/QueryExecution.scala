@@ -16,26 +16,46 @@
 
 package daf.dataset
 
-import akka.stream.scaladsl.Source
+import akka.stream.scaladsl.{ Source, StreamConverters }
 import cats.syntax.show.toShow
 import controllers.DatasetController
-import daf.dataset.query.jdbc.JdbcResult
+import daf.dataset.query.jdbc.{ JdbcResult, QueryFragmentWriterSyntax, Writers }
 import daf.dataset.query.Query
 import daf.web._
 import daf.filesystem._
+import it.gov.daf.common.utils._
 import org.apache.hadoop.fs.Path
 import play.api.libs.json.JsValue
 
+import scala.concurrent.Future
 import scala.util.{ Failure, Success, Try }
 
 trait QueryExecution { this: DatasetController =>
 
   private def extractTableName(path: Path): Try[String] = Try { s"${path.getParent.getName}.${path.getName}" }
 
-  private def extractTableName(params: DatasetParams): Try[String] = params match {
-    case kudu: KuduDatasetParams => Success { kudu.table }
-    case file: FileDatasetParams => extractTableName(file.path.asHadoop.resolve)
+  private def extractTableName(params: DatasetParams, userId: String): Try[String] = params match {
+    case kudu: KuduDatasetParams => (proxyUser as userId) { downloadService.tableInfo(kudu.table) } map { _ => kudu.table }
+    case file: FileDatasetParams => (proxyUser as userId) { extractTableName(file.path.asHadoop.resolve) }
   }
+
+  private def prepareQuery(params: DatasetParams, query: Query, userId: String) = for {
+    tableName <- extractTableName(params, userId)
+    fragment  <- Writers.sql(query, tableName).write
+  } yield fragment.query[Unit].sql
+
+  private def analyzeQuery(params: DatasetParams, query: Query, userId: String) = for {
+    tableName <- extractTableName(params, userId)
+    analysis  <- queryService.explain(query, tableName, userId)
+  } yield analysis
+
+  private def prepareQueryExport(query: String, targetFormat: FileDataFormat) =
+    fileExportService.exportQuery(query, targetFormat).map { downloadService.openPath }.flatMap {
+      case Success(stream) => Future.successful {
+        StreamConverters.fromInputStream { () => stream }
+      }
+      case Failure(error)  => Future.failed { error }
+    }
 
   private def transform(jdbcResult: JdbcResult, targetFormat: FileDataFormat) = targetFormat match {
     case CsvFileFormat  => Try {
@@ -49,18 +69,50 @@ trait QueryExecution { this: DatasetController =>
     case _              => Failure { new IllegalArgumentException(s"Invalid target format [$targetFormat]; must be [csv | json]") }
   }
 
-  private def respond(params: DatasetParams, data: Source[String, _], targetFormat: FileDataFormat) = Try {
-    Ok.chunked(data).withHeaders(
-      CONTENT_DISPOSITION -> s"""attachment; filename="${params.name}.${targetFormat.show}"""",
-      CONTENT_TYPE        -> contentType(targetFormat)
-    )
+  // Web
+  // Success
+
+  private def respond(params: DatasetParams, data: Source[String, _], targetFormat: FileDataFormat) = Ok.chunked(data).withHeaders(
+    CONTENT_DISPOSITION -> s"""attachment; filename="${params.name}.${targetFormat.show}"""",
+    CONTENT_TYPE        -> contentType(targetFormat)
+  )
+
+  // Failure
+
+  private def failQuickExec(params: DatasetParams, targetFormat: FileDataFormat) = Future.successful {
+    TemporaryRedirect {
+      s"${controllers.routes.DatasetController.queryDataset(params.catalogUri, targetFormat.show).url}?format=${targetFormat.show}&method=batch"
+    }
   }
 
-  protected def exec(params: DatasetParams, query: Query, targetFormat: FileDataFormat, userId: String) = for {
-    tableName  <- extractTableName(params)
+
+  // Executions
+
+  private def doBatchExec(params: DatasetParams, query: Query, targetFormat: FileDataFormat, userId: String) = prepareQuery(params, query, userId) match {
+    case Success(sql)   => prepareQueryExport(sql, targetFormat).map { formatExport(_, targetFormat) }
+    case Failure(error) => Future.failed { error }
+  }
+
+  private def doQuickExec(params: DatasetParams, query: Query, targetFormat: FileDataFormat, userId: String) = for {
+    tableName  <- extractTableName(params, userId)
     jdbcResult <- queryService.exec(query, tableName, userId)
     data       <- transform(jdbcResult, targetFormat)
-    response   <- respond(params, data, targetFormat)
-  } yield response
+  } yield data
+
+  // API
+
+  protected def quickExec(params: DatasetParams, query: Query, targetFormat: FileDataFormat, userId: String) = analyzeQuery(params, query, userId) match {
+    case Success(analysis) if analysis.memoryEstimation <= impalaConfig.memoryEstimationLimit => doQuickExec(params, query, targetFormat, userId).~>[Future].map { respond(params, _, targetFormat) }
+    case Success(_)                                                                           => failQuickExec(params, targetFormat)
+    case Failure(error)                                                                       => Future.failed { error }
+  }
+
+  protected def batchExec(params: DatasetParams, query: Query, targetFormat: FileDataFormat, userId: String) =
+    doBatchExec(params, query, targetFormat, userId).map { respond(params, _, targetFormat) }
+
+  protected def exec(params: DatasetParams, query: Query, userId: String, targetFormat: FileDataFormat, method: DownloadMethod) = method match {
+    case QuickDownloadMethod => quickExec(params, query, targetFormat, userId)
+    case BatchDownloadMethod => batchExec(params, query, targetFormat, userId)
+  }
 
 }

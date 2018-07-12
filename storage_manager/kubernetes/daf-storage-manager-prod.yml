@@ -1,0 +1,125 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: storage-manager
+  labels:
+    app: storage-manager
+spec:
+  type: NodePort
+  ports:
+  - port: 9000
+    protocol: TCP
+    name: http
+  selector:
+    app: storage-manager
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: storage-manager-deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: storage-manager
+    spec:
+      containers:
+      - name: storage-manager
+        image: nexus.teamdigitale.test/daf-storage-manager:1.0.2
+        imagePullPolicy: Always
+        env:
+        - name: JAVA_OPTS
+          value: "-server -XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:+PerfDisableSharedMem -XX:+ParallelRefProcEnabled -Xmx2g -Xms2g -XX:MaxPermSize=1024m"
+        - name: FREEIPA_ADMIN_PWD
+          valueFrom:
+            secretKeyRef:
+              name: daf-secret
+              key: freeipa_admin_pwd
+        - name: PLAY_CRYPTO
+          valueFrom:
+            secretKeyRef:
+              name: daf-secret
+              key: play_crypto
+        - name: PAC4J_CRYPTO
+          valueFrom:
+            secretKeyRef:
+              name: daf-secret
+              key: pac4j_crypto
+        - name: LDAP_USER_PWD
+          valueFrom:
+            secretKeyRef:
+              name: daf-secret
+              key: ldap_user_pwd
+        - name: SSL_KEYSTORE_PWD
+          valueFrom:
+            secretKeyRef:
+              name: daf-secret
+              key: ssl_keystore_pwd
+        ports:
+        - name: client
+          containerPort: 9000
+        volumeMounts:
+        # daf config
+        - name: config-volume
+          mountPath: /opt/docker/conf/app
+        # log config
+        - name: glusterfsvol
+          mountPath: /opt/docker/conf/logback.xml
+          subPath: storage-manager/conf/logback.xml
+          readOnly: true
+        - name: glusterfsvol
+          mountPath: /opt/docker/conf/daf.keytab
+          subPath: storage-manager/conf/daf.keytab
+          readOnly: true
+        - name: krb5conf
+          mountPath: /etc/krb5.conf
+        # hadoop config
+        - name: glusterfsvol
+          mountPath: /etc/hadoop/conf
+          subPath: cloudera/hive-conf
+          readOnly: true
+        - name: glusterfsvol
+          mountPath: /etc/hbase/conf
+          subPath: cloudera/hbase-conf
+          readOnly: true
+        # logging
+        - name: glusterfsvol
+          mountPath: /opt/docker/logs
+          subPath: storage-manager/logs
+        # kerberos
+#        Replaced by a secret daf.keytab
+#        - name: glusterfsvol
+#          mountPath: /opt/docker/conf/daf.keytab
+#          subPath: storage-manager/conf/daf.keytab
+        - name: daf-keytab
+          mountPath: /opt/docker/conf/daf.keytab
+          subPath: keytab/daf.keytab
+          readOnly: true
+        - name: krb5conf
+          mountPath: /etc/krb5.conf
+        # ssl
+        - name: glusterfsvol
+          mountPath: /opt/docker/cert/master-impala.jks
+          subPath: storage-manager/cert/master-impala.jks
+          readOnly: true
+      imagePullSecrets:
+      - name: regsecret
+      volumes:
+      - name: daf-keytab
+        secret:
+          secretName: keytab
+          items:
+          - key: daf.keytab
+            path: keytab/daf.keytab
+      - name: config-volume
+        configMap:
+          name: storage-manager-conf
+      - name: glusterfsvol
+        persistentVolumeClaim:
+          claimName: gluster-claim
+      - name: krb5conf
+        hostPath:
+          path: /etc/krb5.conf
+      nodeSelector:
+        nifi: "false"

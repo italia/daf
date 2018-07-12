@@ -6,7 +6,7 @@ object Versions {
 
   // internal
 
-  lazy val common = sys.env.getOrElse("COMMON_VERSION", defaultVersion)
+  lazy val common = sys.env.getOrElse("COMMON_VERSION", "1.0.9-SNAPSHOT")
 
   // external
 

@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package daf.dataset
+package controllers
 
-import akka.stream.scaladsl.{ Source, StreamConverters }
+import akka.stream.scaladsl.Source
 import cats.syntax.show.toShow
-import controllers.DatasetController
+import daf.dataset._
 import daf.dataset.query.jdbc.{ JdbcResult, QueryFragmentWriterSyntax, Writers }
 import daf.dataset.query.Query
 import daf.web._
 import daf.filesystem._
+import daf.instances.FileSystemInstance
 import it.gov.daf.common.utils._
 import org.apache.hadoop.fs.Path
 import play.api.libs.json.JsValue
@@ -30,7 +31,7 @@ import play.api.libs.json.JsValue
 import scala.concurrent.Future
 import scala.util.{ Failure, Success, Try }
 
-trait QueryExecution { this: DatasetController =>
+trait QueryExecution { this: DatasetController with DatasetExport with FileSystemInstance =>
 
   private def extractTableName(path: Path): Try[String] = Try { s"${path.getParent.getName}.${path.getName}" }
 
@@ -49,14 +50,6 @@ trait QueryExecution { this: DatasetController =>
     analysis  <- queryService.explain(query, tableName, userId)
   } yield analysis
 
-  private def prepareQueryExport(query: String, targetFormat: FileDataFormat) =
-    fileExportService.exportQuery(query, targetFormat).map { downloadService.openPath }.flatMap {
-      case Success(stream) => Future.successful {
-        StreamConverters.fromInputStream { () => stream }
-      }
-      case Failure(error)  => Future.failed { error }
-    }
-
   private def transform(jdbcResult: JdbcResult, targetFormat: FileDataFormat) = targetFormat match {
     case CsvFileFormat  => Try {
       Source[String](jdbcResult.toCsv).map { csv => s"$csv${System.lineSeparator}" }
@@ -70,21 +63,13 @@ trait QueryExecution { this: DatasetController =>
   }
 
   // Web
-  // Success
-
-  private def respond(params: DatasetParams, data: Source[String, _], targetFormat: FileDataFormat) = Ok.chunked(data).withHeaders(
-    CONTENT_DISPOSITION -> s"""attachment; filename="${params.name}.${targetFormat.show}"""",
-    CONTENT_TYPE        -> contentType(targetFormat)
-  )
-
   // Failure
 
   private def failQuickExec(params: DatasetParams, targetFormat: FileDataFormat) = Future.successful {
     TemporaryRedirect {
-      s"${controllers.routes.DatasetController.queryDataset(params.catalogUri, targetFormat.show).url}?format=${targetFormat.show}&method=batch"
+      s"${controllers.routes.DatasetController.queryDataset(params.catalogUri, targetFormat.show, "batch").url}"
     }
   }
-
 
   // Executions
 
@@ -102,13 +87,13 @@ trait QueryExecution { this: DatasetController =>
   // API
 
   protected def quickExec(params: DatasetParams, query: Query, targetFormat: FileDataFormat, userId: String) = analyzeQuery(params, query, userId) match {
-    case Success(analysis) if analysis.memoryEstimation <= impalaConfig.memoryEstimationLimit => doQuickExec(params, query, targetFormat, userId).~>[Future].map { respond(params, _, targetFormat) }
+    case Success(analysis) if analysis.memoryEstimation <= impalaConfig.memoryEstimationLimit => doQuickExec(params, query, targetFormat, userId).~>[Future].map { respond(_, params.name, targetFormat) }
     case Success(_)                                                                           => failQuickExec(params, targetFormat)
     case Failure(error)                                                                       => Future.failed { error }
   }
 
   protected def batchExec(params: DatasetParams, query: Query, targetFormat: FileDataFormat, userId: String) =
-    doBatchExec(params, query, targetFormat, userId).map { respond(params, _, targetFormat) }
+    doBatchExec(params, query, targetFormat, userId).map { respond(_, params.name, targetFormat) }
 
   protected def exec(params: DatasetParams, query: Query, userId: String, targetFormat: FileDataFormat, method: DownloadMethod) = method match {
     case QuickDownloadMethod => quickExec(params, query, targetFormat, userId)

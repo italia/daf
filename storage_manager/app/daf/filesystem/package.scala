@@ -73,11 +73,17 @@ package object filesystem {
 
     /**
       * Advances the stream to the next line. This has the same effect on the stream as calling `skim`. If nothing was
-      * dropped, the stream of empty, and we throw `EOFException`.
+      * dropped, the stream is empty and we throw `EOFException`.
       *
       * @throws EOFException if the stream was empty
       */
-    def tail: FSDataInputStream = if (skim > 0) inputStream else throw new EOFException("Attempted to tail an empty stream")
+    def tail: FSDataInputStream = tailOption.getOrElse { throw new EOFException("Attempted to tail an empty stream") }
+
+    /**
+      * Advances the stream to the next line. This has the same effect on the stream as calling `skim`. If nothing was
+      * dropped, the stream is empty, and we return `None`.
+      */
+    def tailOption: Option[FSDataInputStream] = if (skim > 0) Some(inputStream) else None
 
   }
 

@@ -131,7 +131,7 @@ class DatasetControllerSpec extends TestAbstractModule
         }.header.status should be { 400 }
       }
 
-      "return 307 when a file is not found" in withController { controller =>
+      "return 404 when a file is not found" in withController { controller =>
         request[AnyContent]("GET", "/dataset-manager/v1/dataset/unknown/file", AnyContentAsEmpty, Some("Basic:token")) {
           controller.getDataset("unknown/file", "csv", "quick")
         }.header.status should be { 404 }

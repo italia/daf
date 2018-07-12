@@ -36,7 +36,7 @@ trait MergeStrategy[+A <: FileDataFormat] {
 object CsvMergeStrategy extends MergeStrategy[RawFileFormat.type] {
 
   private def clean(streams: Seq[FSDataInputStream]) = streams match {
-    case Seq(head, tail @ _*) => head +: tail.map { _.tail }
+    case Seq(head, tail @ _*) => head +: tail.flatMap { _.tailOption }
     case _                    => streams
   }
 

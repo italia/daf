@@ -46,7 +46,7 @@ trait DatasetControllerAPI {
                  @ApiParam(value = "the format the downloaded data should be converted", required = false, defaultValue = "json")
                  @QueryParam("format")
                  format: String,
-                 @ApiParam(value = "the method used to perform the data conversions", required = true)
+                 @ApiParam(value = "the method used to perform the data conversions", required = false, defaultValue = "quick")
                  @QueryParam("method")
                  method: String): Action[AnyContent]
 
@@ -72,7 +72,7 @@ trait DatasetControllerAPI {
                    @ApiParam(value = "the format the downloaded data should be converted", required = false, defaultValue = "json")
                    @QueryParam("format")
                    format: String,
-                   @ApiParam(value = "the method used to perform the data conversions", required = true)
+                   @ApiParam(value = "the method used to perform the data conversions", required = false, defaultValue = "quick")
                    @QueryParam("method")
                    method: String): Action[Query]
 

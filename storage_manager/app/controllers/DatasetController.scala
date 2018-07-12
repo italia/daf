@@ -52,7 +52,8 @@ class DatasetController @Inject()(configuration: Configuration,
   extends AbstractController(configuration, playSessionStore)
   with DatasetControllerAPI
   with QueryExecution
-  with BulkDownload
+  with DownloadExecution
+  with DatasetExport
   with FileSystemInstance {
 
   implicit val fileSystem = FileSystem.get(new HadoopConfiguration)
@@ -115,7 +116,7 @@ class DatasetController @Inject()(configuration: Configuration,
     } yield Ok { schema.prettyJson } as JSON
   }
 
-  def getDataset(uri: String, format: String = "json", method: String = "batch"): Action[AnyContent] = Actions.basic.securedAsync { (_, auth, userId) =>
+  def getDataset(uri: String, format: String = "json", method: String = "quick"): Action[AnyContent] = Actions.basic.securedAsync { (_, auth, userId) =>
     for {
       targetFormat   <- checkTargetFormat[Future](format)
       downloadMethod <- checkDownloadMethod[Future](method)
@@ -123,7 +124,7 @@ class DatasetController @Inject()(configuration: Configuration,
     } yield result
   }
 
-  def queryDataset(uri: String, format: String = "json", method: String = "batch"): Action[Query] = Actions.basic.securedAsync(queryJson) { (request, auth, userId) =>
+  def queryDataset(uri: String, format: String = "json", method: String = "quick"): Action[Query] = Actions.basic.securedAsync(queryJson) { (request, auth, userId) =>
     for {
       targetFormat   <- checkTargetFormat[Future](format)
       downloadMethod <- checkDownloadMethod[Future](method)

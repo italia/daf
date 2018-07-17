@@ -1,0 +1,1 @@
+POST    /iot/v1/stream         controllers.StreamController.create

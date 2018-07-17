@@ -62,17 +62,17 @@ class DatasetController @Inject()(configuration: Configuration,
 
   private val kuduMaster = Read.string { "kudu.master" }.!.read(configuration) match {
     case Success(result) => result
-    case Failure(error)  => throw ConfigReadException(s"Unable to configure [dataset-manager]", error)
+    case Failure(error)  => throw ConfigReadException("Unable to configure [dataset-manager]", error)
   }
 
   protected val exportConfig = FileExportConfig.reader.read(configuration) match {
     case Success(result) => result
-    case Failure(error)  => throw ConfigReadException(s"Unable to configure [dataset-manager]", error)
+    case Failure(error)  => throw ConfigReadException("Unable to configure [dataset-manager]", error)
   }
 
   protected val impalaConfig = ImpalaConfig.reader.read(this.configuration) match {
     case Success(config) => config
-    case Failure(error)  => throw ConfigReadException(s"Unable to configure [impala-jdbc]", error)
+    case Failure(error)  => throw ConfigReadException("Unable to configure [impala-jdbc]", error)
   }
 
   protected val datasetService    = new DatasetService(configuration.underlying)

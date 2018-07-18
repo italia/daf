@@ -16,11 +16,22 @@
 
 package it.gov.daf.common.web
 
+import it.gov.daf.common.sso.UserGroupInformationSyntax
+import org.apache.hadoop.security.UserGroupInformation
+
 import scala.language.higherKinds
 
 trait Impersonation {
 
   def wrap[F[_], A](action: WebAction[F, A]): String => WebAction[F, A]
+
+}
+
+sealed class HadoopImpersonation(proxyUser: UserGroupInformation) extends Impersonation {
+
+  def wrap[F[_], A](action: WebAction[F, A]) = { userId => request =>
+    (proxyUser as userId) { action(request) }
+  }
 
 }
 
@@ -32,5 +43,13 @@ object NoImpersonation extends Impersonation {
 object Impersonations {
 
   def none: Impersonation = NoImpersonation
+
+  /**
+    * An `Action` will be performed by the `proxyUser` on behalf of the supplied user id. The `proxyUser` can be any
+    * instance of `UserGroupInformation`, such as the current user, the logged in user, a user logged in from a Kerberos
+    * keytab, a subject and so on.
+    * @param proxyUser the user who will do the impersonation
+    */
+  def hadoop(implicit proxyUser: UserGroupInformation): Impersonation = new HadoopImpersonation(proxyUser)
 
 }

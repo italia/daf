@@ -37,7 +37,8 @@ scalacOptions ++= Seq(
 
 enablePlugins(
   PlayScala,
-  AutomateHeaderPlugin
+  AutomateHeaderPlugin,
+  SbtAvrohugger
 )
 
 // Dependencies
@@ -143,6 +144,10 @@ dependencyOverrides += "com.google.guava" % "guava" % "16.0.1" % "compile"
 //  "com.cloudera.livy" % "livy-client-http" % "0.3.0"
 //) ++ logLibraries ++ kudu ++ spark ++ avroLibs ++ hadoopTest ++ kuduTest
 
-avroSpecificScalaSource in Compile := new java.io.File(s"${baseDirectory.value}/src/generated/scala")
+
+
+//avroSpecificScalaSource in Compile := new java.io.File(s"${baseDirectory.value}/src/generated/scala")
+
+avroSpecificSourceDirectory in Compile := baseDirectory.value / "avro"
 
 sourceGenerators in Compile += (avroScalaGenerateSpecific in Compile).taskValue

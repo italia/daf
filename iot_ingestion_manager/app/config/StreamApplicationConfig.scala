@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package daf.web
+package config
 
-import it.gov.daf.common.web.{ Impersonation, WebAction }
-import org.apache.hadoop.security.UserGroupInformation
+import it.gov.daf.common.config.Read
 
-import scala.language.higherKinds
+case class StreamApplicationConfig(catalogUrl: String,
+                                   kafkaConfig: KafkaConfig)
 
-sealed class HadoopImpersonation(proxyUser: UserGroupInformation) extends Impersonation {
+object StreamApplicationConfig {
 
-  def wrap[F[_], A](action: WebAction[F, A]) = { userId => request =>
-    (proxyUser as userId) { action(request) }
-  }
+  private val readKafka = KafkaConfig.reader
 
-}
-
-object Impersonations {
-
-  def hadoop(implicit proxyUser: UserGroupInformation) = new HadoopImpersonation(proxyUser)
+  def reader = for {
+    catalogUrl  <- Read.string { "catalog_url" }.!
+    kafkaConfig <- readKafka
+  } yield StreamApplicationConfig(
+    catalogUrl  = catalogUrl,
+    kafkaConfig = kafkaConfig
+  )
 
 }

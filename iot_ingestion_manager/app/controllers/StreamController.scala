@@ -18,30 +18,27 @@ package controllers
 
 import api.StreamAPI
 import com.google.inject.Inject
-import config.KafkaConfig
+import config.StreamApplicationConfig
 import daf.stream.StreamService
-import it.gov.daf.common.authentication.Authentication
-import it.gov.daf.common.web.Actions
+import it.gov.daf.common.web.{ Actions, SecureController }
 import org.pac4j.play.store.PlaySessionStore
 import play.api.Configuration
-import play.api.mvc.{ BodyParsers, Controller }
+import play.api.mvc.BodyParsers
 import representation.{ KafkaStreamData, SocketStreamData, StreamData }
 import representation.json.streamDataReader
 
 import scala.util.{ Failure, Success }
 
-class StreamController @Inject()(playSessionStore: PlaySessionStore, configuration: Configuration) extends Controller with StreamAPI {
-
-  Authentication(configuration, playSessionStore)
+class StreamController @Inject()(configuration: Configuration, playSessionStore: PlaySessionStore) extends SecureController(configuration, playSessionStore) with StreamAPI {
 
   private val streamDataJson = BodyParsers.parse.json[StreamData](streamDataReader)
 
-  private val kafkaConfig = KafkaConfig.reader.read { configuration } match {
+  private val applicationConfig = StreamApplicationConfig.reader.read { configuration } match {
     case Success(config) => config
     case Failure(error)  => throw new RuntimeException("Unable to configure [iot-manager]", error)
   }
 
-  private val streamService = new StreamService(kafkaConfig)
+  private val streamService = new StreamService(applicationConfig.kafkaConfig)
 
   private def createSocketStream(id: String, interval: Int, port: Int) = streamService.createSocket(id, interval, port).map {
     case query if query.isActive => Created

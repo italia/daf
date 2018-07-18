@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package controllers
+package it.gov.daf.common.web
 
 import it.gov.daf.common.authentication.Authentication
-import it.gov.daf.common.config.Read
-import javax.security.auth.login.LoginContext
+import it.gov.daf.common.sso.config.KerberosConfig
 import org.apache.hadoop.security.UserGroupInformation
 import org.pac4j.play.store.PlaySessionStore
 import play.api.Configuration
@@ -27,16 +26,21 @@ import play.api.mvc._
 import scala.util.{ Failure, Success, Try }
 
 /**
-  * This class authenticates users through a keytab and provides the Hadoop impersonation `proxyUser`
+  * This class authenticates users through a keytab and provides the Hadoop impersonation `proxyUser`.
   */
-abstract class AbstractController(protected val configuration: Configuration, val playSessionStore: PlaySessionStore) extends Controller {
+@SuppressWarnings(
+  Array(
+    "org.wartremover.warts.Null",
+    "org.wartremover.warts.Throw"
+  )
+)
+abstract class SecureController(protected val configuration: Configuration, val playSessionStore: PlaySessionStore) extends Controller {
 
   private def prepareEnv() = Try { System.setProperty("javax.security.auth.useSubjectCredsOnly", "false") }
 
-  private def loginUserFromConf = for {
-    user <- Read.string { "kerberos.principal" }.!
-    path <- Read.string { "kerberos.keytab"    }.!
-  } yield UserGroupInformation.loginUserFromKeytab(user, path)
+  private def loginUserFromConf = KerberosConfig.reader.map { config =>
+    UserGroupInformation.loginUserFromKeytab(config.principal, config.keytab)
+  }
 
   private def prepareAuth() = Try { Authentication(configuration, playSessionStore) }
 
@@ -46,10 +50,11 @@ abstract class AbstractController(protected val configuration: Configuration, va
     _ <- prepareAuth()
   } yield UserGroupInformation.getLoginUser
 
-  protected implicit val proxyUser = initUser() match {
+  protected implicit val proxyUser: UserGroupInformation = initUser() match {
     case Success(null)  => throw new RuntimeException("Unable to initialize user for application")
-    case Success(user)  => user
     case Failure(error) => throw new RuntimeException("Unable to initialize user for application", error)
+    case Success(user)  => user
   }
 
 }
+

@@ -14,15 +14,20 @@
  * limitations under the License.
  */
 
-package daf
+package it.gov.daf.common
 
-import daf.filesystem.{ FileDataFormat, JsonFileFormat }
+import java.security.PrivilegedExceptionAction
 
-package object web {
+import org.apache.hadoop.security.UserGroupInformation
 
-  def contentType(targetFormat: FileDataFormat) = targetFormat match {
-    case JsonFileFormat => "application/json; charset=utf-8"
-    case _              => "text/plain; charset=utf-8"
+package object sso {
+
+  implicit class UserGroupInformationSyntax(user: UserGroupInformation) {
+
+    def as[U](otherUserId: String)(action: => U): U = UserGroupInformation.createProxyUser(otherUserId, user).doAs {
+      new PrivilegedExceptionAction[U]() { def run: U = action }
+    }
+
   }
 
 }

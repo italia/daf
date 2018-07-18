@@ -19,9 +19,9 @@ package controllers
 import cats.syntax.show.toShow
 import daf.dataset._
 import daf.filesystem.{ FileDataFormat, fileFormatShow }
-import daf.web._
 import daf.instances.FileSystemInstance
 import it.gov.daf.common.utils._
+import it.gov.daf.common.sso.UserGroupInformationSyntax
 
 import scala.concurrent.Future
 import scala.util.{ Failure, Success }

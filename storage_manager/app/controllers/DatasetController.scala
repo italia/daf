@@ -33,6 +33,7 @@ import daf.instances.{ FileSystemInstance, ImpalaTransactorInstance }
 import daf.web._
 import daf.filesystem.{ DownloadableFormats, FileDataFormat }
 import it.gov.daf.common.config.{ ConfigReadException, Read }
+import it.gov.daf.common.web.SecureController
 import org.apache.hadoop.conf.{ Configuration => HadoopConfiguration }
 import org.apache.hadoop.fs.FileSystem
 import org.pac4j.play.store.PlaySessionStore
@@ -49,7 +50,7 @@ class DatasetController @Inject()(configuration: Configuration,
                                   protected val ws: WSClient,
                                   protected implicit val actorSystem: ActorSystem,
                                   protected implicit val ec: ExecutionContext)
-  extends AbstractController(configuration, playSessionStore)
+  extends SecureController(configuration, playSessionStore)
   with DatasetControllerAPI
   with QueryExecution
   with DownloadExecution

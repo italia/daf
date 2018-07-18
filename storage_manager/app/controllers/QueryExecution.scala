@@ -21,10 +21,10 @@ import cats.syntax.show.toShow
 import daf.dataset._
 import daf.dataset.query.jdbc.{ JdbcResult, QueryFragmentWriterSyntax, Writers }
 import daf.dataset.query.Query
-import daf.web._
 import daf.filesystem._
 import daf.instances.FileSystemInstance
 import it.gov.daf.common.utils._
+import it.gov.daf.common.sso.UserGroupInformationSyntax
 import org.apache.hadoop.fs.Path
 import play.api.libs.json.JsValue
 

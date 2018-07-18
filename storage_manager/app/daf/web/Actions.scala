@@ -16,7 +16,7 @@
 
 package daf.web
 
-import it.gov.daf.common.web.{ ActionBuilder, Actions => DefaultActions }
+import it.gov.daf.common.web.{ ActionBuilder, Impersonations, Actions => DefaultActions }
 import org.apache.hadoop.security.UserGroupInformation
 
 object Actions {

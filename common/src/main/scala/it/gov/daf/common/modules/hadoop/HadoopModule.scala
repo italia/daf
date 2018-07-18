@@ -23,6 +23,7 @@ import javax.inject.Inject
 import akka.actor.ActorSystem
 import com.google.inject.{ AbstractModule, Singleton }
 import it.gov.daf.common.config.Read
+import it.gov.daf.common.sso.config.KerberosConfig
 import play.Logger
 import play.Logger.ALogger
 import play.api.{ Configuration, Environment }
@@ -44,13 +45,12 @@ class SchedulingTask @Inject()(val system: ActorSystem, val configuration: Confi
 
   private implicit val executionContext = system.dispatcher
 
-  private def prepareProcess = for {
-    keytab    <- Read.string { "kerberos.keytab"    }.!
-    principal <- Read.string { "kerberos.principal" }.!
-  } yield Process(
-    "/usr/bin/kinit",
-    Seq("-kt", keytab, principal)
-  )
+  private def prepareProcess = KerberosConfig.reader.map { config =>
+    Process(
+      "/usr/bin/kinit",
+      Seq("-kt", config.keytab, config.principal)
+    )
+  }
 
   private def info(message: String) = Success { logger.info(message) }
 
@@ -81,13 +81,12 @@ class HadoopModule @Inject()(val environment: Environment, val configuration: Co
 
   private val logger: ALogger = Logger.of(this.getClass.getCanonicalName)
 
-  private def prepareProcess = for {
-    keytab    <- Read.string { "kerberos.keytab"    }.!
-    principal <- Read.string { "kerberos.principal" }.!
-  } yield Process(
-    "/usr/bin/kinit",
-    Seq("-kt", keytab, principal)
-  )
+  private def prepareProcess = KerberosConfig.reader.map { config =>
+    Process(
+      "/usr/bin/kinit",
+      Seq("-kt", config.keytab, config.principal)
+    )
+  }
 
   private def prepareClasspath = for {
     hadoopConf <- Read.string { "hadoop_conf_dir" } default "/etc/hadoop/conf"

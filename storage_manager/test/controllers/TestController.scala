@@ -18,8 +18,7 @@ package controllers
 
 import akka.actor.ActorSystem
 import cats.Id
-import daf.web.Impersonations
-import it.gov.daf.common.web.WebAction
+import it.gov.daf.common.web.{ Impersonations, SecureController, WebAction }
 import org.apache.hadoop.security.UserGroupInformation
 import org.apache.spark.sql.{ DataFrame, SparkSession }
 import org.pac4j.play.store.PlaySessionStore
@@ -34,7 +33,7 @@ class TestController(override val configuration: Configuration,
                      override val playSessionStore: PlaySessionStore,
                      val sparkSession: SparkSession,
                      protected implicit val system: ActorSystem,
-                     protected implicit val executionContext: ExecutionContext) extends AbstractController(configuration, playSessionStore) {
+                     protected implicit val executionContext: ExecutionContext) extends SecureController(configuration, playSessionStore) {
 
   type GenericAction[A]   = Request[AnyContent] => A
   type ResultAction       = WebAction[Id, AnyContent]

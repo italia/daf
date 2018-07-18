@@ -11,4 +11,5 @@ object Versions {
   val catsVersion = "0.9.0"
 
   val catsEffectVersion = "1.0.0-RC"
+
 }

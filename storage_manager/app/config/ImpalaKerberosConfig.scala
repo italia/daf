@@ -35,7 +35,7 @@ case class ImpalaKerberosConfig(realm: String, domain: String, service: String) 
 
 object ImpalaKerberosConfig {
 
-  private def readKerberosCOnfig = Read.config { "kerberos" }.!
+  private def readKerberosConfig = Read.config { "kerberos" }.!
 
   private def readKerberosValues = for {
     realm   <- Read.string { "realm"   }.!
@@ -43,6 +43,6 @@ object ImpalaKerberosConfig {
     service <- Read.string { "service" }.!
   } yield ImpalaKerberosConfig(realm, domain, service)
 
-  def reader = readKerberosCOnfig ~> readKerberosValues
+  def reader = readKerberosConfig ~> readKerberosValues
 
 }

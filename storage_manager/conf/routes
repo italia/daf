@@ -1,0 +1,36 @@
+# Copyright 2017 TEAM PER LA TRASFORMAZIONE DIGITALE
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+GET         /storage-manager/swagger.json                       controllers.WithSecurityInfoApiHelpController.getResources
+
+# Home page
+GET         /                                                   controllers.Application.index
+#POST        /storage-manager/v1/physical-datasets              controllers.StorageController.getDataset
+#(params: Map[String, String])
+#POST        /storage-manager/v1/physical-datasets/schema       controllers.StorageController.getDatasetSchema
+
+### NoDocs ###
+GET         /storage-manager/docs/swagger-ui/*file              controllers.Assets.at(path:String="/public/lib/swagger-ui", file:String)
+
+GET         /metrics                                            controllers.MetricsController.index
+
+### NoDocs ###
+GET         /storage-manager/*file                              controllers.Assets.versioned(path="/public", file: Asset)
+
+GET         /dataset-manager/v1/dataset/:uri                    controllers.DatasetController.getDataset(uri: String, format: String ?= "json", method: String ?= "quick")
+GET         /dataset-manager/v1/dataset/:uri/schema             controllers.DatasetController.getSchema(uri: String)
+POST        /dataset-manager/v1/dataset/:uri/search             controllers.DatasetController.queryDataset(uri: String, format: String ?= "json", method: String ?= "quick")

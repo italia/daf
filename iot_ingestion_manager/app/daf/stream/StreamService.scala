@@ -20,9 +20,10 @@ import java.util.concurrent.TimeUnit
 
 import config.KafkaConfig
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.streaming.Trigger
+import org.apache.spark.sql.streaming.{ DataStreamWriter, Trigger }
+import representation._
 
-import scala.util.Try
+import scala.util.{ Failure, Try }
 
 class StreamService(kafkaConfig: KafkaConfig) {
 
@@ -35,21 +36,30 @@ class StreamService(kafkaConfig: KafkaConfig) {
 
   def findStream(id: String) = sparkSession.streams.active.toSeq.find { _.name == id }
 
-  def createSocket(id: String, interval: Int, port: Int) = Try {
+  private def prepareStream(streamData: StreamData) = streamData.source match {
+    case KafkaSource(topic)       => prepareKafka(streamData.id, streamData.interval, topic)
+    case SocketSource(host, port) => prepareSocket(streamData.id, streamData.interval, host, port)
+  }
+
+  private def startStream[A](streamData: StreamData, stream: DataStreamWriter[A]) = streamData.sink match {
+    case ConsoleSink    => Try { stream.format("console").start() }
+    case HdfsSink(path) => Try { stream.format("parquet").option("path", path).start() }
+    case KuduSink(_)    => Failure { new IllegalArgumentException(s"Kudu sink is not supported for stream id [${streamData.id}]") }
+  }
+
+  private def prepareSocket(id: String, interval: Long, host: String, port: Int) = Try {
     sparkSession
       .readStream
       .format("socket")
-      .option("host", "localhost")
+      .option("host", host)
       .option("port", port)
       .load()
       .writeStream
       .queryName(id)
       .trigger { Trigger.ProcessingTime(interval, TimeUnit.SECONDS) }
-      .format("console")
-      .start()
   }
 
-  def createKafka(id: String, interval: Int, topic: String) = Try {
+  private def prepareKafka(id: String, interval: Long, topic: String) = Try {
     sparkSession.readStream
       .format("kafka")
       .option("kafka.bootstrap.servers", kafkaConfig.servers mkString ",")
@@ -58,9 +68,11 @@ class StreamService(kafkaConfig: KafkaConfig) {
       .writeStream
       .queryName(id)
       .trigger { Trigger.ProcessingTime(interval, TimeUnit.SECONDS) }
-      .format("console")
-      .start()
-
   }
+
+  def createStream(streamData: StreamData) = for {
+    stream <- prepareStream(streamData)
+    query  <- startStream(streamData, stream)
+  } yield query
 
 }

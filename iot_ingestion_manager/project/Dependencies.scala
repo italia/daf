@@ -6,7 +6,9 @@ object Dependencies {
 
     object internal {
 
-      lazy val common = "it.gov.daf" %% "common" % Versions.common
+      lazy val common  = "it.gov.daf" %% "common" % Versions.common
+
+      lazy val catalog = "it.gov.daf" %% "daf-catalog-manager-client" % Versions.catalog
 
     }
 
@@ -60,31 +62,37 @@ object Dependencies {
 
     object avro {
 
-      val core      = "org.apache.avro"  % "avro"           % Versions.avro
+      val bijection  = "com.twitter"          %% "bijection-avro" % Versions.avroBijection
 
-      val bijection = "com.twitter"     %% "bijection-avro" % Versions.avroBijection
+      val avro4sCore =  "com.sksamuel.avro4s" %% "avro4s-core"    % Versions.avro4s
 
-      val all = Seq(core, bijection)
+      val avro4sJson =  "com.sksamuel.avro4s" %% "avro4s-json"    % Versions.avro4s
+
+      val all = Seq(avro4sCore, avro4sJson)
 
     }
 
-    val typesafeConfig      = "com.typesafe"     % "config"               % Versions.typesafeConfig
+    val typesafeConfig = "com.typesafe"     % "config"        % Versions.typesafeConfig
 
-    val catsCore            = "org.typelevel"   %% "cats-core"            % Versions.catsCore
+    val catsCore       = "org.typelevel"   %% "cats-core"     % Versions.catsCore
 
-    val guava               = "com.google.guava" % "guava"                % Versions.guava
+    val guava          = "com.google.guava" % "guava"         % Versions.guava
 
-    val swaggerUI           = "org.webjars"      % "swagger-ui"           % Versions.swaggerUI
+    val swaggerUI      = "org.webjars"      % "swagger-ui"    % Versions.swaggerUI
 
-    val swaggerPlay2        = "io.swagger"      %% "swagger-play2"        % Versions.swaggerPlay2
+    val swaggerPlay2   = "io.swagger"      %% "swagger-play2" % Versions.swaggerPlay2
+
+    val cronUtils      = "com.cronutils"    % "cron-utils"    % Versions.cron
 
     lazy val all = {
-      internal.common     +:
-        typesafeConfig    +:
-        catsCore          +:
-        swaggerUI         +:
-        swaggerPlay2      +:
-        (spark.all ++ play.all ++ kudu.all ++ hadoop.all ++ avro.all)
+      internal.common   +:
+      internal.catalog  +:
+      typesafeConfig    +:
+      catsCore          +:
+      swaggerUI         +:
+      swaggerPlay2      +:
+      cronUtils         +:
+      (spark.all ++ play.all ++ kudu.all ++ hadoop.all ++ avro.all)
     }.map { Exclusions.slf4j }
 
   }

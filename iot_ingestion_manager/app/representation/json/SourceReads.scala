@@ -14,21 +14,28 @@
  * limitations under the License.
  */
 
-package representation
+package representation.json
 
 import play.api.data.validation.ValidationError
 import play.api.libs.json._
+import representation.{ KafkaSource, SocketSource, Source }
 
-package object json {
+object SourceReads {
 
-  implicit class JsonReadsSyntax[A](reads: Reads[A]) {
+  private def invalidSourceType(value: String) = ValidationError(s"Invalid source type [$value]: must be one of [kafka | socket]")
 
-    def widen[B](implicit ev: A <:< B): Reads[B] = reads.map { ev }
+  private val kafkaSource = (__ \ "topic").read[String].map { KafkaSource }
 
+  private val socketSource = for {
+    host <- (__ \ "host").read[String]
+    port <- (__ \ "port").read[Int]
+  } yield SocketSource(host, port)
+
+
+  implicit val source: Reads[Source] = (__ \ "type").read[String].flatMap {
+    case "kafka"  => kafkaSource.widen[Source]
+    case "socket" => socketSource.widen[Source]
+    case other    => readError { invalidSourceType(other) }
   }
-
-  def readError[A](message: String): Reads[A] = Reads[A] { _ => JsError(message) }
-
-  def readError[A](validationError: ValidationError): Reads[A] = Reads[A] { _ => JsError(validationError) }
 
 }

@@ -26,6 +26,7 @@ scalacOptions ++= Seq(
   "-deprecation",
   "-encoding", "UTF-8", // yes, this is 2 args
   "-feature",
+  "-target:jvm-1.8",
   "-unchecked",
   "-Xlint",
   "-Yno-adapted-args",

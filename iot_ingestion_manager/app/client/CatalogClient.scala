@@ -14,21 +14,15 @@
  * limitations under the License.
  */
 
-package representation
+package client
 
-import play.api.data.validation.ValidationError
-import play.api.libs.json._
+import it.gov.daf.catalogmanager.client.{ Catalog_managerClient => CatalogManager }
+import play.api.libs.ws.WSClient
 
-package object json {
+class CatalogClient(ws: WSClient, catalogUrl: String) {
 
-  implicit class JsonReadsSyntax[A](reads: Reads[A]) {
+  val client = new CatalogManager(ws)(catalogUrl)
 
-    def widen[B](implicit ev: A <:< B): Reads[B] = reads.map { ev }
-
-  }
-
-  def readError[A](message: String): Reads[A] = Reads[A] { _ => JsError(message) }
-
-  def readError[A](validationError: ValidationError): Reads[A] = Reads[A] { _ => JsError(validationError) }
+  def getCatalog(catalogId: String, auth: String) = client.datasetcatalogbyid(auth, catalogId)
 
 }

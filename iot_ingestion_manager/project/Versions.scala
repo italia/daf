@@ -6,15 +6,19 @@ object Versions {
 
   // internal
 
-  lazy val common = sys.env.getOrElse("COMMON_VERSION", "1.0.9-SNAPSHOT")
+  lazy val common  = sys.env.getOrElse("COMMON_VERSION", "1.0.9-SNAPSHOT")
+
+  lazy val catalog = sys.env.getOrElse("CATALOG_MANAGER_VERSION", "1.0.5-SNAPSHOT")
 
   // external
 
-  lazy val avro           = "1.7.5"
+  lazy val avro4s         = "1.9.0"
 
   lazy val avroBijection  = "0.9.6"
 
   lazy val catsCore       = "1.1.0"
+
+  lazy val cron           = "7.0.2"
 
   lazy val guava          = "16.0.1"
 

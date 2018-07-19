@@ -17,21 +17,28 @@
 package controllers
 
 import api.StreamAPI
+import client.CatalogClient
 import com.google.inject.Inject
 import config.StreamApplicationConfig
 import daf.stream.StreamService
 import it.gov.daf.common.web.{ Actions, SecureController }
+import it.gov.daf.common.utils._
 import org.pac4j.play.store.PlaySessionStore
 import play.api.Configuration
+import play.api.libs.ws.WSClient
 import play.api.mvc.BodyParsers
-import representation.{ KafkaStreamData, SocketStreamData, StreamData }
-import representation.json.streamDataReader
+import representation.StreamData
+import representation.json.StreamDataReads
 
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success }
 
-class StreamController @Inject()(configuration: Configuration, playSessionStore: PlaySessionStore) extends SecureController(configuration, playSessionStore) with StreamAPI {
+class StreamController @Inject()(configuration: Configuration,
+                                 playSessionStore: PlaySessionStore,
+                                 wsClient: WSClient,
+                                 protected implicit val ec: ExecutionContext) extends SecureController(configuration, playSessionStore) with StreamAPI {
 
-  private val streamDataJson = BodyParsers.parse.json[StreamData](streamDataReader)
+  private val streamDataJson = BodyParsers.parse.json[StreamData] { StreamDataReads.streamData }
 
   private val applicationConfig = StreamApplicationConfig.reader.read { configuration } match {
     case Success(config) => config
@@ -39,17 +46,25 @@ class StreamController @Inject()(configuration: Configuration, playSessionStore:
   }
 
   private val streamService = new StreamService(applicationConfig.kafkaConfig)
+  private val catalogClient = new CatalogClient(wsClient, applicationConfig.catalogUrl)
 
-  private def createSocketStream(id: String, interval: Int, port: Int) = streamService.createSocket(id, interval, port).map {
+  private def createStream(streamData: StreamData) = streamService.createStream(streamData).map {
     case query if query.isActive => Created
-    case _                       => InternalServerError { s"Query with id [$id] failed to start" }
+    case _                       => InternalServerError { s"Query with id [${streamData.id}] failed to start" }
   }
 
-  def create = Actions.basic.attempt(streamDataJson) { request =>
-    request.body match {
-      case _: KafkaStreamData                   => Success { NotImplemented }
-      case SocketStreamData(id, interval, port) => createSocketStream(id, interval, port)
-    }
+  def createRaw = Actions.basic.attempt(streamDataJson) { request =>
+    createStream { request.body }
   }
+
+  def create(catalogId: String) = Actions.basic.securedAsync { (_, auth, _) =>
+    for {
+      catalog    <- catalogClient.getCatalog(catalogId, auth)
+      streamData <- StreamData.fromCatalog(catalog).~>[Future]
+      result     <- createStream(streamData).~>[Future]
+    } yield result
+  }
+
+  def update(catalogId: String) = Actions.basic { _ => NotImplemented }
 
 }

@@ -14,21 +14,28 @@
  * limitations under the License.
  */
 
-package representation
+package representation.json
 
-import play.api.data.validation.ValidationError
-import play.api.libs.json._
+import play.api.libs.json.__
+import representation.{ Sink, Source, StreamData }
 
-package object json {
+import SourceReads.source
+import SinkReads.sink
 
-  implicit class JsonReadsSyntax[A](reads: Reads[A]) {
+object StreamDataReads {
 
-    def widen[B](implicit ev: A <:< B): Reads[B] = reads.map { ev }
-
-  }
-
-  def readError[A](message: String): Reads[A] = Reads[A] { _ => JsError(message) }
-
-  def readError[A](validationError: ValidationError): Reads[A] = Reads[A] { _ => JsError(validationError) }
+  val streamData = for {
+    id       <- (__ \ "id").read[String]
+    interval <- (__ \ "interval").read[Long]
+    owner    <- (__ \ "owner").read[String]
+    source   <- (__ \ "source").read[Source]
+    sink     <- (__ \ "sink").read[Sink]
+  } yield StreamData(
+    id       = id,
+    interval = interval,
+    owner    = owner,
+    source   = source,
+    sink     = sink
+  )
 
 }

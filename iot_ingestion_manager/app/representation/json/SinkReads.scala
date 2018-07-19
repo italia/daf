@@ -14,21 +14,25 @@
  * limitations under the License.
  */
 
-package representation
+package representation.json
 
 import play.api.data.validation.ValidationError
 import play.api.libs.json._
+import representation.{ ConsoleSink, HdfsSink, KuduSink, Sink }
 
-package object json {
+object SinkReads {
 
-  implicit class JsonReadsSyntax[A](reads: Reads[A]) {
+  private def invalidSinkType(value: String) = ValidationError(s"Invalid sink type [$value]: must be one of [hdfs | kudu | console]")
 
-    def widen[B](implicit ev: A <:< B): Reads[B] = reads.map { ev }
+  private val hdfsSink = (__ \ "path").read[String].map { HdfsSink }
 
+  private val kuduSink = (__ \ "table").read[String].map { KuduSink }
+
+  implicit val sink: Reads[Sink] = (__ \ "type").read[String].flatMap {
+    case "hdfs"    => hdfsSink.widen[Sink]
+    case "kudu"    => kuduSink.widen[Sink]
+    case "console" => Reads[Sink] { _ => JsSuccess(ConsoleSink) }
+    case other     => readError { invalidSinkType(other) }
   }
-
-  def readError[A](message: String): Reads[A] = Reads[A] { _ => JsError(message) }
-
-  def readError[A](validationError: ValidationError): Reads[A] = Reads[A] { _ => JsError(validationError) }
 
 }

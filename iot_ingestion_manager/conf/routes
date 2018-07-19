@@ -1,1 +1,3 @@
-POST    /iot/v1/stream         controllers.StreamController.create
+POST    /iot/v1/stream                controllers.StreamController.createRaw
+POST    /iot/v1/stream/:catalogId     controllers.StreamController.create(catalogId: String)
+PUT     /iot/v1/stream/:catalogId     controllers.StreamController.update(catalogId: String)

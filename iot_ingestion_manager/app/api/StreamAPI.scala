@@ -21,6 +21,10 @@ import representation.StreamData
 
 trait StreamAPI {
 
-  def create: Action[StreamData]
+  def createRaw: Action[StreamData]
+
+  def create(catalogId: String): Action[AnyContent]
+
+  def update(catalogId: String): Action[AnyContent]
 
 }

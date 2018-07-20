@@ -41,6 +41,7 @@ import catalog_manager.yaml
 import it.gov.daf.catalogmanager.kylo.Kylo
 import it.gov.daf.common.sso.common.CredentialManager
 import play.api.Logger
+import yaml.ResponseWrites.MetaCatalogWrites.writes
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -49,7 +50,7 @@ import play.api.Logger
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                        
+                                                                                                                                                                        
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -72,6 +73,31 @@ package catalog_manager.yaml {
         val KYLOURL = config.get.getString("kylo.url").get
         val KYLOUSER = config.get.getString("kylo.user").getOrElse("dladmin")
         val KYLOPWD = config.get.getString("kylo.userpwd").getOrElse("XXXXXXXXXXX")
+        val KAFKAPROXY = config.get.getString("kafkaProxy.url").get
+
+        private def sendMessaggeKafkaProxy(user: String, catalog: MetaCatalog): Unit = {
+            Logger.logger.debug(s"kafka proxy $KAFKAPROXY")
+            val jsonMetacatol = writes(catalog)
+            val jsonUser: String = s""""user":"$user""""
+            val jsonBody = Json.parse(
+              s"""
+                |{
+                |"records":[{"value":{$jsonUser,"payload":$jsonMetacatol}}]
+                | }
+              """.stripMargin)
+
+            val responseWs = ws.url(KAFKAPROXY + "/topics/creationfeed")
+              .withHeaders(("Content-Type", "application/vnd.kafka.v2+json"))
+              .post(jsonBody)
+
+
+            responseWs.onComplete { r =>
+                Logger.logger.debug(s"response kafka proxy status: ${r.get.status}, body: ${r.get.body}")
+                if (r.get.status == 200) Logger.logger.debug(s"message sent to kakfa proxy for user $user")
+                else Logger.logger.debug(s"error in sending message to kafka proxy for user $user")
+            }
+
+        }
 
         // ----- End of unmanaged code area for constructor Catalog_managerYaml
         val autocompletedummy = autocompletedummyAction { (autocompRes: AutocompRes) =>  
@@ -123,6 +149,7 @@ package catalog_manager.yaml {
             val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
             if( CredentialManager.isDafSysAdmin(currentRequest) ) {
                 val created: Success = ServiceRegistry.catalogService.createCatalogExtOpenData(catalog, Option(credentials.username), ws)
+                if(!created.message.equals("Error")) sendMessaggeKafkaProxy(credentials.username, catalog)
                 CreatedatasetcatalogExtOpenData200(created)
             }else
                 CreatedatasetcatalogExtOpenData401("System Admin permissions required")
@@ -241,6 +268,7 @@ package catalog_manager.yaml {
             val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
             if( CredentialManager.isOrgAdmin(currentRequest,datasetOrg) || CredentialManager.isOrgEditor(currentRequest,datasetOrg) ) {
                 val created: Success = ServiceRegistry.catalogService.createCatalog(catalog, Option(credentials.username), ws)
+                if(!created.message.equals("Error")) sendMessaggeKafkaProxy(credentials.username, catalog)
                 Createdatasetcatalog200(created)
             }else
                 Createdatasetcatalog401(s"Admin or editor permissions required (organization: $datasetOrg)")

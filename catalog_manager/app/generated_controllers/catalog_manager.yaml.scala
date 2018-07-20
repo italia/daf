@@ -50,7 +50,7 @@ import yaml.ResponseWrites.MetaCatalogWrites.writes
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                                                                        
+
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -631,22 +631,6 @@ package catalog_manager.yaml {
            // NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.startKyloFedd
         }
-    
-     // Dead code for absent methodCatalog_managerYaml.deleteMetaCatalog
-     /*
-            // ----- Start of unmanaged code area for action  Catalog_managerYaml.deleteMetaCatalog
-            NotImplementedYet
-            // ----- End of unmanaged code area for action  Catalog_managerYaml.deleteMetaCatalog
-     */
-
-    
-     // Dead code for absent methodCatalog_managerYaml.deleteCatalog1
-     /*
-            // ----- Start of unmanaged code area for action  Catalog_managerYaml.deleteCatalog1
-            NotImplementedYet
-            // ----- End of unmanaged code area for action  Catalog_managerYaml.deleteCatalog1
-     */
-
     
     }
 }

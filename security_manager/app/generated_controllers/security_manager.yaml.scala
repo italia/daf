@@ -40,7 +40,7 @@ import it.gov.daf.securitymanager.service.utilities.Utils
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-    
+        
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -290,14 +290,16 @@ package security_manager.yaml {
               val result = credentials.flatMap { crd =>
                 val sftpInternal = new SftpHandler(crd.username, crd.password, ConfigReader.sftpHostInternal)
                 val resultInternal = sftpInternal.mkdir(path_to_create)
+                logger.debug("path created into daf.teamdigitale.it")
                 val sftpExternal = new SftpHandler(crd.username, crd.password, ConfigReader.sftphostExternal)
                 val resultExternal = sftpExternal.mkdir(path_to_create)
+                logger.debug("path created into edge2")
                 resultExternal
               }
 
               result match {
                 case scala.util.Success(path) => Sftp200(path)
-                case scala.util.Failure(ex) => Sftp500(Error(Some(404), Some(ex.getMessage), None))
+                case scala.util.Failure(ex) => logger.info(ex.getStackTrace.toString);logger.info(ex.getMessage);Sftp500(Error(Some(404), Some(ex.getMessage), None))
               }
             } else
               Sftp500(Error(Option(1), Some("Permissions required"), None))

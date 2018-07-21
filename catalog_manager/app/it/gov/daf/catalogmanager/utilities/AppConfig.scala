@@ -26,6 +26,7 @@ private class AppConfig @Inject()(playConfig: Configuration) {
   val kyloUrl: Option[String] = playConfig.getString("kylo.url")
   val kyloUser: Option[String] = playConfig.getString("kylo.user")
   val kyloPwd: Option[String] = playConfig.getString("kylo.pwd")
+  val kafkaProxyUrl: Option[String] = playConfig.getString("kafkaProxy.url")
 
 }
 
@@ -53,6 +54,7 @@ object ConfigReader {
   def kyloUrl: String = config.kyloUrl.get
   def kyloUser: String = config.kyloUser.get
   def kyloPwd: String = config.kyloPwd.get
+  def kafkaProxyUrl: String = config.kafkaProxyUrl.getOrElse("")
 
 }
 

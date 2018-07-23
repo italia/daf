@@ -75,7 +75,7 @@ package catalog_manager.yaml {
         val KYLOPWD = config.get.getString("kylo.userpwd").getOrElse("XXXXXXXXXXX")
         val KAFKAPROXY = config.get.getString("kafkaProxy.url").get
 
-        private def sendMessaggeKafkaProxy(user: String, catalog: MetaCatalog): Unit = {
+        private def sendMessaggeKafkaProxy(user: String, catalog: MetaCatalog): (String, String) = {
             Logger.logger.debug(s"kafka proxy $KAFKAPROXY")
             val jsonMetacatol = writes(catalog)
             val jsonUser: String = s""""user":"$user""""
@@ -93,8 +93,13 @@ package catalog_manager.yaml {
 
             responseWs.onComplete { r =>
                 Logger.logger.debug(s"response kafka proxy status: ${r.get.status}, body: ${r.get.body}")
-                if (r.get.status == 200) Logger.logger.debug(s"message sent to kakfa proxy for user $user")
-                else Logger.logger.debug(s"error in sending message to kafka proxy for user $user")
+                if (r.get.status == 200) {
+                    Logger.logger.debug(s"message sent to kakfa proxy for user $user")
+                    ("success", s"message sent to kakfa proxy for user $user")
+                } else {
+                    Logger.logger.debug(s"error in sending message to kafka proxy for user $user")
+                    ("error",s"error in sending message to kafka proxy for user $user")
+                }
             }
 
         }
@@ -300,9 +305,10 @@ package catalog_manager.yaml {
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalog
             val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
             if( CredentialManager.isDafEditor(currentRequest) || CredentialManager.isDafAdmin(currentRequest) ) {
-                val created: Success = ServiceRegistry.catalogService.createCatalog(catalog, Option(credentials.username), ws)
-                if(!created.message.equals("Error")) sendMessaggeKafkaProxy(credentials.username, catalog)
-                Createdatasetcatalog200(created)
+                //val created: Success = ServiceRegistry.catalogService.createCatalog(catalog, Option(credentials.username), ws)
+                //if(!created.message.equals("Error")) sendMessaggeKafkaProxy(credentials.username, catalog)
+                val message = sendMessaggeKafkaProxy(credentials.username, catalog)
+                Createdatasetcatalog200(catalog_manager.yaml.Success(message._1,Option(message._2)) )
             }else
                 Createdatasetcatalog401("Admin or editor permissions required")
             //NotImplementedYet

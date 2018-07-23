@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-package api
+package daf.stream.avro
 
-import play.api.mvc.{ Action, AnyContent }
-import representation.{ Event, StreamData }
+import com.twitter.bijection.Injection
+import com.twitter.bijection.avro.SpecificAvroCodecs
+import it.gov.daf.iot.event.Event
 
-trait StreamAPI {
+import scala.util.Try
 
-  def register: Action[StreamData]
+object EventSerDe {
 
-  def registerCatalog(catalogId: String): Action[AnyContent]
+  private val specificAvroBinaryInjection: Injection[Event, Array[Byte]] = SpecificAvroCodecs.toBinary[Event]
 
-  def update(catalogId: String): Action[Event]
+  def deserialize(bytes: Array[Byte]): Try[Event] = specificAvroBinaryInjection.invert(bytes)
+
+  def serialize(event: Event): Array[Byte] = specificAvroBinaryInjection(event)
 
 }

@@ -19,13 +19,17 @@ package daf.stream
 import java.util.concurrent.TimeUnit
 
 import config.KafkaConfig
+import daf.stream.error.StreamCreationError
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.streaming.{ DataStreamWriter, Trigger }
+import org.apache.spark.sql.streaming.{ DataStreamWriter, StreamingQuery, Trigger }
+import org.slf4j.LoggerFactory
 import representation._
 
-import scala.util.{ Failure, Try }
+import scala.util.{ Failure, Try, Success }
 
-class StreamService(kafkaConfig: KafkaConfig) {
+class SparkConsumerService(val kafkaConfig: KafkaConfig) extends ConsumerService {
+
+  private val logger = LoggerFactory.getLogger("it.gov.daf.SparkConsumer")
 
   private val sparkSession = SparkSession.builder()
     .master("local")
@@ -70,9 +74,14 @@ class StreamService(kafkaConfig: KafkaConfig) {
       .trigger { Trigger.ProcessingTime(interval, TimeUnit.SECONDS) }
   }
 
-  def createStream(streamData: StreamData) = for {
+  private def checkQuery(query: StreamingQuery): Try[Unit] = if (query.isActive) Success {
+    logger.info { s"Query with id [${query.id}] :: name [${query.name}] started consuming" }
+  } else Failure { StreamCreationError(s"Query with id [${query.id}] :: name [${query.name}] failed to start", query.exception.orNull) }
+
+  def createConsumer(streamData: StreamData) = for {
     stream <- prepareStream(streamData)
     query  <- startStream(streamData, stream)
-  } yield query
+    _      <- checkQuery(query)
+  } yield ()
 
 }

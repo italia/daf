@@ -68,13 +68,15 @@ object Dependencies {
 
       val avro4sJson =  "com.sksamuel.avro4s" %% "avro4s-json"    % Versions.avro4s
 
-      val all = Seq(avro4sCore, avro4sJson)
+      val all = Seq(bijection, avro4sCore, avro4sJson)
 
     }
 
     val typesafeConfig = "com.typesafe"     % "config"        % Versions.typesafeConfig
 
     val catsCore       = "org.typelevel"   %% "cats-core"     % Versions.catsCore
+
+    val catsFree       = "org.typelevel"   %% "cats-free"     % Versions.catsCore
 
     val guava          = "com.google.guava" % "guava"         % Versions.guava
 
@@ -89,6 +91,7 @@ object Dependencies {
       internal.catalog  +:
       typesafeConfig    +:
       catsCore          +:
+      catsFree          +:
       swaggerUI         +:
       swaggerPlay2      +:
       cronUtils         +:

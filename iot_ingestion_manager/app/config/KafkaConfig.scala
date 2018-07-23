@@ -16,18 +16,31 @@
 
 package config
 
+import java.util.Properties
+
 import it.gov.daf.common.config.Read
 
-case class KafkaConfig(servers: Seq[String], groupId: String)
+import scala.concurrent.duration._
+
+case class KafkaConfig(servers: Seq[String], groupId: String, timeout: FiniteDuration, numProducers: Int) {
+
+  def producerProps(props: Properties = new Properties()): Properties = {
+    props.put("bootstrap.servers", servers mkString ",")
+    props
+  }
+
+}
 
 object KafkaConfig {
 
   private val readConfig = Read.config { "kafka" }.!
 
   private val readValues = for {
-    servers <- Read.strings { "servers" }.!
-    groupId <- Read.string  { "group_id" } default "group-daf"
-  } yield KafkaConfig(servers, groupId)
+    servers      <- Read.strings { "servers"       }.!
+    groupId      <- Read.string  { "group_id"      } default "group-daf"
+    timeout      <- Read.time    { "timeout"       } default 10.seconds
+    numProducers <- Read.int     { "num_producers" } default 1
+  } yield KafkaConfig(servers, groupId, timeout, numProducers)
 
   def reader = readConfig ~> readValues
 

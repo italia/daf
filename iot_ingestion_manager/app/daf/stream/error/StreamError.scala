@@ -14,17 +14,10 @@
  * limitations under the License.
  */
 
-package api
+package daf.stream.error
 
-import play.api.mvc.{ Action, AnyContent }
-import representation.{ Event, StreamData }
+sealed abstract class StreamError(message: String, cause: Throwable = null) extends Exception(message, cause)
 
-trait StreamAPI {
+final case class StreamCreationError(message: String, cause: Throwable = null) extends StreamError(message, cause)
 
-  def register: Action[StreamData]
-
-  def registerCatalog(catalogId: String): Action[AnyContent]
-
-  def update(catalogId: String): Action[Event]
-
-}
+final case class StreamForwardingError(message: String, cause: Throwable = null) extends StreamError(message, cause)

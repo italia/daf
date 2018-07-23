@@ -16,19 +16,21 @@
 
 package controllers
 
+import akka.actor.ActorSystem
 import api.StreamAPI
 import client.CatalogClient
 import com.google.inject.Inject
 import config.StreamApplicationConfig
-import daf.stream.StreamService
+import daf.stream.{ ProducerService, SparkConsumerService }
 import it.gov.daf.common.web.{ Actions, SecureController }
 import it.gov.daf.common.utils._
 import org.pac4j.play.store.PlaySessionStore
 import play.api.Configuration
+import play.api.cache.CacheApi
 import play.api.libs.ws.WSClient
 import play.api.mvc.BodyParsers
-import representation.StreamData
-import representation.json.StreamDataReads
+import representation.{ Event, StreamData }
+import representation.json.{ EventReads, StreamDataReads }
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success }
@@ -36,35 +38,40 @@ import scala.util.{ Failure, Success }
 class StreamController @Inject()(configuration: Configuration,
                                  playSessionStore: PlaySessionStore,
                                  wsClient: WSClient,
+                                 cacheApi: CacheApi,
+                                 protected implicit val actorSystem: ActorSystem,
                                  protected implicit val ec: ExecutionContext) extends SecureController(configuration, playSessionStore) with StreamAPI {
 
   private val streamDataJson = BodyParsers.parse.json[StreamData] { StreamDataReads.streamData }
+  private val eventJson  = BodyParsers.parse.json[Event] { EventReads.event }
 
   private val applicationConfig = StreamApplicationConfig.reader.read { configuration } match {
     case Success(config) => config
     case Failure(error)  => throw new RuntimeException("Unable to configure [iot-manager]", error)
   }
 
-  private val streamService = new StreamService(applicationConfig.kafkaConfig)
-  private val catalogClient = new CatalogClient(wsClient, applicationConfig.catalogUrl)
+  private val consumerService = new SparkConsumerService(applicationConfig.kafkaConfig)
+  private val producerService = new ProducerService(applicationConfig.kafkaConfig)
+  private val catalogClient = new CatalogClient(wsClient, cacheApi, applicationConfig.catalogUrl)
 
-  private def createStream(streamData: StreamData) = streamService.createStream(streamData).map {
-    case query if query.isActive => Created
-    case _                       => InternalServerError { s"Query with id [${streamData.id}] failed to start" }
+  def register = Actions.basic.attempt(streamDataJson) { request =>
+    consumerService.createConsumer(request.body).map { _ => Created }
   }
 
-  def createRaw = Actions.basic.attempt(streamDataJson) { request =>
-    createStream { request.body }
-  }
-
-  def create(catalogId: String) = Actions.basic.securedAsync { (_, auth, _) =>
+  def registerCatalog(catalogId: String) = Actions.basic.securedAsync { (_, auth, _) =>
     for {
       catalog    <- catalogClient.getCatalog(catalogId, auth)
       streamData <- StreamData.fromCatalog(catalog).~>[Future]
-      result     <- createStream(streamData).~>[Future]
-    } yield result
+      _          <- consumerService.createConsumer(streamData).~>[Future]
+    } yield Created
   }
 
-  def update(catalogId: String) = Actions.basic { _ => NotImplemented }
+  def update(catalogId: String) = Actions.basic.securedAsync(eventJson) { (request, auth, userId) =>
+    for {
+      catalog    <- catalogClient.getCatalog(catalogId, auth)
+      streamData <- StreamData.fromCatalog(catalog).~>[Future]
+      _          <- producerService.sendMessage(streamData, userId, request.body)
+    } yield Ok
+  }
 
 }

@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package api
+package daf.stream
 
-import play.api.mvc.{ Action, AnyContent }
-import representation.{ Event, StreamData }
+import config.KafkaConfig
+import representation._
 
-trait StreamAPI {
+import scala.util.Try
 
-  def register: Action[StreamData]
+trait ConsumerService {
 
-  def registerCatalog(catalogId: String): Action[AnyContent]
+  def kafkaConfig: KafkaConfig
 
-  def update(catalogId: String): Action[Event]
+  def createConsumer(streamData: StreamData): Try[Unit]
 
 }

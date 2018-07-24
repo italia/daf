@@ -307,6 +307,10 @@ paths:
           description: Error Message
           schema:
             type: string
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
         default:
           description: Unexpected error
           schema:

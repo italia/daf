@@ -42,6 +42,8 @@ import play.api.Logger
 import scala.concurrent.duration._
 import scala.concurrent.Await
 import yaml.ResponseWrites.MetaCatalogWrites.writes
+import play.api.mvc.Headers
+import it.gov.daf.common.sso.common
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -50,7 +52,7 @@ import yaml.ResponseWrites.MetaCatalogWrites.writes
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                        
+                                
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -75,14 +77,15 @@ package catalog_manager.yaml {
         val KYLOPWD = config.get.getString("kylo.userpwd").getOrElse("XXXXXXXXXXX")
         val KAFKAPROXY = config.get.getString("kafkaProxy.url").get
 
-        private def sendMessaggeKafkaProxy(user: String, catalog: MetaCatalog): Unit = {
+        private def sendMessaggeKafkaProxy(user: String, catalog: MetaCatalog, token: String): Future[Either[Error, Success]] = {
             Logger.logger.debug(s"kafka proxy $KAFKAPROXY")
             val jsonMetacatol = writes(catalog)
             val jsonUser: String = s""""user":"$user""""
+            val jsonToken = s""""token":"$token""""
             val jsonBody = Json.parse(
               s"""
                 |{
-                |"records":[{"value":{$jsonUser,"payload":$jsonMetacatol}}]
+                |"records":[{"value":{$jsonUser,$jsonToken,"payload":$jsonMetacatol}}]
                 | }
               """.stripMargin)
 
@@ -90,16 +93,25 @@ package catalog_manager.yaml {
               .withHeaders(("Content-Type", "application/vnd.kafka.v2+json"))
               .post(jsonBody)
 
-
-            responseWs.onComplete { r =>
-                Logger.logger.debug(s"response kafka proxy status: ${r.get.status}, body: ${r.get.body}")
-                if (r.get.status == 200) {
+            responseWs.map{ res =>
+                if( res.status == 200 ) {
                     Logger.logger.debug(s"message sent to kakfa proxy for user $user")
-                } else {
+                    Right(Success("created",Option("created")))
+                }
+                else {
                     Logger.logger.debug(s"error in sending message to kafka proxy for user $user")
+                    Left(Error(s"error in sending message to kafka proxy for user $user", Some(500), None))
                 }
             }
+        }
 
+        private def readTokenFromRequest(requestHeader: Headers): Option[String] = {
+            val authHeader = requestHeader.get("authorization").get.split(" ")
+            val authType = authHeader(0)
+            val authCredentials = authHeader(1)
+
+            if( authType.equalsIgnoreCase("bearer")) Some(authCredentials)
+            else None
         }
 
         // ----- End of unmanaged code area for constructor Catalog_managerYaml
@@ -242,10 +254,19 @@ package catalog_manager.yaml {
         val addQueueCatalog = addQueueCatalogAction { (catalog: MetaCatalog) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.addQueueCatalog
             val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
-            if( CredentialManager.isDafEditor(currentRequest) || CredentialManager.isDafAdmin(currentRequest) ) {//If(!created.message.equals("Error")) sendMessaggeKafkaProxy(credentials.username, catalog)
-                sendMessaggeKafkaProxy(credentials.username, catalog)
-                logger.info("sending to kafka")
-                AddQueueCatalog200(catalog_manager.yaml.Success("created",Option("created")) )
+            if( CredentialManager.isDafEditor(currentRequest) || CredentialManager.isDafAdmin(currentRequest) ) {
+                val token = readTokenFromRequest(currentRequest.headers)
+                token match {
+                    case Some(t) => {
+                        val futureKafkaResp = sendMessaggeKafkaProxy(credentials.username, catalog, t)
+                        futureKafkaResp.flatMap{
+                            case Right(r) => logger.info("sending to kafka");AddQueueCatalog200(r)
+                            case Left(l) => AddQueueCatalog500(l)
+                        }
+                    }
+                    case None => AddQueueCatalog401("No token found")
+                }
+
             }else
                 AddQueueCatalog401("Admin or editor permissions required")
             // ----- End of unmanaged code area for action  Catalog_managerYaml.addQueueCatalog

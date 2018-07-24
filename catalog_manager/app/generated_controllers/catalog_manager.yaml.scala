@@ -50,7 +50,7 @@ import yaml.ResponseWrites.MetaCatalogWrites.writes
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                    
+                        
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -125,7 +125,7 @@ package catalog_manager.yaml {
 
             val futureResponseKylo = responseMongo match {
                 case Right(_) => kylo.deleteFeed(feedName, user)
-                case Left(_) => Future.successful(Left(Error(s"unauthorized to delete $feedName", None, None)))
+                case Left(_) => Future.successful(Left(Error(s"$feedName not deleted", None, None)))
             }
 
             val futureResponses: Future[Either[Error, Success]] = futureResponseKylo.map{ responseKylo =>
@@ -185,7 +185,6 @@ package catalog_manager.yaml {
             val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
             if( CredentialManager.isDafEditor(currentRequest) || CredentialManager.isDafAdmin(currentRequest) ) {
                 val created: Success = ServiceRegistry.catalogService.createCatalogExtOpenData(catalog, Option(credentials.username), ws)
-                if(!created.message.equals("Error")) sendMessaggeKafkaProxy(credentials.username, catalog)
                 CreatedatasetcatalogExtOpenData200(created)
             }else
                 CreatedatasetcatalogExtOpenData401("Admin or editor permissions required")

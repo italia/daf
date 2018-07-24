@@ -40,7 +40,7 @@ class StreamController @Inject()(configuration: Configuration,
                                  wsClient: WSClient,
                                  cacheApi: CacheApi,
                                  protected implicit val actorSystem: ActorSystem,
-                                 protected implicit val ec: ExecutionContext) extends SecureController(configuration, playSessionStore) with StreamAPI {
+                                 protected implicit val ec: ExecutionContext) extends StreamAPI(configuration, playSessionStore) {
 
   private val streamDataJson = BodyParsers.parse.json[StreamData] { StreamDataReads.streamData }
   private val eventJson  = BodyParsers.parse.json[Event] { EventReads.event }

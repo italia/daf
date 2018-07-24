@@ -26,7 +26,7 @@ object StreamApplicationConfig {
   private val readKafka = KafkaConfig.reader
 
   def reader = for {
-    catalogUrl  <- Read.string { "catalog_url" }.!
+    catalogUrl  <- Read.string { "daf.catalog_url" }.!
     kafkaConfig <- readKafka
   } yield StreamApplicationConfig(
     catalogUrl  = catalogUrl,

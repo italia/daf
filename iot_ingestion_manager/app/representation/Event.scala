@@ -16,6 +16,9 @@
 
 package representation
 
+import io.swagger.annotations.ApiModel
+
+@ApiModel("Event")
 case class Event(id: String,
                  source: String,
                  version: Option[Long],

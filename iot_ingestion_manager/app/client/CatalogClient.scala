@@ -16,6 +16,8 @@
 
 package client
 
+import java.net.URLEncoder
+
 import it.gov.daf.catalogmanager.MetaCatalog
 import it.gov.daf.catalogmanager.client.{ Catalog_managerClient => CatalogManager }
 import play.api.cache.CacheApi
@@ -39,7 +41,10 @@ class CatalogClient(ws: WSClient, cache: CacheApi, catalogUrl: String)(protected
     catalogData <- findCatalogData(catalogId)
   } yield catalogData
 
-  private def updateCatalogData(catalogId: String, auth: String) = client.datasetcatalogbyid(auth, catalogId).andThen {
+  private def updateCatalogData(catalogId: String, auth: String) = client.datasetcatalogbyid(
+    auth,
+    URLEncoder.encode(catalogId, "UTF-8")
+  ).andThen {
     case Success(catalogData) => cache.set(s"catalog:[$catalogId]", catalogData)
   }
 

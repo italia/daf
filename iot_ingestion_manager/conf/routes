@@ -1,3 +1,7 @@
-POST    /iot/v1/stream                controllers.StreamController.register
-POST    /iot/v1/stream/:catalogId     controllers.StreamController.registerCatalog(catalogId: String)
-PUT     /iot/v1/stream/:catalogId     controllers.StreamController.update(catalogId: String)
+POST    /iot-manager/v1/stream                controllers.StreamController.register
+POST    /iot-manager/v1/stream/:catalogId     controllers.StreamController.registerCatalog(catalogId: String)
+PUT     /iot-manager/v1/stream/:catalogId     controllers.StreamController.update(catalogId: String)
+
+# swagger
+
+GET     /swagger.json                         controllers.ApiHelpController.getResources

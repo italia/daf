@@ -50,7 +50,7 @@ import yaml.ResponseWrites.MetaCatalogWrites.writes
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-            
+                    
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -240,6 +240,17 @@ package catalog_manager.yaml {
             Voc_dcat2dafsubtheme200(themeList)
             // ----- End of unmanaged code area for action  Catalog_managerYaml.voc_dcat2dafsubtheme
         }
+        val addQueueCatalog = addQueueCatalogAction { (catalog: MetaCatalog) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.addQueueCatalog
+            val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
+            if( CredentialManager.isDafEditor(currentRequest) || CredentialManager.isDafAdmin(currentRequest) ) {//If(!created.message.equals("Error")) sendMessaggeKafkaProxy(credentials.username, catalog)
+                sendMessaggeKafkaProxy(credentials.username, catalog)
+                logger.info("sending to kafka")
+                AddQueueCatalog200(catalog_manager.yaml.Success("created",Option("created")) )
+            }else
+                AddQueueCatalog401("Admin or editor permissions required")
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.addQueueCatalog
+        }
         val standardsuri = standardsuriAction {  _ =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.standardsuri
             // Pagination wrong refactor login to db query
@@ -303,10 +314,11 @@ package catalog_manager.yaml {
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalog
             val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
             if( CredentialManager.isDafEditor(currentRequest) || CredentialManager.isDafAdmin(currentRequest) ) {
-                //val created: Success = ServiceRegistry.catalogService.createCatalog(catalog, Option(credentials.username), ws)
-                //if(!created.message.equals("Error")) sendMessaggeKafkaProxy(credentials.username, catalog)
-                sendMessaggeKafkaProxy(credentials.username, catalog)
-                Createdatasetcatalog200(catalog_manager.yaml.Success("send to kafka",Option("send to kafka")) )
+                val created: Success = ServiceRegistry.catalogService.createCatalog(catalog, Option(credentials.username), ws)
+                //If(!created.message.equals("Error")) sendMessaggeKafkaProxy(credentials.username, catalog)
+                //sendMessaggeKafkaProxy(credentials.username, catalog)
+                //logger.info("sending to kafka")
+                Createdatasetcatalog200(catalog_manager.yaml.Success("created",Option("created")) )
             }else
                 Createdatasetcatalog401("Admin or editor permissions required")
             //NotImplementedYet

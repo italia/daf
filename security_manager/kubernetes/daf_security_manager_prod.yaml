@@ -143,6 +143,11 @@ spec:
             secretKeyRef:
               name: daf-secret
               key: impala_admin_pwd
+        - name: HDFS_USER_PWD
+          valueFrom:
+            secretKeyRef:
+              name: daf-secret
+              key: hdfs_user_pwd
         #securityContext:
           #privileged: true
           #runAsUser: 0

@@ -629,6 +629,7 @@ package catalog_manager.yaml {
             val inferJson = Json.parse(kyloSchema)
 
             val feedCreation  = ws.url(KYLOURL + "/api/v1/feedmgr/feeds")
+              .withRequestTimeout(240 seconds)
               .withAuth(KYLOUSER, KYLOPWD, WSAuthScheme.BASIC)
 
             // it is a try i know is not a good practice

@@ -288,6 +288,7 @@ package security_manager.yaml {
 
             if (CredentialManager.isDafAdmin(currentRequest) || CredentialManager.isDafEditor(currentRequest)) {
               val result = credentials.flatMap { crd =>
+                logger.info("username -->" + crd.username)
                 val sftpInternal = new SftpHandler(crd.username, crd.password, ConfigReader.sftpHostInternal)
                 val resultInternal = sftpInternal.mkdir(path_to_create)
                 logger.debug("path created into daf.teamdigitale.it")
@@ -299,7 +300,7 @@ package security_manager.yaml {
 
               result match {
                 case scala.util.Success(path) => Sftp200(path)
-                case scala.util.Failure(ex) => logger.info(ex.getStackTrace.toString);logger.info(ex.getMessage);Sftp500(Error(Some(404), Some(ex.getMessage), None))
+                case scala.util.Failure(ex) => logger.info(ex.toString);logger.info(ex.getMessage);Sftp500(Error(Some(404), Some(ex.getMessage), None))
               }
             } else
               Sftp500(Error(Option(1), Some("Permissions required"), None))

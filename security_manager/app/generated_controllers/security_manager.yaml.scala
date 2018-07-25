@@ -36,6 +36,8 @@ import it.gov.daf.securitymanager.service.ProfilingService
 import cats.data.EitherT
 import it.gov.daf.sso
 import cats.implicits._
+import it.gov.daf.common.sso.common.{Editor,SysAdmin,Admin,Viewer}
+import scala.collection.immutable.StringLike
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -44,7 +46,7 @@ import cats.implicits._
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                    
+                                                                                        
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -64,7 +66,7 @@ package security_manager.yaml {
 
       Authentication(configuration, playSessionStore)
 
-      private def testWorkgropAuthorization(parentGroups:Option[Seq[String]]):Either[Error,Success]={
+      private def testWorkgroupAuthorization(parentGroups:Option[Seq[String]]):Either[Error,Success]={
         if(parentGroups.isEmpty || !parentGroups.get.contains(sso.WORKGROUPS_GROUP))
           Left(Error(Option(1), Some("The group is not a workgroup"), None))
         else if( CredentialManager.isDafSysAdmin(currentRequest) || CredentialManager.isOrgsAdmin(currentRequest,parentGroups.get) )
@@ -139,7 +141,7 @@ package security_manager.yaml {
 
               val result = for{
                 wrk <- EitherT( apiClientIPA.showGroup(payload.groupCn) )
-                a <- EitherT( Future.successful(testWorkgropAuthorization(wrk.memberof_group)) )
+                a <- EitherT( Future.successful(testWorkgroupAuthorization(wrk.memberof_group)) )
                 b <- EitherT( integrationService.removeUserFromWorkgroup(payload.groupCn, payload.userId) )
               } yield b
 
@@ -269,13 +271,21 @@ package security_manager.yaml {
             val (uid, user) = input
             // ----- Start of unmanaged code area for action  Security_managerYaml.updateDAFuser
             execInContext[Future[UpdateDAFuserType[T] forSome { type T }]] ("updateDAFuser"){ () =>
-            if (!CredentialManager.isDafSysAdmin(currentRequest))
-              UpdateDAFuser500(Error(Option(1), Some("Admin permissions required"), None))
-            else
+
+              val inRoles: Set[String] = user.rolesToAdd.get.toSet.union(user.rolesToDelete.get.toSet)
+              val inRoleOrgs: Set[String] = inRoles.map(
+                _.toString.stripPrefix(Admin.toString).stripPrefix(Editor.toString).stripPrefix(Viewer.toString)
+                ).filter(_!=SysAdmin.toString)
+
+            if (  CredentialManager.isDafSysAdmin(currentRequest) ||
+                  (CredentialManager.isAdminOfAllThisOrgs(currentRequest,inRoleOrgs.toSeq) && (!inRoles.contains(SysAdmin.toString)) && user.givenname.isEmpty && user.sn.isEmpty)
+            )
               registrationService.updateUser(uid, user) flatMap {
                 case Right(success) => UpdateDAFuser200(success)
                 case Left(err) => UpdateDAFuser500(err)
               }
+            else
+              UpdateDAFuser500(Error(Option(1), Some("Admin permissions required"), None))
           }
             // ----- End of unmanaged code area for action  Security_managerYaml.updateDAFuser
         }
@@ -383,7 +393,7 @@ package security_manager.yaml {
 
             val result = for{
               wrk <- EitherT( apiClientIPA.showGroup(wrkName) )
-              a <- EitherT( Future.successful(testWorkgropAuthorization(wrk.memberof_group)) )
+              a <- EitherT( Future.successful(testWorkgroupAuthorization(wrk.memberof_group)) )
               b <- EitherT( integrationService.deleteDafWorkgroup(wrkName) )
             } yield b
 
@@ -516,7 +526,7 @@ package security_manager.yaml {
 
             val result = for{
               wrk <- EitherT( apiClientIPA.showGroup(payload.groupCn) )
-              a <- EitherT( Future.successful(testWorkgropAuthorization(wrk.memberof_group)) )
+              a <- EitherT( Future.successful(testWorkgroupAuthorization(wrk.memberof_group)) )
               b <- EitherT( integrationService.addUserToWorkgroup(payload.groupCn, payload.userId) )
             } yield b
 

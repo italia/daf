@@ -120,6 +120,12 @@ object CredentialManager {
     (orgsNames.map(Admin.toString+_).toSet intersect userGroups.toSet).nonEmpty
   }
 
+  def isAdminOfAllThisOrgs( request:Request[Any], orgsNames:Seq[String] ):Boolean ={
+    val userGroups = readCredentialFromRequest(request).groups
+    Logger.logger.info(s"belonging to groups: ${userGroups.toList}" )
+    (orgsNames.map(Admin.toString+_).toSet intersect userGroups.toSet).size == orgsNames.length
+  }
+
   def isOrgEditor( request:Request[Any], orgName:String ):Boolean ={
     val groups = readCredentialFromRequest(request).groups
     Logger.logger.info(s"belonging to groups: ${groups.toList}" )

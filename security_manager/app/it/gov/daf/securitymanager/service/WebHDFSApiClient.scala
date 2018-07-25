@@ -36,11 +36,13 @@ class WebHDFSApiClient @Inject()(secInvokeManager: SecuredInvocationManager, web
 
     Logger.logger.debug("createHomeDir: " + userId)
 
-    val adminLoginInfo =  Some(new LoginInfo(ConfigReader.impalaAdminUser, ConfigReader.impalaAdminUserPwd, LoginClientLocal.HADOOP ))
+    val adminLoginInfo =  Some(new LoginInfo(ConfigReader.hdfsUser, ConfigReader.hdfsUserPwd, LoginClientLocal.HADOOP ))
 
     val res = for {
-      r1 <- EitherT( webHDFSApiProxy.callHdfsService("PUT", s"user/$userId", Map("op" -> "MKDIRS"),adminLoginInfo) )
-      r2 <- EitherT( webHDFSApiProxy.callHdfsService("PUT", s"user/$userId", Map("op" -> "SETOWNER", "owner" -> userId, "group" -> userId),adminLoginInfo) )
+      r1 <- EitherT( webHDFSApiProxy.callHdfsService("PUT", s"uploads/$userId", Map("op" -> "MKDIRS", "permission" -> "700"),adminLoginInfo) )
+      r2 <- EitherT( webHDFSApiProxy.callHdfsService("PUT", s"uploads/$userId", Map("op" -> "SETACL", "aclspec" -> s"user:$userId:rwx,user::rwx,group::---,other::---"),adminLoginInfo) )
+      //op=SETACL&aclspec=user:impala:rwx,user:hive:rwx,user::rw-,group::r--,other::r--
+      //r2 <- EitherT( webHDFSApiProxy.callHdfsService("PUT", s"uploads/$userId", Map("op" -> "SETOWNER", "owner" -> userId, "group" -> userId),adminLoginInfo) )
     }yield r2
 
     res.value map {
@@ -53,9 +55,9 @@ class WebHDFSApiClient @Inject()(secInvokeManager: SecuredInvocationManager, web
 
     Logger.logger.debug("deleteHomeDir: " + userId)
 
-    val adminLoginInfo =  Some(new LoginInfo(ConfigReader.impalaAdminUser, ConfigReader.impalaAdminUserPwd, LoginClientLocal.HADOOP ))
+    val adminLoginInfo =  Some(new LoginInfo(ConfigReader.hdfsUser, ConfigReader.hdfsUserPwd, LoginClientLocal.HADOOP ))
 
-    val res = webHDFSApiProxy.callHdfsService("DELETE", s"user/$userId", Map("op" -> "DELETE", "recursive"->"true"),adminLoginInfo)
+    val res = webHDFSApiProxy.callHdfsService("DELETE", s"uploads/$userId", Map("op" -> "DELETE", "recursive"->"true"),adminLoginInfo)
 
     res map {
       case Right(r) => Right( Success(Some("Home dir deleted"), Some("ok")) )

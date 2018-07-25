@@ -27,7 +27,7 @@ import representation.{ Event => PushedEvent }
 
 import scala.util.{ Failure, Success }
 
-class ProducerService(kafkaConfig: KafkaConfig)(implicit actorRefFactory: ActorRefFactory) {
+class ProducerService(kafkaConfig: KafkaConfig, validator: PayloadValidator)(implicit actorRefFactory: ActorRefFactory) {
 
   private implicit val askTimeout = Timeout.durationToTimeout { kafkaConfig.timeout }
 
@@ -71,13 +71,14 @@ class ProducerService(kafkaConfig: KafkaConfig)(implicit actorRefFactory: ActorR
     )
   }
 
-  private def createMessage(streamData: StreamData, userId: String, pushedEvent: PushedEvent) = createEnvelope(streamData, userId, pushedEvent).map { envelope =>
-    ServiceMessage(
-      envelope   = envelope,
-      payload    = pushedEvent.payload,
-      attributes = convertAttributes(pushedEvent)
-    )
-  }
+  private def createMessage(streamData: StreamData, userId: String, pushedEvent: PushedEvent) = for {
+    envelope <- createEnvelope(streamData, userId, pushedEvent)
+    payload  <- validator.validate(pushedEvent.payload, streamData)
+  } yield ServiceMessage(
+    envelope   = envelope,
+    payload    = payload,
+    attributes = convertAttributes(pushedEvent)
+  )
 
   def sendMessage(streamData: StreamData, userId: String, pushedEvent: PushedEvent) =
     { producerRouter ? createMessage(streamData, userId, pushedEvent) }.mapTo[ServiceMessageMetadata]

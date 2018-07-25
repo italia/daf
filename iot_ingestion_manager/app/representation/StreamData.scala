@@ -27,7 +27,12 @@ import it.gov.daf.catalogmanager.{ MetaCatalog, StorageInfo }
 
 import scala.util.{ Failure, Success, Try }
 
-final case class StreamData(id: String, interval: Long, owner: String, source: Source, sink: Sink)
+final case class StreamData(id: String,
+                            interval: Long,
+                            owner: String,
+                            source: Source,
+                            sink: Sink,
+                            schema: Map[String, String])
 
 object StreamData {
 
@@ -64,6 +69,13 @@ object StreamData {
     case None       => Failure { new IllegalArgumentException(s"Missing [dataset_proc] attribute in catalog data @ [${catalog.operational.logical_uri}]") }
   }
 
+  private def avroSchema(catalog: MetaCatalog) = catalog.dataschema.avro.fields match {
+    case None         => Failure { new RuntimeException(s"Missing avro schema in catalog for data @ [${catalog.operational.logical_uri}]") }
+    case Some(fields) => Try {
+      fields.map { field => field.name -> field.`type` }.toMap[String, String]
+    }
+  }
+
   /**
     * Creates an instance instance by processing catalog data.
     * - `source` is extracted from the `operational.input_src.srv_push` path.
@@ -75,12 +87,14 @@ object StreamData {
     seconds <- interval(catalog)
     source  <- source(catalog)
     sink    <- sink(catalog)
+    schema  <- avroSchema(catalog)
   } yield StreamData(
     id       = catalog.operational.logical_uri,
     interval = seconds,
     owner    = catalog.dcatapit.holder_name getOrElse "<unknown>",
     source   = source,
-    sink     = sink
+    sink     = sink,
+    schema   = schema
   )
 
 }

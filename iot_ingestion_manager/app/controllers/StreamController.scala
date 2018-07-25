@@ -21,8 +21,8 @@ import api.StreamAPI
 import client.CatalogClient
 import com.google.inject.Inject
 import config.StreamApplicationConfig
-import daf.stream.{ ProducerService, SparkConsumerService }
-import it.gov.daf.common.web.{ Actions, SecureController }
+import daf.stream.{ AvroPayloadValidator, NoPayloadValidator, ProducerService, SparkConsumerService }
+import it.gov.daf.common.web.Actions
 import it.gov.daf.common.utils._
 import org.pac4j.play.store.PlaySessionStore
 import play.api.Configuration
@@ -50,9 +50,15 @@ class StreamController @Inject()(configuration: Configuration,
     case Failure(error)  => throw new RuntimeException("Unable to configure [iot-manager]", error)
   }
 
+  private val payloadValidator = applicationConfig.validator match {
+    case "none" | "off" => NoPayloadValidator
+    case "avro"         => AvroPayloadValidator
+    case other          => throw new RuntimeException(s"Unable to configure [iot-manager]: unsupported payload validator [$other]")
+  }
+
   private val consumerService = new SparkConsumerService(applicationConfig.kafkaConfig)
-  private val producerService = new ProducerService(applicationConfig.kafkaConfig)
-  private val catalogClient = new CatalogClient(wsClient, cacheApi, applicationConfig.catalogUrl)
+  private val producerService = new ProducerService(applicationConfig.kafkaConfig, payloadValidator)
+  private val catalogClient   = new CatalogClient(wsClient, cacheApi, applicationConfig.catalogUrl)
 
   def register = Actions.basic.attempt(streamDataJson) { request =>
     consumerService.createConsumer(request.body).map { _ => Created }

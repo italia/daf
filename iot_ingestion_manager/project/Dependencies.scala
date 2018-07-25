@@ -50,6 +50,18 @@ object Dependencies {
 
     }
 
+    object kafka {
+
+      val core    = "org.apache.kafka" %% "kafka"         % Versions.kafka
+
+      val clients = "org.apache.kafka"  % "kafka-clients" % Versions.kafka
+
+      val tools   = "org.apache.kafka"  % "kafka-tools"   % Versions.kafka
+
+      val all = Seq(core, clients, tools)
+
+    }
+
     object kudu {
 
       val client = "org.apache.kudu"  % "kudu-client" % Versions.kudu
@@ -97,7 +109,7 @@ object Dependencies {
       swaggerUI         +:
       swaggerPlay2      +:
       cronUtils         +:
-      (spark.all ++ play.all ++ kudu.all ++ hadoop.all ++ avro.all)
+      (kafka.all ++ spark.all ++ play.all ++ kudu.all ++ hadoop.all ++ avro.all)
     }.map { Exclusions.slf4j }
 
   }
@@ -138,6 +150,8 @@ object Dependencies {
 
     val playSpecs2    = "com.typesafe.play"      %% "play-specs2"        % Versions.play          % Test
 
+    val scalaCheck    = "org.scalacheck"         %% "scalacheck"         % Versions.scalaCheck    % Test
+
     val scalaTest     = "org.scalatest"          %% "scalatest"          % Versions.scalaTest     % Test
 
     val scalactic     = "org.scalactic"          %% "scalactic"          % Versions.scalaTest     % Test
@@ -149,12 +163,13 @@ object Dependencies {
     val julSlf4j      = "org.slf4j"              % "jul-to-slf4j"        % Versions.slf4j         % Test
 
     val all = {
-      logback         +:
-        playSpecs2    +:
-        scalaTest     +:
-        scalactic     +:
-        scalaTestPlay +:
-        (hadoop.all ++ kudu.all)
+      logback       +:
+      playSpecs2    +:
+      scalaCheck    +:
+      scalaTest     +:
+      scalactic     +:
+      scalaTestPlay +:
+      (hadoop.all ++ kudu.all)
     }.map { Exclusions.slf4j } :+
       slf4j :+
       julSlf4j

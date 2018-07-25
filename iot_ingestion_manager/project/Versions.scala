@@ -24,6 +24,8 @@ object Versions {
 
   lazy val hadoop         = "2.6.0-cdh5.12.0"
 
+  lazy val kafka          = "0.10.0.1"
+
   lazy val kudu           = "1.4.0-cdh5.12.0"
 
   lazy val logback        = "1.2.3"
@@ -31,6 +33,8 @@ object Versions {
   lazy val play           = "2.5.14"
 
   lazy val scalaJ         = "2.3.0"
+
+  lazy val scalaCheck     = "1.14.0"
 
   lazy val scalaTest      = "3.0.4"
 

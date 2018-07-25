@@ -16,13 +16,19 @@
 
 package representation.json
 
-import play.api.libs.json.__
+import play.api.libs.json._
 import representation.{ Sink, Source, StreamData }
-
 import SourceReads.source
 import SinkReads.sink
 
 object StreamDataReads {
+
+  private val fieldSchemaReads = for {
+    fieldName <- (__ \ "name").read[String]
+    fieldType <- (__ \ "type").read[String]
+  } yield (fieldName, fieldType)
+
+  private val schemaReads = (__ \ "schema").read[Seq[(String, String)]](Reads.seq(fieldSchemaReads))
 
   val streamData = for {
     id       <- (__ \ "id").read[String]
@@ -30,12 +36,14 @@ object StreamDataReads {
     owner    <- (__ \ "owner").read[String]
     source   <- (__ \ "source").read[Source]
     sink     <- (__ \ "sink").read[Sink]
+    schema   <- schemaReads
   } yield StreamData(
     id       = id,
     interval = interval,
     owner    = owner,
     source   = source,
-    sink     = sink
+    sink     = sink,
+    schema   = schema.toMap[String, String]
   )
 
 }

@@ -19,6 +19,7 @@ package config
 import it.gov.daf.common.config.Read
 
 case class StreamApplicationConfig(catalogUrl: String,
+                                   validator: String,
                                    kafkaConfig: KafkaConfig)
 
 object StreamApplicationConfig {
@@ -26,10 +27,12 @@ object StreamApplicationConfig {
   private val readKafka = KafkaConfig.reader
 
   def reader = for {
-    catalogUrl  <- Read.string { "daf.catalog_url" }.!
+    catalogUrl  <- Read.string { "daf.catalog_url"      }.!
+    validator   <- Read.string { "daf.stream.validator" } default "none"
     kafkaConfig <- readKafka
   } yield StreamApplicationConfig(
     catalogUrl  = catalogUrl,
+    validator   = validator,
     kafkaConfig = kafkaConfig
   )
 

@@ -4,7 +4,10 @@ curl -i -X POST \
   --url http://kong-admin.default.svc.cluster.local:8001/apis/ \
   --data 'name=daf-dataset-manager' \
   --data 'uris=/dataset-manager' \
-  --data 'upstream_url=http://storage-manager.default.svc.cluster.local:9000/dataset-manager'
+  --data 'upstream_url=http://storage-manager.default.svc.cluster.local:9000/dataset-manager' \
+  --data 'upstream_send_timeout=240000' \
+  --data 'upstream_read_timeout=240000' \
+  --data 'upstream_connect_timeout=240000'
 
 curl -i -X POST \
   --url http://kong-admin.default.svc.cluster.local:8001/apis/ \

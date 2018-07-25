@@ -91,6 +91,16 @@ spec:
             secretKeyRef:
               name: daf-secret
               key: kylo_user_pwd
+        - name: IMPALA_KEYSTORE_PWD
+          valueFrom:
+            secretKeyRef:
+              name: daf-secret
+              key: impala_keyStore_pwd
+        - name: IMPALA_ADMIN_PWD
+          valueFrom:
+            secretKeyRef:
+              name: daf-secret
+              key: impala_admin_pwd
         volumeMounts:
   #        - name: glusterfsvol
   #          mountPath: /opt/docker/conf/production.conf

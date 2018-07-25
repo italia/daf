@@ -58,6 +58,12 @@ class ProducerService(kafkaConfig: KafkaConfig)(implicit actorRefFactory: ActorR
       topic     = topic,
       version   = pushedEvent.version getOrElse 1l,
       timestamp = pushedEvent.timestamp,
+      location  = pushedEvent.location.map { location =>
+        Location(
+          latitude  = location.latitude,
+          longitude = location.longitude
+        )
+      },
       certainty = pushedEvent.certainty getOrElse 1.0d,
       eventType = convertEventType(pushedEvent),
       subType   = pushedEvent.customType,

@@ -1,0 +1,11 @@
+{
+    "namespace": "it.gov.daf.iot.event",
+    "name": "GenericValue",
+    "type": "record",
+    "doc": "A representation of a value of generic type. Works as a union of primitive types.",
+    "version": 1,
+    "fields": [{
+        "name": "value",
+        "type": ["double", "int", "long", "string", "boolean"]
+    }]
+}

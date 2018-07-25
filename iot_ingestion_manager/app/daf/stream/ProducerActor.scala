@@ -21,11 +21,12 @@ import java.util.concurrent.TimeUnit
 import akka.actor.{ Actor, ActorRef, Props }
 import config.KafkaConfig
 import daf.stream.avro.EventSerDe
-import it.gov.daf.iot.event.{ Event => AvroEvent, EventType => AvroEventType }
+import it.gov.daf.iot.event.{ GenericValue, Event => AvroEvent, EventType => AvroEventType, Location => AvroLocation }
 import org.apache.kafka.clients.producer.{ KafkaProducer, ProducerRecord }
 import org.apache.kafka.common.serialization.{ ByteArraySerializer, StringSerializer }
 
 import scala.concurrent.Future
+import scala.collection.convert.decorateAsJava._
 
 class ProducerActor(val config: KafkaConfig) extends Actor {
 
@@ -41,28 +42,36 @@ class ProducerActor(val config: KafkaConfig) extends Actor {
     case OtherEvent       => AvroEventType.OTHER
   }
 
-  private def buildEvent(envelope: Envelope, payload: String, attributes: Map[String, String]) = new AvroEvent(
-    version             = envelope.version,
-    id                  = envelope.id,
-    timestamp           = envelope.timestamp,
-    temporalGranularity = None,
-    certainty           = envelope.certainty,
-    `type`              = convertEventType { envelope.eventType },
-    subtype             = envelope.subType,
-    eventAnnotation     = envelope.comment,
-    source              = envelope.sender.source,
-    location            = None,
-    body                = payload,
-    attributes          = attributes
-  )
+  private def buildEvent(envelope: Envelope, payload: String, attributes: Map[String, Any]) = AvroEvent.newBuilder
+    .setVersion(envelope.version)
+    .setId(envelope.id)
+    .setTimestamp(envelope.timestamp)
+    .setCertainty(envelope.certainty)
+    .setType(convertEventType(envelope.eventType))
+    .setSource(envelope.sender.source)
+    .setBody(payload)
+    .setAttributes { buildAttributes(attributes) }
+    .setSubtype { envelope.subType.orNull }
+    .setEventAnnotation { envelope.comment.orNull }
+    .setLocation { buildLocation(envelope).orNull }
+    .build()
+
+  private def buildAttributes(attributes: Map[String, Any]) = attributes.mapValues { new GenericValue(_) }.toMap[CharSequence, GenericValue].asJava
+
+  private def buildLocation(envelope: Envelope) = envelope.location.map { location =>
+    AvroLocation.newBuilder
+      .setLatitude(location.latitude)
+      .setLongitude(location.longitude)
+      .build()
+  }
 
   private def createRecord(topic: String, event: AvroEvent) = new ProducerRecord[String, Bytes](
     topic,
-    event.id,
+    event.getId.toString,
     EventSerDe.serialize(event)
   )
 
-  private def send(envelope: Envelope, payload: String, attributes: Map[String, String]) = Future {
+  private def send(envelope: Envelope, payload: String, attributes: Map[String, Any]) = Future {
     producer.send {
       createRecord(
         topic = envelope.topic,
@@ -73,7 +82,7 @@ class ProducerActor(val config: KafkaConfig) extends Actor {
 
   private def reply[A](f: ActorRef => A) = f { sender() }
 
-  private def doSend(envelope: Envelope, payload:String, attributes: Map[String, String], originalSender: ActorRef) = send(envelope, payload, attributes).onSuccess {
+  private def doSend(envelope: Envelope, payload:String, attributes: Map[String, Any], originalSender: ActorRef) = send(envelope, payload, attributes).onSuccess {
     case metadata => originalSender ! ServiceMessageMetadata.fromKafka(envelope.id, metadata)
   }
 

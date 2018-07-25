@@ -1,7 +1,7 @@
 package representation.json
 
 import org.scalatest.{ MustMatchers, WordSpec }
-import representation.{ Event, MetricEventType }
+import representation.{ Event, EventLocation, MetricEventType }
 
 class EventReadsSpec extends WordSpec with MustMatchers with JsonParsing {
 
@@ -17,6 +17,7 @@ class EventReadsSpec extends WordSpec with MustMatchers with JsonParsing {
             source     = "test-source",
             version    = Some(100),
             timestamp  = 1532423327223l,
+            location   = Some { EventLocation(66.550331132, 25.886996452) },
             certainty  = Some(0.75),
             eventType  = MetricEventType,
             customType = Some("sensor"),
@@ -39,6 +40,7 @@ class EventReadsSpec extends WordSpec with MustMatchers with JsonParsing {
             source     = "test-source",
             version    = None,
             timestamp  = 1532423327223l,
+            location   = None,
             certainty  = None,
             eventType  = MetricEventType,
             customType = None,
@@ -71,6 +73,10 @@ private object EventReadsCases {
        |  "version": 100,
        |  "timestamp": 1532423327223,
        |  "certainty": 0.75,
+       |  "location": {
+       |    "latitude": 66.550331132,
+       |    "longitude": 25.886996452
+       |  },
        |  "eventType": "metric",
        |  "customType": "sensor",
        |  "comment": "Test reading with moderate certainty",

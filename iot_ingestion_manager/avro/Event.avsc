@@ -7,29 +7,23 @@
     "fields": [{
         "name": "version",
         "type": "long",
-        "doc": "Version of this schema",
+        "doc": "Version of this schema. Required",
         "default": 1
     },
     {
         "name": "id",
         "type": "string",
-        "doc": "A globally unique identifier for this event."
+        "doc": "A globally unique identifier for this event. Required"
     },
     {
         "name": "timestamp",
         "type": "long",
-        "doc": "Epoch timestamp in millis. Required."
-    },
-    {
-        "name": "temporalGranularity",
-        "type": ["null", "string"],
-        "doc": "atom of time from a particular application’s point of view, for example: second, minute, hour, or day. Optional.",
-        "default": null
+        "doc": "Timestamp in milliseconds since the epoch. Required."
     },
     {
         "name": "certainty",
         "type": "double",
-        "doc": "estimation of the certainty of this particular event [0,1]. Optional.",
+        "doc": "Estimation of the certainty of this particular event [0,1]. Optional.",
         "default": 1.0
     },
     {
@@ -39,18 +33,18 @@
           "type": "enum",
           "symbols": ["METRIC", "STATE_CHANGE", "OTHER"]
         },
-        "doc": "ID indicating the type of event. Required."
+        "doc": "Type of event: METRIC, STATE_CHANGE, OTHER. Required."
     },
     {
         "name": "subtype",
         "type":  ["null", "string"],
-        "doc": "It's an additional field that can be used to additionally qualify the event. It is used with SOURCE attribute for identifying uniquely a time series. Optional.",
+        "doc": "Extra field to additionally qualify the event, for instance within its special domain. Optional.",
         "default": null
     },
     {
         "name": "eventAnnotation",
         "type": ["null", "string"],
-        "doc": "free-text explanation of what happened in this particular event. Optional.",
+        "doc": "Free-text explanation of what happened in this particular event. Optional.",
         "default": null
     },
     {
@@ -61,7 +55,7 @@
     },
     {
         "name": "location",
-        "type": ["null", "string"],
+        "type": ["null", "Location"],
         "doc": "Location from which the event was generated. Optional.",
         "default": null
     },
@@ -74,7 +68,7 @@
         "name": "attributes",
         "type": {
             "type": "map",
-            "values": "string"
+            "values": "GenericValue"
         },
         "doc": "Event type-specific key/value pairs, usually extracted from the event body. Required.",
         "order": "ignore"

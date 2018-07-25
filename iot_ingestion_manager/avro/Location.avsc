@@ -1,0 +1,17 @@
+{
+    "namespace": "it.gov.daf.iot.event",
+    "name": "Location",
+    "type": "record",
+    "doc": "A representation of a latitude and longitude record, which refers to the geographical location.",
+    "version": 1,
+    "fields": [{
+        "name": "longitude",
+        "type": "double",
+        "doc": "Longitudinal coordinate for this location."
+    },
+    {
+        "name": "latitude",
+        "type": "double",
+        "doc": "Latitudinal coordinate for this location."
+    }]
+}

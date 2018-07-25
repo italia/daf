@@ -19,10 +19,11 @@ package representation
 import io.swagger.annotations.ApiModel
 
 @ApiModel("Event")
-case class Event(id: String,
+final case class Event(id: String,
                  source: String,
                  version: Option[Long],
                  timestamp: Long,
+                 location: Option[EventLocation],
                  certainty: Option[Double],
                  eventType: EventType,
                  customType: Option[String],
@@ -35,6 +36,8 @@ sealed trait EventType
 case object MetricEventType extends EventType
 case object StateChangedEventType extends EventType
 case object OtherEventType extends EventType
+
+final case class EventLocation(latitude: Double, longitude: Double)
 
 object EventTypes {
 

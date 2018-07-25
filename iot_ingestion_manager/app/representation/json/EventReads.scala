@@ -19,7 +19,7 @@ package representation.json
 import cats.Id
 import cats.free.Free
 import play.api.libs.json._
-import representation.{ Event, EventTypes }
+import representation.{ Event, EventLocation, EventTypes }
 
 object EventReads {
 
@@ -56,11 +56,14 @@ object EventReads {
     }
   }
 
+  private val locationReads = (__ \ "location").readNullable[EventLocation](Json.reads[EventLocation])
+
   implicit val event: Reads[Event] = for {
     id         <- (__ \ "id").read[String]
     source     <- (__ \ "source").read[String]
     version    <- (__ \ "version").readNullable[Long]
     timestamp  <- (__ \ "timestamp").read[Long]
+    location   <- locationReads
     certainty  <- (__ \ "certainty").readNullable[Double]
     eventType  <- eventTypeReads
     customType <- (__ \ "customType").readNullable[String]
@@ -72,6 +75,7 @@ object EventReads {
     source     = source,
     version    = version,
     timestamp  = timestamp,
+    location   = location,
     certainty  = certainty,
     eventType  = eventType,
     customType = customType,

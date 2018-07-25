@@ -36,6 +36,8 @@ object Versions {
 
   lazy val scalaTestPlay  = "2.0.1"
 
+  lazy val shapeless      = "2.3.3"
+
   lazy val slf4j          = "1.7.25"
 
   lazy val spark          = "2.2.0.cloudera1"

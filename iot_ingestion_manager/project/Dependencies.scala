@@ -74,6 +74,8 @@ object Dependencies {
 
     val typesafeConfig = "com.typesafe"     % "config"        % Versions.typesafeConfig
 
+    val shapeless      = "com.chuusai"     %% "shapeless"     % Versions.shapeless
+
     val catsCore       = "org.typelevel"   %% "cats-core"     % Versions.catsCore
 
     val catsFree       = "org.typelevel"   %% "cats-free"     % Versions.catsCore

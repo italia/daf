@@ -2,130 +2,115 @@
 
 ## Synopsis
 
-This project  ingests IoT data from a Kafka queue and store them into HDFS and KUDU. All data coming from Kafka are represented as  `Event` and are stored in HDFS, KUSU as  [`HdfsEvent`](https://github.com/italia/daf/blob/master/iot_ingestion_manager/src/main/scala/it/teamdigitale/events/package.scala), [`KuduEvent`](https://github.com/italia/daf/blob/master/iot_ingestion_manager/src/main/scala/it/teamdigitale/events/package.scala) (respectively).
+This module exposes APIs that allow external services to register their sources with DAF, allowing for real-time ingestion into the DAF platform. Currently, clients are allowed to push events into DAF using the JSON API described below.
 
-The ingestion is processed real time using Spark Streaming .
+The received event will be posted onto a Kafka queue that is dedicated to the specific external source that pushed the event onto DAF. A background Nifi process then acts as a consumer, pulling the data from Kafka and pushing into Kudu as a time-series dataset. The data can then be queried from Kudu using Impala.
 
-## Development
+As a first implementation, the system will be assumed to be adopting a defensive at-least-once message guarantee, both on the producer and consumer ends. Note that the server assumes no responsibility for failing to produce messages unless it responds with `200`, meaning that the message has been successfully produced to the designated queue. The client should reattempt pushing the event unless the response from the server indicates a fatal and repeatable error, such as `400`.
 
-### Directory structure
--   `project`: project definition files
--   `src`: source code and property files
-- `note`: ipython notebooks for querying KUDU and HDFS 
+Also, note that the ordering of the messages **should** be assumed to be mixed, both on the producer and consumer ends. This means that chronological (or otherwise) ordering of events will not be guaranteed, neither on Kafka nor Kudu. 
 
-### Built with
+## API
 
--  Scala 2.11.8
--  Apache Kafka 0.10.X
--  Kudu 1.4.0
-- Spark 2.2.X 
-- Hadoop 2.6.0
+##### 1. Registration
 
-More detailed information about dependencies and their version could be found within  `build.sbt`  file.    
+In a typical workflow, a client will be expected to register its intention to start pushing messages to DAF by first registering an entry in the `catalog-manager`, describing the catalog entry as a `stream`.
 
-### How to Run
-
-First compile the code:
+The registration process is then done by `POST`ing an empty body to the following API
 ```bash
-> sbt clean compile test
-> sbt universal:packageBin
+http://[host]:[port]/iot-manager/v1/stream/[catalog-id]
 ```
-The last command will generate a compress folder *iotingestionmanager-2.0.0.zip* (in ./target/universal/) containing the jar of our application plus all shared libraries.
+
+The server will then retrieve the catalog entry with that `catalog-id` from the `catalog-manager` and attempt create a stream in Nifi using information stored in the catalog. When this is successful, the server will respond with `201 Created`.
+
+##### 2. Event Pushing
+
+After the registration has been done, the client can start pushing events to the server by calling the following API
 ```bash
-unzip iotingestionmanager-2.0.0.zip
-mv iotingestionmanager-2.0.0/lib/it.teamdigitale.iotingestionmanager-2.0.0.jar ./iotingestionmanager-2.0.0/ 
+http://[host]:[port]/iot-manager/v1/stream/[catalog-id]
 ```
-Then execute it using a spark shell:
-```bash
-export JARS=$(JARS=(./target/universal/lib/*.jar); IFS=,; echo "${JARS[*]}")
-
-export SPARK_KAFKA_VERSION=0.10
-
- spark2-submit \
- --class it.teamdigitale.Main \
- --principal name@DAF.GOV.IT \
- --master yarn \
- --deploy-mode cluster \
- --keytab /path/to/key.keytab \
- --files "/path/to/application.conf" \
- --conf "spark.driver.extraJavaOptions= -Dconfig.file=application.conf" \
- --conf "spark.driver.extraClassPath=application.conf" \
- --properties-file "path/to/spark.conf" \
- --jars $JARS it.teamdigitale.iotingestionmanager-2.0.0.jar
+The client should `PUT` an `Event`, following the representation below:
+```json
+{
+  "id": "some-id",
+  "source": "test-source",
+  "version": 100,
+  "timestamp": 1532423327223,
+  "location": {
+    "latitude": 66.550331132,
+    "longitude": 25.886996452
+  },
+  "certainty": 0.75,
+  "eventType": "metric",
+  "customType": "sensor",
+  "comment": "Test reading with moderate certainty",
+  "body": {
+    "int": 1,
+    "string": "two",
+    "double": 0.975,
+    "boolean": false
+  },
+  "attributes": {
+    "attr1": 1,
+    "attr2": 0.975,
+    "attr3": false
+  }
+}
 ```
-Note that:
-* *--properties-file* option set extra Spark properties. [Here](https://github.com/italia/daf/blob/master/iot_ingestion_manager/src/main/resources/spark.conf) an example of spark property file; 
-* *--files* option distributes input files on driver and executor machines
-* *--jars* is a comma-separated list of local jars to include on the driver’s and executors' classpaths
 
-## Technologies involved
+The information surrounding the core of the message is represented in the `body` attribute, which can contain any number of properties. This attribute is not parsed by the server, but is expected to be a valid JSON object.
 
-**Apache Kudu** does incremental inserts of the events. Its aim is to provide a hybrid storage layer between HDFS (leveraging its very fast scans of large datasets) and HBase (leveraging its fast primary key inserts/lookups). Kudu can provide much faster scans of data for analytics, compliments of its columnar storage architecture.
+The `attributes` item is another JSON object that can contain any number of key-value pairs that describe the content of the body. The items here are processed by the server in that they are flattened and into a list of key-value pairs before storing. This means that an arbitrary level of nesting is supported, at no performance overhead, however the structure is flattened as shown below:
+```json
+{
+	"attr1": {
+		"attr2": {
+			"attr3": "some-string"
+		}
+	}
+}
+```
+```
+  "attr1.attr2.attr3": "some-string"
+```
 
-**Apache HDFS** all IoT data are stored into HDFS.
+The rest of the information acts as an envelope, which helps the server add some context and metadata to the specific event.
 
-**Apache Kafka** allows us to abstract the data ingestion in a scalable way, versus tightly. coupling it to the Spark streaming framework (which would have allowed only a single purpose). Kafka is attractive for its ability to scale to millions of events per second, and its ability to integrate well with many technologies like Spark Streaming.
+All events coming from Kafka have a common `Event` structure, which is represented in Avro, following the table below:
 
-**Spark Streaming** is able to represent complex event processing workflows with very few lines of code (in this case using Scala).
+| Name            | Type     | Description                                                     | Required | Default |
+|:----------------|:---------|:----------------------------------------------------------------|:--------:|:-------:|
+| version         | long     | Version of this schema                                          | N        | 1       |
+| id              | string   | A globally unique identifier for an event                       | Y        |         |
+| timestamp       | long     | Timestamp in milliseconds since the epoch                       | Y        |         |
+| certainty       | double   | Estimation of the certainty of this particular event \[0,1\]    | N        | 1.0     |
+| source          | string   | Name of the entity that originated this event                   | Y        |         |
+| type            | enum     | Type of event: `METRIC`, `STATE_CHANGE` `OTHER`                 | Y        |         |
+| subtype         | string   | Extra field to qualify the event in its custom domain           | N        |         |
+| eventAnnotation | string   | Free-text explanation of what happened in this particular event | N        |         |
+| location        | location | Location from which the event was generated                     | N        |         |
+| body            | string   | Raw event content JSON                                          | Y        |         |
+| attributes      | map      | Event-specific key/value pairs, where the values are genric     | N        | empty   |
 
-**Impala** enables us to easily analyze data that is being used in an ad-hoc manner. I used it as a query engine to directly query the data that I had loaded into Kudu to help understand the patterns I could use to build a model. 
-
-![alt text](https://github.com/italia/daf/blob/master/iot_ingestion_manager/doc/technologies.png)
+Note that the Avro schemas can be found under the `avro/` directory of this project.
 
 ## Data Flow Description
-The IoT Ingestion Manager handles all IoT events ingested within DAF. In particular, each IoT event could be:
+
+The IoT domain in DAF is centered around the concept of `Event`s, which can take one of a few forms:
 - a point of a given time series (e.g. average speed measured by a sensor)
 - a changing state event (e.g. event on/off of a sensor) 
 - a generic event (e.g. unstructured information send by a sensor). 
 
-All events coming from Kafka have a common structure: `Event`. In the following we describe its schema:
+The `Event` will also contain some decorating data around the payload itself, which serves to give some context and customization to the meaning of the event.
 
-| Name        | Description           | Type  |  Optional  |
-| ------------- |:-------------:| -----:|-----:|
-| version      | Version of this schema | Long | No
-| id      | A globally unique identifier for an event      |   String | No
-| ts      | Epoch timestamp in milliseconds      |   Long | No
-| temporal_granularity | Measurement unit (e.g. second, minute, hour, day)  | String|    Yes |
-| event_certainty | estimation of the certainty of this particular event \[0,1\]   | Double  |    Yes |
-| source | Name of the entity that originated this event|    String | No
-| event_type_id | Type of event: *0* for metric event; *1* for changing state events; *2* for generic events     |Integer|    No|
-| event_subtype_id |  It is used with *source* attribute for identifying uniquely a timeseries      |    String | Yes
-| event_annotation | free-text explanation of what happened in this particular event| String|  Yes |
-| location | Location from which the event was generated (i.e. lat-lng)  |    String | No
-| body | Raw event content in bytes     |Bytes|    Yes |
-| attributes |Event type-specific key/value pairs   | Map |  No |
+When starting out, a client is expected to first register the catalog entry to the IoT service by means of the API above. This will create the backend components that are necessary for storage and retrieval of the data, such as the topic in Kafka, the table in Kudu and the Nifi process that will start collecting messages from the designated Kafka topic.
 
+Note that every service will have its own dedicated topic in Kafka and table in Kudu. This level of granularity allows for better management and integration with the current security implementation within DAF. This implies that, much like every other API and service in DAF, all operations and communications that are handled by the IoT manager will be secured following the same reasoning and design in the general DAF security architecture. This implies that only designated users will be allowed to push events on DAF, whose identity may also be stored as part of the envelope information for later auditing.
 
+##### Storage and Analysis
 
+The Kudu tables will also be loaded in Impala and secured with Sentry, allowing for additional methods of exploration besides simply using Spark. The schema is centered around the same concept of `Event`, indexing the `id` and `timestamp` fields to improve query performance.
 
-When a event is ingested, it is processed and transformed to the appropriate format for HDFS and KUDU.
+##### Client Streaming
 
-Finally, users can analyze stored data via Impala and Spark.
-
-### HDFS Schema Design
-All IoT events are stored in HDFS, In particular, they are partitioned by `source` and `day` (generated from `ts` field).  This improves query performance based on these fields.
-
-### Kudu Schema Design
-Kudu tables have a structured data model similar to tables in a traditional RDBMS. Our Event Table is designed considering the following best practices:
-
-	1. Data would be distributed in such a way that reads and writes are spread evenly across tablet servers. This is impacted by partitioning.
-	2. Tablets would grow at an even, predictable rate and load across tablets would remain steady over time. This is most impacted by partitioning.
-	3. Scans would read the minimum amount of data necessary to fulfill a query. This is impacted mostly by primary key design, but partitioning also plays a role via partition pruning.  
-
-Kudu is characterized by two main concepts:
-* **Partitioning**: how row are mapped to tablets. With either type of partitioning, it is possible to partition based on only a subset of the primary key column. For example, a primary key of “(host, timestamp)” could be range-partitioned on only the timestamp column.  We should avoid hotspot issues;
-* **Indexing**: how data, within each partition, gets sorted. Within any tablet, rows are written in the sort order of the primary key. In the case of a compound key, sorting is determined by the order that the columns in the key are declared. For hash-based distribution, a hash of the entire key is used to determine the “bucket” that values will be placed in. Indexing is used for uniqueness as well as providing quick access to individual rows. 
-
-The above concepts are critical for Kudu performance and stability.
-
-In the following we describe common query that user can do on the Event table:
-* Get all data points of a given time series;
-* Get all data points of a time series ranging into an interval time;
-* Get all events in a given temporal range;
-
-To optimize the above query we identify the following primary keys:
-*	`source`: id of the entity that originated this event (e.g. url of web service). 
-*	`event_subtype_id`: It's an additional field that can be used to additionally qualify the event. It is used with source attribute for identifying uniquely a timeseries.
-*	`ts`: epoch timestamp in milliseconds. 
-
-Finally we use `source` and `ts` as indices.
+Authorized clients may be allowed in the future to stream data through a socket connection opened against the server. In those cases the server will first check that the user is authenticated and authorized, before initiating the consumption from the dedicated Kafka topic.

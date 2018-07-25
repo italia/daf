@@ -26,6 +26,8 @@ case object MetricEvent extends EventType
 case object StateChangeEvent extends EventType
 case object OtherEvent extends EventType
 
+final case class Location(latitude: Double, longitude: Double)
+
 final case class Envelope(id: String,
                           sender: Sender,
                           topic: String,
@@ -34,7 +36,8 @@ final case class Envelope(id: String,
                           certainty: Double,
                           eventType: EventType,
                           subType: Option[String],
-                          comment: Option[String])
+                          comment: Option[String],
+                          location: Option[Location])
 
 final case class ServiceMessage(envelope: Envelope,
                                 payload: String,

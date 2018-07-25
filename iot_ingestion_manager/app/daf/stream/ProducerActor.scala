@@ -42,14 +42,14 @@ class ProducerActor(val config: KafkaConfig) extends Actor {
     case OtherEvent       => AvroEventType.OTHER
   }
 
-  private def buildEvent(envelope: Envelope, payload: String, attributes: Map[String, Any]) = AvroEvent.newBuilder
+  private def buildEvent(envelope: Envelope, payload: Map[String, Any], attributes: Map[String, Any]) = AvroEvent.newBuilder
     .setVersion(envelope.version)
     .setId(envelope.id)
     .setTimestamp(envelope.timestamp)
     .setCertainty(envelope.certainty)
     .setType(convertEventType(envelope.eventType))
     .setSource(envelope.sender.source)
-    .setBody(payload)
+    .setPayload { buildAttributes(payload) }
     .setAttributes { buildAttributes(attributes) }
     .setSubtype { envelope.subType.orNull }
     .setEventAnnotation { envelope.comment.orNull }
@@ -71,7 +71,7 @@ class ProducerActor(val config: KafkaConfig) extends Actor {
     EventSerDe.serialize(event)
   )
 
-  private def send(envelope: Envelope, payload: String, attributes: Map[String, Any]) = Future {
+  private def send(envelope: Envelope, payload: Map[String, Any], attributes: Map[String, Any]) = Future {
     producer.send {
       createRecord(
         topic = envelope.topic,
@@ -82,7 +82,7 @@ class ProducerActor(val config: KafkaConfig) extends Actor {
 
   private def reply[A](f: ActorRef => A) = f { sender() }
 
-  private def doSend(envelope: Envelope, payload:String, attributes: Map[String, Any], originalSender: ActorRef) = send(envelope, payload, attributes).onSuccess {
+  private def doSend(envelope: Envelope, payload: Map[String, Any], attributes: Map[String, Any], originalSender: ActorRef) = send(envelope, payload, attributes).onSuccess {
     case metadata => originalSender ! ServiceMessageMetadata.fromKafka(envelope.id, metadata)
   }
 

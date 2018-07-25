@@ -60,9 +60,12 @@
         "default": null
     },
     {
-        "name": "body",
-        "type": "string",
-        "doc": "Raw event content in bytes. Required"
+        "name": "payload",
+        "type": {
+            "type": "map",
+            "values": "GenericValue"
+        },
+        "doc": "Event content represented as a flat Map of key/value pairs. Required"
     },
     {
         "name": "attributes",

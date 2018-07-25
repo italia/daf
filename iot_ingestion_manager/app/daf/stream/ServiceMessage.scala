@@ -40,8 +40,8 @@ final case class Envelope(id: String,
                           location: Option[Location])
 
 final case class ServiceMessage(envelope: Envelope,
-                                payload: String,
-                                attributes: Map[String, String] = Map.empty[String, String])
+                                payload: Map[String, Any],
+                                attributes: Map[String, Any] = Map.empty[String, Any])
 
 final case class ServiceMessageMetadata(id: String, topic: String, offset: Long, partition: Int, timestamp: Long)
 

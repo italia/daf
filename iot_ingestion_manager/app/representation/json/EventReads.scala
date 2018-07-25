@@ -56,6 +56,10 @@ object EventReads {
     }
   }
 
+  private val payloadReads = (__ \ "payload").read[JsObject].map { jsObject =>
+    _flatten(jsObject.value.toList).map { unmarshall }.run
+  }
+
   private val locationReads = (__ \ "location").readNullable[EventLocation](Json.reads[EventLocation])
 
   implicit val event: Reads[Event] = for {
@@ -68,7 +72,7 @@ object EventReads {
     eventType  <- eventTypeReads
     customType <- (__ \ "customType").readNullable[String]
     comment    <- (__ \ "comment").readNullable[String]
-    body       <- (__ \ "body").read[JsObject]
+    payload    <- payloadReads
     attributes <- attributeReads
   } yield Event(
     id         = id,
@@ -80,7 +84,7 @@ object EventReads {
     eventType  = eventType,
     customType = customType,
     comment    = comment,
-    body       = Json.stringify(body),
+    payload    = payload,
     attributes = attributes.getOrElse { Map.empty[String, Any] }
   )
 

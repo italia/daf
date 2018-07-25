@@ -28,7 +28,7 @@ final case class Event(id: String,
                  eventType: EventType,
                  customType: Option[String],
                  comment: Option[String],
-                 body: String,
+                 payload: Map[String, Any],
                  attributes: Map[String, Any])
 
 sealed trait EventType

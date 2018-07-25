@@ -74,7 +74,7 @@ class ProducerService(kafkaConfig: KafkaConfig)(implicit actorRefFactory: ActorR
   private def createMessage(streamData: StreamData, userId: String, pushedEvent: PushedEvent) = createEnvelope(streamData, userId, pushedEvent).map { envelope =>
     ServiceMessage(
       envelope   = envelope,
-      payload    = pushedEvent.body,
+      payload    = pushedEvent.payload,
       attributes = convertAttributes(pushedEvent)
     )
   }

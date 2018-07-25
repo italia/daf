@@ -44,7 +44,7 @@ The client should `PUT` an `Event`, following the representation below:
   "eventType": "metric",
   "customType": "sensor",
   "comment": "Test reading with moderate certainty",
-  "body": {
+  "payload": {
     "int": 1,
     "string": "two",
     "double": 0.975,
@@ -58,9 +58,7 @@ The client should `PUT` an `Event`, following the representation below:
 }
 ```
 
-The information surrounding the core of the message is represented in the `body` attribute, which can contain any number of properties. This attribute is not parsed by the server, but is expected to be a valid JSON object.
-
-The `attributes` item is another JSON object that can contain any number of key-value pairs that describe the content of the body. The items here are processed by the server in that they are flattened and into a list of key-value pairs before storing. This means that an arbitrary level of nesting is supported, at no performance overhead, however the structure is flattened as shown below:
+The information surrounding the core of the message is contained in the `payload` attribute, which is a JSON object containing any number of properties, the structure of which must match the schema contained in the stream's respective catalog entry. The items here are processed by the server in that they are flattened  into a list of key-value pairs before storing in Avro format. This means that an arbitrary level of nesting is supported, at no performance overhead, however the structure is flattened as shown below:
 ```json
 {
 	"attr1": {
@@ -73,6 +71,8 @@ The `attributes` item is another JSON object that can contain any number of key-
 ```
   "attr1.attr2.attr3": "some-string"
 ```
+Note that the `attributes` item is another JSON object that can contain any number of key-value pairs that describe the content of the body, and is processed by the server is much the same way as the `payload`, besides the fact that it is optional and requires no validation by the server.
+
 
 The rest of the information acts as an envelope, which helps the server add some context and metadata to the specific event.
 
@@ -89,7 +89,7 @@ All events coming from Kafka have a common `Event` structure, which is represent
 | subtype         | string   | Extra field to qualify the event in its custom domain           | N        |         |
 | eventAnnotation | string   | Free-text explanation of what happened in this particular event | N        |         |
 | location        | location | Location from which the event was generated                     | N        |         |
-| body            | string   | Raw event content JSON                                          | Y        |         |
+| body            | map      | Event content represented as a flat Map of key/value pairs      | Y        |         |
 | attributes      | map      | Event-specific key/value pairs, where the values are genric     | N        | empty   |
 
 Note that the Avro schemas can be found under the `avro/` directory of this project.

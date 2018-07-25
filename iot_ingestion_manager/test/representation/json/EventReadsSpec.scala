@@ -22,7 +22,12 @@ class EventReadsSpec extends WordSpec with MustMatchers with JsonParsing {
             eventType  = MetricEventType,
             customType = Some("sensor"),
             comment    = Some("Test reading with moderate certainty"),
-            body       = """{"int":1,"string":"two","double":0.975,"boolean":false}""",
+            payload    = Map(
+              "int"     -> 1,
+              "string"  -> "two",
+              "double"  -> 0.975d,
+              "boolean" -> false
+            ),
             attributes = Map(
               "int"     -> 1,
               "double"  -> 0.975d,
@@ -45,7 +50,12 @@ class EventReadsSpec extends WordSpec with MustMatchers with JsonParsing {
             eventType  = MetricEventType,
             customType = None,
             comment    = None,
-            body       = """{"int":1,"string":"two","double":0.975,"boolean":false}""",
+            payload    = Map(
+              "int"     -> 1,
+              "string"  -> "two",
+              "double"  -> 0.975d,
+              "boolean" -> false
+            ),
             attributes = Map.empty[String, Any]
           )
         }
@@ -80,7 +90,7 @@ private object EventReadsCases {
        |  "eventType": "metric",
        |  "customType": "sensor",
        |  "comment": "Test reading with moderate certainty",
-       |  "body": {
+       |  "payload": {
        |    "int": 1,
        |    "string": "two",
        |    "double": 0.975,
@@ -101,7 +111,7 @@ private object EventReadsCases {
        |  "source": "test-source",
        |  "timestamp": 1532423327223,
        |  "eventType": "metric",
-       |  "body": {
+       |  "payload": {
        |    "int": 1,
        |    "string": "two",
        |    "double": 0.975,
@@ -117,7 +127,7 @@ private object EventReadsCases {
        |  "source": "test-source",
        |  "timestamp": 1532423327223,
        |  "eventType": "metric",
-       |  "body": {
+       |  "payload": {
        |    "int": 1,
        |    "string": "two",
        |    "double": 0.975,

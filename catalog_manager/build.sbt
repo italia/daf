@@ -73,6 +73,9 @@ libraryDependencies ++= Seq(
   "io.prometheus" % "simpleclient_common" % "0.1.0"
 )
 
+PlayKeys.devSettings := Seq("play.server.http.requestTimeout" -> "240s",
+  "play.server.http.idleTimeout" -> "240s")
+
 resolvers ++= Seq(
   Resolver.mavenLocal,
   //"zalando-bintray" at "https://dl.bintray.com/zalando/maven",

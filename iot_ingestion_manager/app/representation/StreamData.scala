@@ -91,7 +91,7 @@ object StreamData {
   } yield StreamData(
     id       = catalog.operational.logical_uri,
     interval = seconds,
-    owner    = catalog.dcatapit.holder_name getOrElse "<unknown>",
+    owner    = catalog.dcatapit.author getOrElse "<unknown>",
     source   = source,
     sink     = sink,
     schema   = schema

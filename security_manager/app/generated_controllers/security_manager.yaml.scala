@@ -40,7 +40,7 @@ import it.gov.daf.securitymanager.service.utilities.Utils
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-        
+                
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -288,10 +288,12 @@ package security_manager.yaml {
 
             if (CredentialManager.isDafAdmin(currentRequest) || CredentialManager.isDafEditor(currentRequest)) {
               val result = credentials.flatMap { crd =>
-                logger.info("username -->" + crd.username)
+                logger.info("username --> " + crd.username )
                 val sftpInternal = new SftpHandler(crd.username, crd.password, ConfigReader.sftpHostInternal)
+                logger.debug("creating path " + ConfigReader.sftpHostInternal)
                 val resultInternal = sftpInternal.mkdir(path_to_create)
                 logger.debug("path created into daf.teamdigitale.it")
+                logger.debug("creating path " + ConfigReader.sftphostExternal)
                 val sftpExternal = new SftpHandler(crd.username, crd.password, ConfigReader.sftphostExternal)
                 val resultExternal = sftpExternal.mkdir(path_to_create)
                 logger.debug("path created into edge2")

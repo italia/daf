@@ -52,7 +52,7 @@ import it.gov.daf.common.sso.common
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-
+    
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -629,7 +629,7 @@ package catalog_manager.yaml {
             val inferJson = Json.parse(kyloSchema)
 
             val feedCreation  = ws.url(KYLOURL + "/api/v1/feedmgr/feeds")
-              .withRequestTimeout(240 seconds)
+              //.withRequestTimeout(240 seconds)
               .withAuth(KYLOUSER, KYLOPWD, WSAuthScheme.BASIC)
 
             // it is a try i know is not a good practice

@@ -73,6 +73,8 @@ private class AppConfig @Inject()(playConfig: Configuration) {
   val sftpHostInternal :Option[String] = playConfig.getString("sftp.host.internal")
   val sftphostExternal: Option[String] = playConfig.getString("sftp.host.external")
 
+  val hdfsUser :Option[String] = playConfig.getString("hdfs.user")
+  val hdfsUserPwd :Option[String] = playConfig.getString("hdfs.userPwd")
 
 }
 
@@ -119,6 +121,9 @@ object ConfigReader {
 
   require(config.sftpHostInternal.nonEmpty,"sftpHostInternal must be specified")
   require(config.sftphostExternal.nonEmpty,"sftphostExternal pwd must be specified")
+
+  require(config.hdfsUser.nonEmpty,"hdfs user must be specified")
+  require(config.hdfsUserPwd.nonEmpty,"hdfs user pwd must be specified")
 
 
   //def userIdHeader: String = config.userIdHeader.getOrElse("userid")
@@ -187,6 +192,9 @@ object ConfigReader {
 
   def sftpHostInternal :String = config.sftpHostInternal.get
   def sftphostExternal: String = config.sftphostExternal.get
+
+  def hdfsUser:String = config.hdfsUser.get
+  def hdfsUserPwd:String = config.hdfsUserPwd.get
 
 }
 

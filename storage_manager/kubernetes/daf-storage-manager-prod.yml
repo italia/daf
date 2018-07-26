@@ -56,6 +56,11 @@ spec:
             secretKeyRef:
               name: daf-secret
               key: ssl_keystore_pwd
+        - name: LIVY_AUTH
+          valueFrom:
+            secretKeyRef:
+              name: daf-secret
+              key: livy_auth
         ports:
         - name: client
           containerPort: 9000

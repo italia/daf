@@ -17,7 +17,6 @@ import scala.util._
 
 import javax.inject._
 
-import java.io.File
 import de.zalando.play.controllers.PlayBodyParsing._
 import it.gov.daf.catalogmanager.listeners.IngestionListenerImpl
 import it.gov.daf.catalogmanager.service.{CkanRegistry,ServiceRegistry}
@@ -31,7 +30,6 @@ import it.gov.daf.common.utils.WebServiceUtil
 import it.gov.daf.catalogmanager.service.VocServiceRegistry
 import play.api.libs.ws.WSClient
 import java.net.URLEncoder
-import it.gov.daf.catalogmanager.utilities.ConfigReader
 import play.api.libs.ws.WSResponse
 import play.api.libs.ws.WSAuthScheme
 import java.io.FileInputStream
@@ -44,6 +42,7 @@ import play.api.Logger
 import yaml.ResponseWrites.MetaCatalogWrites.writes
 import play.api.mvc.Headers
 import it.gov.daf.common.sso.common
+import it.gov.daf.common.sso.common
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -52,7 +51,7 @@ import it.gov.daf.common.sso.common
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                                                                                                                                                                                            
+                                                                                                                                                                                                                        
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -162,6 +161,7 @@ package catalog_manager.yaml {
         val createdatasetcatalogExtOpenData = createdatasetcatalogExtOpenDataAction { (catalog: MetaCatalog) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalogExtOpenData
             val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
+            //TODO aggiungere l'editor
             if( CredentialManager.isDafSysAdmin(currentRequest) ) {
                 val created: Success = ServiceRegistry.catalogService.createCatalogExtOpenData(catalog, Option(credentials.username), ws)
                 CreatedatasetcatalogExtOpenData200(created)
@@ -221,7 +221,8 @@ package catalog_manager.yaml {
         val addQueueCatalog = addQueueCatalogAction { (catalog: MetaCatalog) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.addQueueCatalog
             val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
-            if( CredentialManager.isDafSysAdmin(currentRequest) || CredentialManager.isOrgsEditor(currentRequest, credentials.groups) ) {
+            if( CredentialManager.isDafSysAdmin(currentRequest) || CredentialManager.isOrgsEditor(currentRequest, credentials.groups) ||
+                CredentialManager.isOrgsAdmin(currentRequest, credentials.groups)) {
                 val token = readTokenFromRequest(currentRequest.headers)
                 token match {
                     case Some(t) => {

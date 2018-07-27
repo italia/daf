@@ -407,6 +407,24 @@ paths:
           description: Error Message
           schema:
             $ref: '#/definitions/Error'
+  "/daf/users":
+    get:
+      tags:
+        - DAF
+      description: List  DAF users
+      operationId: listDAFusers
+      produces:
+      - application/json
+#      parameters:
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/StringList'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
   "/daf/organizations":
     get:
       tags:
@@ -882,6 +900,10 @@ definitions:
         description: group gid number
         type: string
       member_user:
+        type: array
+        items:
+          type: string
+      member_sys_user:
         type: array
         items:
           type: string

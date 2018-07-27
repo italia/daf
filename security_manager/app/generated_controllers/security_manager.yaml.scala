@@ -46,7 +46,7 @@ import scala.collection.immutable.StringLike
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                                        
+                                                                                                                
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -288,6 +288,24 @@ package security_manager.yaml {
               UpdateDAFuser500(Error(Option(1), Some("Admin permissions required"), None))
           }
             // ----- End of unmanaged code area for action  Security_managerYaml.updateDAFuser
+        }
+        val listDAFusers = listDAFusersAction {  _ =>  
+            // ----- Start of unmanaged code area for action  Security_managerYaml.listDAFusers
+            NotImplementedYet
+          /*TODOOOOO
+            execInContext[Future[ListDAFusersType[T] forSome { type T }]] ("listDAFusers"){ () =>
+
+              val findingGroup =  if( CredentialManager.isDafSysAdmin(currentRequest) ) Seq(sso.OPEN_DATA_GROUP)
+                                  else CredentialManager.getUserAdminGroups(currentRequest)
+
+              //findingGroup.fold()   ... TODO
+              apiClientIPA.showGroup(findingGroup) flatMap {
+                case Right(success) => ListDAFusers200(success.memberof_group)
+                case Left(err) => ListDAFusers500(err)
+              }
+
+          }*/
+            // ----- End of unmanaged code area for action  Security_managerYaml.listDAFusers
         }
         val setACLPermission = setACLPermissionAction { input: (String, AclPermission) =>
             val (datasetName, aclPermission) = input

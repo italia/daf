@@ -418,9 +418,10 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
           IpaGroup(
             (result \ "dn").asOpt[String].getOrElse(""),
             (result \ "memberof_group").asOpt[Seq[String]],
+            (result \ "member_user").asOpt[Seq[String]].map{ _.filter( a=> a.endsWith(service.ORG_REF_USER_POSTFIX) || a.endsWith(service.WRK_REF_USER_POSTFIX) )},//sys users
             (result \ "member_group").asOpt[Seq[String]],
             (result \ "gidnumber") (0).asOpt[String],
-            (result \ "member_user").asOpt[Seq[String]]
+            (result \ "member_user").asOpt[Seq[String]].map{ _.filterNot( a=> a.endsWith(service.ORG_REF_USER_POSTFIX) || a.endsWith(service.WRK_REF_USER_POSTFIX) )}//users
           )
         )
     }
@@ -433,6 +434,15 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
   }
 
+  def testGroupForCreation(groupCn:String):Future[Either[Error,Success]] ={
+
+    showGroup(groupCn) map{
+      case Right(r) =>  Left(Error(Option(1),Some("There is already a group with the same name"),None))
+
+      case Left(l) => Right(Success(Some("ok"), Some("ok")))
+    }
+
+  }
 
   def testGroupForDeletion(groupCn:Group):Future[Either[Error,Success]] ={
 
@@ -443,7 +453,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
     }
 
     showGroup(groupCn.toString) map{
-      case Right(r) =>  if( r.member_user.nonEmpty && r.member_user.get.exists(userName => !(userName.endsWith(service.ORG_REF_USER_POSTFIX)|| userName.endsWith(service.WRK_REF_USER_POSTFIX))) )
+      case Right(r) =>  if( r.member_user.nonEmpty && r.member_user.get.nonEmpty)
                           Left(Error(Option(1),Some("This group contains users"),None))
                         else if( r.member_group.nonEmpty && r.member_group.get.nonEmpty )
                           Left(Error(Option(1),Some("This group contains other groups"),None))

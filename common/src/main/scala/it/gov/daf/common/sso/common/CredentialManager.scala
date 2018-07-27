@@ -152,4 +152,13 @@ object CredentialManager {
     Some(groups.mkString("|"))
   }
 
+
+  def getUserAdminGroups( request:Request[Any]):Seq[String] ={
+
+    val groups = readCredentialFromRequest(request).groups
+    Logger.logger.info(s"belonging to groups: ${groups.toList}" )
+    groups.filter(_.startsWith(Admin.toString)).map(_.replace(Admin.toString,""))
+
+  }
+
 }

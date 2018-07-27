@@ -38,6 +38,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
 
     val result = for {
+      a0 <- stepOver( apiClientIPA.testGroupForCreation(groupCn) )
       a <- step( apiClientIPA.createGroup(Organization(dafOrg.groupCn),None) )
 
       a1 <- step( a, apiClientIPA.createGroup(RoleGroup(Admin.toString+groupCn),None) )
@@ -160,6 +161,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
 
     val result = for {
+      a0 <- stepOver( apiClientIPA.testGroupForCreation(dafWrk.groupCn) )
       a <- step( apiClientIPA.createGroup(WorkGroup(wrkName),Some(Organization(orgName))) )
 
       a4 <- step( a, evalInFuture0S(impalaService.createRole(wrkName,false)) )

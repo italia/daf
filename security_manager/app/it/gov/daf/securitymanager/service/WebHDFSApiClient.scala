@@ -40,7 +40,7 @@ class WebHDFSApiClient @Inject()(secInvokeManager: SecuredInvocationManager, web
 
     val res = for {
       r1 <- EitherT( webHDFSApiProxy.callHdfsService("PUT", s"uploads/$userId", Map("op" -> "MKDIRS", "permission" -> "700"),adminLoginInfo) )
-      r2 <- EitherT( webHDFSApiProxy.callHdfsService("PUT", s"uploads/$userId", Map("op" -> "SETACL", "aclspec" -> s"user:$userId:rwx,user::rwx,group::---,other::---"),adminLoginInfo) )
+      r2 <- EitherT( webHDFSApiProxy.callHdfsService("PUT", s"uploads/$userId", Map("op" -> "MODIFYACLENTRIES", "aclspec" -> s"user:$userId:rwx"),adminLoginInfo) )
       //op=SETACL&aclspec=user:impala:rwx,user:hive:rwx,user::rw-,group::r--,other::r--
       //r2 <- EitherT( webHDFSApiProxy.callHdfsService("PUT", s"uploads/$userId", Map("op" -> "SETOWNER", "owner" -> userId, "group" -> userId),adminLoginInfo) )
     }yield r2

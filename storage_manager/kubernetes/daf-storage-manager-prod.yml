@@ -24,9 +24,50 @@ spec:
       labels:
         app: storage-manager
     spec:
+      hostAliases:
+      - ip: "192.168.0.23"
+        hostnames:
+          - "master.platform.daf.gov.it"
+          - "master"
+      - ip: "192.168.0.22"
+        hostnames:
+          - "slave1.platform.daf.gov.it"
+          - "slave1"
+      - ip: "192.168.0.24"
+        hostnames:
+          - "slave2.platform.daf.gov.it"
+          - "slave2"
+      - ip: "192.168.0.36"
+        hostnames:
+          - "slave3.platform.daf.gov.it"
+          - "slave3"
+      - ip: "192.168.0.26"
+        hostnames:
+          - "slave4.platform.daf.gov.it"
+          - "slave4"
+      - ip: "192.168.0.55"
+        hostnames:
+          - "slave5.platform.daf.gov.it"
+          - "slave5"
+      # - ip: "192.168.0.20"
+      #   hostnames:
+      #     - "edge1.platform.daf.gov.it"
+      #     - "edge1"
+      - ip: "192.168.0.21"
+        hostnames:
+          - "edge2.platform.daf.gov.it"
+          - "edge2"
+      - ip: "192.168.0.27"
+        hostnames:
+          - "edge3.platform.daf.gov.it"
+          - "edge3"
+      - ip: "192.168.0.29"
+        hostnames:
+          - "idm.daf.gov.it"
+          - "idm"
       containers:
       - name: storage-manager
-        image: nexus.teamdigitale.test/daf-storage-manager:1.0.2-SNAPSHOT
+        image: nexus.daf.teamdigitale.it/daf-storage-manager:1.0.2-SNAPSHOT
         imagePullPolicy: Always
         env:
         - name: JAVA_OPTS
@@ -56,6 +97,11 @@ spec:
             secretKeyRef:
               name: daf-secret
               key: ssl_keystore_pwd
+        - name: LIVY_AUTH
+          valueFrom:
+            secretKeyRef:
+              name: daf-secret
+              key: livy_auth
         ports:
         - name: client
           containerPort: 9000

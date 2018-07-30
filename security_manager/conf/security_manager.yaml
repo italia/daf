@@ -407,24 +407,24 @@ paths:
           description: Error Message
           schema:
             $ref: '#/definitions/Error'
-  "/daf/users":
-    get:
-      tags:
-        - DAF
-      description: List  DAF users
-      operationId: listDAFusers
-      produces:
-      - application/json
-#      parameters:
-      responses:
-        200:
-          description: Success
-          schema:
-            $ref: '#/definitions/StringList'
-        500:
-          description: Error Message
-          schema:
-            $ref: '#/definitions/Error'
+
+#  "/daf/users":
+#    get:
+#      tags:
+#        - DAF
+#      description: List  DAF users
+#      operationId: listDAFusers
+#      produces:
+#      - application/json
+#      responses:
+#        200:
+#          description: Success
+#          schema:
+#            $ref: '#/definitions/StringList'
+#       500:
+#         description: Error Message
+#          schema:
+#            $ref: '#/definitions/Error'
   "/daf/organizations":
     get:
       tags:

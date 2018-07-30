@@ -70,24 +70,6 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
   }
 
 
- /* TODO old method remove it when we will be sure the one below works
-  private def checkUserInfo(user:IpaUser):Either[String,String] ={
-
-    if (user.userpassword.isEmpty || user.userpassword.get.length < 8)
-      Left("Password minimum length is 8 characters")
-    else if( !user.userpassword.get.matches("""^[a-zA-Z0-9%@#   &,;:_'/\<\(\[\{\\\^\=\$\!\|\]\}\)\u200C\u200B\?\*\-\+\.\>]*$""") )
-      Left("Invalid chars in password")
-    else if( !user.userpassword.get.matches("""^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$""") )
-      Left("Password must contain al least one digit and one capital letter")
-    else if( user.uid != null && !user.uid.isEmpty && !user.uid.matches("""^[a-z0-9_\-]*$""") )
-      Left("Invalid chars in username")
-    else if( !user.mail.matches("""^[a-z0-9_@\-\.]*$""") )
-      Left("Invalid chars in mail")
-    else
-      Right("ok")
-
-  } */
-
   private def checkUserInfo(user:IpaUser):Either[String,String] ={
     if (user.userpassword.isEmpty || user.userpassword.get.length < 8)
       Left("Password minimum length is 8 characters")
@@ -105,10 +87,10 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   private def formatRegisteredUser(user: IpaUser): IpaUser = {
 
-    if (user.uid == null || user.uid.isEmpty )
-      user.copy( uid = user.mail.replaceAll("[@]", "_").replaceAll("[.]", "-") )
+    if ( user.uid.isEmpty )
+      user.copy( uid = user.mail.replaceAll("[@]", "_").replaceAll("[.]", "-"), givenname = user.givenname.trim, sn = user.sn.trim )
     else
-      user
+      user.copy(givenname = user.givenname.trim, sn = user.sn.trim)
 
   }
 
@@ -159,7 +141,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
     checkUserInfo(userIn) match{
       case Left(l) => Future {Left( Error(Option(1),Some(l),None) )}
-      case Right(r) => checkMailUidNcreateUser(userIn)
+      case Right(r) => checkMailUidNcreateUser(formatRegisteredUser(userIn))
     }
 
   }

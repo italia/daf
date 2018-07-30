@@ -27,9 +27,9 @@ import scala.util.{ Failure, Success }
 
 trait DatasetExport { this: DatasetController =>
 
-  protected def prepareDirect(params: DatasetParams, targetFormat: FileDataFormat) = targetFormat match {
-    case JsonFileFormat => datasetService.jsonData(params)
-    case CsvFileFormat  => datasetService.csvData(params)
+  protected def prepareDirect(params: DatasetParams, targetFormat: FileDataFormat, limit: Option[Int]) = targetFormat match {
+    case JsonFileFormat => datasetService.jsonData(params, limit)
+    case CsvFileFormat  => datasetService.csvData(params, limit)
     case _              => Failure { new IllegalArgumentException("Unable to prepare download; only CSV and JSON are permitted") }
   }
 

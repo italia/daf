@@ -242,7 +242,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
       "referer" -> IPA_APP_ULR
     ).post(login)
 
-    logger.debug("login IPA (changePassword): "+login)
+    logger.debug(s"login IPA (changePassword): user=$userUid")
 
     wsResponse.map{ response =>
 
@@ -487,12 +487,30 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
   }
 
+
+  def testIfUserBelongsToOrgWrk(orgName:String,userName:String):Future[Either[Error,Success]] ={
+
+    val result = for{
+      userInfo <- EitherT( findUser(Left(userName)) )
+      orgInfo <- EitherT( showGroup(orgName) )
+    } yield ApiClientIPA.extractGroupsOf( userInfo.workgroups, orgInfo.member_group.getOrElse(Seq.empty) )
+
+    result.value map{
+      case Right(None) => Right(Success(Some("ok"), Some("ok")))
+      case Right(Some(x)) =>  if(x.length>0) Left(Error(Option(1),Some("This user belongs to organization workgroups"),None))
+                              else Right(Success(Some("ok"), Some("ok")))
+      case Left(l) => Left(l)
+    }
+
+  }
+
+
   def getWorkgroupOrganization(wrkName:String):Future[Either[Error,String]]={
 
     val result = for{
       wrk <- EitherT( showGroup(wrkName) )
       orgList <- EitherT( organizationList )
-    } yield ( ApiClientIPA.extractGroupsOf(wrk.memberof_group,orgList) )
+    } yield ApiClientIPA.extractGroupsOf(wrk.memberof_group,orgList)
 
     result.value map{
       case Right(Some(Seq(x))) => Right(x)
@@ -697,18 +715,6 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
   }
 
-  /*
-  def findUserByUid(userId: String):Future[Either[Error,IpaUser]]={
-
-    val result = for{
-      orgs <- EitherT(organizationList)
-      wrks <- EitherT(workgroupList)
-      out <- EitherT(performFindUser(Left(userId),wrks,orgs) )
-    } yield out
-
-    result.value
-  }*/
-
 
   type UserId = String
   type Mail = String
@@ -792,67 +798,6 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
   }
 
-/*
-  private def performFindUserByUid(userId: String, wrkGroups:Seq[String], orgs:Seq[String]):Future[Either[Error,IpaUser]]={
-
-    //println("------------------->>>>"+MDC.get("user-id") )
-    val jsonRequest:JsValue = Json.parse(s"""{
-                                             "id": 0,
-                                             "method": "user_show/1",
-                                             "params": [
-                                                 [
-                                                     "$userId"
-                                                 ],
-                                                 {
-                                                     "all": "true",
-                                                     "version": "2.213"
-                                                 }
-                                             ]
-                                         }""")
-
-    Logger.logger.debug("findUserByUid request: "+jsonRequest.toString())
-
-    val serviceInvoke : (String,WSClient)=> Future[WSResponse] = callIpaUrl(jsonRequest,_,_)
-
-
-    def handleJson(json:JsValue) = {
-
-      //println("------------------->>>>>>"+MDC.get("user-id") )
-
-      val count = ((json \ "result") \ "count").asOpt[Int].getOrElse(-1)
-      val result = (json \ "result") \"result"
-
-      if(count==0)
-        Left( Error(Option(1),Some("No user found"),None) )
-
-      if( result.isInstanceOf[JsUndefined] )
-
-        Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
-
-      else
-
-        Right(
-          IpaUser(
-            sn = (result \ "sn") (0).asOpt[String].getOrElse(""),
-            givenname = (result \ "givenname") (0).asOpt[String].getOrElse(""),
-            mail = (result \ "mail") (0).asOpt[String].getOrElse(""),
-            uid = (result \ "uid") (0).asOpt[String].getOrElse(""),
-            roles = ApiClientIPA.extractRole( (result \ "memberof_group").asOpt[Seq[String]] ),
-            workgroups = ApiClientIPA.extractGroupsOf( (result \ "memberof_group").asOpt[Seq[String]], wrkGroups ),
-            title = (result \ "title") (0).asOpt[String],
-            userpassword = None,
-            organizations = ApiClientIPA.extractGroupsOf( (result \ "memberof_group").asOpt[Seq[String]], orgs )
-          )
-        )
-    }
-
-    secInvokeManager.manageRestServiceCall(loginInfo,serviceInvoke,200).map {
-      case Right(json) => handleJson(json)
-      case Left(l) =>  Left( Error(Option(0),Some(l),None) )
-    }
-
-
-  }*/
 
   def findUser(param:Either[UserId,Mail]):Future[Either[Error,IpaUser]]= {
 
@@ -874,60 +819,6 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
     result.value
   }
 
-/*
-  private def performFindUserByMail(mail: String, wrkGroups:Seq[String], orgs:Seq[String] ):Future[Either[Error,IpaUser]]={
-
-    val jsonRequest:JsValue = Json.parse(s"""{
-                                             "id": 0,
-                                             "method": "user_find",
-                                             "params": [
-                                                 [""],
-                                                 {
-                                                    "mail": "$mail",
-                                                    "all": "true",
-                                                    "version": "2.213"
-                                                 }
-                                             ]
-                                         }""")
-
-    Logger.logger.debug("findUserByMail request: "+ jsonRequest.toString())
-
-    val serviceInvoke:(String,WSClient) => Future[WSResponse] = callIpaUrl(jsonRequest,_,_)
-
-    def handleJson(json:JsValue) = {
-
-      val count = ((json \ "result") \ "count").asOpt[Int].getOrElse(-1)
-      val result = ((json \ "result") \"result")(0)//.getOrElse(JsString("null")).toString()
-
-      if(count==0)
-        Left( Error(Option(1),Some("No user found"),None) )
-
-      else if( result.isInstanceOf[JsUndefined]  )
-        Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )
-
-      else
-        Right(
-          IpaUser(
-            sn = (result \ "sn") (0).asOpt[String].getOrElse(""),
-            givenname = (result \ "givenname") (0).asOpt[String].getOrElse(""),
-            mail = (result \ "mail") (0).asOpt[String].getOrElse(""),
-            uid = (result \ "uid") (0).asOpt[String].getOrElse(""),
-            roles = ApiClientIPA.extractRole( (result \ "memberof_group").asOpt[Seq[String]] ),
-            workgroups = ApiClientIPA.extractGroupsOf( (result \ "memberof_group").asOpt[Seq[String]], wrkGroups ),
-            title = (result \ "title") (0).asOpt[String],
-            userpassword = None,
-            organizations = ApiClientIPA.extractGroupsOf( (result \ "memberof_group").asOpt[Seq[String]], orgs )
-          )
-        )
-    }
-
-    secInvokeManager.manageRestServiceCall(loginInfo,serviceInvoke,200).map {
-      case Right(json) => handleJson(json)
-      case Left(l) =>  Left( Error(Option(0),Some(l),None) )
-    }
-
-
-  }*/
 
   def organizationList():Future[Either[Error,Seq[String]]] = groupList( ORGANIZATIONS_GROUP,Some(WORKGROUPS_GROUP) )
   def workgroupList():Future[Either[Error,Seq[String]]] = groupList(WORKGROUPS_GROUP)
@@ -1064,12 +955,4 @@ case class WorkGroup(value: String) extends Group{
 case class RoleGroup(value: String) extends Group{
   //override def toString = value
 }
-/*
-object Users{
-  def apply(user: String) = Users( Seq(user) )
-}
 
-
-object Groups{
-  def apply(group: String) = Groups( Seq(group) )
-}*/

@@ -93,7 +93,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
       c <- step( a4, registrationService.callHardDeleteUser(toRefOrgUserName(groupCn)) )
 
 
-        /*
+      /*
       b <- stepOver( a4, apiClientIPA.deleteUser(toRefOrgUserName(groupCn)) )
       userInfo <- stepOverF( b, supersetApiClient.findUser(toRefOrgUserName(groupCn)) )
       c <- step( b, supersetApiClient.deleteUser(userInfo._1) )
@@ -366,10 +366,11 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
       //user <-  stepOverF( Try{apiClientIPA.findUserByUid(userName)} )
       a0 <- stepOver( apiClientIPA.testIfIsOrganization(groupCn) )
       a <- stepOver( registrationService.raiseErrorIfIsReferenceUser(userName) )// cannot remove predefined user
+      b <- stepOver( apiClientIPA.testIfUserBelongsToOrgWrk(groupCn,userName) )
 
-      b <-  EitherT( hardRemoveUserFromOrganization(groupCn,userName) )
+      c <-  EitherT( hardRemoveUserFromOrganization(groupCn,userName) )
 
-    } yield b
+    } yield c
 
     result.value.map{
       case Right(r) => Right( Success(Some(s"User $userName deleted from organization $groupCn"), Some("ok")) )

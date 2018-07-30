@@ -505,7 +505,7 @@ package catalog_manager.yaml {
 
             val categoryFuture = kylo.categoryFuture(feed)
 
-            val streamKyloTemplate = new FileInputStream(Environment.simple().getFile("/data/kylo/template.json"))
+            val streamKyloTemplate = new FileInputStream(Environment.simple().getFile("/data/kylo/template_test.json"))
 
             val kyloTemplate  = try {
                     Json.parse(streamKyloTemplate)

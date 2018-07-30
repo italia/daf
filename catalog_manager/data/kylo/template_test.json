@@ -1,0 +1,239 @@
+{
+  "id": null,
+  "versionName": null,
+  "templateId": "{DAF_TEMPLATE.id}",
+  "feedName": "{DAF_DATASET_NAME}",
+  "description": "{DAF_NORMALIZED_DATASET_NAME}",
+  "systemFeedName": "te",
+  "inputProcessorType": "{DAF_TEMPLATE.inputProcessors[0].type}",
+  "inputProcessorName": "{DAF_TEMPLATE.inputProcessors[0].name}",
+  "inputProcessor": null,
+  "nonInputProcessors": null,
+  "properties": [
+    "{DAF_TEMPLATE.inputProcessors[0].properties[userEditable==true]}"
+  ],
+  "securityGroups": [],
+  "schedule": {
+    "schedulingPeriod": "5 min",
+    "schedulingStrategy": "TIMER_DRIVEN",
+    "concurrentTasks": 1, // New
+    "schedulingStrategyTouched": true, //New
+    "executionNode": "PRIMARY"
+  },
+  "defineTable": true,
+  "allowPreconditions": false,
+  "dataTransformationFeed": false,
+  "table": {
+    "tableSchema": {
+      "name": "{DAF_TABLE_NAME}",
+      "fields": "{DAF_PARSER.fields}"
+    },
+    "sourceTableSchema": {
+      "name": null,
+      "tableSchema": null,
+      "fields": "{DAF_PARSER.fields}"
+    },
+    "feedTableSchema": {
+      "name": null,
+      "fields": "{DAF_PARSER.fields}"
+    },
+    "method": "SAMPLE_FILE",
+    "existingTableName": null,
+    "structured": false,
+    "targetMergeStrategy": "DEDUPE_AND_MERGE",
+    "feedFormat": "{DAF_PARSER.hiveFormat}",
+    "targetFormat": "STORED AS PARQUET",
+    "feedTblProperties": null,
+    "fieldPolicies": [
+      "{DAF_PROFILING.fields}"
+    ],
+    "partitions": [],
+    "options": {
+      "compress": false,
+      "compressionFormat": "SNAPPY",
+      "auditLogging": true,
+      "encrypt": false,
+      "trackHistory": false
+    },
+    "sourceTableIncrementalDateField": null
+  },
+  "category": {
+    "id": "{DAF_CATEGORY.id}",
+    "name": "{DAF_ORGANIZATION}",
+    "systemName": "{DAF_ORGANIZATION}"
+  },
+  "dataOwner": "{DAF_ORGANIZATION}",
+  "tags": [],
+  "reusableFeed": false,
+  "dataTransformation": {
+    "chartViewModel": null,
+    "datasourceIds": null,
+    "datasources": null,
+    "dataTransformScript": null,
+    "sql": null,
+    "states": []
+  },
+  "userProperties": [
+    {
+      "description": null,
+      "displayName": null,
+      "locked": false,
+      "order": 0,
+      "required": true,
+      "systemName": "daf_type",
+      "value": "{DAF_TYPE}",
+      "$error": {
+        "duplicate": false,
+        "missingName": false,
+        "missingValue": false
+      }
+    },
+    {
+      "description": null,
+      "displayName": null,
+      "locked": false,
+      "order": 1,
+      "required": true,
+      "systemName": "daf_domain",
+      "value": "{DAF_DOMAIN}",
+      "$error": {
+        "duplicate": false,
+        "missingName": false,
+        "missingValue": false
+      }
+    },
+    {
+      "description": null,
+      "displayName": null,
+      "locked": false,
+      "order": 2,
+      "required": true,
+      "systemName": "daf_subdomain",
+      "value": "{DAF_SUBDOMAIN}",
+      "$error": {
+        "duplicate": false,
+        "missingName": false,
+        "missingValue": false
+      }
+    },
+    {
+      "description": null,
+      "displayName": null,
+      "locked": false,
+      "order": 3,
+      "required": true,
+      "systemName": "daf_format",
+      "value": "{DAF_FORMAT}",
+      "$error": {
+        "duplicate": false,
+        "missingName": false,
+        "missingValue": false
+      }
+    },
+    {
+      "description": null,
+      "displayName": null,
+      "locked": false,
+      "order": 4,
+      "required": false,
+      "systemName": "daf_opendata",
+      "value": false,
+      "$error": {
+        "duplicate": false,
+        "missingName": false,
+        "missingValue": false
+      }
+    },
+    {
+      "description": null,
+      "displayName": null,
+      "locked": false,
+      "order": 5,
+      "required": false,
+      "systemName": "daf_owner",
+      "value": "",
+      "$error": {
+        "duplicate": false,
+        "missingName": false,
+        "missingValue": false
+      }
+    }
+  ],
+  "options": {
+    "skipHeader": true
+  },
+  "active": true,
+  "roleMemberships": [],
+  "owner": {
+    "displayName": "Data Lake Administrator",
+    "email": null,
+    "enabled": true,
+    "groups": ["admin", "user"],
+    "systemName": "dladmin",
+    "name": "Data Lake Administrator",
+    "title": "Data Lake Administrator",
+    "type": "user",
+    "_lowername": "data lake administrator",
+    "_lowerSystemName": "dladmin",
+    "_lowerDisplayName": "data lake administrator"
+  },
+  "roleMembershipsUpdated": false,
+  "tableOption": {},
+  "cloned": false,
+  "usedByFeeds": [],
+  "allowIndexing": true,
+  "historyReindexingStatus": "NEVER_RUN",
+  "view": {
+    "generalInfo": {
+      "disabled": false
+    },
+    "feedDetails": {
+      "disabled": false
+    },
+    "table": {
+      "disabled": false
+    },
+    "dataPolicies": {
+      "disabled": false
+    },
+    "properties": {
+      "disabled": false,
+      "dataOwner": {
+        "disabled": false
+      },
+      "tags": {
+        "disabled": false
+      }
+    },
+    "accessControl": {
+      "disabled": false
+    },
+    "schedule": {
+      "disabled": false,
+      "schedulingPeriod": {
+        "disabled": false
+      },
+      "schedulingStrategy": {
+        "disabled": false
+      },
+      "active": {
+        "disabled": false
+      },
+      "executionNode": {
+        "disabled": false
+      },
+      "preconditions": {
+        "disabled": false
+      }
+    }
+  },
+  "totalSteps": 7,
+  "stepperTemplateUrl": "js/feed-mgr/feeds/define-feed/define-feed-stepper.html",
+  "feedDescriptor": "",
+  "templateName": "{DAF_TEMPLATE.name}",
+  "templateTableOption": "DEFINE_TABLE",
+  "totalPreSteps": 0,
+  "renderTemporaryPreStep": false,
+  "isStream": false,
+  "allowSkipHeaderOption": true
+}

@@ -178,7 +178,8 @@ In this example, we extend the one we've seen above in 3., adding a `having` cla
     { "name": "col1" },
     { "name": "col2" },
     {
-      "max": { "name": "col3", "alias": "max_col3" }
+      "max": { "name": "col3" },
+      "alias": "max_col3"
     }, {
       "count": { "name": "*" }
     }

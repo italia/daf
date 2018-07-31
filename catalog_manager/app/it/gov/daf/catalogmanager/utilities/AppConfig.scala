@@ -23,6 +23,7 @@ private class AppConfig @Inject()(playConfig: Configuration) {
   val securityManHost :Option[String] = playConfig.getString("security.manager.host")
   val cookieExpiration :Option[Long] = playConfig.getLong("cookie.expiration")
   val ingestionUrl :Option[String] = playConfig.getString("ingestion.url")
+  val kafkaProxyUrl: Option[String] = playConfig.getString("kafkaProxy.url")
 
 }
 
@@ -41,6 +42,7 @@ object ConfigReader {
   def securityManHost :String = config.securityManHost.getOrElse("http://localhost:9002/security-manager")
   def cookieExpiration:Long = config.cookieExpiration.getOrElse(30L)// 30 min by default
   def ingestionUrl :String = config.ingestionUrl.getOrElse("http://localhost:9003")
+  def kafkaProxyUrl: String = config.kafkaProxyUrl.getOrElse("")
 
 }
 

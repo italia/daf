@@ -75,8 +75,10 @@ class DatasetController @Inject()(configuration: Configuration,
     case Failure(error)  => throw ConfigReadException(s"Unable to configure [impala-jdbc]", error)
   }
 
+  private def defaultLimit = Read.int { "daf.row_limit" }.read(configuration) getOrElse None
+
   protected val datasetService    = new DatasetService(configuration.underlying)
-  protected val queryService      = new JdbcQueryService(impalaConfig) with ImpalaTransactorInstance
+  protected val queryService      = new JdbcQueryService(impalaConfig, defaultLimit) with ImpalaTransactorInstance
   protected val downloadService   = new DownloadService(kuduMaster)
   protected val fileExportService = new FileExportService(exportConfig, kuduMaster)
 

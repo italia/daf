@@ -18,7 +18,7 @@ package daf.dataset.query.jdbc
 
 import java.lang.{ Boolean => JavaBoolean, Double => JavaDouble, Float => JavaFloat, Integer => JavaInteger, Long => JavaLong }
 import java.sql.{ Timestamp, Array => JdbcArray, Struct => JdbcStruct }
-import java.time.{ LocalDateTime, ZoneOffset }
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 import cats.free.Free
@@ -31,9 +31,13 @@ import play.api.libs.json._
 import scala.util.Try
 
 /**
-  * Container and bridge class for JDBC results, containing the header information as well as a lazy stream of rows.
+  * Container and bridge class for JDBC results, containing the header information as well as a `Vector` of rows.
+  *
+  * @note The `rows` have to be eager because the stream implementation causes `StackOverflowError` due to the
+  *       stack-based recursion used in the `Stream`'s `append` method. Vector is also faster in appending than other
+  *       structures.
   */
-case class JdbcResult(header: Header, rows: Stream[Row]) {
+case class JdbcResult(header: Header, rows: Vector[Row]) {
 
   private val index = header.zipWithIndex.map { case (col, i) => i -> col}.toMap[Int, String]
 
@@ -68,13 +72,13 @@ case class JdbcResult(header: Header, rows: Stream[Row]) {
   /**
     * Converts the data contained in this instance into a `Stream` of CSV data.
     */
-  def toCsv: Stream[String] =
+  def toCsv: Vector[String] =
     header.map { h => s""""$h"""" }.mkString(", ") +:
     rows.map { _.map { cleanCsv }.mkString(", ") }
 
   /**
     * Converts the data contained in this instance into a `Stream` of JSON data.
     */
-  def toJson: Stream[JsObject] = rows.map { json(_).runTailRec.get } // let throw in case of error
+  def toJson: Vector[JsObject] = rows.map { json(_).runTailRec.get } // let throw in case of error
 }
 

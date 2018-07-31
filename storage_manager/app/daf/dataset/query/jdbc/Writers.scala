@@ -35,20 +35,23 @@ object Writers {
 
   def having(query: Query): QueryFragmentWriter[Unit] = query.having.map { FilterFragments.having } getOrElse QueryFragmentWriter.unit
 
-  def limit(query: Query): QueryFragmentWriter[Unit] = query.limit.map { RowFragments.limit } getOrElse QueryFragmentWriter.unit
+  def limit(query: Query, defaultLimit: Option[Int]): QueryFragmentWriter[Unit] =
+    query.limit.map  { RowFragments.limit(_, defaultLimit) } orElse
+    defaultLimit.map { RowFragments.limit(_, None) } getOrElse
+    QueryFragmentWriter.unit
 
-  def sql(query: Query, table: String): QueryFragmentWriter[Unit] = for {
+  def sql(query: Query, table: String, defaultLimit: Option[Int] = None): QueryFragmentWriter[Unit] = for {
     reference <- select(query)
     _         <- from(table)
     _         <- where(query)
     _         <- groupBy(query, reference)
     _         <- having(query)
-    _         <- limit(query)
+    _         <- limit(query, defaultLimit)
   } yield ()
 
-  def explain(query: Query, table: String): QueryFragmentWriter[Unit] = for {
+  def explain(query: Query, table: String, defaultLimit: Option[Int] = None): QueryFragmentWriter[Unit] = for {
     _ <- QueryFragmentWriter.tell { Fragment.const("EXPLAIN") }
-    _ <- sql(query, table)
+    _ <- sql(query, table, defaultLimit)
   } yield ()
 
 }

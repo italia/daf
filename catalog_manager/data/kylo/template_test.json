@@ -16,8 +16,8 @@
   "schedule": {
     "schedulingPeriod": "5 min",
     "schedulingStrategy": "TIMER_DRIVEN",
-    "concurrentTasks": 1, // New
-    "schedulingStrategyTouched": true, //New
+    "concurrentTasks": 1,
+    "schedulingStrategyTouched": true,
     "executionNode": "PRIMARY"
   },
   "defineTable": true,

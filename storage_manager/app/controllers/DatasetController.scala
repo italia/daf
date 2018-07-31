@@ -75,8 +75,10 @@ class DatasetController @Inject()(configuration: Configuration,
     case Failure(error)  => throw ConfigReadException(s"Unable to configure [impala-jdbc]", error)
   }
 
+  private def defaultLimit = Read.int { "daf.row_limit" }.read(configuration) getOrElse None
+
   protected val datasetService    = new DatasetService(configuration.underlying)
-  protected val queryService      = new JdbcQueryService(impalaConfig) with ImpalaTransactorInstance
+  protected val queryService      = new JdbcQueryService(impalaConfig, defaultLimit) with ImpalaTransactorInstance
   protected val downloadService   = new DownloadService(kuduMaster)
   protected val fileExportService = new FileExportService(exportConfig, kuduMaster)
 
@@ -87,8 +89,8 @@ class DatasetController @Inject()(configuration: Configuration,
     params  <- DatasetParams.fromCatalog(catalog)
   } yield params
 
-  private def retrieveBulkData(uri: String, auth: String, userId: String, targetFormat: FileDataFormat, method: DownloadMethod) = retrieveCatalog(auth, uri) match {
-    case Success(params) => download(params, userId, targetFormat, method)
+  private def retrieveBulkData(uri: String, auth: String, userId: String, targetFormat: FileDataFormat, method: DownloadMethod, limit: Option[Int]) = retrieveCatalog(auth, uri) match {
+    case Success(params) => download(params, userId, targetFormat, method, limit)
     case Failure(error)  => Future.failed { error }
   }
 
@@ -116,11 +118,11 @@ class DatasetController @Inject()(configuration: Configuration,
     } yield Ok { schema.prettyJson } as JSON
   }
 
-  def getDataset(uri: String, format: String = "json", method: String = "quick"): Action[AnyContent] = Actions.basic.securedAsync { (_, auth, userId) =>
+  def getDataset(uri: String, format: String = "json", method: String = "quick", limit: Option[Int] = None): Action[AnyContent] = Actions.basic.securedAsync { (_, auth, userId) =>
     for {
       targetFormat   <- checkTargetFormat[Future](format)
       downloadMethod <- checkDownloadMethod[Future](method)
-      result         <- retrieveBulkData(uri, auth, userId, targetFormat, downloadMethod)
+      result         <- retrieveBulkData(uri, auth, userId, targetFormat, downloadMethod, limit)
     } yield result
   }
 

@@ -37,7 +37,7 @@ object ColumnFragments {
     case WildcardColumn :: tail             => buildReference(tail, columnReference)
     case AliasColumn(column, alias) :: tail => buildReference(column :: tail, columnReference addAlias alias)
     case NamedColumn(name) :: tail          => buildReference(tail, columnReference addName name)
-    case ValueColumn(value: String) :: tail => buildReference(tail, columnReference addName s"'$value'")
+    case ValueColumn(value: String) :: tail => buildReference(tail, columnReference addName s"'${escape(value)}'")
     case ValueColumn(value) :: tail         => buildReference(tail, columnReference addName value.toString)
     case (agg: AggregationColumn) :: tail   => buildReference(agg.column :: tail, columnReference)
     case _ :: tail                          => buildReference(tail, columnReference)
@@ -56,13 +56,13 @@ object ColumnFragments {
 
   // Recursion is stackless in this case, meaning that it should never overflow the stack
   private def writeColumn(column: Column): Trampoline[String] = column match {
-    case WildcardColumn             => Free.pure[Try, String] { "*" }
-    case AliasColumn(inner, alias)  => Free.defer { writeColumn(inner) }.map { col => s"$col AS $alias" }
-    case NamedColumn(name)          => Free.pure[Try, String] { name }
-    case ValueColumn(value: String) => Free.pure[Try, String] { s"'$value'" }
-    case ValueColumn(value)         => Free.pure[Try, String] { value.toString }
-    case agg: AggregationColumn     => writeAggregation(agg)
-    case _                          => recursionError { new IllegalArgumentException("Invalid column type in [select] fragment") }
+    case WildcardColumn                 => Free.pure[Try, String] { "*" }
+    case AliasColumn(inner, alias)      => Free.defer { writeColumn(inner) }.map { col => s"$col AS $alias" }
+    case NamedColumn(columnRegex(name)) => Free.pure[Try, String] { name }
+    case ValueColumn(value: String)     => Free.pure[Try, String] { s"'${escape(value)}'" }
+    case ValueColumn(value)             => Free.pure[Try, String] { value.toString }
+    case agg: AggregationColumn         => writeAggregation(agg)
+    case _                              => recursionError { new IllegalArgumentException("Invalid column type in [select] fragment") }
   }
 
   private def writeColumns(columns: List[Column]): Trampoline[List[String]] = columns.traverse[Trampoline, String] { writeColumn }

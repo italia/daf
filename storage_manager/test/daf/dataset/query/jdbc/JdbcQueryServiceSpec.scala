@@ -21,7 +21,9 @@ import cats.instances.list.catsStdInstancesForList
 import daf.dataset.query.{ Count, GroupByClause, Gt, NamedColumn, Query, SelectClause, ValueColumn, WhereClause }
 import daf.instances.H2TransactorInstance
 import doobie.free.KleisliInterpreter
+import doobie.free.connection.AsyncConnectionIO
 import doobie.implicits.{ toConnectionIOOps, toSqlInterpolator }
+import doobie.util.query.Query0
 import doobie.util.transactor.{ Strategy, Transactor }
 import doobie.util.update.Update
 import org.apache.commons.dbcp.BasicDataSource
@@ -29,7 +31,7 @@ import org.scalatest.{ BeforeAndAfterAll, MustMatchers, WordSpec }
 
 class JdbcQueryServiceSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
 
-  private lazy val service = new JdbcQueryService(null) with H2TransactorInstance
+  private lazy val service = new JdbcQueryService(null, None) with H2TransactorInstance
 
   override def beforeAll(): Unit = JdbcQueries.prepare.transact { service.transactor("") }.unsafeRunSync() match {
     case (_     , rows) if rows == 0   => throw new RuntimeException("Unable to start test: [rows] were not created")
@@ -67,6 +69,8 @@ object JdbcQueries {
         country VARCHAR
       )
     """.update.run
+
+  Query0.apply("").stream
 
   val insert =
     Update[User]("INSERT INTO user(id, username, age, country) VALUES (?, ?, ?, ?)").updateMany[List] {

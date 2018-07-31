@@ -24,11 +24,21 @@ import doobie.util.fragment.Fragment
   */
 object RowFragments {
 
+  private def chooseLimit(value: Int, defaultLimit: Option[Int]) = defaultLimit.map { math.min(value, _) } getOrElse value
+
   /**
     * Creates a [[QueryFragmentWriter]] for `LIMIT` clauses in a query.
     */
-  def limit(limitClause: LimitClause) = QueryFragmentWriter.tell {
-    Fragment.const { s"LIMIT ${limitClause.limit}" }
+  def limit(limitClause: LimitClause, defaultLimit: Option[Int]): QueryFragmentWriter[Unit] = QueryFragmentWriter.tell {
+    Fragment.const { s"LIMIT ${chooseLimit(limitClause.limit, defaultLimit)}" }
   }
+
+  /**
+    * Creates a [[QueryFragmentWriter]] for `LIMIT` clauses in a query, starting from a raw value.
+    */
+  def limit(value: Int, defaultLimit: Option[Int]): QueryFragmentWriter[Unit] = limit(
+    LimitClause(value),
+    defaultLimit
+  )
 
 }

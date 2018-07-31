@@ -28,11 +28,11 @@ class DatasetService(config: Config) {
 
   private val storageClient = PhysicalDatasetController(config)
 
-  def schema(params: DatasetParams): Try[StructType] = storageClient.get(params, 1).map { _.schema }
+  def schema(params: DatasetParams): Try[StructType] = storageClient.get(params, Some(1)).map { _.schema }
 
-  def data(params: DatasetParams): Try[DataFrame] = storageClient.get(params)
+  def data(params: DatasetParams, limit: Option[Int]): Try[DataFrame] = storageClient.get(params, limit)
 
-  def jsonData(params: DatasetParams) = data(params).map { json }
+  def jsonData(params: DatasetParams, limit: Option[Int]) = data(params, limit).map { json }
 
   def json(dataFrame: DataFrame) = wrapJson {
     Source[String] { dataFrame.toJSON.collect().toVector }
@@ -49,7 +49,7 @@ class DatasetService(config: Config) {
 //  }
 
   // TODO: split code without breaking Spark task serialization
-  def csvData(params: DatasetParams) = data(params).map { csv }
+  def csvData(params: DatasetParams, limit: Option[Int]) = data(params, limit).map { csv }
 
   def csv(dataFrame: DataFrame) = Source[String] {
     dataFrame.schema.fieldNames.map { h => s""""$h"""" }.mkString(",") +:

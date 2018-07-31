@@ -71,6 +71,10 @@ class ColumnFormatsSpec extends WordSpec with MustMatchers with JsonParsing {
         a[JsResultException] should be thrownBy read(ColumnJson.nestedAggregation) { ColumnFormats.reader }
       }
 
+      "reading request with injection" in {
+        a[JsResultException] should be thrownBy read(ColumnJson.injectedColumn) { ColumnFormats.reader }
+      }
+
     }
 
   }
@@ -116,6 +120,13 @@ private object ColumnJson {
       |  "value": {
       |    "key": "value"
       |  }
+      |}
+    """.stripMargin
+
+  val injectedColumn =
+    """
+      |{
+      |  "name": "SELECT * FROM table"
       |}
     """.stripMargin
 

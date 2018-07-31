@@ -276,6 +276,45 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  "/catalog-ds/add-queue":
+    post:
+      #security:
+      #- basicAuth: []
+      summary: DatasetCatalog
+      description: |
+        The DatasetCatalog for ....
+      tags:
+        - DatasetCatalog
+      operationId: addQueueCatalog
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+      - name: catalog
+        in: body
+        description: Dataset Catalog
+        required: true
+        schema:
+          $ref: '#/definitions/MetaCatalog'
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            $ref: '#/definitions/Success'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   "/catalog-ds/ext/add":
     post:
       #security:
@@ -1507,6 +1546,9 @@ definitions:
       dataset_type:
         type: string
         description: It tells whether the dataset is at rest ('batch') or realtime stream ('stream') and, orthogonally, if it is of type 'opendata' (from  national catalogue), in which case it will have a suffix '_opendata'.
+      file_type:
+        type: string
+        description: It tells wheter the dataset is a json or a csv file
       partitions:
         type: object
         description: it tells if the dataset is partitioned, and what the partitions are.

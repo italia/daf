@@ -51,7 +51,7 @@ import it.gov.daf.common.sso.common
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                                                                                                                                                                                                        
+    
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -570,7 +570,7 @@ package catalog_manager.yaml {
 
             val categoryFuture = kylo.categoryFuture(feed)
 
-            val streamKyloTemplate = new FileInputStream(Environment.simple().getFile("/data/kylo/template.json"))
+            val streamKyloTemplate = new FileInputStream(Environment.simple().getFile("/data/kylo/template_test.json"))
 
             val kyloTemplate  = try {
                     Json.parse(streamKyloTemplate)

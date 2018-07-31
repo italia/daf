@@ -10,7 +10,7 @@ val isStaging = System.getProperty("STAGING") != null
 
 Seq(gitStampSettings: _*)
 
-version in ThisBuild := sys.env.get("SECURITY_MANAGER_VERSION").getOrElse("1.0.2-SNAPSHOT")
+version in ThisBuild := sys.env.get("SECURITY_MANAGER_VERSION").getOrElse("1.0.3-SNAPSHOT")
 
 scalacOptions ++= Seq(
   "-deprecation",

@@ -20,13 +20,13 @@ import cats.syntax.show.toShow
 import com.typesafe.config.Config
 import daf.dataset.{ DatasetParams, FileDatasetParams, KuduDatasetParams }
 import daf.filesystem.fileFormatShow
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.{ DataFrame, SparkSession }
 import org.apache.spark.SparkConf
 import org.slf4j.{ Logger, LoggerFactory }
 
 class PhysicalDatasetController(sparkSession: SparkSession,
                                 kuduMaster: String,
-                                defaultLimit: Int = 1000,
+                                defaultLimit: Option[Int] = None,
                                 defaultChunkSize: Int = 0) {
 
   lazy val kuduController = new KuduController(sparkSession, kuduMaster)
@@ -34,17 +34,24 @@ class PhysicalDatasetController(sparkSession: SparkSession,
 
   val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
-  def kudu(params: KuduDatasetParams, limit: Int = defaultLimit) = {
+  private def addLimit(dataframe: DataFrame, limit: Option[Int]) = (limit, defaultLimit) match {
+    case (None, None)                 => dataframe
+    case (None, Some(value))          => dataframe.limit { value }
+    case (Some(value), None)          => dataframe.limit { value }
+    case (Some(value), Some(default)) => dataframe.limit { math.min(value, default) }
+  }
+
+  def kudu(params: KuduDatasetParams, limit: Option[Int] = None) = {
     logger.debug { s"Reading data from kudu table [${params.table}]" }
-    kuduController.readData(params.table).map { _ limit math.min(limit, defaultLimit) }
+    kuduController.readData(params.table).map { addLimit(_, limit) }
   }
 
-  def hdfs(params: FileDatasetParams, limit: Int = defaultLimit) = {
+  def hdfs(params: FileDatasetParams, limit: Option[Int] = None) = {
     logger.debug { s"Reading data from hdfs at path [${params.path}]" }
-    hdfsController.readData(params.path, params.format.show, params.param("separator")).map { _ limit math.min(limit, defaultLimit) }
+    hdfsController.readData(params.path, params.format.show, params.param("separator")).map { addLimit(_, limit) }
   }
 
-  def get(params: DatasetParams, limit: Int = defaultLimit) = params match {
+  def get(params: DatasetParams, limit: Option[Int]= None) = params match {
     case kuduParams: KuduDatasetParams => kudu(kuduParams, limit)
     case hdfsParams: FileDatasetParams => hdfs(hdfsParams, limit)
   }
@@ -80,8 +87,12 @@ object PhysicalDatasetController {
 
     val kuduMaster = configuration.getString("kudu.master")
 
+    val defaultLimit = if (configuration hasPath "daf.row_limit") Some {
+      configuration.getInt("daf.row_limit")
+    } else None
+
     System.setProperty("sun.security.krb5.debug", "true")
 
-    new PhysicalDatasetController(sparkSession, kuduMaster)
+    new PhysicalDatasetController(sparkSession, kuduMaster, defaultLimit)
   }
 }

@@ -45,7 +45,7 @@ object GroupByClauseFormats {
 
   val reader: Reads[GroupByClause] = (__ \ "groupBy").read[JsArray].map { jsArray =>
     GroupByClause {
-      jsArray.value.map { _.as[Column](SimpleColumnFormats.reader) }
+      jsArray.value.map { _.as[Column](SimpleColumnFormats.readerNamed) }
     }
   }
 

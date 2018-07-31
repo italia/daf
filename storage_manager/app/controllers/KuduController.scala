@@ -26,15 +26,14 @@ class KuduController(sparkSession: SparkSession, master: String) {
 
   val alogger: Logger = LoggerFactory.getLogger(this.getClass)
 
-  def readData(table: String): Try[DataFrame] =  {
-    Try{sparkSession
+  def readData(table: String): Try[DataFrame] =  Try{
+    sparkSession
       .sqlContext
       .read
       .options(Map("kudu.master" -> master, "kudu.table" -> table)).kudu
-    } recoverWith {
-      case ex =>
-        alogger.error(s"Exception ${ex.getMessage}\n ${ex.getStackTrace.mkString("\n")} ")
-        Failure(ex)
-    }
+  }.recoverWith {
+    case ex =>
+      alogger.error(s"Exception ${ex.getMessage}\n ${ex.getStackTrace.mkString("\n")} ")
+      Failure(ex)
   }
 }

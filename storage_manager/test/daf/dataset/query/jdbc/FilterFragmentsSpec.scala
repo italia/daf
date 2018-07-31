@@ -37,6 +37,10 @@ class FilterFragmentsSpec extends WordSpec with MustMatchers {
       FilterFragments.where { FilterClauses.nestedWhere }.run must be { 'Success }
     }
 
+    "error out when a [where] contains SQL" in {
+      FilterFragments.where { FilterClauses.injectedWhere }.run must be { 'Failure }
+    }
+
   }
 
   "A [having] fragment writer" must {
@@ -63,13 +67,16 @@ object FilterClauses {
     { NamedColumn("col1") =!= NamedColumn("col3")   }
   }
 
+  val injected = NamedColumn("col1") =!= NamedColumn("SELECT * FROM other.table")
+
   @tailrec
   private def nest(op: FilterOperator, n: Int = 10000): FilterOperator = if (n == 0) op else nest(not(op), n - 1)
 
   val nested = nest { ValueColumn(true) =!= ValueColumn(false) }
 
-  val simpleWhere = WhereClause { simple }
-  val nestedWhere = WhereClause { nested }
+  val simpleWhere   = WhereClause { simple }
+  val nestedWhere   = WhereClause { nested }
+  val injectedWhere = WhereClause { injected }
 
   val simpleHaving = HavingClause { simple }
   val nestedHaving = HavingClause { nested }

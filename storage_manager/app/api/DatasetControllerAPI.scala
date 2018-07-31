@@ -48,7 +48,10 @@ trait DatasetControllerAPI {
                  format: String,
                  @ApiParam(value = "the method used to perform the data conversions", required = false, defaultValue = "quick")
                  @QueryParam("method")
-                 method: String): Action[AnyContent]
+                 method: String,
+                 @ApiParam(value = "the maximum number of rows returned by this request", required = false)
+                 @QueryParam("limit")
+                 limit: Option[Int]): Action[AnyContent]
 
   @ApiOperation(
     value = "Get a dataset based on the dataset id",

@@ -20,14 +20,16 @@ import java.io.File
 import java.net.URI
 import java.util.{ Properties, UUID }
 
-import akka.actor.{ Actor, Props }
+import akka.actor.{ Actor, Props, ReceiveTimeout }
 import config.FileExportConfig
 import daf.dataset.ExtraParams
 import daf.filesystem._
 import org.apache.commons.net.util.Base64
 import org.apache.hadoop.fs.{ FileSystem, FileUtil }
 import org.apache.livy.LivyClientFactory
+import org.slf4j.LoggerFactory
 
+import scala.concurrent.duration.FiniteDuration
 import scala.util.{ Failure, Success, Try }
 
 /**
@@ -50,6 +52,8 @@ import scala.util.{ Failure, Success, Try }
   * @param livyProps the `Properties` instance used to configure the livy client
   * @param kuduMaster the connection string for the Kudu cluster master
   * @param exportPath string representing the base path where to put the exported data
+  * @param keepAliveTimeout the minimum amount of time to wait before triggering a keep-alive, which is an inexpensive
+  *                         job that is triggered if livy is not utilized to keep the livy session alive
   * @param fileSystem the `FileSystem` instance used for interaction
   */
 class FileExportActor(livyFactory: LivyClientFactory,
@@ -60,7 +64,10 @@ class FileExportActor(livyFactory: LivyClientFactory,
                       livyProps: Properties,
                       kuduMaster: String,
                       exportPath: String,
+                      keepAliveTimeout: FiniteDuration,
                       fileSystem: FileSystem) extends Actor {
+
+  private val logger = LoggerFactory.getLogger("it.gov.daf.ExportActor")
 
   private val livyClientScheme = if (livySSL) "https" else "http"
 
@@ -110,8 +117,14 @@ class FileExportActor(livyFactory: LivyClientFactory,
     livyClient.run { QueryExportJob.create(query, outputPath, toFormat, params) }.get
   }
 
+  private def keepAlive() = Try { livyClient.run { KeepAliveJob.init }.get } match {
+    case Success(duration) => logger.info { s"Refreshed livy session within [$duration] milliseconds after [${keepAliveTimeout.toMinutes}] minutes of inactivity" }
+    case Failure(error)    => logger.warn(s"Failed to refresh session after [${keepAliveTimeout.toMinutes}] minutes of inactivity", error)
+  }
+
   override def preStart() = {
     livyAppJarURIs.foreach { livyClient.uploadJar(_).get }
+    context.setReceiveTimeout { keepAliveTimeout }
   }
 
   override def postStop() = {
@@ -123,6 +136,7 @@ class FileExportActor(livyFactory: LivyClientFactory,
     case ExportFile(path, from, to, params)               => sender ! submitFileExport(path, outputPath(path), from, to, params)
     case ExportTable(name, to, params)                    => sender ! submitKuduExport(name, outputTable(name), to, params)
     case ExportQuery(query, to, params)                   => sender ! submitQueryExport(query, outputQuery, to, params)
+    case ReceiveTimeout                                   => keepAlive()
   }
 
 }
@@ -139,7 +153,8 @@ object FileExportActor {
     exportServiceConfig.livyAppJars,
     exportServiceConfig.livyProperties,
     kuduMaster,
-    exportServiceConfig.exportPath
+    exportServiceConfig.exportPath,
+    exportServiceConfig.keepAliveTimeout
   )
 
   def props(livyFactory: LivyClientFactory,
@@ -149,7 +164,8 @@ object FileExportActor {
             livyAppJars: Seq[String],
             livyProps: Properties,
             kuduMaster: String,
-            exportPath: String)(implicit fileSystem: FileSystem): Props = Props {
+            exportPath: String,
+            keepAliveTimeout: FiniteDuration)(implicit fileSystem: FileSystem): Props = Props {
     new FileExportActor(
       livyFactory,
       livyHost,
@@ -159,6 +175,7 @@ object FileExportActor {
       livyProps,
       kuduMaster,
       exportPath,
+      keepAliveTimeout,
       fileSystem
     )
   }

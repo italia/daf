@@ -19,7 +19,7 @@ package daf.dataset.query.jdbc
 import cats.syntax.traverse.toTraverseOps
 import cats.syntax.monad.catsSyntaxMonad
 import cats.instances.list.catsStdInstancesForList
-import cats.instances.stream.catsStdInstancesForStream
+import cats.instances.vector.catsStdInstancesForVector
 import config.ImpalaConfig
 import daf.dataset.query.Query
 import daf.instances.TransactorInstance
@@ -32,7 +32,7 @@ import scala.util.Try
   * Given a `Transactor` instance, this class serves as a bridge for execution of [[Query]] data.
   * @param impalaConfig the configuration for impala JDBC client
   */
-class JdbcQueryService(protected val impalaConfig: ImpalaConfig) { this: TransactorInstance =>
+class JdbcQueryService(protected val impalaConfig: ImpalaConfig, protected val defaultLimit: Option[Int]) { this: TransactorInstance =>
 
   private def exec(fragment: Fragment) = fragment.execWith {
     HPS.executeQuery { JdbcQueryOps.result }
@@ -49,7 +49,7 @@ class JdbcQueryService(protected val impalaConfig: ImpalaConfig) { this: Transac
     * @param table the table on which to run the query, generally including the database name
     * @param userId the id of the user on behalf of whom the query should be executed
     */
-  def exec(query: Query, table: String, userId: String): Try[JdbcResult] = Writers.sql(query, table).write.map {
+  def exec(query: Query, table: String, userId: String): Try[JdbcResult] = Writers.sql(query, table, defaultLimit).write.map {
     exec(_).transact { transactor(userId) }.unsafeRunSync
   }
 
@@ -60,7 +60,7 @@ class JdbcQueryService(protected val impalaConfig: ImpalaConfig) { this: Transac
     * @param table the table on which to run the query, generally including the database name
     * @param userId the id of the user on behalf of whom the query should be analyzed
     */
-  def explain(query: Query, table: String, userId: String): Try[JdbcQueryAnalysis] = Writers.explain(query, table).write.map {
+  def explain(query: Query, table: String, userId: String): Try[JdbcQueryAnalysis] = Writers.explain(query, table, defaultLimit).write.map {
     explain(_).transact { transactor(userId) }.unsafeRunSync
   }
 
@@ -79,7 +79,7 @@ object JdbcQueryOps {
     List.range(1, metadata.getColumnCount + 1).traverse[ResultSetIO, AnyRef] { FRS.getObject }
   }
 
-  val genericStream: ResultSetIO[Stream[Row]] = genericRow.whileM[Stream] { HRS.next }
+  val genericStream: ResultSetIO[Vector[Row]] = genericRow.whileM[Vector] { HRS.next }
 
   val parseAnalysis: ResultSetIO[JdbcQueryAnalysis] = FRS.getString(1).map { JdbcQueryAnalysis.fromString }
 

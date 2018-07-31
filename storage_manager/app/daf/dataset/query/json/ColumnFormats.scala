@@ -16,7 +16,7 @@
 
 package daf.dataset.query.json
 
-import daf.dataset.query._
+import daf.dataset.query.{ columnRegex, _ }
 import daf.web.json.CommonReads
 import play.api.libs.json._
 
@@ -33,15 +33,28 @@ object SimpleColumnFormats {
     case unsupported        => JsError { s"Invalid value [$unsupported] representation: must be a string, number or boolean" }
   }
 
-  private val readNamedColumn: Reads[Column] = (__ \ "name").read[String].map {
-    case "*"     => WildcardColumn
-    case colName => NamedColumn(colName)
+  private val readNamedColumn: Reads[Column] = (__ \ "name").read[JsString].andThen {
+    Reads[Column] {
+      case JsString("*")                  => JsSuccess { WildcardColumn }
+      case JsString(columnRegex(colName)) => JsSuccess { NamedColumn(colName) }
+      case unsupported                    => JsError { s"Invalid value [$unsupported] for column name" }
+    }
   }
   private val readValueColumn: Reads[Column] = (__ \ "value").read[JsValue] andThen readValue
 
   val reader = for {
     alias  <- readAlias
     column <- readNamedColumn orElse readValueColumn
+  } yield column asOpt alias
+
+  val readerNamed = for {
+    alias  <- readAlias
+    column <- readNamedColumn
+  } yield column asOpt alias
+
+  val readerValue = for {
+    alias  <- readAlias
+    column <- readValueColumn
   } yield column asOpt alias
 
 }
@@ -74,8 +87,9 @@ object AggregationColumnFormats {
 object ColumnFormats {
 
   val reader: Reads[Column] = CommonReads.choice {
-    case "name" | "value" => SimpleColumnFormats.reader
-    case _                => AggregationColumnFormats.reader
+    case "name"  => SimpleColumnFormats.readerNamed
+    case "value" => SimpleColumnFormats.readerValue
+    case _       => AggregationColumnFormats.reader
   }
 
 }

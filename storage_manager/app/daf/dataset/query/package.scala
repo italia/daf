@@ -18,6 +18,10 @@ package daf.dataset
 
 package object query {
 
+  private[query] val columnRegex = "([a-zA-Z0-9_]+)".r
+
+  private[query] def escape(value: String) = value.replace("'", """\'""")
+
   implicit class ColumnOps(column: Column) {
 
     /**

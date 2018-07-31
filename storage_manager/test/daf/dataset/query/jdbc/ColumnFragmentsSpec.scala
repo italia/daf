@@ -51,6 +51,16 @@ class SelectFragmentSpec extends WordSpec with MustMatchers {
       ColumnFragments.select { SelectClauses.nested }.run must be { 'Success }
     }
 
+    "fail serialization when sql is injected in a column name" in {
+      ColumnFragments.select { SelectClauses.injectNamed }.run must be { 'Failure }
+    }
+
+    "escape quotes in value strings" in {
+      ColumnFragments.select { SelectClauses.injectValue }.run.map { _._1.toString } must be {
+        Success { fr"""SELECT '\' SELECT col2 FROM table WHERE \'\' == \''""".toString }
+      }
+    }
+
   }
 
 }
@@ -65,6 +75,18 @@ object SelectClauses {
       ValueColumn("string") as "alias2",
       Max(NamedColumn("col3")) as "alias3",
       Sum(ValueColumn(true))
+    )
+  }
+
+  val injectNamed = SelectClause {
+    Seq(
+      NamedColumn("SELECT col2 FROM table")
+    )
+  }
+
+  val injectValue = SelectClause {
+    Seq(
+      ValueColumn("' SELECT col2 FROM table WHERE '' == '")
     )
   }
 

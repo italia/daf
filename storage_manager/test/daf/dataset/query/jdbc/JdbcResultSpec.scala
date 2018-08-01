@@ -72,7 +72,7 @@ object JdbcResults {
 
   val flat = JdbcResult(
     header = Seq("int", "string", "bool", "timestamp"),
-    rows   = Stream(
+    rows   = Vector(
       List(
         Int.box(1),
         "str1",

@@ -11,7 +11,7 @@ object Docker {
   val base: String = "anapsix/alpine-java:8_jdk_unlimited"
 
   val repository: Option[String] = Versions.choose(
-    whenSnapshot = Some { "nexus.teamdigitale.test"   },
+    whenSnapshot = Some { "nexus.daf.teamdigitale.it"   },
     whenRelease  = Some { "nexus.daf.teamdigitale.it" }
   )
 
@@ -51,4 +51,3 @@ object Docker {
 
   def entryPoint(artifactName: String) = Seq(s"bin/$artifactName", s"-Dconfig.file=conf/app/daf.conf")
 }
-

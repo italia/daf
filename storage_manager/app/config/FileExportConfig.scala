@@ -28,6 +28,7 @@ import scala.concurrent.duration._
   * @param sizeThreshold the minimum dataset size in KB before a download is carried out by export
   * @param exportTimeout the maximum amount of time an export is allowed to take before it is killed
   * @param exportPath the base path where to store export results
+  * @param keepAliveTimeout the minimum idle time to wait before triggering a keep-alive job
   * @param livyHost the hostname (:port) for the livy server
   * @param livyAuth the auth information for the livy client
   * @param livyAppJars which additional jars to add to the livy client for upload to the server
@@ -39,6 +40,7 @@ case class FileExportConfig(numSessions: Int,
                             sizeThreshold: Int,
                             exportTimeout: FiniteDuration,
                             exportPath: String,
+                            keepAliveTimeout: FiniteDuration,
                             livyHost: String,
                             livyAuth: Option[String],
                             livySSL: Boolean,
@@ -80,27 +82,29 @@ object FileExportConfig {
   }
 
   private def readExportValues = for {
-    numSessions     <- Read.int     { "num_sessions"   } default 1
-    sizeThreshold   <- Read.int     { "size_threshold" } default 5120
-    exportTimeout   <- Read.time    { "timeout"        } default 10.minutes
-    exportPath      <- Read.string  { "export_path"    }.!
-    livyHost        <- Read.string  { "livy.host"      }.!
-    livyAuth        <- Read.string  { "livy.auth"      }
-    livySSL         <- Read.boolean { "livy.ssl"       } default true
-    livyAppJars     <- Read.strings { "livy.jars"      } default List.empty[String]
-    livyProperties  <- readLivyConfig ~> readLivyProperties()
-    cleanup         <- FileExportCleanupConfig.read
+    numSessions      <- Read.int     { "num_sessions"       } default 1
+    sizeThreshold    <- Read.int     { "size_threshold"     } default 5120
+    exportTimeout    <- Read.time    { "timeout"            } default 10.minutes
+    exportPath       <- Read.string  { "export_path"        }.!
+    keepAliveTimeout <- Read.time    { "keep_alive_timeout" } default 30.minutes
+    livyHost         <- Read.string  { "livy.host"          }.!
+    livyAuth         <- Read.string  { "livy.auth"          }
+    livySSL          <- Read.boolean { "livy.ssl"           } default true
+    livyAppJars      <- Read.strings { "livy.jars"          } default List.empty[String]
+    livyProperties   <- readLivyConfig ~> readLivyProperties()
+    cleanup          <- FileExportCleanupConfig.read
   } yield FileExportConfig(
-    numSessions    = numSessions,
-    sizeThreshold  = sizeThreshold,
-    exportTimeout  = exportTimeout,
-    exportPath     = exportPath,
-    livyHost       = livyHost,
-    livyAuth       = livyAuth,
-    livySSL        = livySSL,
-    livyAppJars    = livyAppJars,
-    livyProperties = livyProperties,
-    cleanup        = cleanup
+    numSessions      = numSessions,
+    sizeThreshold    = sizeThreshold,
+    exportTimeout    = exportTimeout,
+    exportPath       = exportPath,
+    keepAliveTimeout = keepAliveTimeout,
+    livyHost         = livyHost,
+    livyAuth         = livyAuth,
+    livySSL          = livySSL,
+    livyAppJars      = livyAppJars,
+    livyProperties   = livyProperties,
+    cleanup          = cleanup
   )
 
   /**

@@ -52,7 +52,7 @@ import it.gov.daf.common.sso.common
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-    
+        
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -633,12 +633,11 @@ package catalog_manager.yaml {
               .withAuth(KYLOUSER, KYLOPWD, WSAuthScheme.BASIC)
 
             // it is a try i know is not a good practice
-            Await.result(createDir.get(), 200000 millis)
-            //Await.ready(createDir.get, 50000 millis)
+            //Await.result(createDir.get(), 200000 millis)
 
             val feedData: Future[JsResult[JsObject]] = for {
                 (template, templates) <- templateProperties
-                //created <-  createDir.get()
+                created <-  createDir.get()
                 category <- kylo.categoryFuture(feed)
                 trasformed <- Future(kyloTemplate.transform(
                         KyloTrasformers.feedTrasform(feed,

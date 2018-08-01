@@ -31,6 +31,6 @@ GET         /metrics                                            controllers.Metr
 ### NoDocs ###
 GET         /storage-manager/*file                              controllers.Assets.versioned(path="/public", file: Asset)
 
-GET         /dataset-manager/v1/dataset/:uri                    controllers.DatasetController.getDataset(uri: String, format: String ?= "json", method: String ?= "quick")
 GET         /dataset-manager/v1/dataset/:uri/schema             controllers.DatasetController.getSchema(uri: String)
+GET         /dataset-manager/v1/dataset/:uri                    controllers.DatasetController.getDataset(uri: String, format: String ?= "json", method: String ?= "quick", limit: Option[Int] ?= None)
 POST        /dataset-manager/v1/dataset/:uri/search             controllers.DatasetController.queryDataset(uri: String, format: String ?= "json", method: String ?= "quick")

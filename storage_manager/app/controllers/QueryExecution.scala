@@ -33,11 +33,18 @@ import scala.util.{ Failure, Success, Try }
 
 trait QueryExecution { this: DatasetController with DatasetExport with FileSystemInstance =>
 
-  private def extractTableName(path: Path): Try[String] = Try { s"${path.getParent.getName}.${path.getName}" }
+  private def extractDatabaseName(parent: String, params: FileDatasetParams) = parent.toLowerCase match {
+    case "opendata" => params.extraParams.get("theme").map { s => s"opendata__${s.toLowerCase}" } getOrElse "opendata" // append __{theme} for opendata
+    case other      => other // use the parent dir for other data
+  }
+
+  private def extractTableName(path: Path, params: FileDatasetParams): Try[String] = Try {
+    s"${extractDatabaseName(path.getParent.getName, params)}.${path.getName.toLowerCase}"
+  }
 
   private def extractTableName(params: DatasetParams, userId: String): Try[String] = params match {
     case kudu: KuduDatasetParams => (proxyUser as userId) { downloadService.tableInfo(kudu.table) } map { _ => kudu.table }
-    case file: FileDatasetParams => (proxyUser as userId) { extractTableName(file.path.asHadoop.resolve) }
+    case file: FileDatasetParams => (proxyUser as userId) { extractTableName(file.path.asHadoop.resolve, file) }
   }
 
   private def prepareQuery(params: DatasetParams, query: Query, userId: String) = for {

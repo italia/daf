@@ -30,10 +30,10 @@ import doobie.util.fragment.Fragment
 object FilterFragments {
 
   private def writeColumn(column: Column): Trampoline[String] = column match {
-    case ValueColumn(value: String) => Free.pure { s"'$value'" }
-    case ValueColumn(value)         => Free.pure { value.toString }
-    case NamedColumn(name)          => Free.pure { name }
-    case _                          => recursionError[String] { new IllegalArgumentException("Invalid operand encountered: columns or constants only are allowed") }
+    case ValueColumn(value: String)     => Free.pure { s"'${escape(value)}'" }
+    case ValueColumn(value)             => Free.pure { value.toString }
+    case NamedColumn(columnRegex(name)) => Free.pure { name }
+    case _                              => recursionError[String] { new IllegalArgumentException("Invalid operand encountered: columns or constants only are allowed") }
   }
 
   private def _writeComparison(left: Column, right: Column)(f: (String, String) => String): Trampoline[String] = for {

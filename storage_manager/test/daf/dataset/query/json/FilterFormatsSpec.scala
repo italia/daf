@@ -78,6 +78,10 @@ class FilterFormatsSpec extends WordSpec with MustMatchers with JsonParsing {
         a[JsResultException] must be thrownBy read(FilterJson.complexFunctionOperand) { FilterFormats.reader }
       }
 
+      "reading sql is injected into the representation" in {
+        a[JsResultException] must be thrownBy read(FilterJson.injectionOperand) { FilterFormats.reader }
+      }
+
       "reading an unsupported operator" in {
         a[JsResultException] must be thrownBy read(FilterJson.unsupportedOperator) { FilterFormats.reader }
       }
@@ -202,6 +206,13 @@ private object FilterJson {
     """
       |{
       |  "gt": { "left": [1, 2, 4], "right": false }
+      |}
+    """.stripMargin
+
+  val injectionOperand =
+    """
+      |{
+      |  "gt": { "left": "col1", "right": "SELECT col2 FROM table" }
       |}
     """.stripMargin
 

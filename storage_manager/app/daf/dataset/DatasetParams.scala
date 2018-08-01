@@ -91,8 +91,25 @@ object DatasetParams {
     }.map { _.trim }
   }
 
-  private def addParam(key: String, value: Option[String], extraParams: ExtraParams = Map.empty[String, String]) = Success {
+  private def readTheme(catalog: MetaCatalog) = Try {
+    catalog.operational.theme match {
+      case "" | "unknown" | null => None
+      case theme                 => Some(theme)
+    }
+  }
+
+  private def readSubTheme(catalog: MetaCatalog) = Try {
+    catalog.operational.subtheme match {
+      case "" | "unknown" | null => None
+      case theme                 => Some(theme)
+    }
+  }
+
+  private def addParam(key: String, value: Option[String], extraParams: ExtraParams = Map.empty[String, String]) =
     value.map { v => extraParams + (key -> v) } getOrElse extraParams
+
+  private def createParams(params: (String, Option[String])*) = Success {
+    params.foldLeft(Map.empty[String, String]) { (params, pair) => addParam(pair._1, pair._2, params) }
   }
 
   private def readTable(catalog: MetaCatalog, kuduInfo: StorageKudu) = kuduInfo.table_name match {
@@ -104,7 +121,9 @@ object DatasetParams {
     path        <- readPhysicalPath(catalog)
     format      <- readDataFormat(catalog, hdfsInfo)
     separator   <- readSeparator(catalog)
-    extraParams <- addParam("separator", separator)
+    theme       <- readTheme(catalog)
+    subTheme    <- readSubTheme(catalog)
+    extraParams <- createParams("separator" -> separator, "theme" -> theme, "subTheme" -> subTheme)
   } yield FileDatasetParams(
     path        = path,
     catalogUri  = catalog.operational.logical_uri,
@@ -114,7 +133,7 @@ object DatasetParams {
 
   private def fromKudu(catalog: MetaCatalog, kuduInfo: StorageKudu) = for {
     table       <- readTable(catalog, kuduInfo)
-    extraParams <- addParam("separator", Some(","))
+    extraParams <- createParams("separator" -> Some(","))
   } yield KuduDatasetParams(table, catalog.operational.logical_uri, extraParams)
 
   def fromCatalog(catalog: MetaCatalog): Try[DatasetParams] = catalog.operational.storage_info.flatMap { info => info.hdfs orElse info.kudu } match {

@@ -46,7 +46,7 @@ class ProducerService(kafkaConfig: KafkaConfig, validator: PayloadValidator)(imp
     case OtherEventType        => OtherEvent
   }
 
-  private def convertAttributes(pushedEvent: PushedEvent) = pushedEvent.attributes.map { case (k, v) => k -> v.toString }
+  private def convertAttributes(attributes: Map[String, Any]) = attributes.map { case (k, v) => k -> v.toString }
 
   private def createEnvelope(streamData: StreamData, userId: String, pushedEvent: PushedEvent) = extractTopic(streamData).map { topic =>
     Envelope(
@@ -73,11 +73,11 @@ class ProducerService(kafkaConfig: KafkaConfig, validator: PayloadValidator)(imp
 
   private def createMessage(streamData: StreamData, userId: String, pushedEvent: PushedEvent) = for {
     envelope <- createEnvelope(streamData, userId, pushedEvent)
-    payload  <- validator.validate(pushedEvent.payload, streamData)
+//    payload  <- validator.validate(pushedEvent.payload., streamData)
   } yield ServiceMessage(
     envelope   = envelope,
-    payload    = payload,
-    attributes = convertAttributes(pushedEvent)
+    payload    = pushedEvent.payload,
+    attributes = pushedEvent.attributes
   )
 
   def sendMessage(streamData: StreamData, userId: String, pushedEvent: PushedEvent) =

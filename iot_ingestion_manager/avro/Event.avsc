@@ -61,20 +61,14 @@
     },
     {
         "name": "payload",
-        "type": {
-            "type": "map",
-            "values": "GenericValue"
-        },
-        "doc": "Event content represented as a flat Map of key/value pairs. Required"
+        "type": "string",
+        "doc": "Event content represented in JSON. Required."
     },
     {
         "name": "attributes",
-        "type": {
-            "type": "map",
-            "values": "GenericValue"
-        },
-        "doc": "Event type-specific key/value pairs, usually extracted from the event body. Required.",
-        "order": "ignore"
+        "type": ["null", "string"],
+        "doc": "Event type-specific key/value pairs represented in JSON. Optional.",
+        "default": null
     }
 
 ]}

@@ -5,6 +5,7 @@ import java.util.{ Date, Map => JavaMap }
 import it.gov.daf.iot.event.{ Event, EventType, GenericValue, Location }
 import org.scalacheck.Gen
 import org.scalacheck.Gen._
+import play.api.libs.json._
 
 import scala.collection.convert.decorateAsJava._
 
@@ -40,6 +41,14 @@ object AvroGen {
     Gen.choose[Double](0d, 1d).map { _ >= 0.3 }.map { "boolean-attr" -> _ }
   )
 
+  private val jsValueGen = attributePairGen.map[(String, JsValue)] {
+    case (k, i: Int)     => k -> JsNumber(i)
+    case (k, l: Long)    => k -> JsNumber(l)
+    case (k, d: Double)  => k -> JsNumber(d)
+    case (k, b: Boolean) => k -> JsBoolean(b)
+    case (k, v)          => k -> JsString(v.toString)
+  }
+
   private def mapGen(maxAttributes: Int) = for {
     size  <- Gen.chooseNum[Int](1, maxAttributes)
     pairs <- Gen.listOfN(size, attributePairGen)
@@ -47,12 +56,26 @@ object AvroGen {
     s"$k-$i" -> GenericValue.newBuilder.setValue(v).build()
   }.toMap[CharSequence, GenericValue].asJava
 
-  private val attributesGen = Gen.frequency[JavaMap[CharSequence, GenericValue]](
+  private def jsonGen(maxAttributes: Int) = for {
+    size  <- Gen.chooseNum[Int](1, maxAttributes)
+    pairs <- Gen.listOfN(size, jsValueGen)
+  } yield JsObject {
+    pairs.zipWithIndex.map { case ((k, v), i) => s"$k-$i" -> v }
+  }
+
+  private val attributesMapGen = Gen.frequency[JavaMap[CharSequence, GenericValue]](
     7 -> mapGen(5),
     3 -> Map.empty[CharSequence, GenericValue].asJava
   )
 
-  private val payloadGen = mapGen(15)
+  private val attributesStringGen = Gen.frequency[JsObject](
+    7 -> jsonGen(5),
+    3 -> JsObject { Seq.empty }
+  ).map { Json.stringify }
+
+  private val payloadMapGen = mapGen(15)
+
+  private val payloadStringGen = jsonGen(15).map { Json.stringify }
 
   private val locationGen = for {
     latitude  <- latitudeGen
@@ -75,8 +98,8 @@ object AvroGen {
     eventAnnotation <- eventAnnotationOptGen
     source          <- sourceGen
     location        <- locationOptGen
-    payload         <- payloadGen
-    attributes      <- attributesGen
+    payload         <- payloadStringGen
+    attributes      <- attributesStringGen
   } yield Event.newBuilder
     .setVersion(1)
     .setId(id)

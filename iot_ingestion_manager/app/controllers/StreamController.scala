@@ -53,6 +53,7 @@ class StreamController @Inject()(configuration: Configuration,
   private val payloadValidator = applicationConfig.validator match {
     case "none" | "off" => NoPayloadValidator
     case "avro"         => AvroPayloadValidator
+    case "avro-json"    => AvroJsonPayloadValidator
     case other          => throw new RuntimeException(s"Unable to configure [iot-manager]: unsupported payload validator [$other]")
   }
 

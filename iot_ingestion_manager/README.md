@@ -58,21 +58,9 @@ The client should `PUT` an `Event`, following the representation below:
 }
 ```
 
-The information surrounding the core of the message is contained in the `payload` attribute, which is a JSON object containing any number of properties, the structure of which must match the schema contained in the stream's respective catalog entry. The items here are processed by the server in that they are flattened  into a list of key-value pairs before storing in Avro format. This means that an arbitrary level of nesting is supported, at no performance overhead, however the structure is flattened as shown below:
-```json
-{
-	"attr1": {
-		"attr2": {
-			"attr3": "some-string"
-		}
-	}
-}
-```
-```
-  "attr1.attr2.attr3": "some-string"
-```
-Note that the `attributes` item is another JSON object that can contain any number of key-value pairs that describe the content of the body, and is processed by the server is much the same way as the `payload`, besides the fact that it is optional and requires no validation by the server.
+The information surrounding the core of the message is contained in the `payload` attribute, which is a JSON object containing any number of properties, the structure of which must match the schema contained in the stream's respective catalog entry. The items here are not processed by the server in that they are simply written as a JSON `String` in the resulting `Event` Avro representation.
 
+Note that the `attributes` item is another JSON object that is treated in much the same way as the `payload`, only it is not validated by the server, but is rather simply serialized to a `String`.
 
 The rest of the information acts as an envelope, which helps the server add some context and metadata to the specific event.
 
@@ -89,8 +77,8 @@ All events coming from Kafka have a common `Event` structure, which is represent
 | subtype         | string   | Extra field to qualify the event in its custom domain           | N        |         |
 | eventAnnotation | string   | Free-text explanation of what happened in this particular event | N        |         |
 | location        | location | Location from which the event was generated                     | N        |         |
-| body            | map      | Event content represented as a flat Map of key/value pairs      | Y        |         |
-| attributes      | map      | Event-specific key/value pairs, where the values are genric     | N        | empty   |
+| body            | string   | Event content represented in JSON                               | Y        |         |
+| attributes      | string   | Event-specific key/value pairs, represented in JSON             | N        |         |
 
 Note that the Avro schemas can be found under the `avro/` directory of this project.
 

@@ -16,20 +16,21 @@
 
 package representation
 
+import daf.stream.{ Attributes, Payload }
 import io.swagger.annotations.ApiModel
 
 @ApiModel("Event")
 final case class Event(id: String,
-                 source: String,
-                 version: Option[Long],
-                 timestamp: Long,
-                 location: Option[EventLocation],
-                 certainty: Option[Double],
-                 eventType: EventType,
-                 customType: Option[String],
-                 comment: Option[String],
-                 payload: Map[String, Any],
-                 attributes: Map[String, Any])
+                       source: String,
+                       version: Option[Long],
+                       timestamp: Long,
+                       location: Option[EventLocation],
+                       certainty: Option[Double],
+                       eventType: EventType,
+                       customType: Option[String],
+                       comment: Option[String],
+                       payload: Payload,
+                       attributes: Attributes)
 
 sealed trait EventType
 

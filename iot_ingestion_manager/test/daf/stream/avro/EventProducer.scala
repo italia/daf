@@ -12,13 +12,13 @@ import org.scalatest.{ MustMatchers, WordSpec }
 
 import scala.concurrent.duration._
 
-class EventProducerSpec extends WordSpec with MustMatchers {
+class EventProducer extends WordSpec with MustMatchers {
 
   private type Bytes = Array[Byte]
 
   private val kafkaConfig = KafkaConfig(
-//    servers      = Seq("edge1.novalocal:9092", "edge1.novalocal:9092"),
-    servers      = Seq.empty,
+    servers      = Seq("edge1.novalocal:9092", "edge1.novalocal:9092"),
+//    servers      = Seq.empty,
     groupId      = "test-group-1",
     timeout      = 10.seconds,
     numProducers = 1,
@@ -41,7 +41,7 @@ class EventProducerSpec extends WordSpec with MustMatchers {
 
   "Event Producer" must {
 
-    "send events" in send(5, "iot-topic-1")
+    "send events" in send(5, "iot-topic-json-1")
 
   }
 

@@ -1,5 +1,6 @@
-package daf.stream
+package daf.stream.avro
 
+import daf.stream.AvroPayloadValidator
 import org.scalatest.{ MustMatchers, WordSpec }
 import representation.StreamData
 

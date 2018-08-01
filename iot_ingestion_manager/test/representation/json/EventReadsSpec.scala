@@ -1,6 +1,7 @@
 package representation.json
 
 import org.scalatest.{ MustMatchers, WordSpec }
+import play.api.libs.json._
 import representation.{ Event, EventLocation, MetricEventType }
 
 class EventReadsSpec extends WordSpec with MustMatchers with JsonParsing {
@@ -22,17 +23,21 @@ class EventReadsSpec extends WordSpec with MustMatchers with JsonParsing {
             eventType  = MetricEventType,
             customType = Some("sensor"),
             comment    = Some("Test reading with moderate certainty"),
-            payload    = Map(
-              "int"     -> 1,
-              "string"  -> "two",
-              "double"  -> 0.975d,
-              "boolean" -> false
-            ),
-            attributes = Map(
-              "int"     -> 1,
-              "double"  -> 0.975d,
-              "boolean" -> false
-            )
+            payload    = JsObject {
+              Seq(
+                "int"     -> JsNumber(1),
+                "string"  -> JsString("two"),
+                "double"  -> JsNumber(0.975d),
+                "boolean" -> JsBoolean(false)
+              )
+            },
+            attributes = JsObject {
+              Seq(
+                "int"     -> JsNumber(1),
+                "double"  -> JsNumber(0.975d),
+                "boolean" -> JsBoolean(false)
+              )
+            }
           )
         }
       }
@@ -50,13 +55,15 @@ class EventReadsSpec extends WordSpec with MustMatchers with JsonParsing {
             eventType  = MetricEventType,
             customType = None,
             comment    = None,
-            payload    = Map(
-              "int"     -> 1,
-              "string"  -> "two",
-              "double"  -> 0.975d,
-              "boolean" -> false
+            payload    = JsObject(
+              Seq(
+                "int"     -> JsNumber(1),
+                "string"  -> JsString("two"),
+                "double"  -> JsNumber(0.975d),
+                "boolean" -> JsBoolean(false)
+              )
             ),
-            attributes = Map.empty[String, Any]
+            attributes = JsObject { Seq.empty }
           )
         }
       }

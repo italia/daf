@@ -50,15 +50,21 @@ object EventReads {
     case (key, jsValue)                              => key -> Json.stringify(jsValue)
   }.toMap[String, Any]
 
-  private val attributeReads = (__ \ "attributes").readNullable[JsObject].map {
+  private val attributeMapReads = (__ \ "attributes").readNullable[JsObject].map {
     _.map { jsObject =>
       _flatten(jsObject.value.toList).map { unmarshall }.run
     }
   }
 
-  private val payloadReads = (__ \ "payload").read[JsObject].map { jsObject =>
+  private val attributeJsonReads = (__ \ "attributes").readNullable[JsObject].map {
+    _ getOrElse JsObject { Seq.empty }
+  }
+
+  private val payloadMapReads = (__ \ "payload").read[JsObject].map { jsObject =>
     _flatten(jsObject.value.toList).map { unmarshall }.run
   }
+
+  private val payloadJsonReads = (__ \ "payload").read[JsObject]
 
   private val locationReads = (__ \ "location").readNullable[EventLocation](Json.reads[EventLocation])
 
@@ -72,8 +78,8 @@ object EventReads {
     eventType  <- eventTypeReads
     customType <- (__ \ "customType").readNullable[String]
     comment    <- (__ \ "comment").readNullable[String]
-    payload    <- payloadReads
-    attributes <- attributeReads
+    payload    <- payloadJsonReads
+    attributes <- attributeJsonReads
   } yield Event(
     id         = id,
     source     = source,
@@ -85,7 +91,7 @@ object EventReads {
     customType = customType,
     comment    = comment,
     payload    = payload,
-    attributes = attributes.getOrElse { Map.empty[String, Any] }
+    attributes = attributes
   )
 
 }

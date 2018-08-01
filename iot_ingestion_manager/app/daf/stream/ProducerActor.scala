@@ -24,6 +24,7 @@ import daf.stream.avro.EventSerDe
 import it.gov.daf.iot.event.{ GenericValue, Event => AvroEvent, EventType => AvroEventType, Location => AvroLocation }
 import org.apache.kafka.clients.producer.{ KafkaProducer, ProducerRecord }
 import org.apache.kafka.common.serialization.{ ByteArraySerializer, StringSerializer }
+import play.api.libs.json.Json
 
 import scala.concurrent.Future
 import scala.collection.convert.decorateAsJava._
@@ -42,21 +43,23 @@ class ProducerActor(val config: KafkaConfig) extends Actor {
     case OtherEvent       => AvroEventType.OTHER
   }
 
-  private def buildEvent(envelope: Envelope, payload: Map[String, Any], attributes: Map[String, Any]) = AvroEvent.newBuilder
+  private def buildEvent(envelope: Envelope, payload: Payload, attributes: Attributes) = AvroEvent.newBuilder
     .setVersion(envelope.version)
     .setId(envelope.id)
     .setTimestamp(envelope.timestamp)
     .setCertainty(envelope.certainty)
     .setType(convertEventType(envelope.eventType))
     .setSource(envelope.sender.source)
-    .setPayload { buildAttributes(payload) }
-    .setAttributes { buildAttributes(attributes) }
+    .setPayload { Json.stringify(payload) }
+    .setAttributes { buildAttributesJson(attributes).orNull }
     .setSubtype { envelope.subType.orNull }
     .setEventAnnotation { envelope.comment.orNull }
     .setLocation { buildLocation(envelope).orNull }
     .build()
 
   private def buildAttributes(attributes: Map[String, Any]) = attributes.mapValues { new GenericValue(_) }.toMap[CharSequence, GenericValue].asJava
+
+  private def buildAttributesJson(attributes: Attributes) = if (attributes.value.isEmpty) None else Some { Json.stringify(attributes) }
 
   private def buildLocation(envelope: Envelope) = envelope.location.map { location =>
     AvroLocation.newBuilder
@@ -71,7 +74,7 @@ class ProducerActor(val config: KafkaConfig) extends Actor {
     EventSerDe.serialize(event)
   )
 
-  private def send(envelope: Envelope, payload: Map[String, Any], attributes: Map[String, Any]) = Future {
+  private def send(envelope: Envelope, payload: Payload, attributes: Attributes) = Future {
     producer.send {
       createRecord(
         topic = envelope.topic,
@@ -82,7 +85,7 @@ class ProducerActor(val config: KafkaConfig) extends Actor {
 
   private def reply[A](f: ActorRef => A) = f { sender() }
 
-  private def doSend(envelope: Envelope, payload: Map[String, Any], attributes: Map[String, Any], originalSender: ActorRef) = send(envelope, payload, attributes).onSuccess {
+  private def doSend(envelope: Envelope, payload: Payload, attributes: Attributes, originalSender: ActorRef) = send(envelope, payload, attributes).onSuccess {
     case metadata => originalSender ! ServiceMessageMetadata.fromKafka(envelope.id, metadata)
   }
 

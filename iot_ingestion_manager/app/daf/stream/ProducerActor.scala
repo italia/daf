@@ -48,13 +48,14 @@ class ProducerActor(val config: KafkaConfig) extends Actor {
     .setId(envelope.id)
     .setTimestamp(envelope.timestamp)
     .setCertainty(envelope.certainty)
-    .setType(convertEventType(envelope.eventType))
+    .setType { convertEventType(envelope.eventType).name }
     .setSource(envelope.sender.source)
     .setPayload { Json.stringify(payload) }
     .setAttributes { buildAttributesJson(attributes).orNull }
     .setSubtype { envelope.subType.orNull }
     .setEventAnnotation { envelope.comment.orNull }
-    .setLocation { buildLocation(envelope).orNull }
+    .setLatitude { buildLocation(envelope).map { _.getLatitude }.orNull }
+    .setLongitude { buildLocation(envelope).map { _.getLongitude }.orNull }
     .build()
 
   private def buildAttributes(attributes: Map[String, Any]) = attributes.mapValues { new GenericValue(_) }.toMap[CharSequence, GenericValue].asJava

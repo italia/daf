@@ -105,11 +105,12 @@ object AvroGen {
     .setId(id)
     .setTimestamp(timestamp)
     .setCertainty(certainty)
-    .setType(eventType)
+    .setType(eventType.name)
     .setSubtype { subType.orNull }
     .setEventAnnotation { eventAnnotation.orNull }
     .setSource(source)
-    .setLocation { location.orNull }
+    .setLatitude { location.map { _.getLatitude }.orNull }
+    .setLongitude { location.map { _.getLongitude }.orNull }
     .setPayload(payload)
     .setAttributes(attributes)
     .build()

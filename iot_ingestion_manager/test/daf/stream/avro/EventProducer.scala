@@ -41,7 +41,7 @@ class EventProducer extends WordSpec with MustMatchers {
 
   "Event Producer" must {
 
-    "send events" in send(5, "iot-topic-json-1")
+    "send events" in send(5, "iot-simple-1")
 
   }
 

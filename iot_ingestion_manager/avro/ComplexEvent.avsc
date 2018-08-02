@@ -1,6 +1,6 @@
 {
     "namespace": "it.gov.daf.iot.event",
-    "name": "Event",
+    "name": "ComplexEvent",
     "type": "record",
     "doc": "A generic event. See the reference guide for event format information.",
     "version": 1,
@@ -61,14 +61,20 @@
     },
     {
         "name": "payload",
-        "type": "string",
-        "doc": "Event content represented in JSON. Required."
+         "type": {
+            "type": "map",
+            "values": "GenericValue"
+         },
+         "doc": "Event content represented as a flat Map of key/value pairs. Required"
     },
     {
         "name": "attributes",
-        "type": ["null", "string"],
-        "doc": "Event type-specific key/value pairs represented in JSON. Optional.",
-        "default": null
+        "type": {
+            "type": "map",
+            "values": "GenericValue"
+        },
+        "doc": "Event type-specific key/value pairs, usually extracted from the event body. Required.",
+        "order": "ignore"
     }
 
 ]}

@@ -73,7 +73,7 @@ class ProducerService(kafkaConfig: KafkaConfig, validator: PayloadValidator)(imp
 
   private def createMessage(streamData: StreamData, userId: String, pushedEvent: PushedEvent) = for {
     envelope <- createEnvelope(streamData, userId, pushedEvent)
-//    payload  <- validator.validate(pushedEvent.payload., streamData)
+    payload  <- validator.validate(pushedEvent.payload.value.toMap, streamData)
   } yield ServiceMessage(
     envelope   = envelope,
     payload    = pushedEvent.payload,

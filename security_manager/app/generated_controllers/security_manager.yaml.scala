@@ -46,7 +46,7 @@ import scala.collection.immutable.StringLike
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                                                                                
+                                                                                                                                        
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -403,12 +403,14 @@ package security_manager.yaml {
             execInContext[Future[SftpType[T] forSome { type T }]] ("sftp"){ () =>
             val credentials = Utils.getCredentials(currentRequest, cacheWrapper )
 
+              val relativePath = path_to_create.split(credentials.get.username)(1).tail
+
             if (CredentialManager.isDafSysAdmin(currentRequest)) {
               val result = credentials.flatMap { crd =>
                 val sftpInternal = new SftpHandler(crd.username, crd.password, ConfigReader.sftpHostInternal)
-                val resultInternal = sftpInternal.mkdir(path_to_create)
+                val resultInternal = sftpInternal.mkdir(relativePath)
                 val sftpExternal = new SftpHandler(crd.username, crd.password, ConfigReader.sftphostExternal)
-                val resultExternal = sftpExternal.mkdir(path_to_create)
+                val resultExternal = sftpExternal.mkdir(relativePath)
                 resultExternal
               }
 

@@ -10,7 +10,7 @@ import it.gov.daf.securitymanager.service.IntegrationService
 import it.gov.daf.securitymanager.service.utilities.{AppConstants, ConfigReader}
 import play.api.libs.json._
 import play.api.libs.ws.{WSAuthScheme, WSClient, WSResponse}
-import security_manager.yaml.{Error, IpaGroup, IpaUser, Success}
+import security_manager.yaml.{DafGroupInfo, Error, GroupList, IpaGroup, IpaUser, Success}
 import cats.implicits._
 import it.gov.daf.securitymanager.service
 import it.gov.daf.securitymanager.service.ProcessHandler._
@@ -384,7 +384,42 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
   }
 
+
+  private def groupInfo(groupName:String, orgListFuture:Future[Either[Error,Seq[String]]]):Future[Either[Error,DafGroupInfo]]={
+
+    val result = for{
+      wrk <- EitherT( showGroup(groupName) )
+      orgList <- EitherT( orgListFuture )
+    } yield ApiClientIPA.extractGroupsOf(wrk.memberof_group,orgList)
+
+    result.value map{
+      case Right(Some(Seq(x))) => Right(DafGroupInfo( groupName, "Workgroup", Option(x) ))
+      case Left(l) => Left(l)
+      case _ => Right(DafGroupInfo( groupName, "Organization", None ))
+    }
+
+  }
+
   // all users
+  def groupsInfo(groups: Seq[String]):Future[Either[Error,Seq[DafGroupInfo]]]= {
+
+    val orgList:Future[Either[Error,Seq[String]]] = organizationList()
+
+    val traversed = groups.toList.traverse[Future, Either[Error, DafGroupInfo]](groupInfo(_,orgList)): Future[List[Either[Error, DafGroupInfo]]]
+
+    traversed.map{ tList=>
+
+      val out = tList.foldLeft(List[DafGroupInfo]())((a, b) => b match {
+        case Right(r) => r :: a
+        case _ => a
+      })
+      Right(out.reverse.toSeq)
+
+    }
+
+  }
+
+
   def showGroup(group: String):Future[Either[Error,IpaGroup]]= {
 
     val jsonGroup: JsValue = Json.parse(
@@ -497,7 +532,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
     result.value map{
       case Right(None) => Right(Success(Some("ok"), Some("ok")))
-      case Right(Some(x)) =>  if(x.length>0) Left(Error(Option(1),Some("This user belongs to organization workgroups"),None))
+      case Right(Some(x)) =>  if(x.nonEmpty) Left(Error(Option(1),Some("This user belongs to organization workgroups"),None))
                               else Right(Success(Some("ok"), Some("ok")))
       case Left(l) => Left(l)
     }
@@ -505,27 +540,26 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
   }
 
 
-  def getWorkgroupOrganization(wrkName:String):Future[Either[Error,String]]={
+  def getWorkgroupOrganization(wrk:IpaGroup):Future[Either[Error,Option[String]]]={
 
     val result = for{
-      wrk <- EitherT( showGroup(wrkName) )
       orgList <- EitherT( organizationList )
     } yield ApiClientIPA.extractGroupsOf(wrk.memberof_group,orgList)
 
     result.value map{
-      case Right(Some(Seq(x))) => Right(x)
+      case Right(Some(Seq(x))) => Right(Option(x))
       case Left(l) => Left(l)
-      case _ => Left(Error(Option(1),Some("Not a daf workgroup"),None))
+      case _ => Right(None)
     }
 
   }
 
-  private def isWorkgroup(ipaGroup:IpaGroup) = {
+  def isWorkgroup(ipaGroup:IpaGroup) = {
 
     if( ipaGroup.memberof_group.getOrElse(List.empty[String]).contains(WORKGROUPS_GROUP) )
       Right(Success(Some("Ok"), Some("ok")))
     else
-      Left(Error(Option(1),Some("Not a workgroup"),None))
+      Left(Error(Option(1),Some("Not a daf workgroup"),None))
 
   }
 
@@ -804,8 +838,8 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
     def listThis(fx: => Future[Either[Error, Seq[String]]]): Future[Either[Error, Seq[String]]] = {
       fx.map {
         case Left(Error(Some(1), Some(x), None)) => Right(Seq.empty[String])//println("1--->"+x);if(num==1)Right(Seq.empty[String]) else Left(Error(Some(num), Some(x), None))
-        case Left(x) => println("2--->"+x);Left(x)
-        case Right(x) => println("3--->"+x);Right(x)
+        case Left(x) => Left(x)
+        case Right(x) => Right(x)
       }
 
     }

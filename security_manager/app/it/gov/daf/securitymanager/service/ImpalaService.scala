@@ -10,9 +10,11 @@ import play.api.Logger
 @Singleton
 class ImpalaService @Inject()(implicit val cacheWrapper:CacheWrapper){
 
+  private val logger = Logger(this.getClass.getName)
+
   private val ds:DataSource = new DataSource()
   private val jdbcString = s"jdbc:impala://${ConfigReader.impalaServer};SSL=1;SSLKeyStore=${ConfigReader.impalaKeyStorePath};SSLKeyStorePwd=${ConfigReader.impalaKeyStorePwd};CAIssuedCertNamesMismatch=1;AuthMech=3"
-  Logger.logger.debug(s"jdbcString: $jdbcString")
+  logger.debug(s"jdbcString: $jdbcString")
   ds.setURL(jdbcString)
 
 
@@ -94,17 +96,17 @@ class ImpalaService @Inject()(implicit val cacheWrapper:CacheWrapper){
 
     val loginInfo = readLoginInfo
 
-    Logger.logger.debug("Impala connection request")
+    logger.debug("Impala connection request")
 
     val conn = ds.getConnection(loginInfo.user,loginInfo.password)
 
-    Logger.logger.debug("Impala connection obtained")
-    Logger.logger.debug(s" Impala update query : $query")
+    logger.debug("Impala connection obtained")
+    logger.debug(s" Impala update query : $query")
 
     val stmt = conn.createStatement()
     val res = stmt.executeUpdate(query)
 
-    Logger.logger.debug("Impala query executed")
+    logger.debug("Impala query executed")
 
     conn.close()
     res
@@ -113,17 +115,17 @@ class ImpalaService @Inject()(implicit val cacheWrapper:CacheWrapper){
 
   private def executeUpdatesAsAdmin(query:Seq[String]):Seq[Int]={
 
-    Logger.logger.debug("Impala connection request")
+    logger.debug("Impala connection request")
 
     val conn = ds.getConnection(ConfigReader.impalaAdminUser,ConfigReader.impalaAdminUserPwd)
 
-    Logger.logger.debug("Impala connection obtained")
+    logger.debug("Impala connection obtained")
 
     val res = query.map{ q =>
-      Logger.logger.debug(s" Impala update query : $q")
+      logger.debug(s" Impala update query : $q")
       val stmt = conn.createStatement()
       val out = stmt.executeUpdate(q)
-      Logger.logger.debug("Impala query executed")
+      logger.debug("Impala query executed")
       out
     }
 
@@ -136,17 +138,17 @@ class ImpalaService @Inject()(implicit val cacheWrapper:CacheWrapper){
 
     val loginInfo = readLoginInfo
 
-    Logger.logger.debug("Impala connection request")
+    logger.debug("Impala connection request")
 
     val conn = ds.getConnection(loginInfo.user,loginInfo.password)
 
-    Logger.logger.debug("Impala connection obtained")
+    logger.debug("Impala connection obtained")
 
     val res = query.map{ q =>
-      Logger.logger.debug(s" Impala update query : $q")
+      logger.debug(s" Impala update query : $q")
       val stmt = conn.createStatement()
       val out = stmt.executeUpdate(q)
-      Logger.logger.debug("Impala query executed")
+      logger.debug("Impala query executed")
       out
     }
 

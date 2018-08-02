@@ -13,6 +13,7 @@ import security_manager.yaml.IpaUser
 
 object MongoService {
 
+  private val logger = Logger(this.getClass.getName)
 
   private val server = new ServerAddress(ConfigReader.getDbHost, ConfigReader.getDbPort)
   private val userName = ConfigReader.userName
@@ -52,13 +53,13 @@ object MongoService {
     if(coll.isEmpty) {
       try
         coll.underlying.createIndex(new BasicDBObject("createdOn", 1), new BasicDBObject("expireAfterSeconds", ttl))
-      catch{ case e:Exception => Logger.logger.warn("Index already created") }
+      catch{ case e:Exception => logger.warn("Index already created") }
     }
 
     val inserted = coll.insert(document)
     //mongoClient.close()
 
-    Logger.logger.debug( "mongo write result: "+inserted )
+    logger.debug( "mongo write result: "+inserted )
 
     if(! inserted.isUpdateOfExisting )
       Right("ok")
@@ -106,7 +107,7 @@ object MongoService {
     result match{
       case Right(json) => ((json \ "operational") \ "acl").toOption match{
         case Some(x) => Right(Some(x))
-        case None =>  Logger.logger.warn( "No Acl found: "+result )
+        case None =>  logger.warn( "No Acl found: "+result )
                       Right(None)
       }
       case Left(l) => Left(l)
@@ -121,7 +122,7 @@ object MongoService {
       case Right(json) => val out = ( (json \ "operational" \ "physical_uri").asOpt[String], (json \ "dcatapit" \ "author").asOpt[String] )
                           out match{
                             case (Some(x), Some(y)) => Right((x,y))
-                            case _ =>  Logger.logger.warn( "No data found: "+result ); Left("No dataset found")
+                            case _ =>  logger.warn( "No data found: "+result ); Left("No dataset found")
                           }
       case Left(l) => Left(l)
     }
@@ -130,7 +131,7 @@ object MongoService {
 
   private def updateData( query:DBObject, update:DBObject, collectionName:String )={
 
-    Logger.logger.debug(s"Mongo update, collection: $collectionName, query: $query, update: $update")
+    logger.debug(s"Mongo update, collection: $collectionName, query: $query, update: $update")
 
     //val mongoClient = MongoClient( server, List(credentials) )
     val db = mongoClient(dbName)
@@ -139,7 +140,7 @@ object MongoService {
     val updated = coll.update(query, update)
     //mongoClient.close()
 
-    Logger.logger.debug( "mongo update result: "+updated )
+    logger.debug( "mongo update result: "+updated )
 
     if(updated.isUpdateOfExisting)
       Right("Mongo update: success")
@@ -181,7 +182,7 @@ object MongoService {
 
     val query = MongoDBObject(filterAttName -> filterValue)
 
-    Logger.logger.debug("Mongo query "+query)
+    logger.debug("Mongo query "+query)
 
     val result = coll.findOne(query)
     //mongoClient.close
@@ -191,7 +192,7 @@ object MongoService {
         val jsonString = com.mongodb.util.JSON.serialize(x)
         Right(Json.parse(jsonString))
       }
-      case None => Left(s"Data in $collectionName not found")
+      case None => Left(s"Data in $collectionName not found. Query: $query")
     }
 
   }

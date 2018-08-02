@@ -388,7 +388,10 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
     logger.info("addUserToWorkgroup")
 
     val result = for {
-      parentOrg <- stepOverF( apiClientIPA.getWorkgroupOrganization(groupCn) )
+      group <- stepOverF( apiClientIPA.showGroup(groupCn) )
+      test <- stepOver( Future.successful(apiClientIPA.isWorkgroup(group)) )
+      parentOrgOpt <- stepOverF( apiClientIPA.getWorkgroupOrganization(group) )
+      parentOrg <- stepOverF( testOption(parentOrgOpt) )
       user <- stepOverF( apiClientIPA.findUser(Left(userName)) )
       a1<- stepOver( registrationService.raiseErrorIfUserDoesNotBelongToThisGroup(user,parentOrg) )
       a2 <- step( apiClientIPA.addMembersToGroup(groupCn,User(userName)) )
@@ -418,6 +421,18 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
       }
         Left(l.error)
     }
+  }
+
+
+  private def testOption[T](opt:Option[T]):Future[Either[Error,T]]={
+
+    Future.successful{
+      opt match{
+        case Some(x) => Right(x)
+        case None => Left(Error(Option(0), Some("Empty option found"), None))
+      }
+    }
+
   }
 
   private def hardRemoveUserFromWorkgroup(groupCn:String, userName:String):Future[Either[ErrorWrapper,SuccessWrapper]] = {

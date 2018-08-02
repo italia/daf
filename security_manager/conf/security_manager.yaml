@@ -679,7 +679,35 @@ paths:
           description: Error Message
           schema:
             $ref: '#/definitions/Error'
-
+  "/daf/getGroupsInfo":
+    post:
+      tags:
+        - DAF
+      description: get DAF group generic info
+      operationId: getDAFGroupsInfo
+      produces:
+      - application/json
+      parameters:
+      - name: groups
+        in: body
+        description: group Cn list
+        required: true
+        schema:
+          type: array
+          items:
+           type: string
+          #$ref: '#/definitions/GroupList'
+      responses:
+        200:
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/DafGroupInfo'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
   "/daf/user/{userName}":
     delete:
       tags:
@@ -932,6 +960,13 @@ definitions:
         type: array
         items:
           type: string
+  GroupList:
+    type: object
+    properties:
+      groups:
+        type: array
+        items:
+          type: string
   SupersetTables:
     type: object
     properties:
@@ -962,6 +997,21 @@ definitions:
         type: string
       supSetConnectedDbName:
         description: Superset connected DB name
+        type: string
+  DafGroupInfo:
+    type: object
+    required:
+      - groupCn
+      - dafGroupType
+    properties:
+      groupCn:
+        description: group cn
+        type: string
+      dafGroupType:
+        description: organization or workgroup
+        type: string
+      parentGroup:
+        description: only for workgroup
         type: string
   UserAndGroup:
     type: object
@@ -1023,7 +1073,7 @@ definitions:
       groupType:
         description: group type
         type: string
-#        enum: [user, organization]
+#        enum: [user, group]
       permission:
         description: group permission on a dataset
         type: string
@@ -1040,7 +1090,7 @@ definitions:
       groupType:
         description: group type
         type: string
-#        enum: [user, organization]
+#        enum: [user, group]
   Error:
     properties:
       code:

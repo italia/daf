@@ -140,7 +140,7 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
       j <- stepOverF( testUser(owner) )
 
-      k <- stepOverF( deletePermissionIfPresent(datasetPath, groupName, groupType) )
+      k <- stepOverF( deletePermissionIfPresent(datasetName, groupName, groupType) )
 
       a <- step( setDatasetHDFSPermission(datasetPath, true, createPermission) )
       b <- step( a, createImpalaGrant(datasetPath, groupName, groupType, permission) )
@@ -264,35 +264,51 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
     }
   }
 
-  private def checkPermissions(datasetName:String):Future[Either[Error,Success]] = {
+  private def checkPermissions(datasetName:String,groupName:String,groupType:String):Future[Either[Error,Boolean]] = {
 
     // Left errors
     // Left(Error(None, None, None)) no acl
 
     getPermissions(datasetName).map{
-                                      case Right(Some(r)) =>  if(r.length==0) Left(Error(None, None, None))
-                                                              else Right{Success(Some(""), Some(""))}
+                                      case Right(Some(r)) =>  if( r.exists(a => a.groupName.equals(groupName) && a.groupType.equals(groupType)) ) Right(true)
+                                                              else Right(false)
 
-                                      case Right(None) =>  Left(Error(None, None, None))
+                                      //if(r.isEmpty) Left(Error(None, None, None))
+                                      // else Right{Success(Some(""), Some(""))}
+
+                                      case Right(None) =>  Right(false)
 
                                       case Left(l) => Left(l)
                                     }
   }
 
-  private def deletePermissionIfPresent(datasetPath:String, groupName:String, groupType:String) :Future[Either[Error,Success]] = {
+  private def deletePermissionIfPresent(datasetName:String, groupName:String, groupType:String) :Future[Either[Error,Success]] = {
 
-    logger.info(s"deletePermissionIfPresent datasetPath: $datasetPath, groupName: $groupName, groupType: $groupType")
+    logger.info(s"deletePermissionIfPresent datasetName: $datasetName, groupName: $groupName, groupType: $groupType")
 
-    val out = checkPermissions(toDatasetName(datasetPath))
 
-    out flatMap { case Right(_) => hardDeletePermissionFromACL(datasetPath, groupName, groupType) map{
-                                                                                                      case Right(r) =>Right(r.success)
+    for{
+      a <- checkPermissions(datasetName, groupName, groupType)
+      b <- if(a.right.get) hardDeletePermissionFromACL(datasetName, groupName, groupType) map{
+                                                                                                case Right(r) => Right(r.success)
+                                                                                                case Left(l) => if( l.steps == 0 ) Left(l.error)
+                                                                                                else throw new Exception( s"deletePermissionIfPresent process issue: process steps=${l.steps}" )
+                                                                                              }
+           else Future.successful( Right{Success(Some("Nothing todo"), Some("ok"))} )
+    } yield b
+
+    /*
+    val out = checkPermissions(datasetName, groupName, groupType)
+
+
+    out flatMap { case Right(true) => hardDeletePermissionFromACL(datasetName, groupName, groupType) map{
+                                                                                                      case Right(r) => Right(r.success)
                                                                                                       case Left(l) => if( l.steps == 0 ) Left(l.error)
                                                                                                       else throw new Exception( s"deletePermissionIfPresent process issue: process steps=${l.steps}" )
                                                                                                       }
-                  case Left(Error(None, None, None))=> Future.successful( Right{Success(Some("Nothing todo"), Some("ok"))} )
-                  case _ => out
-                }
+                  case Right(false) => Future.successful( Right{Success(Some("Nothing todo"), Some("ok"))} )
+                  case Left(l) => Left(l)
+                }*/
 
   }
 

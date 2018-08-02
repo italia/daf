@@ -46,7 +46,7 @@ import scala.collection.immutable.StringLike
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                                                                                                                                            
+
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -101,7 +101,7 @@ package security_manager.yaml {
           //def a() = {registrationService.checkUserNcreate(user)}
             // ----- End of unmanaged code area for action  Security_managerYaml.createDAFuser
         }
-        val getDAFGroupsInfo = getDAFGroupsInfoAction { (groups: StringListElem) =>  
+        val getDAFGroupsInfo = getDAFGroupsInfoAction { (groups: StringListElem) =>
             // ----- Start of unmanaged code area for action  Security_managerYaml.getDAFGroupsInfo
             execInContext[Future[GetDAFGroupsInfoType[T] forSome { type T }]] ("getDAFGroupsInfo"){ () =>
 
@@ -116,7 +116,7 @@ package security_manager.yaml {
             }
             // ----- End of unmanaged code area for action  Security_managerYaml.getDAFGroupsInfo
         }
-        val resetpwdconfirm = resetpwdconfirmAction { (resetinfo: ConfirmResetPwdPayload) =>  
+        val resetpwdconfirm = resetpwdconfirmAction { (resetinfo: ConfirmResetPwdPayload) =>
             // ----- Start of unmanaged code area for action  Security_managerYaml.resetpwdconfirm
             execInContext[Future[ResetpwdconfirmType[T] forSome { type T }]] ("resetpwdconfirm"){ () =>
               registrationService.resetPassword(resetinfo.token, resetinfo.newpwd) flatMap {
@@ -437,12 +437,14 @@ package security_manager.yaml {
             execInContext[Future[SftpType[T] forSome { type T }]] ("sftp"){ () =>
             val credentials = Utils.getCredentials(currentRequest, cacheWrapper )
 
+              val relativePath = path_to_create.split(credentials.get.username)(1).tail
+
             if (CredentialManager.isDafSysAdmin(currentRequest)) {
               val result = credentials.flatMap { crd =>
                 val sftpInternal = new SftpHandler(crd.username, crd.password, ConfigReader.sftpHostInternal)
-                val resultInternal = sftpInternal.mkdir(path_to_create)
+                val resultInternal = sftpInternal.mkdir(relativePath)
                 val sftpExternal = new SftpHandler(crd.username, crd.password, ConfigReader.sftphostExternal)
-                val resultExternal = sftpExternal.mkdir(path_to_create)
+                val resultExternal = sftpExternal.mkdir(relativePath)
                 resultExternal
               }
 

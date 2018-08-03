@@ -1013,6 +1013,11 @@ definitions:
       parentGroup:
         description: only for workgroup
         type: string
+      workgroups:
+        description: only for organization
+        type: array
+        items:
+          type: string
   UserAndGroup:
     type: object
     required:

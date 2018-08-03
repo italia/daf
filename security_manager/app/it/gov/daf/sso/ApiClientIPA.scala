@@ -390,12 +390,13 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
     val result = for{
       wrk <- EitherT( showGroup(groupName) )
       orgList <- EitherT( orgListFuture )
-    } yield ApiClientIPA.extractGroupsOf(wrk.memberof_group,orgList)
+    } yield (ApiClientIPA.extractGroupsOf(wrk.memberof_group,orgList), wrk.member_group)
 
     result.value map{
-      case Right(Some(Seq(x))) => Right(DafGroupInfo( groupName, "Workgroup", Option(x) ))
+      case Right( (Some(Seq(x)),_) ) => Right( DafGroupInfo(groupName, "Workgroup", Option(x), None) )
+      case Right( (_,Some(y)) )  => Right( DafGroupInfo(groupName, "Organization", None, Option(y)) )
       case Left(l) => Left(l)
-      case _ => Right(DafGroupInfo( groupName, "Organization", None ))
+
     }
 
   }

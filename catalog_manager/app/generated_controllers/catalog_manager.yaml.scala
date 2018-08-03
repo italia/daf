@@ -43,6 +43,7 @@ import yaml.ResponseWrites.MetaCatalogWrites.writes
 import play.api.mvc.Headers
 import it.gov.daf.common.sso.common
 import it.gov.daf.common.sso.common
+import play.api.libs.ws.WSRequest
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -51,7 +52,7 @@ import it.gov.daf.common.sso.common
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-    
+                                                
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -221,6 +222,9 @@ package catalog_manager.yaml {
         val addQueueCatalog = addQueueCatalogAction { (catalog: MetaCatalog) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.addQueueCatalog
             val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
+            Logger.logger.debug(s"${credentials.username} is dafSysAdmin: ${CredentialManager.isDafSysAdmin(currentRequest)}")
+            Logger.logger.debug(s"${credentials.username} is orgAdmin: ${CredentialManager.isOrgsAdmin(currentRequest, credentials.groups)}")
+            Logger.logger.debug(s"${credentials.username} is orgEditor: ${CredentialManager.isOrgsEditor(currentRequest, credentials.groups)}")
             if( CredentialManager.isDafSysAdmin(currentRequest) || CredentialManager.isOrgsEditor(currentRequest, credentials.groups) ||
                 CredentialManager.isOrgsAdmin(currentRequest, credentials.groups)) {
                 val token = readTokenFromRequest(currentRequest.headers)
@@ -563,8 +567,16 @@ package catalog_manager.yaml {
                 case Some(_) => "sftp"
             }
 
+            val user = CredentialManager.readCredentialFromRequest(currentRequest).username
+
+            val domain = feed.operational.theme
+            val subDomain = feed.operational.subtheme
+            val dsName = feed.dcatapit.name
+
+            val sftPath = s"/home/$user/ftp/$domain/$subDomain/$dsName"
+
             val templateProperties = ingest match {
-                case "sftp" => kylo.datasetIngest(file_type, feed)
+                case "sftp" => kylo.sftpRemoteIngest(file_type, feed, sftPath)
                 case "ws" => kylo.wsIngest(file_type, feed)
             }
 
@@ -578,17 +590,11 @@ package catalog_manager.yaml {
                 streamKyloTemplate.close()
             }
 
-            val user = CredentialManager.readCredentialFromRequest(currentRequest).username
-
-            val domain = feed.operational.theme
-            val subDomain = feed.operational.subtheme
-            val dsName = feed.dcatapit.name
-
-            val sftPath =  URLEncoder.encode(s"/home/$user/$domain/$subDomain/$dsName", "UTF-8")
+//            val sftPath =  URLEncoder.encode(s"/home/$user/$domain/$subDomain/$dsName", "UTF-8")
 
             logger.info(currentRequest.headers.get("authorization").get)
 
-            val createDir = ws.url("http://security-manager.default.svc.cluster.local:9000/security-manager/v1/sftp/init/" + sftPath)
+            val createDir: WSRequest = ws.url("http://security-manager.default.svc.cluster.local:9000/security-manager/v1/sftp/init/" + URLEncoder.encode(sftPath, "UTF-8"))
                   .withHeaders(("authorization", currentRequest.headers.get("authorization").get))
 
             //val trasformed = kyloTemplate.transform(KyloTrasformers.feedTrasform(feed))

@@ -43,7 +43,6 @@ import yaml.ResponseWrites.MetaCatalogWrites.writes
 import play.api.mvc.Headers
 import it.gov.daf.common.sso.common
 import it.gov.daf.common.sso.common
-import play.api.libs.ws.WSRequest
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -594,7 +593,7 @@ package catalog_manager.yaml {
 
             logger.info(currentRequest.headers.get("authorization").get)
 
-            val createDir: WSRequest = ws.url("http://security-manager.default.svc.cluster.local:9000/security-manager/v1/sftp/init/" + URLEncoder.encode(sftPath, "UTF-8") + s"${feed.dcatapit.owner_org.get}")
+            val createDir = ws.url("http://security-manager.default.svc.cluster.local:9000/security-manager/v1/sftp/init/" + URLEncoder.encode(sftPath, "UTF-8") + s"${feed.dcatapit.owner_org.get}")
                   .withHeaders(("authorization", currentRequest.headers.get("authorization").get))
 
             //val trasformed = kyloTemplate.transform(KyloTrasformers.feedTrasform(feed))

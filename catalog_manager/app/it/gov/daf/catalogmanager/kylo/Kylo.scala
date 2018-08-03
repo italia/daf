@@ -1,11 +1,12 @@
 package it.gov.daf.catalogmanager.kylo
 
-import catalog_manager.yaml.{InputSrcSrv_pullOpt, MetaCatalog}
+import catalog_manager.yaml.{InputSrcSrv_pullOpt, MetaCatalog, SourceSftp}
 import play.api.libs.json.{JsObject, JsResult, JsValue}
 import play.api.libs.ws.{WSAuthScheme, WSClient, WSResponse}
 import com.google.inject.{Inject, Singleton}
 //import org.apache.hadoop.hdfs.protocol.proto.HdfsProtos.HdfsFileStatusProto.FileType
 import play.api.inject.ConfigurationProvider
+import play.api.Logger
 
 import scala.concurrent.Future
 
@@ -26,10 +27,12 @@ class Kylo @Inject()(ws :WSClient, config: ConfigurationProvider){
         val js: JsValue = resp.json
         val result = js.as[List[JsValue]]
           .filter(x => (x \ "templateName").as[String].equals(templateName))
-        result match {
+        val res = result match {
           case Nil => None
           case h :: _  => Some((h \ "id").as[String])
         }
+        Logger.logger.debug(s"templateId: $res")
+        res
       }
   }
 
@@ -84,11 +87,11 @@ class Kylo @Inject()(ws :WSClient, config: ConfigurationProvider){
 
   private def sftpTemplates(id :Option[String],
                             fileType: String,
-                            feed :MetaCatalog): Future[(JsValue, List[JsObject])]
+                            feed :MetaCatalog,
+                            sftpPath: String): Future[(JsValue, List[JsObject])]
   = {
     val idExt = id.getOrElse("")
     val url = s"/api/v1/feedmgr/templates/registered/$idExt?allProperties=true&feedEdit=true"
-    val sftpRemote  = feed.operational.input_src.sftp.get.head
     ws.url(KYLOURL + url)
       .withAuth(KYLOUSER, KYLOPWD, scheme = WSAuthScheme.BASIC)
       .get().map { resp =>
@@ -98,10 +101,9 @@ class Kylo @Inject()(ws :WSClient, config: ConfigurationProvider){
       val modifiedTemplates: List[JsObject] = templatesEditable.map { temp =>
         val key = (temp \ "key").as[String]
         val transTemplate = key match {
-          case "Hostname" => temp.transform(KyloTrasformers.transformTemplates(sftpRemote.url.get)).get
-          case "Username" => temp.transform(KyloTrasformers.transformTemplates(sftpRemote.username.get)).get
-          case "Password" => temp.transform(KyloTrasformers.transformTemplates("{cypher}" + sftpRemote.password.get)).get
-          case "Remote Path" => temp.transform(KyloTrasformers.transformTemplates(sftpRemote.param.get)).get
+          case "Hostname" => temp.transform(KyloTrasformers.transformTemplates("sftp.teamdigitale.test")).get
+          case "Remote Path" => temp.transform(KyloTrasformers.transformTemplates(sftpPath)).get
+          case "File Filter Regex" => temp.transform(KyloTrasformers.transformTemplates(".*" + fileType)).get
         }
         transTemplate
       }
@@ -125,10 +127,10 @@ class Kylo @Inject()(ws :WSClient, config: ConfigurationProvider){
     } yield templates
   }
 
-  def sftpRemoteIngest(fileType: String, meta: MetaCatalog): Future[(JsValue, List[JsObject])] = {
+  def sftpRemoteIngest(fileType: String, meta: MetaCatalog, sftpPath: String): Future[(JsValue, List[JsObject])] = {
     for {
       idOpt <- templateIdByName("Sftp Ingest")
-      templates <- sftpTemplates(idOpt, fileType, meta)
+      templates <- sftpTemplates(idOpt, fileType, meta, sftpPath)
     } yield templates
   }
 

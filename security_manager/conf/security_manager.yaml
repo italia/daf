@@ -59,6 +59,11 @@ paths:
           required: true
           type: string
           format: string
+        - name: orgName
+          in: query
+          description: the organization of the user with catalog is loaded
+          required: true
+          type: string
       responses:
         200:
           description: the path created

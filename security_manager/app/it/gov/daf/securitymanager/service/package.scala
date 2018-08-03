@@ -88,7 +88,7 @@ package object service {
     val userName = RequestContext.getUsername()
     val pwd = cacheWrapper.getPwd(userName) match {
       case Some(x) =>x
-      case None => throw new Exception("User passoword not in cache")
+      case None => throw new Exception("User not in cache")
     }
 
     new LoginInfo( RequestContext.getUsername(), pwd, LoginClientLocal.HADOOP )

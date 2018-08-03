@@ -115,13 +115,13 @@ object MongoService {
 
   }
 
-  def getDatasetInfo(datasetName:String): Either[String,(String,String)] = {
+  def getDatasetInfo(datasetName:String): Either[String,(String,String,String)] = {
 
     val result = findData(CATALOG_COLLECTION_NAME ,"dcatapit.name", datasetName)
     result match{
-      case Right(json) => val out = ( (json \ "operational" \ "physical_uri").asOpt[String], (json \ "dcatapit" \ "author").asOpt[String] )
+      case Right(json) => val out = ( (json \ "operational" \ "physical_uri").asOpt[String], (json \ "dcatapit" \ "author").asOpt[String],(json \ "dcatapit" \ "owner_org").asOpt[String] )
                           out match{
-                            case (Some(x), Some(y)) => Right((x,y))
+                            case (Some(x), Some(y), Some(z)) => Right((x,y,z))
                             case _ =>  logger.warn( "No data found: "+result ); Left("No dataset found")
                           }
       case Left(l) => Left(l)

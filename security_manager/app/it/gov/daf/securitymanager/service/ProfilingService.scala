@@ -2,14 +2,16 @@ package it.gov.daf.securitymanager.service
 
 
 import com.google.inject.{Inject, Singleton}
-import security_manager.yaml.{AclPermission, Error, Success}
+import security_manager.yaml.{AclPermission, DafGroupInfo, Error, Success}
 
 import scala.concurrent.Future
 import cats.implicits._
 import ProcessHandler.{stepOverF, _}
 import cats.data.EitherT
+import it.gov.daf.common.sso.common.{Admin, Role}
 import it.gov.daf.common.utils.WebServiceUtil
 import it.gov.daf.securitymanager.service.utilities.RequestContext._
+import it.gov.daf.sso.ApiClientIPA
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.{JsArray, JsError, JsSuccess}
@@ -18,12 +20,12 @@ import security_manager.yaml.BodyReads._
 import scala.util.{Left, Try}
 
 @Singleton
-class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:ImpalaService,integrationService: IntegrationService){
+class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:ImpalaService,integrationService: IntegrationService, apiClientIPA: ApiClientIPA){
 
 
   private val logger = Logger(this.getClass.getName)
 
-  private def testUser(owner:String ):Future[Either[Error,String]] = {
+  private def testUser(owner:String):Future[Either[Error,String]] = {
 
     Logger.debug(s"testUser owner: $owner")
 
@@ -34,7 +36,90 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
   }
 
-  private def getDatasetInfo(datasetPath:String ):Future[Either[Error,(String,String)]] = {
+/*
+  private def testIfUserCanGivePermission(ownerOrg:String,groupName:String):Future[Either[Error,String]]  ={
+
+    // if present the parent org means that the group is
+    def testOnParentOrg(parentOrg:Option[String]):Future[Either[Error,String]]  = {
+
+      def testInnerAuthFoo = {
+        val ownerOrgAdminRole = Admin + ownerOrg
+        apiClientIPA.findUser(Left(getUsername())).map {
+          case Right(r) =>  if (r.roles.contains(ownerOrgAdminRole)) Right("ok")
+                            else Left(Error(Option(1), Some("The user not authorized to give permission outside his organization"), None))
+          case Left(l) => Left(l)
+        }
+      }
+
+      // test if
+      parentOrg match{
+        case Some(x) => if(x == ownerOrg) Future.successful(Right("ok")) else testInnerAuthFoo
+        case None =>testInnerAuthFoo
+      }
+
+
+    }
+
+    // if the permission are given to other than owner org..
+    if(ownerOrg!=groupName){
+
+      val out = for{
+        group <- EitherT(apiClientIPA.showGroup(groupName))
+        parentOrg <- EitherT(apiClientIPA.getWorkgroupOrganization(group))
+        b <- EitherT(testOnParentOrg(a))
+
+      }yield b
+
+      out.value
+
+    }else Future.successful(Right("ok"))
+
+  }*/
+
+  private def testIfUserCanGivePermission(ownerOrg:String,groupName:String):Future[Either[Error,String]] = {
+
+    def testIfGroupBelongsToOwnerOrg(parentOrg:Seq[DafGroupInfo]):Future[Either[Error,String]]  = {
+
+      logger.debug(s"testIfGroupBelongsToOwnerOrg DafGroupInfo:  $parentOrg")
+
+      def testIfUserIsOwnerOrgAdmin:Future[Either[Error,String]] = {
+
+        val ownerOrgAdminRole:String=Admin+ownerOrg
+        logger.debug(s"testIfUserIsOwnerOrgAdmin ownerOrgAdminRole: $ownerOrgAdminRole")
+        apiClientIPA.findUser(Left(getUsername())).map {
+          case Right(r) =>  if (r.roles.getOrElse(Seq.empty).contains(ownerOrgAdminRole)) Right("ok")
+                            else{ logger.debug(s"user roles: ${r.roles.getOrElse(Seq.empty)}");Left(Error(Option(1), Some("The user not authorized to give permission outside his organization"), None))}
+          case Left(l) => Left(l)
+        }
+      }
+
+
+      parentOrg match{
+        //case Seq(DafGroupInfo(_,_,Some(x),_)) => if(x==ownerOrg) Right("ok") else Left(Error(Option(1), Some("The user not authorized to give permission outside his organization"), None))
+        case Seq(DafGroupInfo(_,_,Some(`ownerOrg`),_)) => Future.successful(Right("ok"))
+        case Seq(DafGroupInfo(_,_,Some(_),_)) | Seq(DafGroupInfo(_,_,None,_)) => testIfUserIsOwnerOrgAdmin
+        //case Seq(DafGroupInfo(_,_,None,_)) => Left(Error(Option(1), Some("The user not authorized to give permission outside his organization"), None))
+        case Seq() | Seq(_) => Future.successful(Left(Error(Option(0), Some("Error while collecting group info"), None)))
+      }
+    }
+
+
+    // if the permission are given to others than dataset owner org..
+    if(ownerOrg!=groupName){
+
+      val out = for{
+        groupInfo <- EitherT(apiClientIPA.groupsInfo(Seq(groupName)))
+        b <- EitherT(testIfGroupBelongsToOwnerOrg(groupInfo))
+
+      }yield b
+
+      out.value
+
+    }else Future.successful(Right("ok"))
+
+  }
+
+  private def getDatasetInfo(datasetPath:String ):Future[Either[Error,(String,String,String)]] = {
 
     Logger.debug(s"getDatasetInfo datasetPath: $datasetPath")
 
@@ -136,9 +221,10 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
     val result = for {
 
       test <- stepOverF( verifyPermissionString(permission) )
-      info <- stepOverF( getDatasetInfo(datasetName) ); (datasetPath,owner)=info
+      info <- stepOverF( getDatasetInfo(datasetName) ); (datasetPath,owner,ownerOrg)=info
 
-      j <- stepOverF( testUser(owner) )
+      j0 <- stepOverF( testUser(owner) )
+      j1 <- stepOverF( testIfUserCanGivePermission(ownerOrg,groupName) )
 
       k <- stepOverF( deletePermissionIfPresent(datasetName, groupName, groupType) )
 
@@ -212,7 +298,7 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
     val result = for {
 
-      info <- stepOverF( getDatasetInfo(datasetName) ); (datasetPath,owner)=info
+      info <- stepOverF( getDatasetInfo(datasetName) ); (datasetPath,owner,ownerOrg)=info
       a <- step( setDatasetHDFSPermission(datasetPath, true, deletePermission) )
 
       b <- step(a, revokeImpalaGrant(datasetPath, groupName, groupType) )
@@ -230,18 +316,19 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
   }
 
-  def deletePermissionFromACL(datasetName:String, groupName:String, groupType:String) :Future[Either[Error,Success]] = {
 
+  def deletePermissionFromACL(datasetName:String, groupName:String, groupType:String) :Future[Either[Error,Success]] = {
 
     val result = for {
 
-      info <- stepOverF( getDatasetInfo(datasetName) ) ; (datasetPath,owner)=info
+      info <- stepOverF( getDatasetInfo(datasetName) ) ; (datasetPath,owner,ownerOrg)=info
 
-      s <- stepOverF( testUser(owner) )
+      a <- stepOverF( testUser(owner) )
+      b <- stepOverF( testIfUserCanGivePermission(ownerOrg,groupName) )
 
-      a <- EitherT( hardDeletePermissionFromACL(datasetName, groupName, groupType) )
+      c <- EitherT( hardDeletePermissionFromACL(datasetName, groupName, groupType) )
 
-    } yield a
+    } yield c
 
     result.value map{
       case Right(r) =>Right(Success(Some("ACL deleted"),Some("ok")))
@@ -249,6 +336,7 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
                       else throw new Exception( s"deletePermissionFromACL process issue: process steps=${l.steps}" )
     }
   }
+
 
   def getPermissions(datasetName:String) :Future[Either[Error,Option[Seq[AclPermission]]]] = {
     //Left if there are errors

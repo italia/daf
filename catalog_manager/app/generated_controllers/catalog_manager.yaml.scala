@@ -41,8 +41,6 @@ import it.gov.daf.common.sso.common.CredentialManager
 import play.api.Logger
 import yaml.ResponseWrites.MetaCatalogWrites.writes
 import play.api.mvc.Headers
-import it.gov.daf.common.sso.common
-import it.gov.daf.common.sso.common
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -51,7 +49,7 @@ import it.gov.daf.common.sso.common
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                                
+                                                                
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -221,9 +219,6 @@ package catalog_manager.yaml {
         val addQueueCatalog = addQueueCatalogAction { (catalog: MetaCatalog) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.addQueueCatalog
             val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
-            Logger.logger.debug(s"${credentials.username} is dafSysAdmin: ${CredentialManager.isDafSysAdmin(currentRequest)}")
-            Logger.logger.debug(s"${credentials.username} is orgAdmin: ${CredentialManager.isOrgsAdmin(currentRequest, credentials.groups)}")
-            Logger.logger.debug(s"${credentials.username} is orgEditor: ${CredentialManager.isOrgsEditor(currentRequest, credentials.groups)}")
             if( CredentialManager.isDafSysAdmin(currentRequest) || CredentialManager.isOrgsEditor(currentRequest, credentials.groups) ||
                 CredentialManager.isOrgsAdmin(currentRequest, credentials.groups)) {
                 val token = readTokenFromRequest(currentRequest.headers)
@@ -295,7 +290,7 @@ package catalog_manager.yaml {
             val result = ServiceRegistry.catalogRepository.isDatasetOnCatalog(name)
             result match {
                 case Some(true) => IsPresentOnCatalog200(Success("is present", Some(name)))
-                case _ => IsPresentOnCatalog401(s"$name non presente")
+                case _ => IsPresentOnCatalog404(s"$name non presente")
 
             }          //  NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.isPresentOnCatalog
@@ -309,6 +304,7 @@ package catalog_manager.yaml {
                 //If(!created.message.equals("Error")) sendMessaggeKafkaProxy(credentials.username, catalog)
                 //sendMessaggeKafkaProxy(credentials.username, catalog)
                 //logger.info("sending to kafka")
+                logger.debug("create catalog")
                 Createdatasetcatalog200(catalog_manager.yaml.Success("created",Option("created")) )
             }else
                 Createdatasetcatalog401(s"Admin or editor permissions required (organization: $datasetOrg)")
@@ -591,7 +587,7 @@ package catalog_manager.yaml {
 
 //            val sftPath =  URLEncoder.encode(s"/home/$user/$domain/$subDomain/$dsName", "UTF-8")
 
-            logger.info(currentRequest.headers.get("authorization").get)
+//            logger.info(currentRequest.headers.get("authorization").get)
 
             val createDir = ws.url("http://security-manager.default.svc.cluster.local:9000/security-manager/v1/sftp/init/" + URLEncoder.encode(sftPath, "UTF-8") + s"${feed.dcatapit.owner_org.get}")
                   .withHeaders(("authorization", currentRequest.headers.get("authorization").get))
@@ -601,7 +597,7 @@ package catalog_manager.yaml {
             val kyloSchema = feed.dataschema.kyloSchema.get
             val inferJson = Json.parse(kyloSchema)
 
-            val feedCreation  = ws.url(KYLOURL + "/api/v1/feedmgr/feeds")
+            val feedCreation = ws.url(KYLOURL + "/api/v1/feedmgr/feeds")
               .withAuth(KYLOUSER, KYLOPWD, WSAuthScheme.BASIC)
 
             val feedData = for {
@@ -624,6 +620,8 @@ package catalog_manager.yaml {
                 case s: JsSuccess[JsValue] => logger.debug(Json.stringify(s.get));feedCreation.post(s.get)
                 case e: JsError => throw new Exception(JsError.toJson(e).toString())
             }
+
+            createFeed onComplete(r => Logger.logger.debug(s"kyloResp: ${r.get.status}"))
 
             val result = createFeed.flatMap {
                 // Assuming status 200 (OK) is a valid result for you.

@@ -105,6 +105,7 @@ class Kylo @Inject()(ws :WSClient, config: ConfigurationProvider){
           case "Remote Path" => temp.transform(KyloTrasformers.transformTemplates(sftpPath)).get
           case "File Filter Regex" => temp.transform(KyloTrasformers.transformTemplates(".*" + fileType)).get
         }
+        Logger.logger.debug(s"transTemplate: $transTemplate")
         transTemplate
       }
 

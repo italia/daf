@@ -448,14 +448,10 @@ package security_manager.yaml {
               val result = credentials.flatMap { crd =>
                 val sftpInternal = new SftpHandler(crd.username, crd.password, ConfigReader.sftpHostInternal)
                 val resultInternal = sftpInternal.mkdir(relativePath)
-                logger.debug(s"resultInternal: $resultInternal")
                 val sftpExternal = new SftpHandler(crd.username, crd.password, ConfigReader.sftphostExternal)
                 val resultExternal = sftpExternal.mkdir(relativePath)
-                logger.debug(s"resultExternal: $resultExternal")
                 resultExternal
               }
-
-              logger.debug(s"response mkdir: $result")
 
               result match {
                 case scala.util.Success(path) => Sftp200(path)

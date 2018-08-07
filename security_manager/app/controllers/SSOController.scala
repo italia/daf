@@ -7,6 +7,7 @@ import it.gov.daf.common.utils.Credentials
 import it.gov.daf.securitymanager.service.utilities.RequestContext.execInContext
 import it.gov.daf.securitymanager.service.utilities.Utils
 import it.gov.daf.sso.LoginClientLocal
+import play.api.Logger
 import play.api.inject.ConfigurationProvider
 import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
@@ -21,6 +22,8 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider, cache
   import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
   implicit val cookieWrites = Json.writes[Cookie]
+
+  private val logger = Logger(this.getClass.getName)
 
 
   private def doWithCredentials(request:RequestHeader, f:(Credentials)=> Future[Result]):Future[Result]={
@@ -120,6 +123,57 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider, cache
         Unauthorized("JWT expired")
       } else
         Ok("Success")
+    }
+  }
+
+  def biOpenLogin  = Action.async (parse.urlFormEncoded){ implicit request =>
+    execInContext[Future[Result]] ("biOpenLogin"){ () =>
+
+      val bearer:String = request.body("Authorization").head
+      val loginInfo = new LoginInfo("new_andrea", "Password1", LoginClientLocal.SUPERSET)
+
+      logger.debug("in")
+
+      val out = for{
+        a <- ws.url("http://security-manager.default.svc.cluster.local:9000/security-manager/v1/token").withHeaders("Authorization" -> bearer).get
+        b <- if(a.status == 200) loginClientLocal.loginFE(loginInfo, ws) else{ logger.error("resp status:"+a.status+"   body:"+a.body);Future.successful{Seq.empty[Cookie]} }
+      } yield b
+
+
+      out.map { cookies =>
+
+        logger.debug("mapping")
+
+        val tt = scala.util.Try {
+          val biCookie = cookies.head.copy(domain = Option(".open.daf.teamdigitale.test"))
+          val content = views.html.Application.bi_open_login(biCookie)
+          Ok(content)
+        }
+
+        tt match {
+          case Success(v) => v
+          case Failure(e) => logger.error("Stack trace:",e); Unauthorized(s"Problems while getting cookie: ${e.getMessage}")
+        }
+
+      }
+
+    }
+  }
+
+  def biOpenLoginH  = Action.async { implicit request =>
+    execInContext[Future[Result]] ("biOpenLoginH"){ () =>
+
+      //val bearer:String = request.body("Authorization").head
+      val loginInfo = new LoginInfo("new_andrea", "Password1", LoginClientLocal.SUPERSET)
+
+      loginClientLocal.loginFE(loginInfo, ws).map { cookies =>
+
+        val biCookie = cookies.head.copy( domain = Option(".open.daf.teamdigitale.test"))
+        val content = views.html.Application.bi_open_login(biCookie)
+        Ok(content)
+
+      }
+
     }
   }
 

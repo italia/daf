@@ -34,10 +34,11 @@ GET         /sso-manager/secured/retriveCachedCookie/:appName           controll
 GET         /sso-manager/secured/login/:appName                         controllers.SSOController.login(appName:String)
 GET         /sso-manager/secured/test                                   controllers.SSOController.test
 
-#GET         /sso-manager/internal/register                              controllers.SSOController.registerInternal(username:String,password:String)
+#GET         /sso-manager/internal/register                             controllers.SSOController.registerInternal(username:String,password:String)
 GET         /sso-manager/internal/retriveCookie/:appName                controllers.SSOController.retriveCookieInternal(username:String,appName:String)
 GET         /sso-manager/internal/retriveAdminCookie/:appName           controllers.SSOController.retriveAdminCookieInternal(appName:String)
 
+POST        /sso-manager/managed/bi-open-login                         controllers.SSOController.biOpenLogin
 
 GET         /hdfs/retriveACL/*path                                      controllers.HdfsController.retriveACL(path:String)
 

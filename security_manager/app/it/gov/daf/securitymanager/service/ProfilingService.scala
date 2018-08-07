@@ -95,10 +95,8 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
 
       parentOrg match{
-        //case Seq(DafGroupInfo(_,_,Some(x),_)) => if(x==ownerOrg) Right("ok") else Left(Error(Option(1), Some("The user not authorized to give permission outside his organization"), None))
         case Seq(DafGroupInfo(_,_,Some(`ownerOrg`),_)) => Future.successful(Right("ok"))
         case Seq(DafGroupInfo(_,_,Some(_),_)) | Seq(DafGroupInfo(_,_,None,_)) => testIfUserIsOwnerOrgAdmin
-        //case Seq(DafGroupInfo(_,_,None,_)) => Left(Error(Option(1), Some("The user not authorized to give permission outside his organization"), None))
         case Seq() | Seq(_) => Future.successful(Left(Error(Option(0), Some("Error while collecting group info"), None)))
       }
     }

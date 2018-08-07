@@ -1565,6 +1565,11 @@ definitions:
         type: object
         description: Info about dataset imported from external ckan used to rebuild opendata relations
         $ref: '#/definitions/ExtOpenData'
+      acl:
+        type: array
+        description: Info about dataset visibility
+        items:
+          $ref: '#/definitions/Acl'
 
   ExtOpenData:
     type: object
@@ -1589,7 +1594,15 @@ definitions:
         type: string
       resourceUrl:
         type: string
-
+  Acl:
+    type: object
+    properties:
+      groupName:
+        type: string
+      groupType:
+        type: string
+      permission:
+        type: string
   GroupAccess:
     type: object
     description: Type associated with group_access

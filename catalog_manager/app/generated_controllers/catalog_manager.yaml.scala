@@ -49,7 +49,7 @@ import play.api.mvc.Headers
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                                                
+                                                                            
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -159,12 +159,12 @@ package catalog_manager.yaml {
         val createdatasetcatalogExtOpenData = createdatasetcatalogExtOpenDataAction { (catalog: MetaCatalog) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalogExtOpenData
             val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
-            //TODO aggiungere l'editor
-            if( CredentialManager.isDafSysAdmin(currentRequest) ) {
+            val datasetOrg = catalog.dcatapit.owner_org.getOrElse("EMPTY ORG!")
+            if( CredentialManager.isDafSysAdmin(currentRequest) || CredentialManager.isOrgEditor(currentRequest, datasetOrg) || CredentialManager.isOrgAdmin(currentRequest, datasetOrg)) {
                 val created: Success = ServiceRegistry.catalogService.createCatalogExtOpenData(catalog, Option(credentials.username), ws)
                 CreatedatasetcatalogExtOpenData200(created)
             }else
-                CreatedatasetcatalogExtOpenData401("System Admin permissions required")
+                CreatedatasetcatalogExtOpenData401("authentication required")
             // ----- End of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalogExtOpenData
         }
         val getckandatasetList = getckandatasetListAction {  _ =>  
@@ -589,7 +589,7 @@ package catalog_manager.yaml {
 
 //            logger.info(currentRequest.headers.get("authorization").get)
 
-            val createDir = ws.url("http://security-manager.default.svc.cluster.local:9000/security-manager/v1/sftp/init/" + URLEncoder.encode(sftPath, "UTF-8") + s"${feed.dcatapit.owner_org.get}")
+            val createDir = ws.url("http://security-manager.default.svc.cluster.local:9000/security-manager/v1/sftp/init/" + URLEncoder.encode(sftPath, "UTF-8") + s"?orgName=${feed.dcatapit.owner_org.get}")
                   .withHeaders(("authorization", currentRequest.headers.get("authorization").get))
 
             //val trasformed = kyloTemplate.transform(KyloTrasformers.feedTrasform(feed))

@@ -46,7 +46,7 @@ import scala.collection.immutable.StringLike
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-    
+                    
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml

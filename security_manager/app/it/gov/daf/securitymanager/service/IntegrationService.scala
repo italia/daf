@@ -533,6 +533,42 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
     result.value
 
   }
+/*
+  def addSupersetRole(supersetRole:String, userName:String):Future[Either[Error,Success]] = {
+
+    logger.info("addSupersetRole")
+
+    val result = for {
+      user <- EitherT( apiClientIPA.findUser(Left(userName)) )
+      supersetUserInfo <- EitherT( supersetApiClient.findUser(userName) )
+      roleIds <- EitherT( supersetApiClient.findRoleIds(supersetRole::supersetUserInfo._2.toList:_*) )
+      a <- EitherT( supersetApiClient.updateUser(user,supersetUserInfo._1,roleIds) )
+
+    } yield a
+
+    result.value
+
+  }
+
+
+  def removeSupersetRole(supersetRole:String, userName:String):Future[Either[Error,Success]] = {
+
+    logger.info("removeSupersetRole")
+
+    val result = for {
+
+      user <- EitherT( apiClientIPA.findUser(Left(userName)) )
+      supersetUserInfo <- EitherT( supersetApiClient.findUser(userName) )
+      roleNames = supersetUserInfo._2.toList.filter(p => !p.equals(supersetRole)); roleIds <- EitherT(supersetApiClient.findRoleIds(roleNames: _*) )
+      a <- EitherT(supersetApiClient.updateUser(user, supersetUserInfo._1, roleIds) )
+
+    } yield a
+
+    result.value
+
+  }
+*/
+
 
   private def clearSupersetPermissions(dbId:Long,dbName:String):Future[Either[Error,Success]] = {
 

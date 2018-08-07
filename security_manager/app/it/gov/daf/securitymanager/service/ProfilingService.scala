@@ -10,8 +10,9 @@ import ProcessHandler.{stepOverF, _}
 import cats.data.EitherT
 import it.gov.daf.common.sso.common.{Admin, Role}
 import it.gov.daf.common.utils.WebServiceUtil
+import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import it.gov.daf.securitymanager.service.utilities.RequestContext._
-import it.gov.daf.sso.ApiClientIPA
+import it.gov.daf.sso.{ApiClientIPA, OPEN_DATA_GROUP}
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.{JsArray, JsError, JsSuccess}
@@ -36,45 +37,6 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
   }
 
-/*
-  private def testIfUserCanGivePermission(ownerOrg:String,groupName:String):Future[Either[Error,String]]  ={
-
-    // if present the parent org means that the group is
-    def testOnParentOrg(parentOrg:Option[String]):Future[Either[Error,String]]  = {
-
-      def testInnerAuthFoo = {
-        val ownerOrgAdminRole = Admin + ownerOrg
-        apiClientIPA.findUser(Left(getUsername())).map {
-          case Right(r) =>  if (r.roles.contains(ownerOrgAdminRole)) Right("ok")
-                            else Left(Error(Option(1), Some("The user not authorized to give permission outside his organization"), None))
-          case Left(l) => Left(l)
-        }
-      }
-
-      // test if
-      parentOrg match{
-        case Some(x) => if(x == ownerOrg) Future.successful(Right("ok")) else testInnerAuthFoo
-        case None =>testInnerAuthFoo
-      }
-
-
-    }
-
-    // if the permission are given to other than owner org..
-    if(ownerOrg!=groupName){
-
-      val out = for{
-        group <- EitherT(apiClientIPA.showGroup(groupName))
-        parentOrg <- EitherT(apiClientIPA.getWorkgroupOrganization(group))
-        b <- EitherT(testOnParentOrg(a))
-
-      }yield b
-
-      out.value
-
-    }else Future.successful(Right("ok"))
-
-  }*/
 
   private def testIfUserCanGivePermission(ownerOrg:String,groupName:String):Future[Either[Error,String]] = {
 
@@ -229,9 +191,7 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
       a <- step( setDatasetHDFSPermission(datasetPath, true, createPermission) )
       b <- step( a, createImpalaGrant(datasetPath, groupName, groupType, permission) )
 
-      c <- step( b, integrationService.createSupersetTable( IntegrationService.toSupersetDS(groupName),
-                                                            Some( toTableName(datasetPath).split('.')(0) ),
-                                                            toTableName(datasetPath).split('.').last) )
+      c <- step( b, createSupersetTable(datasetPath, groupName))
 
       d <- step( c, addAclToCatalog(datasetName, groupName, groupType, permission) )
 
@@ -254,6 +214,27 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
   }
 
+  private def createSupersetTable(datasetPath:String, groupName:String) = {
+    if(groupName != OPEN_DATA_GROUP)
+      integrationService.createSupersetTable( IntegrationService.toSupersetDS(groupName),
+                                              Some(toTableName(datasetPath).split('.')(0)),
+                                              toTableName(datasetPath).split('.').last)
+    else
+      Future.successful{Right(Success(Some("Table creation skipped"),Some("ok")))}
+      //TODO superset role modification
+
+  }
+
+  private def deleteSupersetTable(datasetPath:String, groupName:String) = {
+    if(groupName != OPEN_DATA_GROUP)
+      integrationService.deleteSupersetTable( IntegrationService.toSupersetDS(groupName),
+        Some(toTableName(datasetPath).split('.')(0)),
+        toTableName(datasetPath).split('.').last)
+    else
+      Future.successful{Right(Success(Some("Table delete skipped"),Some("ok")))}
+    //TODO superset role modification
+
+  }
 
   private def deleteAclFromCatalog(datasetName:String, groupName:String, groupType:String ):Future[Either[Error,Success]] = {
 
@@ -301,9 +282,7 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
       b <- step(a, revokeImpalaGrant(datasetPath, groupName, groupType) )
 
-      c <- step( b, integrationService.deleteSupersetTable( IntegrationService.toSupersetDS(groupName),
-                                                            Some(toTableName( datasetPath).split('.')(0)),
-                                                            toTableName(datasetPath).split('.').last))
+      c <- step(b, deleteSupersetTable( datasetPath,groupName) )
 
       d <- step(c, deleteAclFromCatalog(datasetName, groupName, groupType) )
 

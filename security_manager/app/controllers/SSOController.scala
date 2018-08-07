@@ -2,10 +2,11 @@ package controllers
 
 import javax.inject.Inject
 
+import it.gov.daf.common.authentication.Authentication
 import it.gov.daf.common.sso.common.{CacheWrapper, CredentialManager, LoginInfo}
 import it.gov.daf.common.utils.Credentials
 import it.gov.daf.securitymanager.service.utilities.RequestContext.execInContext
-import it.gov.daf.securitymanager.service.utilities.Utils
+import it.gov.daf.securitymanager.service.utilities.{ConfigReader, Utils}
 import it.gov.daf.sso.LoginClientLocal
 import play.api.Logger
 import play.api.inject.ConfigurationProvider
@@ -129,11 +130,39 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider, cache
   def biOpenLogin  = Action.async (parse.urlFormEncoded){ implicit request =>
     execInContext[Future[Result]] ("biOpenLogin"){ () =>
 
-      val bearer:String = request.body("Authorization").head
-      val loginInfo = new LoginInfo("new_andrea", "Password1", LoginClientLocal.SUPERSET)
+      val token:Option[String] = request.body("Authorization").headOption.map(str => str.substring(7,str.length))
+      val loginInfo = new LoginInfo(ConfigReader.suspersetOpenDataUser, ConfigReader.suspersetOpenDataPwd, LoginClientLocal.SUPERSET)
 
-      logger.debug("in")
+      logger.debug(s"token $token")
 
+      def performSupersetOpenDataLogin = loginClientLocal.loginFE(loginInfo, ws) map { cookies =>
+
+        logger.debug("performSupersetOpenDataLogin")
+
+        scala.util.Try {
+          val openDataDomain = {  val openDataUrl = ConfigReader.supersetOpenUrl
+                                  openDataUrl.substring(openDataUrl.indexOf('.'),openDataUrl.length) }
+
+          logger.debug(s"setting cookie on domain: $openDataDomain")
+
+          val biCookie = cookies.head.copy(domain = Option(openDataDomain))
+          val content = views.html.Application.bi_open_login(biCookie)
+          Ok(content)
+        }match {
+          case Success(v) => v
+          case Failure(e) => logger.error("Stack trace:",e); InternalServerError(s"Problems while getting cookie: ${e.getMessage}")
+        }
+
+      }
+
+      scala.util.Try{
+        Authentication.getClaimsFromToken(token)
+      }match {
+        case Success(v) => performSupersetOpenDataLogin
+        case Failure(e) => logger.error("Stack trace:",e); Future.successful(Unauthorized(s"Authentication issue"))
+      }
+
+      /*
       val out = for{
         a <- ws.url("http://security-manager.default.svc.cluster.local:9000/security-manager/v1/token").withHeaders("Authorization" -> bearer).get
         b <- if(a.status == 200) loginClientLocal.loginFE(loginInfo, ws) else{ logger.error("resp status:"+a.status+"   body:"+a.body);Future.successful{Seq.empty[Cookie]} }
@@ -155,7 +184,7 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider, cache
           case Failure(e) => logger.error("Stack trace:",e); Unauthorized(s"Problems while getting cookie: ${e.getMessage}")
         }
 
-      }
+      }*/
 
     }
   }

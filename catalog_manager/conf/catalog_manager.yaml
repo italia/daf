@@ -233,6 +233,10 @@ paths:
           schema:
             type:
             $ref: '#/definitions/Success'
+        404:
+          description: catalog not found
+          schema:
+            type: string
         401:
           description: Error Message
           schema:

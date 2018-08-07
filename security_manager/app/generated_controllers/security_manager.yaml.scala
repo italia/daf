@@ -46,7 +46,7 @@ import scala.collection.immutable.StringLike
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                    
+
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -432,21 +432,29 @@ package security_manager.yaml {
           }
             // ----- End of unmanaged code area for action  Security_managerYaml.deleteDAFworkgroup
         }
-        val sftp = sftpAction { (path_to_create: String) =>  
+        val sftp = sftpAction { input: (String, String) =>
+            val (path_to_create, orgName) = input
             // ----- Start of unmanaged code area for action  Security_managerYaml.sftp
             execInContext[Future[SftpType[T] forSome { type T }]] ("sftp"){ () =>
             val credentials = Utils.getCredentials(currentRequest, cacheWrapper )
 
               val relativePath = path_to_create.split(credentials.get.username)(1).tail
+              logger.debug(s"relative path: $relativePath")
 
-            if (CredentialManager.isDafSysAdmin(currentRequest)) {
+            if (CredentialManager.isDafSysAdmin(currentRequest) ||
+              CredentialManager.isOrgAdmin(currentRequest, orgName) ||
+            CredentialManager.isOrgEditor(currentRequest, orgName)) {
               val result = credentials.flatMap { crd =>
                 val sftpInternal = new SftpHandler(crd.username, crd.password, ConfigReader.sftpHostInternal)
                 val resultInternal = sftpInternal.mkdir(relativePath)
+                logger.debug(s"resultInternal: $resultInternal")
                 val sftpExternal = new SftpHandler(crd.username, crd.password, ConfigReader.sftphostExternal)
                 val resultExternal = sftpExternal.mkdir(relativePath)
+                logger.debug(s"resultExternal: $resultExternal")
                 resultExternal
               }
+
+              logger.debug(s"response mkdir: $result")
 
               result match {
                 case scala.util.Success(path) => Sftp200(path)

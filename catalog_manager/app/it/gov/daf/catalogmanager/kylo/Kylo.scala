@@ -85,9 +85,29 @@ class Kylo @Inject()(ws :WSClient, config: ConfigurationProvider){
     }
   }
 
+  private def hdfsTemplate(id: Option[String], fileType: String, hdfsPath: String) = {
+    val url = s"/api/v1/feedmgr/templates/registered/${id.getOrElse("")}?allProperties=true&feedEdit=true"
+    ws.url(KYLOURL + url)
+      .withAuth(KYLOUSER, KYLOPWD, WSAuthScheme.BASIC)
+      .get().map { resp =>
+      val template = resp.json
+      val propertiesEditable = (template \ "properties").as[List[JsValue]]
+        .filter(x => (x \ "userEditable").as[Boolean])
+      val modifiedTemplate: List[JsObject] = propertiesEditable.map { temp =>
+        val key = (temp \ "key").as[String]
+        val transTemplate = key match {
+          case "File Filter Regex" => temp.transform(KyloTrasformers.transformTemplates(".*" + fileType)).get
+          case "Directory" => temp.transform(KyloTrasformers.transformTemplates(hdfsPath)).get
+        }
+        transTemplate
+      }
+
+      (template, modifiedTemplate)
+    }
+  }
+
   private def sftpTemplates(id :Option[String],
                             fileType: String,
-                            feed :MetaCatalog,
                             sftpPath: String): Future[(JsValue, List[JsObject])]
   = {
     val idExt = id.getOrElse("")
@@ -127,10 +147,17 @@ class Kylo @Inject()(ws :WSClient, config: ConfigurationProvider){
     } yield templates
   }
 
-  def sftpRemoteIngest(fileType: String, meta: MetaCatalog, sftpPath: String): Future[(JsValue, List[JsObject])] = {
+  def sftpRemoteIngest(fileType: String, sftpPath: String): Future[(JsValue, List[JsObject])] = {
     for {
       idOpt <- templateIdByName("Sftp Ingest")
-      templates <- sftpTemplates(idOpt, fileType, meta, sftpPath)
+      templates <- sftpTemplates(idOpt, fileType, sftpPath)
+    } yield templates
+  }
+
+  def hdfsIngest(fileType: String, hdfsPath: String) = {
+    for{
+      idOpt <- templateIdByName("HDFS Ingest")
+      templates <- hdfsTemplate(idOpt, fileType, hdfsPath)
     } yield templates
   }
 

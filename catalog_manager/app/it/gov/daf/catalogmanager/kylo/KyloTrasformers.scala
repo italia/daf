@@ -64,7 +64,7 @@ object KyloTrasformers {
                                  else
                                    x + ("value" -> JsBoolean(true))
         }
-        case "daf_owner" => x + ("value" -> JsString(metaCatalog.operational.group_own))
+        case "daf_owner" => x + ("value" -> JsString(metaCatalog.dcatapit.author.getOrElse("")))
       }
     })
     JsArray(result)

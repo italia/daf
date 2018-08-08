@@ -1,19 +1,26 @@
 pipeline{
     agent any
-    environment {
-        CHECK = 'true'
-    }
     stages {
          stage('Build') {
          steps {
             script{
-                if(env.BRANCH_NAME=='testci' && env.CHECK){
+                if(env.BRANCH_NAME=='testci' ){
                     sh '''
                     cd security_manager;
                     STAGING=true;
                     sbt " -DSTAGING=$STAGING; reload; clean; compile;  docker:publish";
                     '''
-                }
+                    sh '''
+                    cd storage_manager;
+                    STAGING=true;
+                    sbt " -DSTAGING=$STAGING; reload; clean; compile;  docker:publish";
+                    '''
+                    sh '''
+                    cd ;
+                    STAGING=true;
+                    sbt " -DSTAGING=$STAGING; reload; clean; compile;  docker:publish";
+                    '''
+                    }
                 }
             }
         }

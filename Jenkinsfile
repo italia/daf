@@ -1,13 +1,13 @@
 pipeline{
     agent any
-    enviroment{
-        CHECK='true'
+    environment {
+        CHECK = 'true'
     }
     stages {
          stage('Build') {
          steps {
             script{
-                if(env.BRANCH_NAME=='testci' && CHECK){
+                if(env.BRANCH_NAME=='testci' && env.CHECK){
                     sh '''
                     cd security_manager;
                     STAGING=true;

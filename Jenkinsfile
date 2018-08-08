@@ -5,7 +5,7 @@ pipeline{
          steps {
             script{
                 sh 'CHANGE=(git diff --name-only $GIT_PREVIOUS_COMMIT $GIT_COMMIT)'
-                if(env.BRANCH_NAME=='testci'){
+                if(env.BRANCH_NAME=='testci' && env.CHANGE.contains('security')){
                     sh '''
                     cd security_manager
                     STAGING=true;

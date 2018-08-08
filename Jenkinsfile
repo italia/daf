@@ -4,7 +4,7 @@ pipeline{
          stage('Build') {
          steps {
             script{
-                CHANGE=git diff --name-only $GIT_PREVIOUS_COMMIT $GIT_COMMIT
+                sh 'CHANGE=git diff --name-only $GIT_PREVIOUS_COMMIT $GIT_COMMIT'
                 if(env.BRANCH_NAME=='testci'){
                     sh '''
                     cd security_manager

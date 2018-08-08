@@ -10,7 +10,7 @@ pipeline{
                 sh 'CHANGE=(git diff --name-only $GIT_PREVIOUS_COMMIT $GIT_COMMIT); if [[$CHANGE=*"security"*]]; then CHECK=false; echo $CHECK'
                 if(env.BRANCH_NAME=='testci' && CHECK){
                     sh '
-                    cd security_manager
+                    cd security_manager;
                     STAGING=true;
                     pwd;
                     ls;

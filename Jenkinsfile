@@ -1,13 +1,15 @@
 pipeline{
     agent any
     enviroment{
-        CHANGE=(git diff --name-only $GIT_PREVIOUS_COMMIT $GIT_COMMIT)
+        CHECK=true
     }
     stages {
          stage('Build') {
          steps {
             script{
-                if(env.BRANCH_NAME=='testci' && env.CHANGE.contains('security')){
+                sh 'CHANGE=(git diff --name-only $GIT_PREVIOUS_COMMIT $GIT_COMMIT); if [[$CHANGE=*'security'*]]; then CHECK=false; echo $CHECK'
+                if(env.BRANCH_NAME=='testci' && CHECK){
+
                     sh '''
                     cd security_manager
                     STAGING=true;

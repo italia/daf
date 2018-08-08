@@ -9,6 +9,8 @@ pipeline{
                     sh '''
                     cd security_manager
                     STAGING=true;
+                    pwd;
+                    ls;
                     sbt " -DSTAGING=$STAGING; reload; clean; compile;  docker:publish"
                     '''
                     }

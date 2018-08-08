@@ -395,6 +395,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
     result.value map{
       case Right( (Some(Seq(x)),_) ) => Right( DafGroupInfo(groupName, "Workgroup", Option(x), None) )
       case Right( (_,Some(y)) )  => Right( DafGroupInfo(groupName, "Organization", None, Option(y)) )
+      case Right( (_,_) )  => Right( DafGroupInfo(groupName, "Generic Group", None, None) )
       case Left(l) => Left(l)
 
     }

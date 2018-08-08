@@ -4,6 +4,7 @@ import com.cloudera.impala.jdbc41.DataSource
 import com.google.inject.{Inject, Singleton}
 import it.gov.daf.common.sso.common.CacheWrapper
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
+import it.gov.daf.sso
 import play.api.Logger
 
 
@@ -24,7 +25,7 @@ class ImpalaService @Inject()(implicit val cacheWrapper:CacheWrapper){
                             else "INSERT"
 
 
-    val roleName = s"${groupName}_group_role"
+    val roleName = toGroupRoleName(groupName)
     val query = s"GRANT $permissionOnQuery ON TABLE $tableName TO ROLE $roleName"
 
     executeUpdate(query)
@@ -38,7 +39,7 @@ class ImpalaService @Inject()(implicit val cacheWrapper:CacheWrapper){
     val permissionOnQuery = if(permission == Permission.read.toString) "SELECT"
     else "INSERT"
 
-    val roleName = s"${groupName}_group_role"
+    val roleName = toGroupRoleName(groupName)
     val query = s"REVOKE $permissionOnQuery ON TABLE $tableName FROM ROLE $roleName"
 
     executeUpdate(query)
@@ -46,9 +47,10 @@ class ImpalaService @Inject()(implicit val cacheWrapper:CacheWrapper){
     //else Left("Can not revoke Impala grant")
   }
 
+
   def revokeGrant(tableName:String, groupName:String):Either[String,String]={
 
-    val roleName = s"${groupName}_group_role"
+    val roleName = toGroupRoleName(groupName)
 
     executeUpdates( Seq(s"REVOKE SELECT ON TABLE $tableName FROM ROLE $roleName",
                         s"REVOKE INSERT ON TABLE $tableName FROM ROLE $roleName") )
@@ -61,7 +63,7 @@ class ImpalaService @Inject()(implicit val cacheWrapper:CacheWrapper){
   def createRole(name:String, isUser:Boolean):Either[String,String]={
 
     val roleName =  if(isUser) s"${name}_user_role"
-                    else s"${name}_group_role"
+                    else toGroupRoleName(name)
 
     val query = s"CREATE ROLE $roleName"
     val query2 = s"GRANT ROLE $roleName TO GROUP $name"
@@ -77,7 +79,7 @@ class ImpalaService @Inject()(implicit val cacheWrapper:CacheWrapper){
   def deleteRole(name:String, isUser:Boolean):Either[String,String]={
 
     val roleName =  if(isUser) s"${name}_user_role"
-    else s"${name}_group_role"
+                    else toGroupRoleName(name)
 
     val query = s"REVOKE ROLE $roleName FROM GROUP $name"
     val query2 = s"DROP ROLE $roleName"
@@ -91,6 +93,7 @@ class ImpalaService @Inject()(implicit val cacheWrapper:CacheWrapper){
   }
 
 
+  private def toGroupRoleName(groupName:String) = if(groupName == sso.OPEN_DATA_GROUP) "default_role" else s"${groupName}_group_role"
 
   private def executeUpdate(query:String):Int={
 

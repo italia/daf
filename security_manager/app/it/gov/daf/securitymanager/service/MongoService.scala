@@ -7,6 +7,7 @@ import com.mongodb.casbah.query.Imports.DBObject
 import com.mongodb.{BasicDBObject, ServerAddress}
 import com.mongodb.casbah.{Imports, MongoClient, MongoCredential}
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
+import it.gov.daf.sso
 import play.api.Logger
 import play.api.libs.json.{JsValue, Json}
 import security_manager.yaml.IpaUser
@@ -74,11 +75,17 @@ object MongoService {
 
     val query = MongoDBObject("dcatapit.name" -> datasetName)
     val aclPermission = MongoDBObject("groupName"->groupName,"groupType"->groupType,"permission"->permission)
-    val update = Imports.$addToSet("operational.acl" -> aclPermission )
-    updateData( query, update, CATALOG_COLLECTION_NAME )
+
+
+    val updates = MongoDBObject("$addToSet" -> MongoDBObject("operational.acl" -> aclPermission))
+    if(groupName==sso.OPEN_DATA_GROUP)
+      updates.put( "$set", MongoDBObject("dcatapit.privatex" -> false) )
+
+    updateData( query, updates, CATALOG_COLLECTION_NAME )
 
   }
 
+  /*
   def removeACL( datasetName:String, groupName:String, groupType:String, permission:String ): Either[String,String] = {
 
     val query = MongoDBObject("dcatapit.name" -> datasetName)
@@ -86,7 +93,8 @@ object MongoService {
     val update = Imports.$pull("operational.acl" -> aclPermission )
     updateData( query, update, CATALOG_COLLECTION_NAME )
 
-  }
+  }*/
+
 
   def removeAllACL( datasetName:String, groupName:String, groupType:String ): Either[String,String] = {
 
@@ -95,8 +103,13 @@ object MongoService {
     val aclPermission = MongoDBObject("groupName"->groupName,"groupType"->groupType,"permission"->Permission.read.toString)
     val aclPermission2 = MongoDBObject("groupName"->groupName,"groupType"->groupType,"permission"->Permission.readWrite.toString)
 
-    val update = Imports.$pullAll("operational.acl" -> Seq(aclPermission,aclPermission2))
-    updateData( query, update, CATALOG_COLLECTION_NAME )
+    //val update = Imports.$pullAll("operational.acl" -> Seq(aclPermission,aclPermission2))
+
+    val updates = MongoDBObject("$pullAll" -> MongoDBObject("operational.acl" -> Seq(aclPermission,aclPermission2)) )
+    if(groupName==sso.OPEN_DATA_GROUP)
+      updates.put( "$set", MongoDBObject("dcatapit.privatex" -> true) )
+
+    updateData( query, updates, CATALOG_COLLECTION_NAME )
 
   }
 
@@ -129,7 +142,8 @@ object MongoService {
 
   }
 
-  private def updateData( query:DBObject, update:DBObject, collectionName:String )={
+
+  private def updateData( query:DBObject, update:DBObject,collectionName:String )={
 
     logger.debug(s"Mongo update, collection: $collectionName, query: $query, update: $update")
 

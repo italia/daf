@@ -78,6 +78,12 @@ object MongoService {
 
 
     val updates = MongoDBObject("$addToSet" -> MongoDBObject("operational.acl" -> aclPermission))
+
+    /*if(groupName==sso.OPEN_DATA_GROUP)
+                    MongoDBObject("$addToSet" -> MongoDBObject("operational.acl" -> aclPermission),"$set" -> MongoDBObject("dcatapit.privatex" -> false))
+                  else
+                    MongoDBObject("$addToSet" -> MongoDBObject("operational.acl" -> aclPermission))*/
+
     if(groupName==sso.OPEN_DATA_GROUP)
       updates.put( "$set", MongoDBObject("dcatapit.privatex" -> false) )
 

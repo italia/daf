@@ -22,7 +22,7 @@ class ImpalaService @Inject()(implicit val cacheWrapper:CacheWrapper){
   def createGrant(tableName:String, groupName:String, permission:String):Either[String,String]={
 
     val permissionOnQuery = if(permission == Permission.read.toString) "SELECT"
-                            else "INSERT"
+                            else "ALL"
 
 
     val roleName = toGroupRoleName(groupName)
@@ -37,7 +37,7 @@ class ImpalaService @Inject()(implicit val cacheWrapper:CacheWrapper){
   def revokeGrant(tableName:String, groupName:String, permission:String):Either[String,String]={
 
     val permissionOnQuery = if(permission == Permission.read.toString) "SELECT"
-    else "INSERT"
+    else "ALL"
 
     val roleName = toGroupRoleName(groupName)
     val query = s"REVOKE $permissionOnQuery ON TABLE $tableName FROM ROLE $roleName"
@@ -53,7 +53,7 @@ class ImpalaService @Inject()(implicit val cacheWrapper:CacheWrapper){
     val roleName = toGroupRoleName(groupName)
 
     executeUpdates( Seq(s"REVOKE SELECT ON TABLE $tableName FROM ROLE $roleName",
-                        s"REVOKE INSERT ON TABLE $tableName FROM ROLE $roleName") )
+                        s"REVOKE ALL ON TABLE $tableName FROM ROLE $roleName") )
 
     Right("Grants revoked")
     //else Left("Can not revoke Impala grant")

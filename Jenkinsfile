@@ -7,15 +7,12 @@ pipeline{
          stage('Build') {
          steps {
             script{
-                sh 'CHANGE=(git diff --name-only $GIT_PREVIOUS_COMMIT $GIT_COMMIT); if [[$CHANGE=*"security"*]]; then CHECK=false; echo $CHECK;'
                 if(env.BRANCH_NAME=='testci' && CHECK){
-                    sh '
+                    sh '''
                     cd security_manager;
                     STAGING=true;
-                    pwd;
-                    ls;
                     sbt " -DSTAGING=$STAGING; reload; clean; compile;  docker:publish";
-                    '
+                    '''
                 }
                 }
             }

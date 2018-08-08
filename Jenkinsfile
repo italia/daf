@@ -22,8 +22,9 @@ pipeline{
             script{
                 if(env.BRANCH_NAME=='testci'){
                     sh '''
-                        cd security_manager/kubernetes
-                        echo "prova"
+                        cd security_manager/kubernetes;
+                        pwd;
+                        ls
                     '''
                     }
                 }

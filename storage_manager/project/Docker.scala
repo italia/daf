@@ -11,7 +11,7 @@ object Docker {
   val base: String = "anapsix/alpine-java:8_jdk_unlimited"
 
   val repository: Option[String] = Versions.choose(
-    whenSnapshot = Some { "nexus.daf.teamdigitale.it"   },
+    whenSnapshot = Some { "nexus.daf.teamdigitale.test"   },
     whenRelease  = Some { "nexus.daf.teamdigitale.it" }
   )
 

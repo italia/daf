@@ -23,3 +23,5 @@ ingestion_manager/conf/
 storage_manager_core
 storage_manager/playApi/conf/production.conf
 storage_manager/core/opendata
+*/.ensime_cache/
+*/.ensime

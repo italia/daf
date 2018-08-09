@@ -15,7 +15,7 @@ val playVersion = "2.5.14"
 
 Seq(gitStampSettings: _*)
 
-version in ThisBuild := sys.env.getOrElse("CATALOG_MANAGER_VERSION", "1.0.4-SNAPSHOT")
+version in ThisBuild := sys.env.getOrElse("CATALOG_MANAGER_VERSION", "1.0.6-SNAPSHOT")
 
 
 lazy val client = (project in file("client")).
@@ -72,6 +72,9 @@ libraryDependencies ++= Seq(
   "io.prometheus" % "simpleclient_hotspot" % "0.1.0",
   "io.prometheus" % "simpleclient_common" % "0.1.0"
 )
+
+PlayKeys.devSettings := Seq("play.server.http.requestTimeout" -> "240s",
+  "play.server.http.idleTimeout" -> "240s")
 
 resolvers ++= Seq(
   Resolver.mavenLocal,

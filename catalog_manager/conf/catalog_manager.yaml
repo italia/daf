@@ -276,6 +276,45 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  "/catalog-ds/add-queue":
+    post:
+      #security:
+      #- basicAuth: []
+      summary: DatasetCatalog
+      description: |
+        The DatasetCatalog for ....
+      tags:
+        - DatasetCatalog
+      operationId: addQueueCatalog
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+      - name: catalog
+        in: body
+        description: Dataset Catalog
+        required: true
+        schema:
+          $ref: '#/definitions/MetaCatalog'
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            $ref: '#/definitions/Success'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   "/catalog-ds/ext/add":
     post:
       #security:
@@ -310,6 +349,44 @@ paths:
         default:
           description: Unexpected error
           schema:
+            $ref: '#/definitions/Error'
+  "/catalog-ds/delete/{name}/{org}":
+    delete:
+      summary: delete a DatasetCatalog
+      description: delete DatasetCatalog identified by the name in path
+      tags:
+       - DatasetCatalog
+      operationId: deleteCatalog
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+      - name: name
+        in: path
+        description: name of the dataset to delete
+        required: true
+        type: string
+      - name: org
+        in: path
+        description: organization of the feed to delete
+        required: true
+        type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            $ref: '#/definitions/Success'
+        500:
+          description: Error
+          schema:
+           type: object
+           $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            type: object
             $ref: '#/definitions/Error'
   "/ckan/create/dataset":
     post:
@@ -1535,6 +1612,9 @@ definitions:
       dataset_type:
         type: string
         description: It tells whether the dataset is at rest ('batch') or realtime stream ('stream') and, orthogonally, if it is of type 'opendata' (from  national catalogue), in which case it will have a suffix '_opendata'.
+      file_type:
+        type: string
+        description: It tells wheter the dataset is a json or a csv file
       partitions:
         type: object
         description: it tells if the dataset is partitioned, and what the partitions are.

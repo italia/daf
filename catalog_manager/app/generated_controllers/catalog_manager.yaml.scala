@@ -17,7 +17,6 @@ import scala.util._
 
 import javax.inject._
 
-import java.io.File
 import de.zalando.play.controllers.PlayBodyParsing._
 import it.gov.daf.catalogmanager.listeners.IngestionListenerImpl
 import it.gov.daf.catalogmanager.service.{CkanRegistry,ServiceRegistry}
@@ -31,7 +30,6 @@ import it.gov.daf.common.utils.WebServiceUtil
 import it.gov.daf.catalogmanager.service.VocServiceRegistry
 import play.api.libs.ws.WSClient
 import java.net.URLEncoder
-import it.gov.daf.catalogmanager.utilities.ConfigReader
 import play.api.libs.ws.WSResponse
 import play.api.libs.ws.WSAuthScheme
 import java.io.FileInputStream
@@ -41,6 +39,11 @@ import catalog_manager.yaml
 import it.gov.daf.catalogmanager.kylo.Kylo
 import it.gov.daf.common.sso.common.CredentialManager
 import play.api.Logger
+import scala.concurrent.duration._
+import scala.concurrent.Await
+import yaml.ResponseWrites.MetaCatalogWrites.writes
+import play.api.mvc.Headers
+import it.gov.daf.common.sso.common
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -49,7 +52,7 @@ import play.api.Logger
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                        
+
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -72,12 +75,83 @@ package catalog_manager.yaml {
         val KYLOURL = config.get.getString("kylo.url").get
         val KYLOUSER = config.get.getString("kylo.user").getOrElse("dladmin")
         val KYLOPWD = config.get.getString("kylo.userpwd").getOrElse("XXXXXXXXXXX")
+        val KAFKAPROXY = config.get.getString("kafkaProxy.url").get
+
+        private def sendMessaggeKafkaProxy(user: String, catalog: MetaCatalog, token: String): Future[Either[Error, Success]] = {
+            Logger.logger.debug(s"kafka proxy $KAFKAPROXY")
+            val jsonMetacatol = writes(catalog)
+            val jsonUser: String = s""""user":"$user""""
+            val jsonToken = s""""token":"$token""""
+            val jsonBody = Json.parse(
+              s"""
+                |{
+                |"records":[{"value":{$jsonUser,$jsonToken,"payload":$jsonMetacatol}}]
+                | }
+              """.stripMargin)
+
+            val responseWs = ws.url(KAFKAPROXY + "/topics/creationfeed")
+              .withHeaders(("Content-Type", "application/vnd.kafka.v2+json"))
+              .post(jsonBody)
+
+            responseWs.map{ res =>
+                if( res.status == 200 ) {
+                    Logger.logger.debug(s"message sent to kakfa proxy for user $user")
+                    Right(Success("created",Option("created")))
+                }
+                else {
+                    Logger.logger.debug(s"error in sending message to kafka proxy for user $user")
+                    Left(Error(s"error in sending message to kafka proxy for user $user", Some(500), None))
+                }
+            }
+        }
+
+        private def readTokenFromRequest(requestHeader: Headers): Option[String] = {
+            val authHeader = requestHeader.get("authorization").get.split(" ")
+            val authType = authHeader(0)
+            val authCredentials = authHeader(1)
+
+            if( authType.equalsIgnoreCase("bearer")) Some(authCredentials)
+            else None
+        }
 
         // ----- End of unmanaged code area for constructor Catalog_managerYaml
         val autocompletedummy = autocompletedummyAction { (autocompRes: AutocompRes) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.autocompletedummy
             NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.autocompletedummy
+        }
+        val deleteCatalog = deleteCatalogAction { input: (String, String) =>
+            val (name, org) = input
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.deleteCatalog
+            def extractMessage(response: Either[Error, Success]) = {
+                if(response.isRight) response.right.get.message
+                else response.left.get.message
+            }
+
+            val user = CredentialManager.readCredentialFromRequest(currentRequest).username
+
+            val isAdmin = CredentialManager.isDafAdmin(currentRequest)
+            val feedName = s"${org}.${org}_o_${name}"
+
+            val responseMongo = ServiceRegistry.catalogService.deleteCatalogByName(name, user, isAdmin)
+
+            val futureResponseKylo = responseMongo match {
+                case Right(_) => kylo.deleteFeed(feedName, user)
+                case Left(_) => Future.successful(Left(Error(s"$feedName not deleted", None, None)))
+            }
+
+            val futureResponses: Future[Either[Error, Success]] = futureResponseKylo.map{ responseKylo =>
+              if(responseMongo.isRight && responseKylo.isRight)
+                  Right(Success(s"${extractMessage(responseMongo)}, ${extractMessage(responseKylo)}", None))
+              else
+                  Left(Error(s"${extractMessage(responseMongo)}, ${extractMessage(responseKylo)}", Some(500), None))
+            }
+            futureResponses.flatMap{
+                case Right(s) => DeleteCatalog200(s)
+                case Left(e) => DeleteCatalog500(e)
+            }
+//          NotImplementedYet
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.deleteCatalog
         }
         val searchdataset = searchdatasetAction { input: (MetadataCat, MetadataCat, ResourceSize, ResourceSize) =>
             val (q, sort, rows, start) = input
@@ -177,6 +251,26 @@ package catalog_manager.yaml {
             Voc_dcat2dafsubtheme200(themeList)
             // ----- End of unmanaged code area for action  Catalog_managerYaml.voc_dcat2dafsubtheme
         }
+        val addQueueCatalog = addQueueCatalogAction { (catalog: MetaCatalog) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.addQueueCatalog
+            val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
+            if( CredentialManager.isDafEditor(currentRequest) || CredentialManager.isDafAdmin(currentRequest) ) {
+                val token = readTokenFromRequest(currentRequest.headers)
+                token match {
+                    case Some(t) => {
+                        val futureKafkaResp = sendMessaggeKafkaProxy(credentials.username, catalog, t)
+                        futureKafkaResp.flatMap{
+                            case Right(r) => logger.info("sending to kafka");AddQueueCatalog200(r)
+                            case Left(l) => AddQueueCatalog500(l)
+                        }
+                    }
+                    case None => AddQueueCatalog401("No token found")
+                }
+
+            }else
+                AddQueueCatalog401("Admin or editor permissions required")
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.addQueueCatalog
+        }
         val standardsuri = standardsuriAction {  _ =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.standardsuri
             // Pagination wrong refactor login to db query
@@ -190,7 +284,8 @@ package catalog_manager.yaml {
         }
         val datasetcatalogbyname = datasetcatalogbynameAction { (name: String) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbyname
-            val catalog = ServiceRegistry.catalogService.catalogByName(name)
+            val groups = CredentialManager.readCredentialFromRequest(currentRequest).groups.toList
+            val catalog = ServiceRegistry.catalogService.catalogByName(name, groups)
 
             /*
             val resutl  = catalog match {
@@ -240,7 +335,10 @@ package catalog_manager.yaml {
             val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
             if( CredentialManager.isDafEditor(currentRequest) || CredentialManager.isDafAdmin(currentRequest) ) {
                 val created: Success = ServiceRegistry.catalogService.createCatalog(catalog, Option(credentials.username), ws)
-                Createdatasetcatalog200(created)
+                //If(!created.message.equals("Error")) sendMessaggeKafkaProxy(credentials.username, catalog)
+                //sendMessaggeKafkaProxy(credentials.username, catalog)
+                //logger.info("sending to kafka")
+                Createdatasetcatalog200(catalog_manager.yaml.Success("created",Option("created")) )
             }else
                 Createdatasetcatalog401("Admin or editor permissions required")
             //NotImplementedYet
@@ -502,7 +600,7 @@ package catalog_manager.yaml {
                 case "ws" => kylo.wsIngest(file_type, feed)
             }
 
-            val categoryFuture = kylo.categoryFuture(feed)
+           // val categoryFuture = kylo.categoryFuture(feed)
 
             val streamKyloTemplate = new FileInputStream(Environment.simple().getFile("/data/kylo/template.json"))
 
@@ -531,22 +629,27 @@ package catalog_manager.yaml {
             val inferJson = Json.parse(kyloSchema)
 
             val feedCreation  = ws.url(KYLOURL + "/api/v1/feedmgr/feeds")
+              //.withRequestTimeout(240 seconds)
               .withAuth(KYLOUSER, KYLOPWD, WSAuthScheme.BASIC)
 
-            val feedData = for {
+            // it is a try i know is not a good practice
+            //Await.result(createDir.get(), 200000 millis)
+
+            val feedData: Future[JsResult[JsObject]] = for {
                 (template, templates) <- templateProperties
                 created <-  createDir.get()
-                category <- categoryFuture
-                trasformed <-  Future(kyloTemplate.transform(
-                    KyloTrasformers.feedTrasform(feed,
-                        template,
-                        templates,
-                        inferJson,
-                        category,
-                        file_type,
-                        skipHeader)
+                category <- kylo.categoryFuture(feed)
+                trasformed <- Future(kyloTemplate.transform(
+                        KyloTrasformers.feedTrasform(feed,
+                            template,
+                            templates,
+                            inferJson,
+                            category,
+                            file_type,
+                            skipHeader)
                     )
                 )
+
             } yield trasformed
 
             val createFeed: Future[WSResponse] = feedData.flatMap {

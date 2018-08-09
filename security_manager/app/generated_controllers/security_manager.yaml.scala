@@ -40,7 +40,7 @@ import it.gov.daf.securitymanager.service.utilities.Utils
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                                                                                                                                                                                                                                                                                                                                
+                    
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -58,9 +58,6 @@ package security_manager.yaml {
         // ----- Start of unmanaged code area for constructor Security_managerYaml
 
       Authentication(configuration, playSessionStore)
-
-    val sftpHost: String = configuration.underlying.getString("sftp.host")
-
 
         // ----- End of unmanaged code area for constructor Security_managerYaml
         val registrationconfirm = registrationconfirmAction { (token: String) =>  
@@ -291,13 +288,20 @@ package security_manager.yaml {
 
             if (CredentialManager.isDafAdmin(currentRequest) || CredentialManager.isDafEditor(currentRequest)) {
               val result = credentials.flatMap { crd =>
-                val sftp = new SftpHandler(crd.username, crd.password, sftpHost)
-                sftp.mkdir(path_to_create)
+                val sftpInternal = new SftpHandler(crd.username, crd.password, ConfigReader.sftpHostInternal)
+                logger.debug("username --> " + crd.username  + " creating path " + ConfigReader.sftpHostInternal)
+                val resultInternal = sftpInternal.mkdir(path_to_create)
+                logger.debug("path created into daf.teamdigitale.it")
+                val sftpExternal = new SftpHandler(crd.username, crd.password, ConfigReader.sftphostExternal)
+                logger.debug("username --> " + crd.username  + " creating path " + ConfigReader.sftphostExternal)
+                val resultExternal = sftpExternal.mkdir(path_to_create)
+                logger.debug("path created into edge2")
+                resultExternal
               }
 
               result match {
                 case scala.util.Success(path) => Sftp200(path)
-                case scala.util.Failure(ex) => Sftp500(Error(Some(404), Some(ex.getMessage), None))
+                case scala.util.Failure(ex) => logger.info(ex.toString);logger.info(ex.getMessage);Sftp500(Error(Some(404), Some(ex.getMessage), None))
               }
             } else
               Sftp500(Error(Option(1), Some("Permissions required"), None))

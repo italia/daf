@@ -65,6 +65,9 @@ private class AppConfig @Inject()(playConfig: Configuration) {
   val impalaKeyStorePath :Option[String] = playConfig.getString("impala.keyStorePath")
   val impalaKeyStorePwd :Option[String] = playConfig.getString("impala.keyStorePwd")
 
+  val sftpHostInternal :Option[String] = playConfig.getString("sftp.host.internal")
+  val sftphostExternal: Option[String] = playConfig.getString("sftp.host.external")
+
 }
 
 
@@ -102,6 +105,9 @@ object ConfigReader {
   require(config.impalaServer.nonEmpty,"Impala server must be specified")
   require(config.impalaKeyStorePath.nonEmpty,"Impala KeyStore path must be specified")
   require(config.impalaKeyStorePwd.nonEmpty,"Impala KeyStore pwd must be specified")
+
+  require(config.sftpHostInternal.nonEmpty,"sftpHostInternal must be specified")
+  require(config.sftphostExternal.nonEmpty,"sftphostExternal pwd must be specified")
 
 
   //def userIdHeader: String = config.userIdHeader.getOrElse("userid")
@@ -161,6 +167,9 @@ object ConfigReader {
   def impalaServer :String = config.impalaServer.get
   def impalaKeyStorePath :String = config.impalaKeyStorePath.get
   def impalaKeyStorePwd :String = config.impalaKeyStorePwd.get
+
+  def sftpHostInternal :String = config.sftpHostInternal.get
+  def sftphostExternal: String = config.sftphostExternal.get
 
 }
 

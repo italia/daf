@@ -7,7 +7,7 @@ pipeline{
                 def diff = sh(returnStdout: true, script: 'git diff $GIT_PREVIOUS_COMMIT $GIT_COMMITID')
                 if(env.BRANCH_NAME=='testci' ){
                     sh '''
-                    echo ${diff};
+                    echo "${diff}";
                     cd security_manager;
                     STAGING=true;
                     sbt " -DSTAGING=$STAGING; reload; clean; compile;  docker:publish";

@@ -4,10 +4,10 @@ pipeline{
          stage('Build') {
          steps {
             script{
-                def diff = sh(returnStdout: true, script: 'git diff $GIT_PREVIOUS_COMMIT $GIT_COMMITID')
-                if(env.BRANCH_NAME=='testci' ){
-                    sh '''
+                if(env.BRANCH_NAME=='testci' ){                    
+                    def diff = sh(returnStdout: true, script: 'git diff $GIT_PREVIOUS_COMMIT $GIT_COMMITID')
                     echo "${diff}";
+                    sh '''
                     cd security_manager;
                     STAGING=true;
                     sbt " -DSTAGING=$STAGING; reload; clean; compile;  docker:publish";

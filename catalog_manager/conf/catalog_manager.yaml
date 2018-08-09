@@ -1690,9 +1690,9 @@ definitions:
       name:
         type: string
         description: Name of the service to push
-#      url:
-#        type: string
-#        description: Url of the service to push.
+      url:
+        type: string
+        description: Url of the service to push.
       username:
         type: string
         description: Username to use to access the service.

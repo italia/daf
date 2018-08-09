@@ -10,7 +10,7 @@ val isStaging = System.getProperty("STAGING") != null
 
 Seq(gitStampSettings: _*)
 
-version in ThisBuild := sys.env.get("SECURITY_MANAGER_VERSION").getOrElse("1.0.1-SNAPSHOT")
+version in ThisBuild := sys.env.get("SECURITY_MANAGER_VERSION").getOrElse("1.0.3-SNAPSHOT")
 
 scalacOptions ++= Seq(
   "-deprecation",
@@ -128,12 +128,21 @@ headerMappings := headerMappings.value + (HeaderFileType.conf -> HeaderCommentSt
 dockerPackageMappings in Docker += (if(isStaging) baseDirectory.value / "cert" / "test" / "jssecacerts"
                                     else baseDirectory.value / "cert" / "jssecacerts") -> "jssecacerts"
 
-dockerBaseImage := "anapsix/alpine-java:8_jdk_unlimited"
+dockerPackageMappings in Docker += (baseDirectory.value / "script/kb_init.sh") -> "opt/docker/script/kb_init.sh"
+
+
+//dockerBaseImage := "anapsix/alpine-java:8_jdk_unlimited"
+dockerBaseImage := "openjdk:8u171-jdk-slim"
 dockerCommands := dockerCommands.value.flatMap {
   case cmd@Cmd("FROM", _) => List(cmd,
-    Cmd("RUN", "apk update && apk add bash krb5-libs krb5"),
-    Cmd("RUN", "ln -sf /etc/krb5.conf /opt/jdk/jre/lib/security/krb5.conf"),
-    Cmd("COPY", "jssecacerts", "/opt/jdk/jre/lib/security/")
+    //Cmd("RUN", "apk update && apk add bash krb5-libs krb5 curl"),
+    Cmd("RUN", "apt-get update"),
+    Cmd("RUN", "DEBIAN_FRONTEND=noninteractive apt-get install -y bash krb5-user curl"),
+//    Cmd("RUN", "ln -sf /etc/krb5.conf /opt/jdk/jre/lib/security/krb5.conf"),
+    Cmd("RUN", "ln -sf /etc/krb5.conf /docker-java-home/jre/lib/security/krb5.conf"),
+//    Cmd("COPY", "jssecacerts", "/opt/jdk/jre/lib/security/")
+    Cmd("COPY", "jssecacerts", "/docker-java-home/jre/lib/security")
+
   )
   case other => List(other)
 }

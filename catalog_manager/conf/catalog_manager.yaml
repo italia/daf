@@ -1550,6 +1550,7 @@ definitions:
           type: string
   Operational:
     required:
+      - dataset_visibility
       - logical_uri
       - is_std
       - group_own
@@ -1562,63 +1563,73 @@ definitions:
       #id:
       #  type: integer
       #  format: int32
-      theme:
+      dataset_visibility:
         type: string
-        description: DAF Theme for the dataset
-      subtheme:
+        description: tells whether the dataset is 'open' or 'private'
+      dataset_daf:
         type: string
-        description: DAF SubTheme for the dataset
-      logical_uri:
+        description: It tels which internal nature/goal the dataset has. It can be: 'ordinary', 'std', 'voc', 'dafvoc'. 
+      dataset_type:
         type: string
-        description: Unique resource identifier of the dataset. It is calculated automatically and assigned once for all
-      physical_uri:
-      #Not shure we should have this info here. This should be built programmatically
+        description: [DEPRECATED, use dataset_proc.dataset_type] It tells whether the dataset is at rest ('batch') or realtime stream ('stream') and, orthogonally, if it is of type 'opendata' (from  national catalogue), in which case it will have a suffix '_opendata'.
+      file_type:
         type: string
-        description: Physical uri. Physical storage path
-      is_std:
-        type: boolean
-        description: It tells if the dataset is a Standart Schema dataset (or VID). It takes values true (StdSchema Dataset), false (not a StdSchema Dataset)
+        description: It tells wheter the dataset is a json or a csv file
+      georef:
+        type: array
+        items:
+          $ref: '#/definitions/GeoRef'
       group_own:
         type: string
-        description: Group of ownership to which the dataset belongs. It is set to 'open' by default.
+        description: Group of ownership to which the dataset belongs. It is set to the same group to which the user belongs to by default.
       group_access:
         type: array
         description: Groups that have rights to access the datasets. It contains the name and the role associated to the group
         items:
           $ref: '#/definitions/GroupAccess'
-      std_schema:
-        type: object
-        description:
-        $ref: '#/definitions/StdSchema'
-      read_type:
-        description: It tells whether the dataset is an append of snapshot ('last_update') or a time series ('time_series') and tells the program how to return the data.
-        type: string
-      georef:
-        type: array
-        items:
-          $ref: '#/definitions/GeoRef'
-      input_src:
-        description: Input sources for data to be ingested into the dataset.
-        $ref: '#/definitions/InputSrc'
       ingestion_pipeline:
         type: array
         description: List of ingestion pipeline to be applied, in order of declaration, to the data to be ingested.
         items:
-          type: string
+          $ref: '#/definitions/IngestionPipeline'
+      input_src:
+        description: Input sources for data to be ingested into the dataset.
+        $ref: '#/definitions/InputSrc'
+      is_voc:
+        type: string
+        description: Tells if a dataset is a controtrolled vocabulary or not.
+      is_std:
+        type: boolean
+        description: It tells if the dataset is a Standart Schema dataset (or VID). It takes values true (StdSchema Dataset), false (not a StdSchema Dataset)
+      logical_uri:
+        type: string
+        description: Unique resource identifier of the dataset. It is calculated automatically and assigned once for all
+      partitions:
+        type: array
+        description: it tells if the dataset is partitioned, and what the partitions are.
+        items:
+          $ref: '#/definitions/Partitions'
+      physical_uri:
+      #Not shure we should have this info here. This should be built programmatically
+        type: string
+        description: Physical uri. Physical storage path
+      read_type:
+        description: It tells whether the dataset is an append of snapshot ('last_update') or a time series ('time_series') and tells the program how to return the data.
+        type: string
+      std_schema:
+        type: object
+        description:
+        $ref: '#/definitions/StdSchema'
       storage_info:
         description: Information on the storage to be used to save the dataset.
         type: object
         $ref: '#/definitions/StorageInfo'
-      dataset_type:
+      subtheme:
         type: string
-        description: It tells whether the dataset is at rest ('batch') or realtime stream ('stream') and, orthogonally, if it is of type 'opendata' (from  national catalogue), in which case it will have a suffix '_opendata'.
-      file_type:
+        description: DAF SubTheme for the dataset
+      theme:
         type: string
-        description: It tells wheter the dataset is a json or a csv file
-      partitions:
-        type: object
-        description: it tells if the dataset is partitioned, and what the partitions are.
-        $ref: '#/definitions/Partitions'
+        description: DAF Theme for the dataset
       dataset_proc:
         type: object
         description: It has info about how to process and store internally the dataset. Such info includes partitioning, merge strategy, etc.
@@ -1627,7 +1638,18 @@ definitions:
         type: object
         description: Info about dataset imported from external ckan used to rebuild opendata relations
         $ref: '#/definitions/ExtOpenData'
-
+  IngestionPipeline:
+    type: object
+    description: Object describing the properties of an ingestion pipeline
+    required: 
+      - name
+    properties:
+      name: 
+        type: string
+        description: name of the ingestion pipe
+      param:
+        type: string
+        description: parameters for the ingestion pipe in JSON format.
   ExtOpenData:
     type: object
     description: Type associated with group_access
@@ -1768,6 +1790,9 @@ definitions:
       sql:
         type: string
         description: Sql statement to create the derived dataset based on the ones indicated in 'dataset_uri'.
+      procedure:
+        type: string
+        description: id of the procedure to be applied to build and update the dataset
       param:
         type: string
         description: Other parameters to be passed in JSON format. It will be None by default.
@@ -1907,9 +1932,10 @@ definitions:
         type: string
         description: It tells whether the dataset is an append of snapshot ('last_update') or a time series ('time_series') and tells the program how to return the data. It should be an enum, to be changed when we upgrade to OpenApi 3.
       partitions:
-        type: object
+        type: array
         description: Info on how dataset are partitioned into HDFS.
-        $ref: '#/definitions/Partitions'
+        items:
+          $ref: '#/definitions/Partitions'
       merge_strategy:
         type: string
         description: It tells how new data should be ingested into the existing dataset. User must choose among the following options. 'SYNC' to replace the existing content with the new one; 'MERGE' to append the data into the target partitions; 'DEDUPE_AND_MERGE' to insert into the target partition but ensure no duplicate rows are remaining; 'PK_MERGE' to insert or update existing rows matching the  same primary key; 'ROLLING_SYNC' to overwrite target partitions only when present in source.
@@ -2011,6 +2037,8 @@ definitions:
       #- publisher_name
       #- theme
     properties:
+      accrual_period: 
+        type: string
       alternate_identifier:
         type: string
       author:
@@ -2029,6 +2057,8 @@ definitions:
         #type: string
       #creator_user_id:
         #type: string
+      description:
+        type: string
       #encoding:
         #type: string
       #fields_description:

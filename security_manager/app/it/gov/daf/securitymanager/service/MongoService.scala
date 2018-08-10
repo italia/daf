@@ -9,7 +9,7 @@ import com.mongodb.casbah.{Imports, MongoClient, MongoCredential}
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import it.gov.daf.sso
 import play.api.Logger
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsNull, JsValue, Json}
 import security_manager.yaml.IpaUser
 
 object MongoService {
@@ -78,6 +78,12 @@ object MongoService {
 
 
     val updates = MongoDBObject("$addToSet" -> MongoDBObject("operational.acl" -> aclPermission))
+
+    /*if(groupName==sso.OPEN_DATA_GROUP)
+                    MongoDBObject("$addToSet" -> MongoDBObject("operational.acl" -> aclPermission),"$set" -> MongoDBObject("dcatapit.privatex" -> false))
+                  else
+                    MongoDBObject("$addToSet" -> MongoDBObject("operational.acl" -> aclPermission))*/
+
     if(groupName==sso.OPEN_DATA_GROUP)
       updates.put( "$set", MongoDBObject("dcatapit.privatex" -> false) )
 
@@ -119,9 +125,8 @@ object MongoService {
     val result = findData( CATALOG_COLLECTION_NAME, "dcatapit.name", datasetName  )
     result match{
       case Right(json) => ((json \ "operational") \ "acl").toOption match{
-        case Some(x) => Right(Some(x))
-        case None =>  logger.warn( "No Acl found: "+result )
-                      Right(None)
+        case Some(JsNull) | None =>  logger.warn( "No Acl found: "+result ); Right(None)
+        case Some(x) => logger.debug( "Query result: "+x ); Right(Some(x))
       }
       case Left(l) => Left(l)
     }

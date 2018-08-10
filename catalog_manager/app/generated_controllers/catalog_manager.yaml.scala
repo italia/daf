@@ -49,7 +49,7 @@ import play.api.mvc.Headers
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                                                            
+                                                                                                                                    
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -557,9 +557,16 @@ package catalog_manager.yaml {
 
 
             // TODO use only one match case
-            val ingest = feed.operational.input_src.sftp match {
-                case None => "ws"
-                case Some(_) => "sftp"
+//            val ingest = feed.operational.input_src.sftp match {
+//                case None => "ws"
+//                case Some(_) => "sftp"
+//            }
+
+            //InputSrc(sftp: InputSrcSftp, srv_pull: InputSrcSrv_push, srv_push: InputSrcSrv_push, daf_dataset: InputSrcDaf_dataset)
+            val ingest = feed.operational.input_src match {
+                case  InputSrc(Some(_), None, None, _) => "sftp"
+                case  InputSrc(None, Some(_), None, _) => "srv_pull"
+                case  InputSrc(None, None, Some(_), _) => "srv_push"
             }
 
             val user = CredentialManager.readCredentialFromRequest(currentRequest).username
@@ -568,11 +575,20 @@ package catalog_manager.yaml {
             val subDomain = feed.operational.subtheme
             val dsName = feed.dcatapit.name
 
-            val sftPath = s"/home/$user/ftp/$domain/$subDomain/$dsName"
+
+            val path = ingest match {
+                case "srv_push" => s"/uploads/$user/$domain/$subDomain/$dsName"
+                case _ => s"/home/$user/ftp/$domain/$subDomain/$dsName"
+            }
+
+            logger.debug(s"$ingest: $path")
+
+//            val sftPath = s"/home/$user/ftp/$domain/$subDomain/$dsName"
 
             val templateProperties = ingest match {
-                case "sftp" => kylo.sftpRemoteIngest(file_type, feed, sftPath)
-                case "ws" => kylo.wsIngest(file_type, feed)
+                case "sftp" => kylo.sftpRemoteIngest(file_type, path)
+                case "srv_pull" => kylo.wsIngest(file_type, feed)
+                case "srv_push" => kylo.hdfsIngest(file_type, path)
             }
 
             val categoryFuture = kylo.categoryFuture(feed)
@@ -589,7 +605,7 @@ package catalog_manager.yaml {
 
 //            logger.info(currentRequest.headers.get("authorization").get)
 
-            val createDir = ws.url("http://security-manager.default.svc.cluster.local:9000/security-manager/v1/sftp/init/" + URLEncoder.encode(sftPath, "UTF-8") + s"?orgName=${feed.dcatapit.owner_org.get}")
+            val createDir = ws.url("http://security-manager.default.svc.cluster.local:9000/security-manager/v1/sftp/init/" + URLEncoder.encode(path, "UTF-8") + s"?orgName=${feed.dcatapit.owner_org.get}")
                   .withHeaders(("authorization", currentRequest.headers.get("authorization").get))
 
             //val trasformed = kyloTemplate.transform(KyloTrasformers.feedTrasform(feed))

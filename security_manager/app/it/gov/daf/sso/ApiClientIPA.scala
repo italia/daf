@@ -481,9 +481,11 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
   }
 
+
   def testGroupForDeletion(groupCn:Group):Future[Either[Error,Success]] ={
 
 
+    //TODO to rework..
     val groupEither:Either[Organization,WorkGroup] = groupCn match{
       case o:Organization => Left(o)
       case w:WorkGroup => Right(w)

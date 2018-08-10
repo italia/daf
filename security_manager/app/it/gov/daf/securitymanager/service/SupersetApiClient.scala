@@ -1,5 +1,6 @@
 package it.gov.daf.securitymanager.service
 
+import cats.data.EitherT
 import com.google.inject.{Inject, Singleton}
 import it.gov.daf.common.sso.common.{LoginInfo, SecuredInvocationManager}
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
@@ -9,6 +10,7 @@ import security_manager.yaml.{Error, IpaUser, Success}
 import cats.implicits._
 import org.apache.commons.lang3.StringEscapeUtils
 import play.api.Logger
+import play.api.libs.functional.syntax._
 
 import scala.concurrent.Future
 
@@ -87,7 +89,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
     traversed.map { lista =>
       val out = lista.foldLeft(List[Long]())((a, b) => b match {
-        case Right(r) => (r :: a)
+        case Right(r) => r :: a
         case _ => a
       })
       Right(out)
@@ -122,6 +124,109 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
 
   }
+
+
+  private def findRole(roleName: String, permissionMap:Map[String,Long]): Future[Either[Error, SupersetRoleWithPermissionIds]] = {
+
+
+    def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
+
+      wSClient.url(ConfigReader.supersetUrl + s"/roles/api/read?_flt_1_name=$roleName").withHeaders("Content-Type" -> "application/json",
+        "Accept" -> "application/json",
+        "Cookie" -> sessionCookie
+      ).get
+    }
+
+
+    Logger.logger.debug("findRole roleName: " + roleName)
+
+
+    def handleJson(json:JsValue)=
+      json.validate[SupersetRoleWithPermissionNames] match {
+        case s: JsSuccess[SupersetRoleWithPermissionNames] => Right(SupersetRoleWithPermissionIds(s.value.role, s.value.permissions.map(permissionMap(_)).toList))
+        case e: JsError => Left(Error(Option(0), Some("Error in findRole"), None))
+      }
+
+
+
+    handleServiceCall(serviceInvoke,handleJson)
+
+
+  }
+
+
+  private def findUserIdsOfRole(roleId: Long): Future[Either[Error, Seq[Long]]] = {
+
+
+    def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
+      wSClient.url(ConfigReader.supersetUrl + s"/users/api/read?_flt_0_roles=$roleId").withHeaders("Content-Type" -> "application/json",
+        "Accept" -> "application/json",
+        "Cookie" -> sessionCookie
+      ).get
+    }
+
+
+    Logger.logger.debug("findUserIdsOfRole roleId: " + roleId)
+
+
+    def handleJson(json:JsValue)={
+
+      (json \ "pks").validate[Seq[Long]] match {
+        case s: JsSuccess[Seq[Long]] => Right(s.value)
+        case e: JsError => Left(Error(Option(0), Some("Error in findSupersetRoleId"), None))
+      }
+    }
+
+    handleServiceCall(serviceInvoke,handleJson)
+
+  }
+
+  private def getPermissionMap(): Future[Either[Error, Map[String,Long]]] = {
+
+    def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
+
+      wSClient.url(ConfigReader.supersetUrl + s"/permissionviews/api/readvalues").withHeaders("Content-Type" -> "application/json",
+        "Accept" -> "application/json",
+        "Cookie" -> sessionCookie
+      ).get
+    }
+
+
+    Logger.logger.debug("listPermission")
+
+
+    def handleJson(json:JsValue)= json.validate[Map[String,Long]] match {
+      case s: JsSuccess[Map[String,Long]] => Right(s.value)
+      case e: JsError => Left(Error(Option(0), Some("Error in listPermission"), None))
+    }
+
+    handleServiceCall(serviceInvoke,handleJson)
+
+  }
+
+  def addPermissionToRole(permissionName:String,roleName:String):Future[Either[Error, Success]]={
+
+    val result = for{
+      permissionMap <- EitherT(getPermissionMap())
+      supersetRoleInfo <- EitherT(findRole(roleName,permissionMap))
+      userList <- EitherT(findUserIdsOfRole(supersetRoleInfo.role.id));
+      out <- EitherT(updateRole(SupersetRoleWithUsersAndPermissionIds(supersetRoleInfo.role,permissionMap(permissionName)::supersetRoleInfo.permissions,userList)))
+    } yield out
+
+    result.value
+  }
+
+  /*
+  private def findSupersetRoleWithUsers(roleName:String): Future[Either[Error, SupersetRoleWithUsersAndPermissionIds]] ={
+
+    val result = for{
+      permissionMap <- EitherT(getPermissionMap())
+      supersetRoleInfo <- EitherT(findRole(roleName,permissionMap))
+      userList <- EitherT(findUserIdsOfRole(supersetRoleInfo.role.id))
+    }yield SupersetRoleWithUsersAndPermissionIds(supersetRoleInfo.role,supersetRoleInfo.permissions,userList)
+
+    result.value
+  }*/
 
 
   def createUserWithRoles(ipaUser: IpaUser, roleIds: Long*): Future[Either[Error, Success]] = {
@@ -482,6 +587,42 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
     }
 
   }
+
+  // TODO not a service for now, due to Superset issue
+  private def updateRole(supersetRole:SupersetRoleWithUsersAndPermissionIds): Future[Either[Error, Success]] = {
+
+    val postDataPermission = supersetRole.permissions.foldLeft("")( (a,b)=>a+"&permissions="+b )
+    val postDataUser = supersetRole.users.foldLeft("")( (a,b)=>a+"&user="+b )
+    val postData = s"name=${supersetRole.role.name}$postDataPermission$postDataUser"
+
+    def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
+
+      Logger.logger.debug("updateRole request: " + postData)
+
+
+      wSClient.url(ConfigReader.supersetUrl + s"/roles/edit/${supersetRole.role.id}").withHeaders(
+        "Content-Type" -> """application/x-www-form-urlencoded""",
+        "Accept-Encoding" -> "gzip, deflate, br",
+        "Accept-Language" -> "en-US,en;q=0.5",
+        "Accept" -> "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "User-Agent" -> """Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:58.0) Gecko/20100101 Firefox/58.0""",
+        "Content-Length" -> postData.length.toString,
+        "Connection" -> "keep-alive",
+        "Upgrade-Insecure-Requests" -> "1",
+        "Cookie" -> sessionCookie
+      ).withFollowRedirects(false).post(postData)
+    }
+
+
+    secInvokeManager.manageServiceCall(loginAdminSuperset, serviceInvoke).map{ response=>
+      if(response.status == 302)
+        Right(Success(Some("Role edited"), Some("ok")))
+      else
+        Left(Error(Option(0), Some("Error in update superset role"), None))
+    }
+
+  }
+
   def findPermissionViewIds(view_menu_id:Long):Future[Either[Error,Array[Option[Long]]]] = {
 
     def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
@@ -625,6 +766,23 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
   }
 
+  implicit val supersetRole: Reads[SupersetRole] = (
+      ((JsPath \ "result") (0)\ "name").read[String] and
+      (JsPath \ "pks") (0).read[Long]
+    )(SupersetRole.apply _)
 
+  implicit val supersetRoleWithPermissionNames: Reads[SupersetRoleWithPermissionNames] = (
+      JsPath.read[SupersetRole] and
+      ((JsPath \ "result") (0)\ "permissions").read[Seq[String]]
+    )(SupersetRoleWithPermissionNames.apply _)
+
+  case class SupersetRole(name:String, id:Long)
+  case class SupersetRoleWithPermissionNames(role:SupersetRole, permissions:Seq[String])
+  case class SupersetRoleWithPermissionIds(role:SupersetRole, permissions:List[Long])
+  case class SupersetRoleWithUsersAndPermissionIds(role:SupersetRole,permissions:List[Long],users:Seq[Long])
 
 }
+
+
+
+

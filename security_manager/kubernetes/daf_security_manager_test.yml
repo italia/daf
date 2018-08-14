@@ -81,6 +81,11 @@ spec:
             secretKeyRef:
               name: daf-secret
               key: superset_admin_pwd
+        - name: SUPERSET_OPEN_DATA_PWD
+          valueFrom:
+            secretKeyRef:
+              name: daf-secret
+              key: superset_open_data_pwd
         - name: GRAFANA_ADMIN_PWD
           valueFrom:
             secretKeyRef:

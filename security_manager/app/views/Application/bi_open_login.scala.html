@@ -1,0 +1,20 @@
+@(cookie: Cookie)
+
+
+<html>
+
+<script>
+	function fix(){
+		console.log("setting open bi cookie")
+		var  cookie_name = "@cookie.name"
+		var  cookie_value = "@cookie.value"
+		var  cookie_path = "@cookie.path"
+		var  serviceurl_domain = "@cookie.domain"
+		document.cookie = cookie_name+"="+ cookie_value + "; path="+cookie_path+"; domain="+serviceurl_domain;
+	}
+	fix();
+	</script>
+
+
+<body/>
+</html>

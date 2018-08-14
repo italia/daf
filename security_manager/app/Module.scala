@@ -31,6 +31,7 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
     val tokenExpiration = Option(ConfigReader.tokenExpiration.toLong)
 
     val cacheWrapper = new CacheWrapper(cookieExpiration,tokenExpiration)
+    cacheWrapper.putCredentials(ConfigReader.suspersetOpenDataUser,ConfigReader.suspersetOpenDataPwd)
     bind(classOf[CacheWrapper]).toInstance(cacheWrapper)
 
   }

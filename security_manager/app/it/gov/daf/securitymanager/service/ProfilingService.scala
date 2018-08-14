@@ -2,14 +2,17 @@ package it.gov.daf.securitymanager.service
 
 
 import com.google.inject.{Inject, Singleton}
-import security_manager.yaml.{AclPermission, Error, Success}
+import security_manager.yaml.{AclPermission, DafGroupInfo, Error, Success}
 
 import scala.concurrent.Future
 import cats.implicits._
 import ProcessHandler.{stepOverF, _}
 import cats.data.EitherT
+import it.gov.daf.common.sso.common.{Admin, Role}
 import it.gov.daf.common.utils.WebServiceUtil
+import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import it.gov.daf.securitymanager.service.utilities.RequestContext._
+import it.gov.daf.sso.{ApiClientIPA, OPEN_DATA_GROUP}
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.{JsArray, JsError, JsSuccess}
@@ -18,12 +21,12 @@ import security_manager.yaml.BodyReads._
 import scala.util.{Left, Try}
 
 @Singleton
-class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:ImpalaService,integrationService: IntegrationService){
+class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:ImpalaService,integrationService: IntegrationService, apiClientIPA: ApiClientIPA){
 
 
   private val logger = Logger(this.getClass.getName)
 
-  private def testUser(owner:String ):Future[Either[Error,String]] = {
+  private def testUser(owner:String):Future[Either[Error,String]] = {
 
     Logger.debug(s"testUser owner: $owner")
 
@@ -34,7 +37,49 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
   }
 
-  private def getDatasetInfo(datasetPath:String ):Future[Either[Error,(String,String)]] = {
+
+  private def testIfUserCanGivePermission(ownerOrg:String,groupName:String):Future[Either[Error,String]] = {
+
+    def testIfGroupBelongsToOwnerOrg(parentOrg:Seq[DafGroupInfo]):Future[Either[Error,String]]  = {
+
+      logger.debug(s"testIfGroupBelongsToOwnerOrg DafGroupInfo:  $parentOrg")
+
+      def testIfUserIsOwnerOrgAdmin:Future[Either[Error,String]] = {
+
+        val ownerOrgAdminRole:String=Admin+ownerOrg
+        logger.debug(s"testIfUserIsOwnerOrgAdmin ownerOrgAdminRole: $ownerOrgAdminRole")
+        apiClientIPA.findUser(Left(getUsername())).map {
+          case Right(r) =>  if (r.roles.getOrElse(Seq.empty).contains(ownerOrgAdminRole)) Right("ok")
+                            else{ logger.debug(s"user roles: ${r.roles.getOrElse(Seq.empty)}");Left(Error(Option(1), Some("The user not authorized to give permission outside his organization"), None))}
+          case Left(l) => Left(l)
+        }
+      }
+
+
+      parentOrg match{
+        case Seq(DafGroupInfo(_,_,Some(`ownerOrg`),_)) => Future.successful(Right("ok"))
+        case Seq(DafGroupInfo(_,_,Some(_),_)) | Seq(DafGroupInfo(_,_,None,_)) => testIfUserIsOwnerOrgAdmin
+        case Seq() | Seq(_) => Future.successful(Left(Error(Option(0), Some("Error while collecting group info"), None)))
+      }
+    }
+
+
+    // if the permission are given to others than dataset owner org..
+    if(ownerOrg!=groupName){
+
+      val out = for{
+        groupInfo <- EitherT(apiClientIPA.groupsInfo(Seq(groupName)))
+        b <- EitherT(testIfGroupBelongsToOwnerOrg(groupInfo))
+
+      }yield b
+
+      out.value
+
+    }else Future.successful(Right("ok"))
+
+  }
+
+  private def getDatasetInfo(datasetPath:String ):Future[Either[Error,(String,String,String)]] = {
 
     Logger.debug(s"getDatasetInfo datasetPath: $datasetPath")
 
@@ -136,18 +181,17 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
     val result = for {
 
       test <- stepOverF( verifyPermissionString(permission) )
-      info <- stepOverF( getDatasetInfo(datasetName) ); (datasetPath,owner)=info
+      info <- stepOverF( getDatasetInfo(datasetName) ); (datasetPath,owner,ownerOrg)=info
 
-      j <- stepOverF( testUser(owner) )
+      j0 <- stepOverF( testUser(owner) )
+      j1 <- stepOverF( testIfUserCanGivePermission(ownerOrg,groupName) )
 
-      k <- stepOverF( deletePermissionIfPresent(datasetPath, groupName, groupType) )
+      k <- stepOverF( deletePermissionIfPresent(datasetName, groupName, groupType) )
 
       a <- step( setDatasetHDFSPermission(datasetPath, true, createPermission) )
       b <- step( a, createImpalaGrant(datasetPath, groupName, groupType, permission) )
 
-      c <- step( b, integrationService.createSupersetTable( IntegrationService.toSupersetDS(groupName),
-                                                            Some( toTableName(datasetPath).split('.')(0) ),
-                                                            toTableName(datasetPath).split('.').last) )
+      c <- step( b, createSupersetTable(datasetPath, groupName))
 
       d <- step( c, addAclToCatalog(datasetName, groupName, groupType, permission) )
 
@@ -170,6 +214,27 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
   }
 
+  private def createSupersetTable(datasetPath:String, groupName:String) = {
+    if(groupName != OPEN_DATA_GROUP)
+      integrationService.createSupersetTable( IntegrationService.toSupersetDS(groupName),
+                                              Some(toTableName(datasetPath).split('.')(0)),
+                                              toTableName(datasetPath).split('.').last)
+    else
+      Future.successful{Right(Success(Some("Table creation skipped"),Some("ok")))}
+      //TODO superset role modification
+
+  }
+
+  private def deleteSupersetTable(datasetPath:String, groupName:String) = {
+    if(groupName != OPEN_DATA_GROUP)
+      integrationService.deleteSupersetTable( IntegrationService.toSupersetDS(groupName),
+        Some(toTableName(datasetPath).split('.')(0)),
+        toTableName(datasetPath).split('.').last)
+    else
+      Future.successful{Right(Success(Some("Table delete skipped"),Some("ok")))}
+    //TODO superset role modification
+
+  }
 
   private def deleteAclFromCatalog(datasetName:String, groupName:String, groupType:String ):Future[Either[Error,Success]] = {
 
@@ -212,14 +277,12 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
     val result = for {
 
-      info <- stepOverF( getDatasetInfo(datasetName) ); (datasetPath,owner)=info
+      info <- stepOverF( getDatasetInfo(datasetName) ); (datasetPath,owner,ownerOrg)=info
       a <- step( setDatasetHDFSPermission(datasetPath, true, deletePermission) )
 
       b <- step(a, revokeImpalaGrant(datasetPath, groupName, groupType) )
 
-      c <- step( b, integrationService.deleteSupersetTable( IntegrationService.toSupersetDS(groupName),
-                                                            Some(toTableName( datasetPath).split('.')(0)),
-                                                            toTableName(datasetPath).split('.').last))
+      c <- step(b, deleteSupersetTable( datasetPath,groupName) )
 
       d <- step(c, deleteAclFromCatalog(datasetName, groupName, groupType) )
 
@@ -230,18 +293,19 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
   }
 
-  def deletePermissionFromACL(datasetName:String, groupName:String, groupType:String) :Future[Either[Error,Success]] = {
 
+  def deletePermissionFromACL(datasetName:String, groupName:String, groupType:String) :Future[Either[Error,Success]] = {
 
     val result = for {
 
-      info <- stepOverF( getDatasetInfo(datasetName) ) ; (datasetPath,owner)=info
+      info <- stepOverF( getDatasetInfo(datasetName) ) ; (datasetPath,owner,ownerOrg)=info
 
-      s <- stepOverF( testUser(owner) )
+      a <- stepOverF( testUser(owner) )
+      b <- stepOverF( testIfUserCanGivePermission(ownerOrg,groupName) )
 
-      a <- EitherT( hardDeletePermissionFromACL(datasetName, groupName, groupType) )
+      c <- EitherT( hardDeletePermissionFromACL(datasetName, groupName, groupType) )
 
-    } yield a
+    } yield c
 
     result.value map{
       case Right(r) =>Right(Success(Some("ACL deleted"),Some("ok")))
@@ -249,6 +313,7 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
                       else throw new Exception( s"deletePermissionFromACL process issue: process steps=${l.steps}" )
     }
   }
+
 
   def getPermissions(datasetName:String) :Future[Either[Error,Option[Seq[AclPermission]]]] = {
     //Left if there are errors
@@ -264,35 +329,51 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
     }
   }
 
-  private def checkPermissions(datasetName:String):Future[Either[Error,Success]] = {
+  private def checkPermissions(datasetName:String,groupName:String,groupType:String):Future[Either[Error,Boolean]] = {
 
     // Left errors
     // Left(Error(None, None, None)) no acl
 
     getPermissions(datasetName).map{
-                                      case Right(Some(r)) =>  if(r.length==0) Left(Error(None, None, None))
-                                                              else Right{Success(Some(""), Some(""))}
+                                      case Right(Some(r)) =>  if( r.exists(a => a.groupName.equals(groupName) && a.groupType.equals(groupType)) ) Right(true)
+                                                              else Right(false)
 
-                                      case Right(None) =>  Left(Error(None, None, None))
+                                      //if(r.isEmpty) Left(Error(None, None, None))
+                                      // else Right{Success(Some(""), Some(""))}
+
+                                      case Right(None) =>  Right(false)
 
                                       case Left(l) => Left(l)
                                     }
   }
 
-  private def deletePermissionIfPresent(datasetPath:String, groupName:String, groupType:String) :Future[Either[Error,Success]] = {
+  private def deletePermissionIfPresent(datasetName:String, groupName:String, groupType:String) :Future[Either[Error,Success]] = {
 
-    logger.info(s"deletePermissionIfPresent datasetPath: $datasetPath, groupName: $groupName, groupType: $groupType")
+    logger.info(s"deletePermissionIfPresent datasetName: $datasetName, groupName: $groupName, groupType: $groupType")
 
-    val out = checkPermissions(toDatasetName(datasetPath))
 
-    out flatMap { case Right(_) => hardDeletePermissionFromACL(datasetPath, groupName, groupType) map{
-                                                                                                      case Right(r) =>Right(r.success)
+    for{
+      a <- checkPermissions(datasetName, groupName, groupType)
+      b <- if(a.right.get) hardDeletePermissionFromACL(datasetName, groupName, groupType) map{
+                                                                                                case Right(r) => Right(r.success)
+                                                                                                case Left(l) => if( l.steps == 0 ) Left(l.error)
+                                                                                                else throw new Exception( s"deletePermissionIfPresent process issue: process steps=${l.steps}" )
+                                                                                              }
+           else Future.successful( Right{Success(Some("Nothing todo"), Some("ok"))} )
+    } yield b
+
+    /*
+    val out = checkPermissions(datasetName, groupName, groupType)
+
+
+    out flatMap { case Right(true) => hardDeletePermissionFromACL(datasetName, groupName, groupType) map{
+                                                                                                      case Right(r) => Right(r.success)
                                                                                                       case Left(l) => if( l.steps == 0 ) Left(l.error)
                                                                                                       else throw new Exception( s"deletePermissionIfPresent process issue: process steps=${l.steps}" )
                                                                                                       }
-                  case Left(Error(None, None, None))=> Future.successful( Right{Success(Some("Nothing todo"), Some("ok"))} )
-                  case _ => out
-                }
+                  case Right(false) => Future.successful( Right{Success(Some("Nothing todo"), Some("ok"))} )
+                  case Left(l) => Left(l)
+                }*/
 
   }
 

@@ -46,7 +46,7 @@ import scala.collection.immutable.StringLike
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                                                                                                                        
+    
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -100,6 +100,21 @@ package security_manager.yaml {
           }
           //def a() = {registrationService.checkUserNcreate(user)}
             // ----- End of unmanaged code area for action  Security_managerYaml.createDAFuser
+        }
+        val getDAFGroupsInfo = getDAFGroupsInfoAction { (groups: StringListElem) =>  
+            // ----- Start of unmanaged code area for action  Security_managerYaml.getDAFGroupsInfo
+            execInContext[Future[GetDAFGroupsInfoType[T] forSome { type T }]] ("getDAFGroupsInfo"){ () =>
+
+              if(groups.length>20)
+                GetDAFGroupsInfo500(Error(Option(1), Some("Max 20 entries permitted"), None))
+              else
+                apiClientIPA.groupsInfo(groups) flatMap {
+                  case Right(success) => GetDAFGroupsInfo200(success)
+                  case Left(err) => GetDAFGroupsInfo500(err)
+                }
+
+            }
+            // ----- End of unmanaged code area for action  Security_managerYaml.getDAFGroupsInfo
         }
         val resetpwdconfirm = resetpwdconfirmAction { (resetinfo: ConfirmResetPwdPayload) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.resetpwdconfirm
@@ -180,7 +195,7 @@ package security_manager.yaml {
             execInContext[Future[FindIpauserByNameType[T] forSome { type T }]]("findIpauserByName") { () =>
             val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
 
-              if (userName == credentials.username || CredentialManager.isDafSysAdmin(currentRequest))
+              if (userName == credentials.username || CredentialManager.isDafSysAdmin(currentRequest) || CredentialManager.getUserAdminGroups(currentRequest).nonEmpty)
                 apiClientIPA.findUser(Left(userName)) flatMap {
                   case Right(success) =>  FindIpauserByName200(success)
                   case Left(err) => FindIpauserByName500(err)
@@ -279,7 +294,8 @@ package security_manager.yaml {
                 ).filter(_!=SysAdmin.toString)
 
             if (  CredentialManager.isDafSysAdmin(currentRequest) ||
-                  (CredentialManager.isAdminOfAllThisOrgs(currentRequest,inRoleOrgs.toSeq) && (!inRoles.contains(SysAdmin.toString)) && user.givenname.isEmpty && user.sn.isEmpty)
+                  (CredentialManager.isAdminOfAllThisOrgs(currentRequest,inRoleOrgs.toSeq) && (!inRoles.contains(SysAdmin.toString)) && user.givenname.isEmpty && user.sn.isEmpty) ||
+                  (CredentialManager.readCredentialFromRequest(currentRequest).username.equals(uid) && user.rolesToDelete.isEmpty && user.rolesToDelete.isEmpty)
             )
               registrationService.updateUser(uid, user) flatMap {
                 case Right(success) => UpdateDAFuser200(success)
@@ -334,15 +350,33 @@ package security_manager.yaml {
         val showipagroup = showipagroupAction { (cn: String) =>  
             // ----- Start of unmanaged code area for action  Security_managerYaml.showipagroup
             execInContext[Future[ShowipagroupType[T] forSome { type T }]] ("showipagroup"){ () =>
+
             val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
 
-            if( CredentialManager.isBelongingToOrgAs(currentRequest,cn).nonEmpty || CredentialManager.isDafSysAdmin(currentRequest) )
-              apiClientIPA.showGroup(cn) flatMap {
+
+              def checkPermissions(parentOrg:Option[String],group:IpaGroup):Future[Either[Error,Success]] = {
+
+                if( CredentialManager.isBelongingToOrgAs(currentRequest,cn).nonEmpty ||
+                    CredentialManager.isDafSysAdmin(currentRequest) || cn.equals(sso.OPEN_DATA_GROUP) ||
+                    (parentOrg.nonEmpty && CredentialManager.isBelongingToOrgAs(currentRequest, parentOrg.get).nonEmpty) )
+                  Future.successful( Right(Success(Some("ok"), Some("ok"))) )
+                else
+                  Future.successful( Left(Error(Option(1), Some("Permissions required"), None)) )
+
+              }
+
+
+              val result = for {
+                group <- EitherT( apiClientIPA.showGroup(cn) )
+                parentOrg <- EitherT( apiClientIPA.getWorkgroupOrganization(group) )
+                a <-  EitherT( checkPermissions(parentOrg,group) )
+              } yield group
+
+              result.value flatMap{
                 case Right(success) => Showipagroup200(success)
                 case Left(err) => Showipagroup500(err)
               }
-            else
-              Showipagroup500(Error(Option(1), Some("Admin permissions required"), None))
+
           }
             // ----- End of unmanaged code area for action  Security_managerYaml.showipagroup
         }
@@ -398,14 +432,19 @@ package security_manager.yaml {
           }
             // ----- End of unmanaged code area for action  Security_managerYaml.deleteDAFworkgroup
         }
-        val sftp = sftpAction { (path_to_create: String) =>  
+        val sftp = sftpAction { input: (String, String) =>
+            val (path_to_create, orgName) = input
             // ----- Start of unmanaged code area for action  Security_managerYaml.sftp
             execInContext[Future[SftpType[T] forSome { type T }]] ("sftp"){ () =>
             val credentials = Utils.getCredentials(currentRequest, cacheWrapper )
 
-              val relativePath = path_to_create.split(credentials.get.username)(1).tail
+//              val relativePath = path_to_create.split(credentials.get.username)(1).tail
+              val relativePath = path_to_create.split("ftp")(1).tail
+              logger.debug(s"relative path: $relativePath")
 
-            if (CredentialManager.isDafSysAdmin(currentRequest)) {
+            if (CredentialManager.isDafSysAdmin(currentRequest) ||
+              CredentialManager.isOrgAdmin(currentRequest, orgName) ||
+            CredentialManager.isOrgEditor(currentRequest, orgName)) {
               val result = credentials.flatMap { crd =>
                 val sftpInternal = new SftpHandler(crd.username, crd.password, ConfigReader.sftpHostInternal)
                 val resultInternal = sftpInternal.mkdir(relativePath)

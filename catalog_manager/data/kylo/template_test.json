@@ -151,7 +151,7 @@
       "order": 5,
       "required": false,
       "systemName": "daf_owner",
-      "value": "",
+      "value": "{DAF_USERNAME}",
       "$error": {
         "duplicate": false,
         "missingName": false,
@@ -209,22 +209,12 @@
       "disabled": false
     },
     "schedule": {
-      "disabled": false,
-      "schedulingPeriod": {
-        "disabled": false
-      },
-      "schedulingStrategy": {
-        "disabled": false
-      },
-      "active": {
-        "disabled": false
-      },
-      "executionNode": {
-        "disabled": false
-      },
-      "preconditions": {
-        "disabled": false
-      }
+      "processorId": null,
+      "schedulingPeriod": "5 min",
+      "schedulingStrategy": "TIMER_DRIVEN",
+      "concurrentTasks": 1,
+      "executionNode": "PRIMARY",
+      "preconditions": null
     }
   },
   "totalSteps": 7,

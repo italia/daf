@@ -34,8 +34,11 @@ private class AppConfig @Inject()(playConfig: Configuration) {
   val smtpTestMail:Option[String] = playConfig.getString("smtp.testMail")
 
   val supersetUrl :Option[String] = playConfig.getString("superset.url")
+  val supersetOpenUrl :Option[String] = playConfig.getString("superset.openUrl")
   val suspersetAdminUser:Option[String] = playConfig.getString("superset.adminUser")
   val suspersetAdminPwd:Option[String] = playConfig.getString("superset.adminPwd")
+  val suspersetOpenDataUser:Option[String] = playConfig.getString("superset.openDataUser")
+  val suspersetOpenDataPwd:Option[String] = playConfig.getString("superset.openDataPwd")
   val suspersetDbUri:Option[String] = playConfig.getString("superset.dbUri")
 
   val suspersetOrgAdminRole:Option[String] = playConfig.getString("superset.orgAdminRole")
@@ -86,8 +89,14 @@ object ConfigReader {
   //require(config.defaultOrganization.nonEmpty,"A default organization must be specified")
   require(config.suspersetAdminUser.nonEmpty,"A superset admin must be specified")
   require(config.suspersetAdminPwd.nonEmpty,"A superset admin password must be specified")
+
+  require(config.suspersetOpenDataUser.nonEmpty,"A superset open data user must be specified")
+  require(config.suspersetOpenDataPwd.nonEmpty,"A superset open data user password must be specified")
+
   require(config.suspersetOrgAdminRole.nonEmpty,"A superset organization admin role must be specified")
   require(config.suspersetOpenDataRole.nonEmpty,"A superset open data role must be specified")
+
+  require(config.supersetOpenUrl.nonEmpty,"A superset open data url must be specified")
 
   require(config.suspersetDbUri.nonEmpty,"A superset db uri must be specified")
   require(config.ckanHost.nonEmpty,"A ckan host must be specified")
@@ -154,8 +163,13 @@ object ConfigReader {
   def smtpSender:String = config.smtpSender.getOrElse("xxx")
 
   def supersetUrl:String = config.supersetUrl.getOrElse("xxx")
+  def supersetOpenUrl:String = config.supersetOpenUrl.get
+
   def suspersetAdminUser:String = config.suspersetAdminUser.get
   def suspersetAdminPwd:String = config.suspersetAdminPwd.get
+  def suspersetOpenDataUser:String = config.suspersetOpenDataUser.get
+  def suspersetOpenDataPwd:String = config.suspersetOpenDataPwd.get
+
   def suspersetOrgAdminRole:String = config.suspersetOrgAdminRole.get
   def suspersetOpenDataRole:String = config.suspersetOpenDataRole.get
 

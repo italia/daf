@@ -7,12 +7,14 @@ import com.mongodb.casbah.query.Imports.DBObject
 import com.mongodb.{BasicDBObject, ServerAddress}
 import com.mongodb.casbah.{Imports, MongoClient, MongoCredential}
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
+import it.gov.daf.sso
 import play.api.Logger
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsNull, JsValue, Json}
 import security_manager.yaml.IpaUser
 
 object MongoService {
 
+  private val logger = Logger(this.getClass.getName)
 
   private val server = new ServerAddress(ConfigReader.getDbHost, ConfigReader.getDbPort)
   private val userName = ConfigReader.userName
@@ -52,13 +54,13 @@ object MongoService {
     if(coll.isEmpty) {
       try
         coll.underlying.createIndex(new BasicDBObject("createdOn", 1), new BasicDBObject("expireAfterSeconds", ttl))
-      catch{ case e:Exception => Logger.logger.warn("Index already created") }
+      catch{ case e:Exception => logger.warn("Index already created") }
     }
 
     val inserted = coll.insert(document)
     //mongoClient.close()
 
-    Logger.logger.debug( "mongo write result: "+inserted )
+    logger.debug( "mongo write result: "+inserted )
 
     if(! inserted.isUpdateOfExisting )
       Right("ok")
@@ -73,11 +75,23 @@ object MongoService {
 
     val query = MongoDBObject("dcatapit.name" -> datasetName)
     val aclPermission = MongoDBObject("groupName"->groupName,"groupType"->groupType,"permission"->permission)
-    val update = Imports.$addToSet("operational.acl" -> aclPermission )
-    updateData( query, update, CATALOG_COLLECTION_NAME )
+
+
+    val updates = MongoDBObject("$addToSet" -> MongoDBObject("operational.acl" -> aclPermission))
+
+    /*if(groupName==sso.OPEN_DATA_GROUP)
+                    MongoDBObject("$addToSet" -> MongoDBObject("operational.acl" -> aclPermission),"$set" -> MongoDBObject("dcatapit.privatex" -> false))
+                  else
+                    MongoDBObject("$addToSet" -> MongoDBObject("operational.acl" -> aclPermission))*/
+
+    if(groupName==sso.OPEN_DATA_GROUP)
+      updates.put( "$set", MongoDBObject("dcatapit.privatex" -> false) )
+
+    updateData( query, updates, CATALOG_COLLECTION_NAME )
 
   }
 
+  /*
   def removeACL( datasetName:String, groupName:String, groupType:String, permission:String ): Either[String,String] = {
 
     val query = MongoDBObject("dcatapit.name" -> datasetName)
@@ -85,7 +99,8 @@ object MongoService {
     val update = Imports.$pull("operational.acl" -> aclPermission )
     updateData( query, update, CATALOG_COLLECTION_NAME )
 
-  }
+  }*/
+
 
   def removeAllACL( datasetName:String, groupName:String, groupType:String ): Either[String,String] = {
 
@@ -94,8 +109,13 @@ object MongoService {
     val aclPermission = MongoDBObject("groupName"->groupName,"groupType"->groupType,"permission"->Permission.read.toString)
     val aclPermission2 = MongoDBObject("groupName"->groupName,"groupType"->groupType,"permission"->Permission.readWrite.toString)
 
-    val update = Imports.$pullAll("operational.acl" -> Seq(aclPermission,aclPermission2))
-    updateData( query, update, CATALOG_COLLECTION_NAME )
+    //val update = Imports.$pullAll("operational.acl" -> Seq(aclPermission,aclPermission2))
+
+    val updates = MongoDBObject("$pullAll" -> MongoDBObject("operational.acl" -> Seq(aclPermission,aclPermission2)) )
+    if(groupName==sso.OPEN_DATA_GROUP)
+      updates.put( "$set", MongoDBObject("dcatapit.privatex" -> true) )
+
+    updateData( query, updates, CATALOG_COLLECTION_NAME )
 
   }
 
@@ -105,32 +125,32 @@ object MongoService {
     val result = findData( CATALOG_COLLECTION_NAME, "dcatapit.name", datasetName  )
     result match{
       case Right(json) => ((json \ "operational") \ "acl").toOption match{
-        case Some(x) => Right(Some(x))
-        case None =>  Logger.logger.warn( "No Acl found: "+result )
-                      Right(None)
+        case Some(JsNull) | None =>  logger.warn( "No Acl found: "+result ); Right(None)
+        case Some(x) => logger.debug( "Query result: "+x ); Right(Some(x))
       }
       case Left(l) => Left(l)
     }
 
   }
 
-  def getDatasetInfo(datasetName:String): Either[String,(String,String)] = {
+  def getDatasetInfo(datasetName:String): Either[String,(String,String,String)] = {
 
     val result = findData(CATALOG_COLLECTION_NAME ,"dcatapit.name", datasetName)
     result match{
-      case Right(json) => val out = ( (json \ "operational" \ "physical_uri").asOpt[String], (json \ "dcatapit" \ "author").asOpt[String] )
+      case Right(json) => val out = ( (json \ "operational" \ "physical_uri").asOpt[String], (json \ "dcatapit" \ "author").asOpt[String],(json \ "dcatapit" \ "owner_org").asOpt[String] )
                           out match{
-                            case (Some(x), Some(y)) => Right((x,y))
-                            case _ =>  Logger.logger.warn( "No data found: "+result ); Left("No dataset found")
+                            case (Some(x), Some(y), Some(z)) => Right((x,y,z))
+                            case _ =>  logger.warn( "No data found: "+result ); Left("No dataset found")
                           }
       case Left(l) => Left(l)
     }
 
   }
 
-  private def updateData( query:DBObject, update:DBObject, collectionName:String )={
 
-    Logger.logger.debug(s"Mongo update, collection: $collectionName, query: $query, update: $update")
+  private def updateData( query:DBObject, update:DBObject,collectionName:String )={
+
+    logger.debug(s"Mongo update, collection: $collectionName, query: $query, update: $update")
 
     //val mongoClient = MongoClient( server, List(credentials) )
     val db = mongoClient(dbName)
@@ -139,7 +159,7 @@ object MongoService {
     val updated = coll.update(query, update)
     //mongoClient.close()
 
-    Logger.logger.debug( "mongo update result: "+updated )
+    logger.debug( "mongo update result: "+updated )
 
     if(updated.isUpdateOfExisting)
       Right("Mongo update: success")
@@ -181,7 +201,7 @@ object MongoService {
 
     val query = MongoDBObject(filterAttName -> filterValue)
 
-    Logger.logger.debug("Mongo query "+query)
+    logger.debug("Mongo query "+query)
 
     val result = coll.findOne(query)
     //mongoClient.close
@@ -191,7 +211,7 @@ object MongoService {
         val jsonString = com.mongodb.util.JSON.serialize(x)
         Right(Json.parse(jsonString))
       }
-      case None => Left(s"Data in $collectionName not found")
+      case None => Left(s"Data in $collectionName not found. Query: $query")
     }
 
   }

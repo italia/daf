@@ -41,8 +41,6 @@ import it.gov.daf.common.sso.common.CredentialManager
 import play.api.Logger
 import yaml.ResponseWrites.MetaCatalogWrites.writes
 import play.api.mvc.Headers
-import it.gov.daf.common.sso.common
-import it.gov.daf.common.sso.common
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -51,7 +49,7 @@ import it.gov.daf.common.sso.common
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-        
+
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -161,12 +159,12 @@ package catalog_manager.yaml {
         val createdatasetcatalogExtOpenData = createdatasetcatalogExtOpenDataAction { (catalog: MetaCatalog) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalogExtOpenData
             val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
-            //TODO aggiungere l'editor
-            if( CredentialManager.isDafSysAdmin(currentRequest) ) {
+            val datasetOrg = catalog.dcatapit.owner_org.getOrElse("EMPTY ORG!")
+            if( CredentialManager.isDafSysAdmin(currentRequest) || CredentialManager.isOrgEditor(currentRequest, datasetOrg) || CredentialManager.isOrgAdmin(currentRequest, datasetOrg)) {
                 val created: Success = ServiceRegistry.catalogService.createCatalogExtOpenData(catalog, Option(credentials.username), ws)
                 CreatedatasetcatalogExtOpenData200(created)
             }else
-                CreatedatasetcatalogExtOpenData401("System Admin permissions required")
+                CreatedatasetcatalogExtOpenData401("authentication required")
             // ----- End of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalogExtOpenData
         }
         val getckandatasetList = getckandatasetListAction {  _ =>  
@@ -292,7 +290,7 @@ package catalog_manager.yaml {
             val result = ServiceRegistry.catalogRepository.isDatasetOnCatalog(name)
             result match {
                 case Some(true) => IsPresentOnCatalog200(Success("is present", Some(name)))
-                case _ => IsPresentOnCatalog401(s"$name non presente")
+                case _ => IsPresentOnCatalog404(s"$name non presente")
 
             }          //  NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.isPresentOnCatalog
@@ -306,6 +304,7 @@ package catalog_manager.yaml {
                 //If(!created.message.equals("Error")) sendMessaggeKafkaProxy(credentials.username, catalog)
                 //sendMessaggeKafkaProxy(credentials.username, catalog)
                 //logger.info("sending to kafka")
+                logger.debug("create catalog")
                 Createdatasetcatalog200(catalog_manager.yaml.Success("created",Option("created")) )
             }else
                 Createdatasetcatalog401(s"Admin or editor permissions required (organization: $datasetOrg)")
@@ -558,14 +557,38 @@ package catalog_manager.yaml {
 
 
             // TODO use only one match case
-            val ingest = feed.operational.input_src.sftp match {
-                case None => "ws"
-                case Some(_) => "sftp"
+//            val ingest = feed.operational.input_src.sftp match {
+//                case None => "ws"
+//                case Some(_) => "sftp"
+//            }
+
+            //InputSrc(sftp: InputSrcSftp, srv_pull: InputSrcSrv_push, srv_push: InputSrcSrv_push, daf_dataset: InputSrcDaf_dataset)
+            val ingest = feed.operational.input_src match {
+                case  InputSrc(Some(_), None, None, _) => "sftp"
+                case  InputSrc(None, Some(_), None, _) => "srv_pull"
+                case  InputSrc(None, None, Some(_), _) => "srv_push"
             }
 
+            val user = CredentialManager.readCredentialFromRequest(currentRequest).username
+
+            val domain = feed.operational.theme
+            val subDomain = feed.operational.subtheme
+            val dsName = feed.dcatapit.name
+
+
+            val path = ingest match {
+                case "srv_push" => s"/uploads/$user/$domain/$subDomain/$dsName"
+                case _ => s"/home/$user/ftp/$domain/$subDomain/$dsName"
+            }
+
+            logger.debug(s"$ingest: $path")
+
+//            val sftPath = s"/home/$user/ftp/$domain/$subDomain/$dsName"
+
             val templateProperties = ingest match {
-                case "sftp" => kylo.datasetIngest(file_type, feed)
-                case "ws" => kylo.wsIngest(file_type, feed)
+                case "sftp" => kylo.sftpRemoteIngest(file_type, path)
+                case "srv_pull" => kylo.wsIngest(file_type, feed)
+                case "srv_push" => kylo.hdfsIngest(file_type, path)
             }
 
             val categoryFuture = kylo.categoryFuture(feed)
@@ -578,17 +601,11 @@ package catalog_manager.yaml {
                 streamKyloTemplate.close()
             }
 
-            val user = CredentialManager.readCredentialFromRequest(currentRequest).username
+//            val sftPath =  URLEncoder.encode(s"/home/$user/$domain/$subDomain/$dsName", "UTF-8")
 
-            val domain = feed.operational.theme
-            val subDomain = feed.operational.subtheme
-            val dsName = feed.dcatapit.name
+//            logger.info(currentRequest.headers.get("authorization").get)
 
-            val sftPath =  URLEncoder.encode(s"/home/$user/$domain/$subDomain/$dsName", "UTF-8")
-
-            logger.info(currentRequest.headers.get("authorization").get)
-
-            val createDir = ws.url("http://security-manager.default.svc.cluster.local:9000/security-manager/v1/sftp/init/" + sftPath)
+            val createDir = ws.url("http://security-manager.default.svc.cluster.local:9000/security-manager/v1/sftp/init/" + URLEncoder.encode(path, "UTF-8") + s"?orgName=${feed.dcatapit.owner_org.get}")
                   .withHeaders(("authorization", currentRequest.headers.get("authorization").get))
 
             //val trasformed = kyloTemplate.transform(KyloTrasformers.feedTrasform(feed))
@@ -596,7 +613,7 @@ package catalog_manager.yaml {
             val kyloSchema = feed.dataschema.kyloSchema.get
             val inferJson = Json.parse(kyloSchema)
 
-            val feedCreation  = ws.url(KYLOURL + "/api/v1/feedmgr/feeds")
+            val feedCreation = ws.url(KYLOURL + "/api/v1/feedmgr/feeds")
               .withAuth(KYLOUSER, KYLOPWD, WSAuthScheme.BASIC)
 
             val feedData = for {
@@ -619,6 +636,8 @@ package catalog_manager.yaml {
                 case s: JsSuccess[JsValue] => logger.debug(Json.stringify(s.get));feedCreation.post(s.get)
                 case e: JsError => throw new Exception(JsError.toJson(e).toString())
             }
+
+            createFeed onComplete(r => Logger.logger.debug(s"kyloResp: ${r.get.status}"))
 
             val result = createFeed.flatMap {
                 // Assuming status 200 (OK) is a valid result for you.

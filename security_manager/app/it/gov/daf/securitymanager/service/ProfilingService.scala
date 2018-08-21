@@ -21,7 +21,7 @@ import security_manager.yaml.BodyReads._
 import scala.util.{Left, Try}
 
 @Singleton
-class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:ImpalaService,integrationService: IntegrationService, apiClientIPA: ApiClientIPA){
+class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:ImpalaService,integrationService: IntegrationService, apiClientIPA: ApiClientIPA,supersetApiClient: SupersetApiClient){
 
 
   private val logger = Logger(this.getClass.getName)
@@ -215,24 +215,41 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
   }
 
   private def createSupersetTable(datasetPath:String, groupName:String) = {
+
+    val dbName = IntegrationService.toSupersetDS(groupName)
+    val schemaName = Some(toTableName(datasetPath).split('.')(0))
+    val tableName = toTableName(datasetPath).split('.').last
+
     if(groupName != OPEN_DATA_GROUP)
-      integrationService.createSupersetTable( IntegrationService.toSupersetDS(groupName),
-                                              Some(toTableName(datasetPath).split('.')(0)),
-                                              toTableName(datasetPath).split('.').last)
+      integrationService.createSupersetTable(dbName, schemaName, tableName)
     else
-      Future.successful{Right(Success(Some("Table creation skipped"),Some("ok")))}
-      //TODO superset role modification
+      supersetApiClient.addTablesPermissionToRole(schemaName, tableName ,ConfigReader.suspersetOpenDataRole)
 
   }
 
   private def deleteSupersetTable(datasetPath:String, groupName:String) = {
+
+    val dbName = IntegrationService.toSupersetDS(groupName)
+    val schemaName = Some(toTableName(datasetPath).split('.')(0))
+    val tableName = toTableName(datasetPath).split('.').last
+
     if(groupName != OPEN_DATA_GROUP)
-      integrationService.deleteSupersetTable( IntegrationService.toSupersetDS(groupName),
-        Some(toTableName(datasetPath).split('.')(0)),
-        toTableName(datasetPath).split('.').last)
+      integrationService.deleteSupersetTable(dbName, schemaName, tableName)
     else
-      Future.successful{Right(Success(Some("Table delete skipped"),Some("ok")))}
-    //TODO superset role modification
+      supersetApiClient.removeTablesPermissionFromRole(schemaName, tableName ,ConfigReader.suspersetOpenDataRole)
+
+  }
+
+  private def testSupersetDeleteTable(datasetPath:String, groupName:String) = {
+
+      val dbName = IntegrationService.toSupersetDS(groupName)
+      val schemaName = Some(toTableName(datasetPath).split('.')(0))
+      val tableName = toTableName(datasetPath).split('.').last
+
+      if(groupName != OPEN_DATA_GROUP)
+        integrationService.testSupersetTableDelete(dbName, schemaName, tableName)
+      else
+        Future.successful{Right(Success(Some("ok"),Some("ok")))}
 
   }
 
@@ -282,7 +299,7 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
       b <- step(a, revokeImpalaGrant(datasetPath, groupName, groupType) )
 
-      c <- step(b, deleteSupersetTable( datasetPath,groupName) )
+      c <- step(b, deleteSupersetTable(datasetPath,groupName) )
 
       d <- step(c, deleteAclFromCatalog(datasetName, groupName, groupType) )
 
@@ -302,6 +319,8 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
       a <- stepOverF( testUser(owner) )
       b <- stepOverF( testIfUserCanGivePermission(ownerOrg,groupName) )
+      b1 <- stepOverF( testSupersetDeleteTable(datasetPath,groupName) )
+
 
       c <- EitherT( hardDeletePermissionFromACL(datasetName, groupName, groupType) )
 

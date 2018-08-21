@@ -126,7 +126,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
   }
 
 
-  private def findRole(roleName: String, permissionMap:Map[String,Long]): Future[Either[Error, SupersetRoleWithPermissionIds]] = {
+  private def findRoleWithPermissions(roleName: String, permissionMap:Map[String,Long]): Future[Either[Error, SupersetRoleWithPermissionIds]] = {
 
 
     def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
@@ -195,26 +195,130 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
     Logger.logger.debug("listPermission")
 
 
-    def handleJson(json:JsValue)= json.validate[Map[String,Long]] match {
-      case s: JsSuccess[Map[String,Long]] => Right(s.value)
-      case e: JsError => Left(Error(Option(0), Some("Error in listPermission"), None))
+    def handleJson(json:JsValue)= json.validate[Seq[JsObject]] match {
+      case JsSuccess(value,pth) => Right(value.map( elem => (((elem \ "text").as[String]),((elem \ "id").as[Long]))).toMap)
+      case JsError(e) => Left(Error(Option(0), Some(s"Error in listPermission: $e"), None))
     }
 
     handleServiceCall(serviceInvoke,handleJson)
 
   }
 
-  def addPermissionToRole(permissionName:String,roleName:String):Future[Either[Error, Success]]={
+
+  def addTablePermissionToRole(dbName:String,schemaName:Option[String],tableName:String,roleName:String):Future[Either[Error, Success]]={
 
     val result = for{
-      permissionMap <- EitherT(getPermissionMap())
-      supersetRoleInfo <- EitherT(findRole(roleName,permissionMap))
-      userList <- EitherT(findUserIdsOfRole(supersetRoleInfo.role.id));
-      out <- EitherT(updateRole(SupersetRoleWithUsersAndPermissionIds(supersetRoleInfo.role,permissionMap(permissionName)::supersetRoleInfo.permissions,userList)))
+
+      dbId <- EitherT(findDatabaseId(dbName))
+      tableId <- EitherT(findTableId(dbId,schemaName,tableName))
+
+      out <- EitherT(addPermissionsToRole(List(toPermissionName(Some(dbName),tableName,tableId)),roleName))
     } yield out
 
     result.value
   }
+
+  def removeTablePermissionFromRole(dbName:String,schemaName:Option[String],tableName:String,roleName:String):Future[Either[Error, Success]]={
+
+    val result = for{
+
+      dbId <- EitherT(findDatabaseId(dbName))
+      tableId <- EitherT(findTableId(dbId,schemaName,tableName))
+
+      out <- EitherT(removePermissionsFromRole(List(toPermissionName(Some(dbName),tableName,tableId)),roleName))
+    } yield out
+
+    result.value
+  }
+
+  def addTablesPermissionToRole(schemaName:Option[String],tableName:String,roleName:String):Future[Either[Error, Success]]={
+
+    val result = for{
+      tablesId <- EitherT(findTablesId(schemaName,tableName))
+      out <- EitherT(addPermissionsToRole(tablesId.toList.map(toPermissionName(None,tableName,_)),roleName))
+    } yield out
+
+    result.value
+  }
+
+  def removeTablesPermissionFromRole(schemaName:Option[String],tableName:String,roleName:String):Future[Either[Error, Success]]={
+
+    val result = for{
+      tablesId <- EitherT(findTablesId(schemaName,tableName))
+      out <- EitherT(removePermissionsFromRole(tablesId.toList.map(toPermissionName(None,tableName,_)),roleName))
+    } yield out
+
+    result.value
+  }
+
+
+  private def toPermissionName(dbName:Option[String],tableName:String,tableId:Long) = {
+
+    val prefix = dbName match{
+      case Some(x) => s"datasource access on [$x]"
+      case None => ""
+    }
+
+    s"$prefix.[$tableName](id:$tableId)"
+
+  }
+
+  private def getIdsFromMap( permissionNames:List[String], permissionMap:Map[String,Long] ):List[Long]={
+
+    permissionNames.map{ elem =>
+
+      if(elem.startsWith("datasource access")) permissionMap(elem)
+      else{
+        val filteredMap = permissionMap.filter(_._1.endsWith(elem))
+
+        if(filteredMap.size>1)
+          Logger.logger.error("getIdsFromMap return more than one element")
+
+        filteredMap.values.head
+      }
+    }
+
+  }
+
+
+  private def addPermissionsToRole(permissionsName:List[String],roleName:String):Future[Either[Error, Success]]={
+
+    val result = for{
+
+      permissionMap <- EitherT(getPermissionMap())
+      supersetRoleInfo <- EitherT(findRoleWithPermissions(roleName,permissionMap))
+      userList <- EitherT(findUserIdsOfRole(supersetRoleInfo.role.id))
+      out <- EitherT(updateRole(SupersetRoleWithUsersAndPermissionIds(supersetRoleInfo.role,getIdsFromMap(permissionsName,permissionMap):::supersetRoleInfo.permissions,userList)))
+    } yield out
+
+    result.value
+  }
+
+  private def removePermissionsFromRole(permissionsName:List[String],roleName:String):Future[Either[Error, Success]]={
+
+    val result = for{
+
+      permissionMap <- EitherT(getPermissionMap())
+      supersetRoleInfo <- EitherT(findRoleWithPermissions(roleName,permissionMap))
+      userList <- EitherT(findUserIdsOfRole(supersetRoleInfo.role.id))
+      //newPermissions <-EitherT(removePermission(permissionsId,supersetRoleInfo.permissions))
+      out <- EitherT(updateRole(SupersetRoleWithUsersAndPermissionIds(supersetRoleInfo.role,supersetRoleInfo.permissions diff getIdsFromMap(permissionsName,permissionMap),userList)))
+    } yield out
+
+    result.value
+  }
+
+/*
+  private def removePermission(permsId:List[Long], permissionList:List[Long]):Future[Either[Error, List[Long]]] = {
+
+    Future.successful{
+      if(!permissionList.contains(permId))
+        Left(Error(Option(0), Some(s"Permission $permId not present in role"), None))
+      else
+        Right( permissionList.filterNot(_ == permId) )
+    }
+
+  }*/
 
   /*
   private def findSupersetRoleWithUsers(roleName:String): Future[Either[Error, SupersetRoleWithUsersAndPermissionIds]] ={
@@ -435,7 +539,41 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
   }
 
-  def findDbTables(dbId:Long):Future[Either[Error,Seq[String]]] = {
+
+  def findTableSlices(tableId:Long):Future[Either[Error,Success]]={
+
+    def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
+
+      wSClient.url(ConfigReader.supersetUrl + s"/slicemodelview/api/read").withHeaders("Content-Type" -> "application/json",
+        "Accept" -> "application/json",
+        "Cookie" -> sessionCookie
+      ).get
+    }
+
+    Logger.logger.debug("findTableSlices tableId: " + tableId)
+
+
+    def handleJson(json:JsValue)={
+
+      (json \ "result").validate[Seq[JsObject]] match {
+
+        case JsSuccess(value,pth) =>  val test = value.forall{ elem =>
+                                                              val link = (elem \ "datasource_link").asOpt[String].getOrElse("")
+                                                              !link.contains(s"""/$tableId/""")
+                                                            }
+                                      if(test) Right(Success(Some("ok"), Some("ok")))
+                                      else Left(Error(Option(1), Some("Table have attacched slices"), None))
+
+        case JsError(e) => Left(Error(Option(0), Some("Error in findTableSlices"), None))
+      }
+    }
+
+    handleServiceCall(serviceInvoke,handleJson)
+
+  }
+
+
+  def findDbTables(dbId:Long):Future[Either[Error,Seq[(Long,String)]]] = {
 
     def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
 
@@ -451,7 +589,7 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
     def handleJson(json:JsValue)={
 
       json.validate[Seq[JsObject]] match {
-        case JsSuccess(value,pth) => Right( value.map{ elem => (elem \ "text").as[String]} )
+        case JsSuccess(value,pth) => Right( value.map{ elem => ((elem \ "id").as[Long],(elem \ "text").as[String])} )
         case JsError(e) => Right(Seq())
       }
     }
@@ -462,14 +600,14 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
 
 
 
-  def checkTable(dbId:Long, schema:Option[String], tableName:String):Future[Either[Error,Long]] = {
+  def findTableId(dbId:Long, schema:Option[String], tableName:String):Future[Either[Error,Long]] = {
 
     def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
 
       val schemaParam= if(schema.nonEmpty) s"&_flt_3_schema=${schema.get}" else ""
       val url = ConfigReader.supersetUrl + s"/tablemodelview/api/readvalues?_flt_0_database=$dbId&_flt_3_table_name=$tableName$schemaParam"
 
-      Logger.logger.debug("checkTable url: " + url)
+      Logger.logger.debug("findTableId url: " + url)
 
       wSClient.url(url).withHeaders("Content-Type" -> "application/json",
         "Accept" -> "application/json",
@@ -482,6 +620,33 @@ class SupersetApiClient @Inject()(secInvokeManager: SecuredInvocationManager){
       (json(0) \ "id").validate[Long] match {
         case s: JsSuccess[Long] =>  Right(s.value)
         case e: JsError =>  Left(Error(Option(1), Some("Table does not exists"), None))
+      }
+    }
+
+    handleServiceCall(serviceInvoke,handleJson)
+
+  }
+
+  def findTablesId(schema:Option[String], tableName:String):Future[Either[Error,Seq[Long]]] = {
+
+    def serviceInvoke(sessionCookie: String, wSClient: WSClient): Future[WSResponse] = {
+
+      val schemaParam= if(schema.nonEmpty) s"&_flt_3_schema=${schema.get}" else ""
+      val url = ConfigReader.supersetUrl + s"/tablemodelview/api/readvalues?_flt_3_table_name=$tableName$schemaParam"
+
+      Logger.logger.debug("findTablesId url: " + url)
+
+      wSClient.url(url).withHeaders("Content-Type" -> "application/json",
+        "Accept" -> "application/json",
+        "Cookie" -> sessionCookie
+      ).get
+    }
+
+    def handleJson(json:JsValue)={
+
+      json.validate[Seq[JsObject]] match {
+        case JsSuccess(value,pth) => Right( value.map{ elem => (elem \ "id").as[Long]} )
+        case JsError(e) => Right(Seq())
       }
     }
 

@@ -491,7 +491,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
     val result = for {
       dbId <-  EitherT( supersetApiClient.findDatabaseId(dbName) )
       a <-  EitherT( supersetApiClient.createTable(dbId,schema,tableName) )
-      b <- EitherT( supersetApiClient.checkTable(dbId,schema,tableName) )
+      b <- EitherT( supersetApiClient.findTableId(dbId,schema,tableName) )
     } yield b
 
 
@@ -509,13 +509,31 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
 
     val result = for {
       dbId <-  EitherT( supersetApiClient.findDatabaseId(dbName) )
-      tableId <-  EitherT( supersetApiClient.checkTable(dbId,schema,tableName) )
+      tableId <-  EitherT( supersetApiClient.findTableId(dbId,schema,tableName) )
       b <- EitherT( supersetApiClient.deleteTable(tableId) )
     } yield b
 
 
     result.value.map{
       case Right(r) => Right( Success(Some("Table deleted"), Some("ok")) )
+      case Left(l) => Left(l)
+    }
+
+  }
+
+  def testSupersetTableDelete(dbName:String, schema:Option[String], tableName:String):Future[Either[Error,Success]] = {
+
+    logger.info(s"testSupersetTableDelete dbName=$dbName schema=$schema tableName=$tableName")
+
+    val result = for {
+      dbId <-  EitherT( supersetApiClient.findDatabaseId(dbName) )
+      tableId <-  EitherT( supersetApiClient.findTableId(dbId,schema,tableName) )
+      a <- EitherT( supersetApiClient.findTableSlices(tableId) )
+    } yield a
+
+
+    result.value.map{
+      case Right(r) => Right( Success(Some("ok"), Some("ok")) )
       case Left(l) => Left(l)
     }
 
@@ -528,7 +546,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
     val result = for {
       dbId <-  EitherT( supersetApiClient.findDatabaseId(toSupersetDS(orgName)) )
       a <-  EitherT( supersetApiClient.findDbTables(dbId) )
-    } yield a
+    } yield a.map(_._2)
 
     result.value
 

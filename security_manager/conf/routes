@@ -38,7 +38,7 @@ GET         /sso-manager/secured/test                                   controll
 GET         /sso-manager/internal/retriveCookie/:appName                controllers.SSOController.retriveCookieInternal(username:String,appName:String)
 GET         /sso-manager/internal/retriveAdminCookie/:appName           controllers.SSOController.retriveAdminCookieInternal(appName:String)
 
-POST        /sso-manager/managed/bi-open-login                         controllers.SSOController.biOpenLogin
+POST        /sso-manager/managed/bi-open-login                          controllers.SSOController.biOpenLogin
 
 GET         /hdfs/retriveACL/*path                                      controllers.HdfsController.retriveACL(path:String)
 
@@ -51,5 +51,8 @@ POST        /hdfs/proxy/                                                controll
 DELETE      /hdfs/proxy/*path                                           controllers.HdfsController.callWebHdfs(path:String)
 DELETE      /hdfs/proxy/                                                controllers.HdfsController.callWebHdfs(path:String="")
 
-
+# Migration services
+POST        /migration/createRole/:roleName                             controllers.MigrationController.createRole(roleName:String)
+POST        /migration/createHDFShomeDir/:userId                        controllers.MigrationController.createHDFShomeDir(userId:String)
+POST        /migration/createImpalaRole                                 controllers.MigrationController.createImpalaRole
 

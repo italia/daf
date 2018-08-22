@@ -313,7 +313,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
       case WorkGroup(_) => parentGroup match{
                                               case Some(x) => Some(Seq(WORKGROUPS_GROUP,x.toString))
                                               case None => None// must raise an error (see testEmptyness)
-      }
+                                            }
       case RoleGroup(_) => Some(Seq(ROLES_GROUP))
     }
 

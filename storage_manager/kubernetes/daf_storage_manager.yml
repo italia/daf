@@ -139,6 +139,14 @@ spec:
       - name: hbaseconf
         hostPath:
           path: /etc/hbase/conf
-      nodeSelector:
-        nifi: "false"
-        edge: "true"
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                - key: "nifi"
+                  operator: NotIn
+                  values: ["true"]
+                - key: "edge"
+                  operator: In
+                  values: ["true"]

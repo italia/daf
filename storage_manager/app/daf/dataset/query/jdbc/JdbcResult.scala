@@ -42,17 +42,18 @@ case class JdbcResult(header: Header, rows: Vector[Row]) {
   private val index = header.zipWithIndex.map { case (col, i) => i -> col}.toMap[Int, String]
 
   private def anyJson(value: Any): Trampoline[JsValue] = value match {
-    case number: JavaInteger       => Free.pure[Try, JsValue]  { JsNumber(BigDecimal(number)) }
-    case number: JavaLong          => Free.pure[Try, JsValue]  { JsNumber(BigDecimal(number)) }
-    case number: JavaDouble        => Free.pure[Try, JsValue]  { JsNumber(BigDecimal(number)) }
-    case number: JavaFloat         => Free.pure[Try, JsValue]  { JsNumber(BigDecimal.decimal(number)) }
-    case boolean: JavaBoolean      => Free.pure[Try, JsValue]  { JsBoolean(Boolean.unbox(boolean)) }
-    case s: String                 => Free.pure[Try, JsValue]  { JsString(s) }
-    case _: JdbcArray | _: JdbcStruct => Free.defer[Try, JsValue] { complexJson(value) }
+    case null                      => Free.pure[Try, JsValue] { JsNull }
+    case number: JavaInteger       => Free.pure[Try, JsValue] { JsNumber(BigDecimal(number)) }
+    case number: JavaLong          => Free.pure[Try, JsValue] { JsNumber(BigDecimal(number)) }
+    case number: JavaDouble        => Free.pure[Try, JsValue] { JsNumber(BigDecimal(number)) }
+    case number: JavaFloat         => Free.pure[Try, JsValue] { JsNumber(BigDecimal.decimal(number)) }
+    case boolean: JavaBoolean      => Free.pure[Try, JsValue] { JsBoolean(Boolean.unbox(boolean)) }
+    case s: String                 => Free.pure[Try, JsValue] { JsString(s) }
     case seq: Seq[_]               => Free.defer[Try, JsValue] { complexJson(seq) }
     case timestamp: Timestamp      => Free.pure[Try, JsValue]  {
       JsString { timestamp.toLocalDateTime.atOffset(ZoneOffset.UTC).format { DateTimeFormatter.ISO_OFFSET_DATE_TIME } }
     }
+    case _: JdbcArray | _: JdbcStruct => Free.defer[Try, JsValue] { complexJson(value) }
     case _                         => recursionError[JsValue] { new RuntimeException(s"Unable to convert jdbc value of type [${value.getClass.getName}] to JSON") }
   }
 

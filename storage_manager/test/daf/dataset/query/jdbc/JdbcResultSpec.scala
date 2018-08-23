@@ -17,11 +17,10 @@
 package daf.dataset.query.jdbc
 
 import java.sql.Timestamp
-import java.time.{ LocalDateTime, OffsetDateTime, ZoneOffset }
-import java.util.TimeZone
+import java.time.{ LocalDateTime, OffsetDateTime }
 
 import org.scalatest.{ MustMatchers, WordSpec }
-import play.api.libs.json.{ JsBoolean, JsNumber, JsObject, JsString }
+import play.api.libs.json._
 
 class JdbcResultSpec extends WordSpec with MustMatchers {
 
@@ -32,7 +31,8 @@ class JdbcResultSpec extends WordSpec with MustMatchers {
         List(
           """"int", "string", "bool", "timestamp"""",
           """1, "str1", true, "2018-06-25T09:00:00Z"""",
-          """2, "str2", false, "2018-06-25T09:30:00Z""""
+          """2, "str2", false, "2018-06-25T09:30:00Z"""",
+          """<null>, <null>, false, <null>"""
         )
       }
     }
@@ -54,6 +54,14 @@ class JdbcResultSpec extends WordSpec with MustMatchers {
               "string"    -> JsString("str2"),
               "bool"      -> JsBoolean(false),
               "timestamp" -> JsString("2018-06-25T09:30:00Z")
+            )
+          },
+          JsObject {
+            Seq(
+              "int"       -> JsNull,
+              "string"    -> JsNull,
+              "bool"      -> JsBoolean(false),
+              "timestamp" -> JsNull
             )
           }
         )
@@ -84,6 +92,12 @@ object JdbcResults {
         "str2",
         Boolean.box(false),
         timestamp { LocalDateTime.of(2018, 6, 25, 9, 30) }
+      ),
+      List(
+        null,
+        null,
+        Boolean.box(false),
+        null
       )
     )
   )

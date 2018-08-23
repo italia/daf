@@ -79,6 +79,9 @@ private class AppConfig @Inject()(playConfig: Configuration) {
   val hdfsUser :Option[String] = playConfig.getString("hdfs.user")
   val hdfsUserPwd :Option[String] = playConfig.getString("hdfs.userPwd")
 
+  val hdfsAdminUser :Option[String] = playConfig.getString("hdfs.adminUser")
+
+
 }
 
 
@@ -209,6 +212,8 @@ object ConfigReader {
 
   def hdfsUser:String = config.hdfsUser.get
   def hdfsUserPwd:String = config.hdfsUserPwd.get
+
+  def hdfsAdminUser:String= config.hdfsAdminUser.getOrElse("")
 
 }
 

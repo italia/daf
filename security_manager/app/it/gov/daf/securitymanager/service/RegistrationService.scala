@@ -377,10 +377,10 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   private def checkUserModsRoles(roleTodeletes:Option[Seq[String]], roleToAdds:Option[Seq[String]], userOrgs:Option[Seq[String]]):Either[Error,Success] = {
 
-      val possibleRoles = userOrgs.getOrElse(Seq.empty[String]).foldRight[List[String]](List(SysAdmin.toString)){ (curs, out) => out ::: List( Admin+curs.toString,
+      val possibleRoles = userOrgs.getOrElse(Seq.empty[String]).foldRight[List[String]](List(SysAdmin.toString))  { (curs, out) => out ::: List( Admin+curs.toString,
                                                                                                                                       Editor+curs.toString,
                                                                                                                                       Viewer+curs.toString)
-                                                                                                        }.toSet
+                                                                                                                  }.toSet
 
       val deletes = roleTodeletes.getOrElse(Seq.empty[String]).toSet[String]
       val adds = roleToAdds.getOrElse(Seq.empty[String]).toSet[String]

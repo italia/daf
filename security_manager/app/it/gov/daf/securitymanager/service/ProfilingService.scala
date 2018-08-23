@@ -31,8 +31,10 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
     Logger.debug(s"testUser owner: $owner")
 
     evalInFuture1{
-      if(owner == getUsername()) Right("user is the owner")
-      else Left("The user is not the owner of the dataset")
+      if( owner == getUsername || (ConfigReader.hdfsAdminUser.size>0 && ConfigReader.hdfsAdminUser==getUsername) )
+        Right("user is the owner")
+      else
+        Left("The user is not the owner of the dataset")
     }
 
   }

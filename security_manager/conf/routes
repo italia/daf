@@ -51,8 +51,13 @@ POST        /hdfs/proxy/                                                controll
 DELETE      /hdfs/proxy/*path                                           controllers.HdfsController.callWebHdfs(path:String)
 DELETE      /hdfs/proxy/                                                controllers.HdfsController.callWebHdfs(path:String="")
 
+
 # Migration services
 POST        /migration/createRole/:roleName                             controllers.MigrationController.createRole(roleName:String)
 POST        /migration/createHDFShomeDir/:userId                        controllers.MigrationController.createHDFShomeDir(userId:String)
+POST        /migration/addUserToOpenGroup/:userId                       controllers.MigrationController.addUserToOpenGroup(userId:String)
 POST        /migration/createImpalaRole                                 controllers.MigrationController.createImpalaRole
+PUT         /migration/setDefaultViewerRole                             controllers.MigrationController.setDefaultViewerRole
+PUT         /migration/setEditorRole                                    controllers.MigrationController.setEditorRole
+POST        /migration/addOrgToOrgsGroup/:orgName                       controllers.MigrationController.addOrgToOrgsGroup(orgName:String)
 

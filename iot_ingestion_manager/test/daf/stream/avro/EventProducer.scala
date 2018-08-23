@@ -1,3 +1,19 @@
+/*
+ * Copyright 2017 TEAM PER LA TRASFORMAZIONE DIGITALE
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package daf.stream.avro
 
 import java.util.concurrent.TimeUnit
@@ -17,7 +33,7 @@ class EventProducer extends WordSpec with MustMatchers {
   private type Bytes = Array[Byte]
 
   private val kafkaConfig = KafkaConfig(
-    servers      = Seq("edge1.novalocal:9092", "edge1.novalocal:9092"),
+    servers      = Seq("edge1.novalocal:9092"),
 //    servers      = Seq.empty,
     groupId      = "test-group-1",
     timeout      = 10.seconds,
@@ -41,7 +57,7 @@ class EventProducer extends WordSpec with MustMatchers {
 
   "Event Producer" must {
 
-    "send events" in send(5, "iot-simple-1")
+    "send events" in send(5, "iot-simple-no-null")
 
   }
 

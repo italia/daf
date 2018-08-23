@@ -1,0 +1,1 @@
+POST    /iot-manager/v1/test                controllers.StreamController.test

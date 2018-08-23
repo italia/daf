@@ -72,6 +72,16 @@ object Dependencies {
 
     }
 
+    object kylo {
+
+      val model = "com.thinkbiganalytics.kylo"              % "kylo-feed-manager-rest-model" % Versions.kylo
+
+      val nifi  = "com.thinkbiganalytics.kylo.integrations" % "kylo-nifi-rest-client-v1"     % Versions.kylo
+
+      val all = Seq(model, nifi)
+
+    }
+
     object avro {
 
       val bijection  = "com.twitter"          %% "bijection-avro" % Versions.avroBijection
@@ -109,7 +119,7 @@ object Dependencies {
       swaggerUI         +:
       swaggerPlay2      +:
       cronUtils         +:
-      (kafka.all ++ spark.all ++ play.all ++ kudu.all ++ hadoop.all ++ avro.all)
+      (kafka.all ++ spark.all ++ play.all ++ kudu.all ++ hadoop.all ++ avro.all ++ kylo.all)
     }.map { Exclusions.slf4j }
 
   }
@@ -146,6 +156,14 @@ object Dependencies {
 
     }
 
+    object kylo {
+
+      val controller = "com.thinkbiganalytics.kylo" % "kylo-feed-manager-controller" % Versions.kylo % Test
+
+      val all = Seq(controller)
+
+    }
+
     val logback       = "ch.qos.logback"          % "logback-classic"    % Versions.logback       % Test
 
     val playSpecs2    = "com.typesafe.play"      %% "play-specs2"        % Versions.play          % Test
@@ -169,7 +187,7 @@ object Dependencies {
       scalaTest     +:
       scalactic     +:
       scalaTestPlay +:
-      (hadoop.all ++ kudu.all)
+      (hadoop.all ++ kudu.all ++ kylo.all)
     }.map { Exclusions.slf4j } :+
       slf4j :+
       julSlf4j

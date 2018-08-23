@@ -16,6 +16,8 @@
 
 package it.gov.daf.common
 
+import java.util.Optional
+
 import cats.~>
 
 import scala.concurrent.Future
@@ -29,6 +31,17 @@ package object utils {
       case Success(a)     => Future.successful(a)
       case Failure(error) => Future.failed[A](error)
     }
+  }
+
+  implicit val optionFutureNat: (Option ~> Future) = new (Option ~> Future) {
+    def apply[A](fa: Option[A]): Future[A] = fa match {
+      case Some(a) => Future.successful(a)
+      case None    => Future.failed[A] { new NoSuchElementException }
+    }
+  }
+
+  implicit val optionalScalaNat: (Optional ~> Option) = new (Optional ~> Option) {
+    def apply[A](fa: Optional[A]): Option[A] = if (fa.isPresent) Some(fa.get) else None
   }
 
   /**

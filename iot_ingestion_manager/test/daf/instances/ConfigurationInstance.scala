@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package representation.json
+package daf.instances
 
-import play.api.libs.json.{ Json, Reads }
+import com.typesafe.config.ConfigFactory
+import play.api.Configuration
 
-trait JsonParsing {
+trait ConfigurationInstance {
 
-  def read[A](json: String)(implicit reads: Reads[A]) = Json.parse(json).as[A]
+  protected val configFile = "test.conf"
+
+  protected val configuration = Configuration { ConfigFactory.load(configFile) }
 
 }

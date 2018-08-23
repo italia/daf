@@ -28,6 +28,8 @@ object Versions {
 
   lazy val kudu           = "1.4.0-cdh5.12.0"
 
+  lazy val kylo           = "0.9.2-SNAPSHOT"
+
   lazy val logback        = "1.2.3"
 
   lazy val play           = "2.5.14"

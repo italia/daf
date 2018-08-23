@@ -14,12 +14,8 @@
  * limitations under the License.
  */
 
-package representation.json
+package it.gov.daf.common.utils
 
-import play.api.libs.json.{ Json, Reads }
-
-trait JsonParsing {
-
-  def read[A](json: String)(implicit reads: Reads[A]) = Json.parse(json).as[A]
+trait Conversion[F] {
 
 }

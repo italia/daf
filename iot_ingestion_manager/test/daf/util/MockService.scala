@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package representation.json
+package daf.util
 
-import play.api.libs.json.{ Json, Reads }
+import com.thinkbiganalytics.json.ObjectMapperSerializer
+import play.api.mvc.Results
 
-trait JsonParsing {
+trait MockService {
 
-  def read[A](json: String)(implicit reads: Reads[A]) = Json.parse(json).as[A]
+  final protected def ok(anyRef: AnyRef) = Results.Ok { ObjectMapperSerializer.serialize(anyRef) }
+
+  final protected def error(message: String) = Results.InternalServerError { message }
 
 }

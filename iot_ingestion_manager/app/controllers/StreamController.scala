@@ -36,14 +36,14 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success }
 
 class StreamController @Inject()(configuration: Configuration,
-                                 playSessionStore: PlaySessionStore,
                                  wsClient: WSClient,
                                  cacheApi: CacheApi,
+                                 playSessionStore: PlaySessionStore,
                                  protected implicit val actorSystem: ActorSystem,
                                  protected implicit val ec: ExecutionContext) extends StreamAPI(configuration, playSessionStore) {
 
   private val streamDataJson = BodyParsers.parse.json[StreamData] { StreamDataReads.streamData }
-  private val eventJson  = BodyParsers.parse.json[Event] { EventReads.event }
+  private val eventJson      = BodyParsers.parse.json[Event] { EventReads.event }
 
   private val applicationConfig = StreamApplicationConfig.reader.read { configuration } match {
     case Success(config) => config

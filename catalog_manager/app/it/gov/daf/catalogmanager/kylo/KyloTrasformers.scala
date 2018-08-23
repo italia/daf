@@ -75,11 +75,11 @@ object KyloTrasformers {
   //systemName: "daf_category"
 
   //"id": "6ef0ef5b-5c8f-42fc-9f0d-37f67430f1f5",
-  //"name": "default_org",
+  //"name": "default_org",x
   //"systemName": "default_org"
 
   def feedTrasform(metaCatalog: MetaCatalog, template :JsValue, templates : List[JsObject], inferJson :JsValue, category :JsValue, fileType :String, skipHeader :Boolean): Reads[JsObject] = __.json.update(
-    ((__ \ 'feedName).json.put(JsString(metaCatalog.dcatapit.holder_identifier.get + "_o_" + metaCatalog.dcatapit.name)) and
+    (__ \ 'feedName).json.put(JsString(metaCatalog.dcatapit.holder_identifier.get + "_o_" + metaCatalog.dcatapit.name)) and
         (__ \ 'description).json.put(JsString(metaCatalog.dcatapit.name)) and
          (__ \ 'systemFeedName).json.put(JsString(metaCatalog.dcatapit.holder_identifier.get + "_o_" + metaCatalog.dcatapit.name)) and
          (__ \ 'templateId).json.put(JsString((template \ "id").get.as[String])) and
@@ -101,7 +101,7 @@ object KyloTrasformers {
                                       "systemName" -> (category \ "systemName").as[String])) and
          (__ \ 'dataOwner).json.put(JsString((category \ "systemName").as[String])) and
       ((__ \ 'options) \ 'skipHeader).json.put(JsBoolean(skipHeader))
-         reduce)
+         reduce
   ) andThen (__ \ 'userProperties).json.update(
     of[JsArray].map{ case JsArray(arr) => buildUserProperties(arr, metaCatalog, fileType) }
   )

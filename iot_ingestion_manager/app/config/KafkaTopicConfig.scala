@@ -42,7 +42,9 @@ case class KafkaTopicConfig(numPartitions: Int,
 
 object KafkaTopicConfig {
 
-  val reader = for {
+  private val readConfig = Read.config { "topic" }.!
+
+  private val readValues = for {
     numPartitions     <- Read.int    { "partitions"         }.!
     replicationFactor <- Read.int    { "replication_factor" } default 1
     cleanupPolicy     <- Read.string { "cleanup_policy"     } default "delete"
@@ -57,5 +59,7 @@ object KafkaTopicConfig {
     maxMessageBytes   = maxMessageBytes,
     retentionTime     = retentionTime
   )
+
+  val reader = readConfig ~> readValues
 
 }

@@ -106,8 +106,14 @@ spec:
       - name: krb5conf
         hostPath:
           path: /etc/krb5.conf
-      nodeSelector:
-        nifi: "false"
 #      - name: hadoopconf
 #        hostPath:
 #          path: /etc/hadoop/conf
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                - key: "nifi"
+                  operator: NotIn
+                  values: ["true"]

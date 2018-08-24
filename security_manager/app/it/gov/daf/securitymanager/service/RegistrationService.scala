@@ -12,7 +12,7 @@ import play.api.Logger
 
 import scala.concurrent.Future
 import ProcessHandler.{step, _}
-import it.gov.daf.common.sso.common.{Admin, Editor, SysAdmin, Viewer}
+import it.gov.daf.common.sso.common._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 
@@ -221,6 +221,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
     val result = for {
       a <- step( apiClientIPA.createUser(user, isReferenceUser) )
+      a00 <- stepOver( a, apiClientIPA.loginCkanGeo(user.uid, a.success.fields.getOrElse("")) )
       a0 <- stepOver( a, apiClientIPA.addMembersToGroup(OPEN_DATA_GROUP, User(user.uid)) )
       a1 <- stepOver( a, apiClientIPA.changePassword(user.uid,a.success.fields.get,user.userpassword.get) )
 
@@ -257,6 +258,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
     }
 
   }
+
 
   private def hardDeleteUser(uid:String):Future[Either[ErrorWrapper,SuccessWrapper]] = {
 

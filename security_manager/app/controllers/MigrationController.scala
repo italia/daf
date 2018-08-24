@@ -75,7 +75,7 @@ class MigrationController  @Inject()(apiClientIPA: ApiClientIPA,impalaService: I
 
     if(orgName.nonEmpty && orgName.get.trim.size>0 ) {
 
-      val orgViewerRoleName = Viewer.toString + orgName
+      val orgViewerRoleName = Viewer.toString + orgName.get
 
       apiClientIPA.addMemberToGroups(Some(Seq(orgViewerRoleName)), User(userId)).map {
         case Right(s) => Ok(s"user $userId updated")

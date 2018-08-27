@@ -556,13 +556,6 @@ package catalog_manager.yaml {
             }
 
 
-            // TODO use only one match case
-//            val ingest = feed.operational.input_src.sftp match {
-//                case None => "ws"
-//                case Some(_) => "sftp"
-//            }
-
-            //InputSrc(sftp: InputSrcSftp, srv_pull: InputSrcSrv_push, srv_push: InputSrcSrv_push, daf_dataset: InputSrcDaf_dataset)
             val ingest = feed.operational.input_src match {
                 case  InputSrc(Some(_), None, None, _) => "sftp"
                 case  InputSrc(None, Some(_), None, _) => "srv_pull"
@@ -583,7 +576,6 @@ package catalog_manager.yaml {
 
             logger.debug(s"$ingest: $path")
 
-//            val sftPath = s"/home/$user/ftp/$domain/$subDomain/$dsName"
 
             val templateProperties = ingest match {
                 case "sftp" => kylo.sftpRemoteIngest(file_type, path)
@@ -601,11 +593,10 @@ package catalog_manager.yaml {
                 streamKyloTemplate.close()
             }
 
-//            val sftPath =  URLEncoder.encode(s"/home/$user/$domain/$subDomain/$dsName", "UTF-8")
+            val sftpPath =  URLEncoder.encode(s"$domain/$subDomain/$dsName", "UTF-8")
 
-//            logger.info(currentRequest.headers.get("authorization").get)
-
-            val createDir = ws.url("http://security-manager.default.svc.cluster.local:9000/security-manager/v1/sftp/init/" + URLEncoder.encode(path, "UTF-8") + s"?orgName=${feed.dcatapit.owner_org.get}")
+//            val createDir = ws.url("http://security-manager.default.svc.cluster.local:9000/security-manager/v1/sftp/init/" + URLEncoder.encode(sftpPath, "UTF-8") + s"?orgName=${feed.dcatapit.owner_org.get}")
+            val createDir = ws.url(SEC_MANAGER_HOST + "/security-manager/v1/sftp/init/" + sftpPath + s"?orgName=${feed.dcatapit.owner_org.get}")
                   .withHeaders(("authorization", currentRequest.headers.get("authorization").get))
 
             //val trasformed = kyloTemplate.transform(KyloTrasformers.feedTrasform(feed))

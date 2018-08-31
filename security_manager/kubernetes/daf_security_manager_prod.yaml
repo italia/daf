@@ -69,8 +69,6 @@ spec:
       containers:
       - name: security-manager
         image: nexus.daf.teamdigitale.it/daf-security-manager:1.0.2-SNAPSHOT
-        #        image: 10.98.74.120:5000/daf-security-manager:${SECURITY_MANAGER_VERSION}
-        #-Djavax.net.ssl.trustStore=cert/jssecacerts
         imagePullPolicy: Always
         ports:
         - name: client
@@ -153,30 +151,30 @@ spec:
             secretKeyRef:
               name: daf-secret
               key: hdfs_user_pwd
-        #securityContext:
-          #privileged: true
-          #runAsUser: 0
         volumeMounts:
         - name: config-volume
           mountPath: /opt/docker/conf/mnt
-        - name: glusterfsvol
+        - name: security-manager-logback-volume
           mountPath: /opt/docker/conf/logback.xml
-          subPath: security-manager/conf/logback.xml
-          readOnly: true
+          subPath: logback.xml
         - name: glusterfsvol
           mountPath: /opt/docker/logs
           subPath: security-manager/logs
-        - name: glusterfsvol
-          mountPath: /opt/docker/cert/master-impala.jks
-          subPath: security-manager/cert/master-impala.jks
-          readOnly: true
+        - name: security-manager-cert-volume
+          mountPath: /opt/docker/cert/
         - name: config-volume-kerb
           mountPath: /etc/extKerberosConfig
 #        - name: krb5conf
 #          mountPath: /etc/krb5.conf
       imagePullSecrets:
-        - name: regsecret
+      - name: regsecret
       volumes:
+      - name: security-manager-cert-volume
+        secret:
+          secretName: security-manager-cert
+      - name: security-manager-logback-volume
+        configMap:
+          name: security-manager-logback
       - name: config-volume
         configMap:
           name: security-manager-conf

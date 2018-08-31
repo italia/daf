@@ -1,0 +1,42 @@
+apiVersion: v1
+data:
+  logback.xml: |+
+    <configuration>
+
+        <conversionRule conversionWord="coloredLevel" converterClass="play.api.libs.logback.ColoredLevel" />
+
+        <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d{HH:mm:ss.SSS} %mdc{user-id:--} %mdc{request-init-time:--} %mdc{context-name:--} %coloredLevel - %logger - %message%n%xException</pattern>
+            </encoder>
+        </appender>
+
+        <appender name="TIME_BASED_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>./logs/security_manager.log</file>
+
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>./logs/security_manager.%d{yyyy-MM-dd}.log</fileNamePattern>
+                <maxHistory>3</maxHistory>
+            </rollingPolicy>
+
+            <encoder>
+                <pattern>%d{HH:mm:ss.SSS} %mdc{user-id:--} %mdc{request-init-time:--} %mdc{context-name:--} %coloredLevel - %logger - %message%n%xException</pattern>
+            </encoder>
+
+        </appender>
+
+        <logger name="play" level="INFO" />
+        <logger name="application" level="DEBUG" />
+        <logger name="it.gov.daf" level="DEBUG" />
+        <logger name="controllers" level="DEBUG" />
+
+        <root level="ERROR">
+            <appender-ref ref="STDOUT" />
+            <appender-ref ref="TIME_BASED_FILE" />
+        </root>
+
+    </configuration>
+
+kind: ConfigMap
+metadata:
+  name: security-manager-logback

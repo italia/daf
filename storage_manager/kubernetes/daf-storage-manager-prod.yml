@@ -132,8 +132,9 @@ spec:
           mountPath: /opt/docker/conf/daf.keytab
           subPath: keytab/daf.keytab
           readOnly: true
-        - name: krb5conf
+        - name: krb5-volume
           mountPath: /etc/krb5.conf
+          subPath: krb5.conf
         # ssl
         - name: glusterfsvol
           mountPath: /opt/docker/cert/master-impala.jks
@@ -164,8 +165,8 @@ spec:
       - name: glusterfsvol
         persistentVolumeClaim:
           claimName: gluster-claim
-      - name: krb5conf
-        hostPath:
-          path: /etc/krb5.conf
+      - name: krb5-volume
+        configMap:
+          name: krb5-conf
       nodeSelector:
         nifi: "false"

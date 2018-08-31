@@ -111,22 +111,16 @@ spec:
               name: daf-secret
               key: hdfs_user_pwd
         volumeMounts:
-  #        - name: glusterfsvol
-  #          mountPath: /opt/docker/conf/production.conf
-  #          subPath: security-manager/conf/production.conf
         - name: config-volume
           mountPath: /opt/docker/conf/mnt
-        - name: glusterfsvol
+        - name: security-manager-logback-volume
           mountPath: /opt/docker/conf/logback.xml
-          subPath: security-manager/conf/logback.xml
-          readOnly: true
+          subPath: logback.xml
         - name: glusterfsvol
           mountPath: /opt/docker/logs
           subPath: security-manager/logs
-        - name: glusterfsvol
-          mountPath: /opt/docker/cert/master-impala.jks
-          subPath: security-manager/cert/master-impala.jks
-          readOnly: true
+        - name: security-manager-cert-volume
+          mountPath: /opt/docker/cert/
         - name: config-volume-kerb
           mountPath: /etc/extKerberosConfig
 #        - name: krb5conf
@@ -134,6 +128,12 @@ spec:
       imagePullSecrets:
       - name: regsecret
       volumes:
+      - name: security-manager-cert-volume
+        secret:
+          secretName: security-manager-cert
+      - name: security-manager-logback-volume
+        configMap:
+          name: security-manager-logback
       - name: config-volume
         configMap:
           name: security-manager-conf

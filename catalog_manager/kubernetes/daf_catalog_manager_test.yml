@@ -72,15 +72,11 @@ spec:
           privileged: true
           runAsUser: 0
         volumeMounts:
-  #        - name: glusterfsvol
-  #          mountPath: /opt/docker/conf/production.conf
-  #          subPath: security-manager/conf/production.conf
         - name: config-volume
           mountPath: /opt/docker/conf/mnt
-        - name: glusterfsvol
+        - name: catalog-manager-logback-volume
           mountPath: /opt/docker/conf/logback.xml
-          subPath: catalog-manager/conf/logback.xml
-          readOnly: true
+          subPath: logback.xml
         - name: glusterfsvol
           mountPath: /opt/docker/logs
           subPath: catalog-manager/logs
@@ -94,6 +90,9 @@ spec:
       imagePullSecrets:
         - name: regsecret
       volumes:
+      - name: catalog-manager-logback-volume
+        configMap:
+          name: catalog-manager-logback
       - name: config-volume
         configMap:
           name: catalog-manager-conf

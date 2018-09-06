@@ -56,7 +56,7 @@ import it.gov.daf.common.sso.common
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-        
+                
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -134,7 +134,7 @@ package catalog_manager.yaml {
 
             val user = CredentialManager.readCredentialFromRequest(currentRequest).username
 
-            val isAdmin = CredentialManager.isDafAdmin(currentRequest)
+            val isAdmin = CredentialManager.isDafSysAdmin(currentRequest)
             val feedName = s"${org}.${org}_o_${name}"
 
             val responseMongo = ServiceRegistry.catalogService.deleteCatalogByName(name, user, isAdmin)
@@ -256,7 +256,7 @@ package catalog_manager.yaml {
             Voc_dcat2dafsubtheme200(themeList)
             // ----- End of unmanaged code area for action  Catalog_managerYaml.voc_dcat2dafsubtheme
         }
-        val addQueueCatalog = addQueueCatalogAction { (catalog: MetaCatalog) =>
+        val addQueueCatalog = addQueueCatalogAction { (catalog: MetaCatalog) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.addQueueCatalog
             val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
             if( CredentialManager.isDafSysAdmin(currentRequest) || CredentialManager.isOrgsEditor(currentRequest, credentials.groups) ||
@@ -277,7 +277,7 @@ package catalog_manager.yaml {
                 AddQueueCatalog401("Admin or editor permissions required")
             // ----- End of unmanaged code area for action  Catalog_managerYaml.addQueueCatalog
         }
-        val standardsuri = standardsuriAction {  _ =>
+        val standardsuri = standardsuriAction {  _ =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.standardsuri
             // Pagination wrong refactor login to db query
             val catalogs = ServiceRegistry.catalogService.listCatalogs(Some(1), Some(500))

@@ -44,7 +44,7 @@ scalacOptions ++= Seq(
   "-Xfuture"
 )
 
-wartremoverErrors ++= Warts.allBut(Wart.Equals)
+wartremoverErrors ++= Warts.allBut(Wart.Equals, Wart.ImplicitParameter, Wart.Overloading)
 
 lazy val root = (project in file(".")).enablePlugins(AutomateHeaderPlugin)
 

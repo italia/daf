@@ -17,6 +17,7 @@ import scala.util._
 
 import javax.inject._
 
+import java.io.File
 import de.zalando.play.controllers.PlayBodyParsing._
 import it.gov.daf.catalogmanager.listeners.IngestionListenerImpl
 import it.gov.daf.catalogmanager.service.{CkanRegistry,ServiceRegistry}
@@ -30,6 +31,7 @@ import it.gov.daf.common.utils.WebServiceUtil
 import it.gov.daf.catalogmanager.service.VocServiceRegistry
 import play.api.libs.ws.WSClient
 import java.net.URLEncoder
+import it.gov.daf.catalogmanager.utilities.ConfigReader
 import play.api.libs.ws.WSResponse
 import play.api.libs.ws.WSAuthScheme
 import java.io.FileInputStream
@@ -41,6 +43,11 @@ import it.gov.daf.common.sso.common.CredentialManager
 import play.api.Logger
 import yaml.ResponseWrites.MetaCatalogWrites.writes
 import play.api.mvc.Headers
+import scala.concurrent.duration._
+import scala.concurrent.Await
+import yaml.ResponseWrites.MetaCatalogWrites.writes
+import play.api.mvc.Headers
+import it.gov.daf.common.sso.common
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -49,7 +56,7 @@ import play.api.mvc.Headers
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                                                                                                                    
+        
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -116,6 +123,39 @@ package catalog_manager.yaml {
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.autocompletedummy
             NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.autocompletedummy
+        }
+        val deleteCatalog = deleteCatalogAction { input: (String, String) =>
+            val (name, org) = input
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.deleteCatalog
+            def extractMessage(response: Either[Error, Success]) = {
+                if(response.isRight) response.right.get.message
+                else response.left.get.message
+            }
+
+            val user = CredentialManager.readCredentialFromRequest(currentRequest).username
+
+            val isAdmin = CredentialManager.isDafAdmin(currentRequest)
+            val feedName = s"${org}.${org}_o_${name}"
+
+            val responseMongo = ServiceRegistry.catalogService.deleteCatalogByName(name, user, isAdmin)
+
+            val futureResponseKylo = responseMongo match {
+                case Right(_) => kylo.deleteFeed(feedName, user)
+                case Left(_) => Future.successful(Left(Error(s"$feedName not deleted", None, None)))
+            }
+
+            val futureResponses: Future[Either[Error, Success]] = futureResponseKylo.map{ responseKylo =>
+              if(responseMongo.isRight && responseKylo.isRight)
+                  Right(Success(s"${extractMessage(responseMongo)}, ${extractMessage(responseKylo)}", None))
+              else
+                  Left(Error(s"${extractMessage(responseMongo)}, ${extractMessage(responseKylo)}", Some(500), None))
+            }
+            futureResponses.flatMap{
+                case Right(s) => DeleteCatalog200(s)
+                case Left(e) => DeleteCatalog500(e)
+            }
+//          NotImplementedYet
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.deleteCatalog
         }
         val searchdataset = searchdatasetAction { input: (MetadataCat, MetadataCat, ResourceSize, ResourceSize) =>
             val (q, sort, rows, start) = input
@@ -216,7 +256,7 @@ package catalog_manager.yaml {
             Voc_dcat2dafsubtheme200(themeList)
             // ----- End of unmanaged code area for action  Catalog_managerYaml.voc_dcat2dafsubtheme
         }
-        val addQueueCatalog = addQueueCatalogAction { (catalog: MetaCatalog) =>  
+        val addQueueCatalog = addQueueCatalogAction { (catalog: MetaCatalog) =>
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.addQueueCatalog
             val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
             if( CredentialManager.isDafSysAdmin(currentRequest) || CredentialManager.isOrgsEditor(currentRequest, credentials.groups) ||
@@ -237,7 +277,7 @@ package catalog_manager.yaml {
                 AddQueueCatalog401("Admin or editor permissions required")
             // ----- End of unmanaged code area for action  Catalog_managerYaml.addQueueCatalog
         }
-        val standardsuri = standardsuriAction {  _ =>  
+        val standardsuri = standardsuriAction {  _ =>
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.standardsuri
             // Pagination wrong refactor login to db query
             val catalogs = ServiceRegistry.catalogService.listCatalogs(Some(1), Some(500))
@@ -250,7 +290,8 @@ package catalog_manager.yaml {
         }
         val datasetcatalogbyname = datasetcatalogbynameAction { (name: String) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbyname
-            val catalog = ServiceRegistry.catalogService.catalogByName(name)
+            val groups = CredentialManager.readCredentialFromRequest(currentRequest).groups.toList
+            val catalog = ServiceRegistry.catalogService.catalogByName(name, groups)
 
             /*
             val resutl  = catalog match {

@@ -2,13 +2,15 @@ import play.api.libs.json._
 import play.api.libs.ws.WSAuthScheme
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import catalog_manager.yaml.MetaCatalog
+import catalog_manager.yaml.{Error, MetaCatalog}
 import play.api.libs.ws._
 import play.api.libs.ws.ahc.AhcWSClient
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
+
+/*
 private def extractSeparator(hiveFormat :String) : Option[String] =  {
   val sep = """'separatorChar'.=.'.*'.,'""".r.findFirstIn(hiveFormat).getOrElse(",").split(" ,")(0).replace("""\\\\""", "").replaceAll("'", "").split(" = ").last.trim
   Option(sep)
@@ -31,3 +33,6 @@ val categoriesJson = Json.parse(categoriesString)
 val categories = categoriesJson.as[List[JsValue]]
 val found =categories.filter(cat => {(cat \ "systemName").as[String].equals("roma_test")})
 (found.head \ "id").as[String]
+*/
+
+

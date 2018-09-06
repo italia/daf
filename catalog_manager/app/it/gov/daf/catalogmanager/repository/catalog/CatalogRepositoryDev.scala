@@ -6,6 +6,7 @@ import catalog_manager.yaml._
 import play.Environment
 import play.api.libs.json._
 import play.api.libs.ws.WSClient
+import scala.concurrent.Future
 
 
 /**
@@ -89,7 +90,7 @@ class CatalogRepositoryDev extends CatalogRepository{
 
   }
 
-  def catalogByName(catalogByName :String): Option[MetaCatalog] = {
+  def catalogByName(catalogByName :String, groups: List[String]): Option[MetaCatalog] = {
     // MetaCatalog(datasetCatalog,operational,conversion,dcat)
     for {
       dc <- datasetCatalog
@@ -121,5 +122,7 @@ class CatalogRepositoryDev extends CatalogRepository{
 
   def isDatasetOnCatalog(name :String) = None
 
-
+  def deleteCatalogByName(nameCatalog: String, user: String, isAdmin: Boolean): Either[Error, Success] = {
+    Right(Success("delete", None))
+  }
 }

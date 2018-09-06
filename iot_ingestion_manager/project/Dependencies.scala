@@ -94,21 +94,23 @@ object Dependencies {
 
     }
 
-    val typesafeConfig = "com.typesafe"     % "config"        % Versions.typesafeConfig
+    val typesafeConfig = "com.typesafe"                % "config"        % Versions.typesafeConfig
 
-    val shapeless      = "com.chuusai"     %% "shapeless"     % Versions.shapeless
+    val shapeless      = "com.chuusai"                %% "shapeless"     % Versions.shapeless
 
-    val catsCore       = "org.typelevel"   %% "cats-core"     % Versions.catsCore
+    val catsCore       = "org.typelevel"              %% "cats-core"     % Versions.catsCore
 
-    val catsFree       = "org.typelevel"   %% "cats-free"     % Versions.catsCore
+    val catsFree       = "org.typelevel"              %% "cats-free"     % Versions.catsCore
 
-    val guava          = "com.google.guava" % "guava"         % Versions.guava
+    val monocleCore    = "com.github.julien-truffaut" %%  "monocle-core" % Versions.monocle
 
-    val swaggerUI      = "org.webjars"      % "swagger-ui"    % Versions.swaggerUI
+    val guava          = "com.google.guava"            % "guava"         % Versions.guava
 
-    val swaggerPlay2   = "io.swagger"      %% "swagger-play2" % Versions.swaggerPlay2
+    val swaggerUI      = "org.webjars"                 % "swagger-ui"    % Versions.swaggerUI
 
-    val cronUtils      = "com.cronutils"    % "cron-utils"    % Versions.cron
+    val swaggerPlay2   = "io.swagger"                 %% "swagger-play2" % Versions.swaggerPlay2
+
+    val cronUtils      = "com.cronutils"               % "cron-utils"    % Versions.cron
 
     lazy val all = {
       internal.common   +:
@@ -116,6 +118,7 @@ object Dependencies {
       typesafeConfig    +:
       catsCore          +:
       catsFree          +:
+      monocleCore       +:
       swaggerUI         +:
       swaggerPlay2      +:
       cronUtils         +:

@@ -65,14 +65,7 @@ class KyloClient(cache: CacheApi,
     _.find { _.getTemplateName == name }.~>[Future]
   }
 
-  // API
-
-  def findTemplate(name: String) = findCachedTemplate(name) match {
-    case None           => updateTemplate(name)
-    case Some(template) => Future.successful { template }
-  }
-
-  def createFeed(feed: FeedMetadata) = feedsRequest.post { ObjectMapperSerializer.serialize(feed) }.flatMap {
+  private def postFeed(feed: FeedMetadata) = feedsRequest.post { ObjectMapperSerializer.serialize(feed) }.flatMap {
     case response if response.status == 200 => Future.successful {
       ObjectMapperSerializer.deserialize(response.json.toString, classOf[NifiFeed])
     }
@@ -80,5 +73,14 @@ class KyloClient(cache: CacheApi,
       new RuntimeException(s"Failed to create feed [${feed.getFeedName}] for template [${feed.getTemplateName}]; reason [${response.json}]")
     }
   }
+
+  // API
+
+  def findTemplate(name: String) = findCachedTemplate(name) match {
+    case None           => updateTemplate(name)
+    case Some(template) => Future.successful { template }
+  }
+
+  def createFeed(feed: FeedMetadata) = postFeed(feed)
 
 }

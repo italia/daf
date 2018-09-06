@@ -32,6 +32,8 @@ object Versions {
 
   lazy val logback        = "1.2.3"
 
+  lazy val monocle        = "1.5.0-cats"
+
   lazy val play           = "2.5.14"
 
   lazy val scalaJ         = "2.3.0"

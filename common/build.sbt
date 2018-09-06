@@ -44,7 +44,7 @@ scalacOptions ++= Seq(
   "-Xfuture"
 )
 
-wartremoverErrors ++= Warts.allBut(Wart.Equals)
+wartremoverErrors ++= Warts.allBut(Wart.Equals, Wart.ImplicitParameter, Wart.Overloading)
 
 lazy val root = (project in file(".")).enablePlugins(AutomateHeaderPlugin)
 
@@ -62,6 +62,8 @@ val hadoopLibraries = Seq(
 */
 val playLibraries = Seq(
   "io.swagger" %% "swagger-play2" % "1.5.3",
+  "org.typelevel"     %% "cats-core"        % catsVersion,
+  "org.typelevel"     %% "cats-effect"      % catsEffectVersion,
   "com.typesafe.play" %% "play-cache" % playVersion,
   "com.typesafe.play" %% "filters-helpers" % playVersion,
   "com.typesafe.play" %% "play-ws" % playVersion,
@@ -95,6 +97,8 @@ publishTo := {
 }
 
 publishMavenStyle := true
+
+autoAPIMappings := true
 
 credentials += {if(isStaging) Credentials(Path.userHome / ".ivy2" / ".credentialsTest") else Credentials(Path.userHome / ".ivy2" / ".credentials")}
 

@@ -7,4 +7,8 @@ object Versions {
   val playPac4jVersion = "3.0.0"
 
   val pac4jVersion = "2.0.0"
+
+  val catsVersion = "0.9.0"
+
+  val catsEffectVersion = "1.0.0-RC"
 }

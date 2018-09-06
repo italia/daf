@@ -30,6 +30,7 @@ private class AppConfig @Inject()(playConfig: Configuration) {
 
 
 object ConfigReader {
+
   private val config = new AppConfig(Configuration.load(Environment.simple()))
   def userIdHeader: String = config.userIdHeader.getOrElse("userid")
   def getCkanHost: String = config.ckanHost.getOrElse("localhost")

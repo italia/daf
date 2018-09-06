@@ -68,6 +68,9 @@ spec:
         ports:
         - name: client
           containerPort: 9000
+        resources:
+          limits:
+            memory: 2548Mi
         securityContext:
           privileged: true
           runAsUser: 0

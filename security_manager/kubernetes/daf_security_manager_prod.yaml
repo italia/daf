@@ -25,50 +25,50 @@ spec:
       labels:
         app: security-manager
     spec:
-      hostAliases:
-      - ip: "192.168.0.23"
-        hostnames:
-          - "master.platform.daf.gov.it"
-          - "master"
-      - ip: "192.168.0.22"
-        hostnames:
-          - "slave1.platform.daf.gov.it"
-          - "slave1"
-      - ip: "192.168.0.24"
-        hostnames:
-          - "slave2.platform.daf.gov.it"
-          - "slave2"
-      - ip: "192.168.0.36"
-        hostnames:
-          - "slave3.platform.daf.gov.it"
-          - "slave3"
-      - ip: "192.168.0.26"
-        hostnames:
-          - "slave4.platform.daf.gov.it"
-          - "slave4"
-      - ip: "192.168.0.26"
-        hostnames:
-          - "slave4.platform.daf.gov.it"
-          - "slave4"
-      - ip: "192.168.0.20"
-        hostnames:
-          - "edge1.platform.daf.gov.it"
-          - "edge1"
-      - ip: "192.168.0.21"
-        hostnames:
-          - "edge2.platform.daf.gov.it"
-          - "edge2"
-      - ip: "192.168.0.27"
-        hostnames:
-          - "edge3.platform.daf.gov.it"
-          - "edge3"
-      - ip: "192.168.0.29"
-        hostnames:
-          - "idm.daf.gov.it"
-          - "idm"
+#      hostAliases:
+#      - ip: "192.168.0.23"
+#        hostnames:
+#          - "master.platform.daf.gov.it"
+#          - "master"
+#      - ip: "192.168.0.22"
+#        hostnames:
+#         - "slave1.platform.daf.gov.it"
+#          - "slave1"
+#      - ip: "192.168.0.24"
+#        hostnames:
+#          - "slave2.platform.daf.gov.it"
+#          - "slave2"
+#      - ip: "192.168.0.36"
+#        hostnames:
+#          - "slave3.platform.daf.gov.it"
+#          - "slave3"
+#      - ip: "192.168.0.26"
+#        hostnames:
+#          - "slave4.platform.daf.gov.it"
+#          - "slave4"
+#      - ip: "192.168.0.26"
+#        hostnames:
+#          - "slave4.platform.daf.gov.it"
+#          - "slave4"
+#      - ip: "192.168.0.20"
+#        hostnames:
+#          - "edge1.platform.daf.gov.it"
+#          - "edge1"
+#      - ip: "192.168.0.21"
+#        hostnames:
+#          - "edge2.platform.daf.gov.it"
+#          - "edge2"
+#      - ip: "192.168.0.27"
+#        hostnames:
+#          - "edge3.platform.daf.gov.it"
+#          - "edge3"
+#      - ip: "192.168.0.29"
+#        hostnames:
+#          - "idm.daf.gov.it"
+#          - "idm"
       containers:
       - name: security-manager
-        image: nexus.daf.teamdigitale.it/daf-security-manager:1.0.2-SNAPSHOT
+        image: nexus.daf.teamdigitale.it/daf-security-manager:2.0.0-SNAPSHOT
         imagePullPolicy: Always
         ports:
         - name: client
@@ -157,9 +157,9 @@ spec:
         - name: security-manager-logback-volume
           mountPath: /opt/docker/conf/logback.xml
           subPath: logback.xml
-        - name: glusterfsvol
-          mountPath: /opt/docker/logs
-          subPath: security-manager/logs
+#        - name: glusterfsvol
+#          mountPath: /opt/docker/logs
+#          subPath: security-manager/logs
         - name: security-manager-cert-volume
           mountPath: /opt/docker/cert/
         - name: config-volume-kerb
@@ -181,9 +181,9 @@ spec:
       - name: config-volume-kerb
         configMap:
           name: krb5-conf
-      - name: glusterfsvol
-        persistentVolumeClaim:
-          claimName: gluster-claim
+#      - name: glusterfsvol
+#        persistentVolumeClaim:
+#          claimName: gluster-claim
 #      - name: krb5conf
 #        hostPath:
 #          path: /etc/krb5.conf

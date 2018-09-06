@@ -27,7 +27,7 @@ spec:
     spec:
       containers:
       - name: security-manager
-        image: nexus.teamdigitale.test/daf-security-manager:1.0.3-SNAPSHOT
+        image: nexus.teamdigitale.test/daf-security-manager:2.0.0-SNAPSHOT
         imagePullPolicy: Always
         ports:
         - name: client

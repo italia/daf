@@ -102,7 +102,7 @@ class ProfilingService @Inject()(webHDFSApiProxy:WebHDFSApiProxy,impalaService:I
 
     evalInFuture0S{
       val tableName = toTableName(datasetPath)
-      impalaService.createGrant(tableName, groupName, permission)
+      impalaService.createGrant(tableName, groupName, permission, false, false)
     }
 
   }

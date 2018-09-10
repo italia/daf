@@ -137,10 +137,12 @@ object MongoService {
 
     val result = findData(CATALOG_COLLECTION_NAME ,"dcatapit.name", datasetName)
     result match{
-      case Right(json) => val out = ( (json \ "operational" \ "physical_uri").asOpt[String], (json \ "dcatapit" \ "author").asOpt[String],(json \ "dcatapit" \ "owner_org").asOpt[String] )
+      case Right(json) => val out = ( (json \ "operational" \ "physical_uri").asOpt[String],
+                                      (json \ "dcatapit" \ "author").asOpt[String].orElse((json \ "operational" \ "group_own").asOpt[String]),
+                                      (json \ "dcatapit" \ "owner_org").asOpt[String] )
                           out match{
                             case (Some(x), Some(y), Some(z)) => Right((x,y,z))
-                            case _ =>  logger.warn( "No data found: "+result ); Left("No dataset found")
+                            case _ =>  logger.warn( "No valid data found: "+result+"\n out:"+out ); Left("No dataset found")
                           }
       case Left(l) => Left(l)
     }

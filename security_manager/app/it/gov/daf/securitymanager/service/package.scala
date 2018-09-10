@@ -3,11 +3,15 @@ package it.gov.daf.securitymanager
 import it.gov.daf.common.sso.common.{CacheWrapper, LoginInfo}
 import it.gov.daf.securitymanager.service.utilities.RequestContext
 import it.gov.daf.sso.LoginClientLocal
+import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+
 import scala.concurrent.Future
 
 
 package object service {
+
+  private val logger = Logger(this.getClass.getName)
 
   //val ORG_REF_USER_POSTFIX: String = "_org_rif"
   val ORG_REF_USER_POSTFIX: String = "_default_admin" // for compatibility with old security model
@@ -86,6 +90,9 @@ package object service {
   def readLoginInfo()(implicit cacheWrapper:CacheWrapper)={
 
     val userName = RequestContext.getUsername()
+
+    logger.debug(s"retriving user $userName from cache")
+
     val pwd = cacheWrapper.getPwd(userName) match {
       case Some(x) =>x
       case None => throw new Exception("User not in cache")

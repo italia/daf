@@ -5,9 +5,10 @@ import javax.inject.Inject
 import cats.data.EitherT
 import cats.implicits._
 import it.gov.daf
-import it.gov.daf.common.sso.common.{Editor, Role, Viewer}
+import it.gov.daf.common.sso.common.{CredentialManager, Editor, Role, Viewer}
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
-import it.gov.daf.securitymanager.service.{ImpalaService, RegistrationService, WebHDFSApiClient}
+import it.gov.daf.securitymanager.service.utilities.RequestContext.execInContext
+import it.gov.daf.securitymanager.service.{ImpalaService, ProfilingService, RegistrationService, WebHDFSApiClient}
 import it.gov.daf.sso
 import it.gov.daf.sso.{ApiClientIPA, Organization, RoleGroup, User}
 import play.api.mvc.{Action, Controller, Result}
@@ -17,7 +18,7 @@ import scala.concurrent.Future
 
 
 // These services are only for migration or test pourposes
-class MigrationController  @Inject()(apiClientIPA: ApiClientIPA,impalaService: ImpalaService, webHDFSApiClient: WebHDFSApiClient,registrationService: RegistrationService) extends Controller {
+class MigrationController  @Inject()(apiClientIPA: ApiClientIPA,impalaService: ImpalaService, webHDFSApiClient: WebHDFSApiClient,registrationService: RegistrationService,profilingService: ProfilingService) extends Controller {
 
   import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
@@ -38,6 +39,8 @@ class MigrationController  @Inject()(apiClientIPA: ApiClientIPA,impalaService: I
     val name = (json \ "roleName").as[String]
     val isUser = (json \ "isUser").as[Boolean]
 
+
+
     impalaService.createRole(name,isUser) match{
       case Right(r) => Ok(r.toString)
       case Left(l) => InternalServerError(l.toString)
@@ -46,6 +49,43 @@ class MigrationController  @Inject()(apiClientIPA: ApiClientIPA,impalaService: I
 
   }
 
+  def createGrant = Action { implicit request =>
+
+    execInContext[Result]("createGrant") { () =>
+
+      val json = request.body.asJson.get
+      val path = (json \ "path").as[String]
+      val name = (json \ "name").as[String]
+      val isUser = (json \ "isUser").as[Boolean]
+
+      val tableName = profilingService.toTableName(path)
+
+      impalaService.createGrant(tableName, name, "rwx", isUser, true) match {
+        case Right(r) => Ok(r.toString)
+        case Left(l) => InternalServerError(l.toString)
+
+      }
+    }
+
+  }
+
+
+  def setDatasetFilesOwnership = Action.async { implicit request =>
+
+    execInContext[Future[Result]]("setOwnershipForMigration") { () =>
+
+      val json = request.body.asJson.get
+      val path = (json \ "path").as[String]
+      val user = (json \ "name").as[String]
+
+      webHDFSApiClient.setOwnershipForMigration(user,path) map {
+        case Right(r) => Ok(r)
+        case Left(l) => InternalServerError(l)
+      }
+
+    }
+
+  }
 
   def createHDFShomeDir(userId:String) = Action.async { implicit request =>
 

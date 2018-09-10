@@ -19,14 +19,15 @@ class ImpalaService @Inject()(implicit val cacheWrapper:CacheWrapper){
   ds.setURL(jdbcString)
 
 
-  def createGrant(tableName:String, groupName:String, permission:String):Either[String,String]={
+  def createGrant(tableName:String, name:String, permission:String,isUSer:Boolean,withGrantOpt:Boolean):Either[String,String]={
 
     val permissionOnQuery = if(permission == Permission.read.toString) "SELECT"
                             else "ALL"
 
+    val grantOption = if(withGrantOpt) "WITH GRANT OPTION" else ""
 
-    val roleName = toGroupRoleName(groupName)
-    val query = s"GRANT $permissionOnQuery ON TABLE $tableName TO ROLE $roleName"
+    val roleName = if(isUSer) s"${name}_user_role" else toGroupRoleName(name)
+    val query = s"GRANT $permissionOnQuery ON TABLE $tableName TO ROLE $roleName $grantOption"
 
     executeUpdate(query)
     Right("Grant created")

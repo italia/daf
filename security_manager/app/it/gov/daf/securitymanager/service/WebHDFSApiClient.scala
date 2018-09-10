@@ -12,6 +12,7 @@ import play.api.libs.ws.{WSClient, WSResponse}
 import security_manager.yaml.{Error, Success}
 
 import scala.concurrent.Future
+import scala.util.{Failure, Try}
 
 @Singleton
 class WebHDFSApiClient @Inject()(secInvokeManager: SecuredInvocationManager, webHDFSApiProxy:WebHDFSApiProxy, implicit val cacheWrapper:CacheWrapper){
@@ -20,17 +21,58 @@ class WebHDFSApiClient @Inject()(secInvokeManager: SecuredInvocationManager, web
 
   private val HADOOP_URL = ConfigReader.hadoopUrl
 
-  /*
-  private def getLoginInfo()={
 
-    val userName = RequestContext.getUsername()
-    val pwd = cacheWrapper.getPwd(userName) match {
-      case Some(x) =>x
-      case None => throw new Exception("User passoword not in cache")
+
+  def setOwnershipForMigration(user:String,path:String):Future[Either[String,String]] = {
+
+    Logger.logger.debug("setOwnershipForMigration: " + path)
+
+    val loginInfo = readLoginInfo
+
+    def fileList(): Future[Seq[String]] = {
+      webHDFSApiProxy.callHdfsService("GET", path, Map("op" -> "LISTSTATUS"), Some(loginInfo)).map {
+        case Right(r) =>  val lista = (r.jsValue \ "FileStatuses" \ "FileStatus" ).as[Seq[JsObject]]
+                          if( lista.size>0 ) lista.map{elem => (elem \ "pathSuffix").as[String]}//((r.jsValue \ "FileStatuses" \ "FileStatus" \ "pathSuffix").as[Seq[String]])
+                          else Seq.empty
+        case Left(l) => throw new Exception(s"LISTSTATUS KO: $l")
+      }
     }
 
-    new LoginInfo( RequestContext.getUsername(), pwd, LoginClientLocal.HADOOP )
-  }*/
+
+    def setFilesOwnership(filenames: Seq[String]): Future[Seq[String]] = {
+
+      def setOwner(filename: String): Future[String] = {
+
+        webHDFSApiProxy.callHdfsService("PUT", s"$path/$filename", Map("op" -> "SETOWNER", "owner" -> user, "group" -> user), Some(loginInfo)).map {
+          case Right(r) => s"$path/$filename OK "
+          case Left(l) => throw new Exception(s"SETOWNER KO: $l")
+        }
+
+      }
+
+      Logger.logger.debug("files: " + filenames)
+
+      filenames.toList.traverse[Future, String](setOwner(_)): Future[Seq[String]]
+
+    }
+
+
+    val res = Try {
+      for {
+        fileList <- fileList()
+        r2 <- setFilesOwnership(fileList)
+      } yield r2
+    }
+
+
+    res match{
+      case scala.util.Success(s) => s.map{ ss=> Right(ss.mkString("\n")) }
+      case Failure(e) => Future.successful(Left(e.getMessage))
+    }
+
+  }
+
+
 
   def createHomeDir(userId:String):Future[Either[Error,Success]] = {
 

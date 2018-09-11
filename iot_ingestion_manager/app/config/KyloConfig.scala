@@ -22,7 +22,7 @@ case class KyloConfig(host: String,
                       port: Int,
                       username: String,
                       password: String,
-                      nifiBasePath: String) {
+                      kafkaTemplate: String) {
 
   val kyloBaseUrl = s"http://$host:$port"
 
@@ -33,17 +33,19 @@ object KyloConfig {
   private val readConfig = Read.config { "kylo" }.!
 
   private val readValues = for {
-    host         <- Read.string { "host" }.!
-    port         <- Read.int    { "port" }.!
-    username     <- Read.string { "username" }.!
-    password     <- Read.string { "password" }.!
-    nifiBasePath <- Read.string { "nifi_base_path" } default "/nifi-api"
+    host          <- Read.string { "host" }.!
+    port          <- Read.int    { "port" }.!
+    username      <- Read.string { "username" }.!
+    password      <- Read.string { "password" }.!
+    kafkaTemplate <- Read.string { "kafka_template" }.!
   } yield KyloConfig(
-    host         = host,
-    port         = port,
-    username     = username,
-    password     = password,
-    nifiBasePath = nifiBasePath
+    host          = host,
+    port          = port,
+    username      = username,
+    password      = password,
+    kafkaTemplate = kafkaTemplate
   )
+
+  def reader = readConfig ~> readValues
 
 }

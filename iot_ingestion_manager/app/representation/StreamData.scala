@@ -28,8 +28,15 @@ import it.gov.daf.catalogmanager.{ MetaCatalog, StorageInfo }
 import scala.util.{ Failure, Success, Try }
 
 final case class StreamData(id: String,
-                            interval: Long,
+                            name: String,
                             owner: String,
+                            group: String,
+                            description: String,
+                            domain: String,
+                            subDomain: String,
+                            isOpenData: Boolean,
+                            isStandard: Boolean,
+                            interval: Long,
                             source: Source,
                             sink: Sink,
                             schema: Map[String, String])
@@ -89,12 +96,19 @@ object StreamData {
     sink    <- sink(catalog)
     schema  <- avroSchema(catalog)
   } yield StreamData(
-    id       = catalog.operational.logical_uri,
-    interval = seconds,
-    owner    = catalog.dcatapit.author getOrElse "<unknown>",
-    source   = source,
-    sink     = sink,
-    schema   = schema
+    id          = catalog.operational.logical_uri,
+    name        = catalog.dcatapit.holder_identifier.map { s => s"${s}_o_${catalog.dcatapit.name}" } getOrElse catalog.dcatapit.name,
+    owner       = catalog.dcatapit.owner_org getOrElse "<unknown>",
+    group       = catalog.operational.group_own,
+    description = catalog.dcatapit.notes,
+    domain      = catalog.operational.theme,
+    subDomain   = catalog.operational.subtheme,
+    isOpenData  = !catalog.dcatapit.privatex.getOrElse(false),
+    isStandard  = catalog.operational.is_std,
+    interval    = seconds,
+    source      = source,
+    sink        = sink,
+    schema      = schema
   )
 
 }

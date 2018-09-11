@@ -18,10 +18,11 @@ package controllers
 
 import akka.actor.ActorSystem
 import api.StreamAPI
-import client.CatalogClient
+import client.{ CatalogClient, KyloClient }
 import com.google.inject.Inject
-import config.StreamApplicationConfig
+import config.{ KyloConfig, StreamApplicationConfig }
 import daf.stream._
+import daf.stream.kylo.KyloConsumerService
 import it.gov.daf.common.web.Actions
 import it.gov.daf.common.utils._
 import org.pac4j.play.store.PlaySessionStore
@@ -58,21 +59,22 @@ class StreamController @Inject()(configuration: Configuration,
   }
 
   private val catalogClient   = new CatalogClient(wsClient, cacheApi, applicationConfig.catalogUrl)
+  private val kyloClient      = new KyloClient(wsClient, cacheApi, applicationConfig.kyloConfig)
   private val streamService   = new StreamService(cacheApi, catalogClient)
-  private val consumerService = new SparkConsumerService(applicationConfig.kafkaConfig)
+  private val consumerService = new KyloConsumerService(applicationConfig.kafkaConfig, applicationConfig.kyloConfig.kafkaTemplate, kyloClient)
   private val producerService = new ProducerService(applicationConfig.kafkaConfig, payloadValidator)
 
   def register = Actions.basic.async(streamDataJson) { request =>
     for {
       _ <- streamService.createStreamData(request.body)
-      _ <- consumerService.createConsumer(request.body).~>[Future]
+      _ <- consumerService.createConsumer(request.body)
     } yield Created
   }
 
   def registerCatalog(catalogId: String) = Actions.basic.securedAsync { (_, auth, _) =>
     for {
       streamData <- streamService.findStreamData(catalogId, auth)
-      _          <- consumerService.createConsumer(streamData).~>[Future]
+      _          <- consumerService.createConsumer(streamData)
     } yield Created
   }
 

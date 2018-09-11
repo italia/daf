@@ -31,19 +31,33 @@ object StreamDataReads {
   private val schemaReads = (__ \ "schema").read[Seq[(String, String)]](Reads.seq(fieldSchemaReads))
 
   val streamData = for {
-    id       <- (__ \ "id").read[String]
-    interval <- (__ \ "interval").read[Long]
-    owner    <- (__ \ "owner").read[String]
-    source   <- (__ \ "source").read[Source]
-    sink     <- (__ \ "sink").read[Sink]
-    schema   <- schemaReads
+    id          <- (__ \ "id").read[String]
+    name        <- (__ \ "name").read[String]
+    owner       <- (__ \ "owner").read[String]
+    group       <- (__ \ "group").read[String]
+    description <- (__ \ "description").read[String]
+    domain      <- (__ \ "domain").read[String]
+    subDomain   <- (__ \ "subDomain").read[String]
+    isOpenData  <- (__ \ "isOpenData").read[Boolean]
+    isStandard  <- (__ \ "isStandard").read[Boolean]
+    interval    <- (__ \ "interval").read[Long]
+    source      <- (__ \ "source").read[Source]
+    sink        <- (__ \ "sink").read[Sink]
+    schema      <- schemaReads
   } yield StreamData(
-    id       = id,
-    interval = interval,
-    owner    = owner,
-    source   = source,
-    sink     = sink,
-    schema   = schema.toMap[String, String]
+    id          = id,
+    name        = name,
+    owner       = owner,
+    group       = group,
+    description = description,
+    domain      = domain,
+    subDomain   = subDomain,
+    isOpenData  = isOpenData,
+    isStandard  = isStandard,
+    interval    = interval,
+    source      = source,
+    sink        = sink,
+    schema      = schema.toMap[String, String]
   )
 
 }

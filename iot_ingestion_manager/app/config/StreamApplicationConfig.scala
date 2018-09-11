@@ -20,20 +20,25 @@ import it.gov.daf.common.config.Read
 
 case class StreamApplicationConfig(catalogUrl: String,
                                    validator: String,
-                                   kafkaConfig: KafkaConfig)
+                                   kafkaConfig: KafkaConfig,
+                                   kyloConfig: KyloConfig)
 
 object StreamApplicationConfig {
 
   private val readKafka = KafkaConfig.reader
 
+  private val readKylo  = KyloConfig.reader
+
   def reader = for {
     catalogUrl  <- Read.string { "daf.catalog_url"      }.!
     validator   <- Read.string { "daf.stream.validator" } default "none"
     kafkaConfig <- readKafka
+    kyloConfig  <- readKylo
   } yield StreamApplicationConfig(
     catalogUrl  = catalogUrl,
     validator   = validator,
-    kafkaConfig = kafkaConfig
+    kafkaConfig = kafkaConfig,
+    kyloConfig  = kyloConfig
   )
 
 }

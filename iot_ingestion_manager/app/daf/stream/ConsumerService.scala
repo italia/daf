@@ -19,12 +19,12 @@ package daf.stream
 import config.KafkaConfig
 import representation._
 
-import scala.util.Try
+import scala.concurrent.Future
 
 trait ConsumerService {
 
   def kafkaConfig: KafkaConfig
 
-  def createConsumer(streamData: StreamData): Try[Unit]
+  def createConsumer(streamData: StreamData): Future[Unit]
 
 }

@@ -65,12 +65,19 @@ private object AvroJsonPayloads {
   )
 
   val streamData = StreamData(
-    id       = "",
-    interval = 10,
-    owner    = "",
-    source   = null,
-    sink     = null,
-    schema   = schema
+    id          = "",
+    name        = "",
+    owner       = "",
+    group       = "",
+    description = "",
+    domain      = "",
+    subDomain   = "",
+    isOpenData  = true,
+    isStandard  = true,
+    interval    = 10,
+    source      = null,
+    sink        = null,
+    schema      = schema
   )
 
   val conforming = Map(

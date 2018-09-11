@@ -18,6 +18,7 @@ package client
 
 import com.thinkbiganalytics.feedmgr.rest.model.FeedMetadata
 import com.thinkbiganalytics.nifi.rest.model.NifiProperty
+import config.KyloConfig
 import daf.instances.{ ConfigurationInstance, PlayInstance }
 import daf.kylo.KyloRouting
 import org.scalatest.{ BeforeAndAfterAll, MustMatchers, WordSpec }
@@ -34,12 +35,15 @@ class KyloClientSpec extends WordSpec
   with KyloRouting {
 
   private lazy val kyloClient = new KyloClient(
-    cache        = cache,
     ws           = ws,
-    host         = "localhost",
-    port         = serverPort,
-    username     = "test-admin",
-    password     = "test-password"
+    cache        = cache,
+    kyloConfig   = KyloConfig(
+      host          = "localhost",
+      port          = serverPort,
+      username      = "test-admin",
+      password      = "test-password",
+      kafkaTemplate = "Kafka-Ingest"
+    )
   )
 
   override def beforeAll() = {

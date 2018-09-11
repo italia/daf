@@ -25,9 +25,10 @@ import org.apache.spark.sql.streaming.{ DataStreamWriter, StreamingQuery, Trigge
 import org.slf4j.LoggerFactory
 import representation._
 
-import scala.util.{ Failure, Try, Success }
+import scala.concurrent.{ Future, ExecutionContext }
+import scala.util.{ Failure, Success, Try }
 
-class SparkConsumerService(val kafkaConfig: KafkaConfig) extends ConsumerService {
+class SparkConsumerService(val kafkaConfig: KafkaConfig)(implicit val executionContext: ExecutionContext) extends ConsumerService {
 
   private val logger = LoggerFactory.getLogger("it.gov.daf.SparkConsumer")
 
@@ -46,12 +47,12 @@ class SparkConsumerService(val kafkaConfig: KafkaConfig) extends ConsumerService
   }
 
   private def startStream[A](streamData: StreamData, stream: DataStreamWriter[A]) = streamData.sink match {
-    case ConsoleSink    => Try { stream.format("console").start() }
-    case HdfsSink(path) => Try { stream.format("parquet").option("path", path).start() }
-    case KuduSink(_)    => Failure { new IllegalArgumentException(s"Kudu sink is not supported for stream id [${streamData.id}]") }
+    case ConsoleSink    => Future { stream.format("console").start() }
+    case HdfsSink(path) => Future { stream.format("parquet").option("path", path).start() }
+    case KuduSink(_)    => Future.failed { new IllegalArgumentException(s"Kudu sink is not supported for stream id [${streamData.id}]") }
   }
 
-  private def prepareSocket(id: String, interval: Long, host: String, port: Int) = Try {
+  private def prepareSocket(id: String, interval: Long, host: String, port: Int) = Future {
     sparkSession
       .readStream
       .format("socket")
@@ -63,7 +64,7 @@ class SparkConsumerService(val kafkaConfig: KafkaConfig) extends ConsumerService
       .trigger { Trigger.ProcessingTime(interval, TimeUnit.SECONDS) }
   }
 
-  private def prepareKafka(id: String, interval: Long, topic: String) = Try {
+  private def prepareKafka(id: String, interval: Long, topic: String) = Future {
     sparkSession.readStream
       .format("kafka")
       .option("kafka.bootstrap.servers", kafkaConfig.servers mkString ",")
@@ -74,9 +75,9 @@ class SparkConsumerService(val kafkaConfig: KafkaConfig) extends ConsumerService
       .trigger { Trigger.ProcessingTime(interval, TimeUnit.SECONDS) }
   }
 
-  private def checkQuery(query: StreamingQuery): Try[Unit] = if (query.isActive) Success {
+  private def checkQuery(query: StreamingQuery): Future[Unit] = if (query.isActive) Future.successful {
     logger.info { s"Query with id [${query.id}] :: name [${query.name}] started consuming" }
-  } else Failure { StreamCreationError(s"Query with id [${query.id}] :: name [${query.name}] failed to start", query.exception.orNull) }
+  } else Future.failed { StreamCreationError(s"Query with id [${query.id}] :: name [${query.name}] failed to start", query.exception.orNull) }
 
   def createConsumer(streamData: StreamData) = for {
     stream <- prepareStream(streamData)

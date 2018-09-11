@@ -33,12 +33,12 @@ class EventProducer extends WordSpec with MustMatchers {
   private type Bytes = Array[Byte]
 
   private val kafkaConfig = KafkaConfig(
-    servers      = Seq("edge1.novalocal:9092"),
-//    servers      = Seq.empty,
+    servers      = Seq.empty, //Seq("edge1.novalocal:9092"),
     groupId      = "test-group-1",
     timeout      = 10.seconds,
+    offsetReset  = "latest",
     numProducers = 1,
-    topicConfig = null
+    topicConfig  = null
   )
 
   private val producer = new KafkaProducer[String, Bytes](kafkaConfig.producerProps(), new StringSerializer, new ByteArraySerializer)

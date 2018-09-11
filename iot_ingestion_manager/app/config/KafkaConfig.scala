@@ -24,6 +24,7 @@ import scala.concurrent.duration._
 
 case class KafkaConfig(servers: Seq[String],
                        groupId: String,
+                       offsetReset: String,
                        timeout: FiniteDuration,
                        numProducers: Int,
                        topicConfig: KafkaTopicConfig) {
@@ -42,12 +43,14 @@ object KafkaConfig {
   private val readValues = for {
     servers      <- Read.strings { "servers"       }.!
     groupId      <- Read.string  { "group_id"      } default "group-daf"
+    offsetReset  <- Read.string  { "offset_reset"  } default "latest"
     timeout      <- Read.time    { "timeout"       } default 10.seconds
     numProducers <- Read.int     { "num_producers" } default 1
     topicConfig  <- KafkaTopicConfig.reader
   } yield KafkaConfig(
     servers      = servers,
     groupId      = groupId,
+    offsetReset  = offsetReset,
     timeout      = timeout,
     numProducers = numProducers,
     topicConfig  = topicConfig)

@@ -20,33 +20,37 @@ import cats.data.State
 import cats.instances.list.catsKernelStdMonoidForList
 import com.thinkbiganalytics.feedmgr.rest.model.{ FeedCategory, FeedMetadata, RegisteredTemplate, UserProperty }
 import com.thinkbiganalytics.nifi.rest.model.NifiProperty
-import it.gov.daf.catalogmanager.MetaCatalog
 import it.gov.daf.common.utils._
+import representation.{ KafkaSource, StreamData }
 
 import scala.collection.convert.decorateAsScala._
 import scala.collection.convert.decorateAsJava._
 
-trait FeedGenerators {
+trait FeedGenerators { this: KyloConsumerService =>
 
   // Add config:
   //   - kafka offset reset
   //   - default owner
 
-  private def name(catalog: MetaCatalog) = catalog.dcatapit.holder_identifier.map { s => s"${s}_o_${catalog.dcatapit.name}" } getOrElse catalog.dcatapit.name
+  private def topic(streamData: StreamData) = streamData.source match {
+    case kafka: KafkaSource => kafka.topic
+    case _                  => throw new IllegalArgumentException("Unsupported stream type encountered; only [kafka] is supported")
+  }
 
-  private def owner(catalog: MetaCatalog) = catalog.dcatapit.owner_org getOrElse "anonymous"
-
-  private def properties(template: RegisteredTemplate) = for {
+  private def properties(template: RegisteredTemplate, streamData: StreamData) = for {
     _ <- FeedPropertiesState.init(template)
-    _ <- FeedPropertiesState.property("auto.offset.reset", "latest")
+    _ <- FeedPropertiesState.property("auto.offset.reset", kafkaConfig.offsetReset)
+    _ <- FeedPropertiesState.property("bootstrap.servers", kafkaConfig.servers mkString ",")
+    _ <- FeedPropertiesState.property("group.id"         , kafkaConfig.groupId)
+    _ <- FeedPropertiesState.property("topic"            , topic(streamData))
   } yield ()
 
-  private def userProperties(catalog: MetaCatalog) = for {
-    _ <- UserPropertyState.add("daf_type"     , 1) { if (catalog.operational.is_std) "standard" else "ordinary" }
-    _ <- UserPropertyState.add("daf_domain"   , 2) { catalog.operational.theme }
-    _ <- UserPropertyState.add("daf_subdomain", 3) { catalog.operational.subtheme }
-    _ <- UserPropertyState.add("daf_opendata" , 4) {!catalog.dcatapit.privatex.getOrElse(false) }
-    _ <- UserPropertyState.add("daf_owner"    , 5) { catalog.operational.group_own }
+  private def userProperties(streamData: StreamData) = for {
+    _ <- UserPropertyState.add("daf_type"     , 1) { if (streamData.isStandard) "standard" else "ordinary" }
+    _ <- UserPropertyState.add("daf_domain"   , 2) { streamData.domain }
+    _ <- UserPropertyState.add("daf_subdomain", 3) { streamData.subDomain }
+    _ <- UserPropertyState.add("daf_opendata" , 4) { streamData.isOpenData }
+    _ <- UserPropertyState.add("daf_owner"    , 5) { streamData.group }
   } yield ()
 
   private def inputProcessor(template: RegisteredTemplate) = template.getInputProcessors.asScala.headOption match {
@@ -55,21 +59,21 @@ trait FeedGenerators {
   }
 
 
-  private def state(catalog: MetaCatalog, template: RegisteredTemplate, category: FeedCategory) = for {
-    _ <- FeedState.feedName        { name(catalog) }
-    _ <- FeedState.feedDescription { catalog.dcatapit.notes }
-    _ <- FeedState.systemFeedName  { name(catalog) }
+  private def state(streamData: StreamData, template: RegisteredTemplate, category: FeedCategory) = for {
+    _ <- FeedState.feedName        { streamData.name }
+    _ <- FeedState.feedDescription { streamData.description }
+    _ <- FeedState.systemFeedName  { streamData.name }
+    _ <- FeedState.dataOwner       { streamData.owner }
     _ <- FeedState.templateId      { template.getId }
     _ <- FeedState.templateName    { template.getTemplateName }
-    _ <- FeedState.dataOwner       { owner(catalog) }
     _ <- FeedState.category        { category }
     _ <- FeedState.active          { true }
     _ <- FeedState.inputProcessor  { inputProcessor(template) }
-    _ <- State.get[FeedMetadata].set(userProperties(catalog)) { (feed, props) => feed.setUserProperties(props.toSet.asJava) }
-    _ <- State.get[FeedMetadata].set(properties(template))    { (feed, props) => feed.setProperties(props.asJava) }
+    _ <- State.get[FeedMetadata].set(userProperties(streamData))       { (feed, props) => feed.setUserProperties(props.toSet.asJava) }
+    _ <- State.get[FeedMetadata].set(properties(template, streamData)) { (feed, props) => feed.setProperties(props.asJava) }
   } yield ()
 
-  def init(catalog: MetaCatalog, template: RegisteredTemplate, category: FeedCategory) = state(catalog, template, category).runS { new FeedMetadata }.value
+  def init(streamData: StreamData, template: RegisteredTemplate, category: FeedCategory) = state(streamData, template, category).runS { new FeedMetadata }.value
 
 }
 

@@ -18,6 +18,7 @@ package client
 
 import com.thinkbiganalytics.feedmgr.rest.model.{ FeedCategory, FeedMetadata, NifiFeed, RegisteredTemplate }
 import com.thinkbiganalytics.json.ObjectMapperSerializer
+import config.KyloConfig
 import it.gov.daf.common.utils._
 import play.api.cache.CacheApi
 import play.api.libs.ws.{ WSAuthScheme, WSClient }
@@ -25,18 +26,15 @@ import play.api.libs.ws.{ WSAuthScheme, WSClient }
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success }
 
-class KyloClient(cache: CacheApi,
-                 ws: WSClient,
-                 host: String,
-                 port: Int,
-                 username: String,
-                 password: String)(protected implicit val ec: ExecutionContext) {
+class KyloClient(ws: WSClient,
+                 cache: CacheApi,
+                 kyloConfig: KyloConfig)(protected implicit val ec: ExecutionContext) {
 
-  private val feedManagerBaseUrl = s"http://$host:$port/api/v1/feedmgr"
+  private val feedManagerBaseUrl = s"http://${kyloConfig.host}:${kyloConfig.port}/api/v1/feedmgr"
 
   private def feedRequest(relativePath: String) = ws
     .url(s"$feedManagerBaseUrl/$relativePath")
-    .withAuth(username, password, WSAuthScheme.BASIC)
+    .withAuth(kyloConfig.username, kyloConfig.password, WSAuthScheme.BASIC)
     .withHeaders(
       "Content-Type" -> "application/json"
     )

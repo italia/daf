@@ -59,7 +59,7 @@ class FileExportJobSpec extends WordSpec with Matchers with BeforeAndAfterAll wi
 
   override def afterAll() = {
     sparkSession.stop()
-    purgeData.get
+//    purgeData.get
   }
 
   "A file export job" when {
@@ -71,7 +71,8 @@ class FileExportJobSpec extends WordSpec with Matchers with BeforeAndAfterAll wi
           { inputDir / "csv" }.asUriString,
           { outputDir / "csv-json" }.asUriString,
           RawFileFormat,
-          JsonFileFormat
+          JsonFileFormat,
+          limit = Some(2)
         ).call { new TestExportJobContext(sparkSession) }.asHadoop should be { outputDir / "csv-json" }
       }
 
@@ -81,7 +82,8 @@ class FileExportJobSpec extends WordSpec with Matchers with BeforeAndAfterAll wi
             { inputDir / "csv" }.asUriString,
             { outputDir / "csv-json" }.asUriString,
             RawFileFormat,
-            ParquetFileFormat
+            ParquetFileFormat,
+            limit = None
           ).call { new TestExportJobContext(sparkSession) }
         }
       }
@@ -95,7 +97,8 @@ class FileExportJobSpec extends WordSpec with Matchers with BeforeAndAfterAll wi
           { inputDir / "json" }.asUriString,
           { outputDir / "json-csv" }.asUriString,
           JsonFileFormat,
-          CsvFileFormat
+          CsvFileFormat,
+          limit = None
         ).call { new TestExportJobContext(sparkSession) }.asHadoop should be { outputDir / "json-csv" }
       }
 
@@ -105,7 +108,8 @@ class FileExportJobSpec extends WordSpec with Matchers with BeforeAndAfterAll wi
             { inputDir / "json" }.asUriString,
             { outputDir / "json-csv" }.asUriString,
             JsonFileFormat,
-            ParquetFileFormat
+            ParquetFileFormat,
+            limit = None
           ).call { new TestExportJobContext(sparkSession) }
         }
       }
@@ -118,7 +122,8 @@ class FileExportJobSpec extends WordSpec with Matchers with BeforeAndAfterAll wi
           { inputDir / "parq" }.asUriString,
           { outputDir / "parq-csv" }.asUriString,
           ParquetFileFormat,
-          CsvFileFormat
+          CsvFileFormat,
+          limit = None
         ).call { new TestExportJobContext(sparkSession) }.asHadoop should be { outputDir / "parq-csv" }
       }
 
@@ -127,7 +132,8 @@ class FileExportJobSpec extends WordSpec with Matchers with BeforeAndAfterAll wi
           { inputDir / "parq" }.asUriString,
           { outputDir / "parq-json" }.asUriString,
           ParquetFileFormat,
-          JsonFileFormat
+          JsonFileFormat,
+          limit = None
         ).call { new TestExportJobContext(sparkSession) }.asHadoop should be { outputDir / "parq-json" }
       }
     }

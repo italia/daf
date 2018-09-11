@@ -56,10 +56,12 @@ class FileExportService(fileExportConfig: FileExportConfig, kuduMaster: String)(
     * Exports a `table` from Kudu to the specified file format.
     * @param table the name of table to export
     * @param toFormat the [[daf.filesystem.FileDataFormat]] of the expected output file
+    * @param extraParams a `Map[String, String]` of additional parameters to be passed to the export job
+    * @param limit an optional integer that is used to limit the number of returned rows
     * @return `Future` containing the path to the exported file
     */
-  def exportTable(table: String, toFormat: FileDataFormat, extraParams: ExtraParams = Map.empty[String, String]): Future[String] =
-    { exportRouter ? ExportTable(table, toFormat, extraParams) }.flatMap {
+  def exportTable(table: String, toFormat: FileDataFormat, extraParams: ExtraParams = Map.empty[String, String], limit: Option[Int] = None): Future[String] =
+    { exportRouter ? ExportTable(table, toFormat, extraParams, limit) }.flatMap {
       case Success(dataPath: String) => Future.successful { dataPath }
       case Success(invalidValue)     => Future.failed { new IllegalArgumentException(s"Unexpected value received from export service; expected a string but got: [$invalidValue]") }
       case Failure(error)            => Future.failed { error }
@@ -87,10 +89,11 @@ class FileExportService(fileExportConfig: FileExportConfig, kuduMaster: String)(
     * @param fromFormat the [[daf.filesystem.FileDataFormat]] of the input file
     * @param toFormat the [[daf.filesystem.FileDataFormat]] of the expected output file
     * @param extraParams a `Map[String, String]` of additional parameters to be passed to the export job
+    * @param limit an optional integer that is used to limit the number of returned rows
     * @return `Future` containing the path to the exported file
     */
-  def exportFile(path: Path, fromFormat: FileDataFormat, toFormat: FileDataFormat, extraParams: ExtraParams = Map.empty[String, String]): Future[String] =
-    { exportRouter ? ExportFile(path.asUriString, fromFormat, toFormat, extraParams) }.flatMap {
+  def exportFile(path: Path, fromFormat: FileDataFormat, toFormat: FileDataFormat, extraParams: ExtraParams = Map.empty[String, String], limit: Option[Int] = None): Future[String] =
+    { exportRouter ? ExportFile(path.asUriString, fromFormat, toFormat, extraParams, limit) }.flatMap {
       case Success(dataPath: String) => Future.successful { dataPath }
       case Success(invalidValue)     => Future.failed { new IllegalArgumentException(s"Unexpected value received from export service; expected a string but got: [$invalidValue]") }
       case Failure(error)            => Future.failed { error }
@@ -102,9 +105,10 @@ class FileExportService(fileExportConfig: FileExportConfig, kuduMaster: String)(
     * @param info the [[daf.filesystem.PathInfo]] instance of input data, which can be a directory or a file
     * @param toFormat the [[daf.filesystem.FileDataFormat]] of the expected output file
     * @param extraParams a `Map[String, String]` of additional parameters to be passed to the export job
+    * @param limit an optional integer that is used to limit the number of returned rows
     * @return `Future` containing the path to the exported file
     */
-  def exportPath(info: PathInfo, toFormat: FileDataFormat, extraParams: ExtraParams = Map.empty[String, String]): Future[String] = info match {
+  def exportPath(info: PathInfo, toFormat: FileDataFormat, extraParams: ExtraParams = Map.empty[String, String], limit: Option[Int] = None): Future[String] = info match {
     case dirInfo: DirectoryInfo if dirInfo.hasMixedFormats      => Future.failed {
       new IllegalArgumentException(s"Unable to prepare export: directory [${dirInfo.path.getName}] has mixed formats")
     }
@@ -114,8 +118,8 @@ class FileExportService(fileExportConfig: FileExportConfig, kuduMaster: String)(
     case dirInfo: DirectoryInfo if dirInfo.isEmpty              => Future.failed {
       new IllegalArgumentException(s"Unable to prepare export: directory [${dirInfo.path.getName}] is empty")
     }
-    case dirInfo: DirectoryInfo                                 => exportFile(dirInfo.path, dirInfo.fileFormats.head, toFormat, extraParams) // .head is guarded by .isEmpty
-    case fileInfo: FileInfo                                     => exportFile(fileInfo.path, fileInfo.format, toFormat, extraParams)
+    case dirInfo: DirectoryInfo                                 => exportFile(dirInfo.path, dirInfo.fileFormats.head, toFormat, extraParams, limit) // .head is guarded by .isEmpty
+    case fileInfo: FileInfo                                     => exportFile(fileInfo.path, fileInfo.format, toFormat, extraParams, limit)
   }
 
 }

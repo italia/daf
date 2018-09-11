@@ -21,6 +21,7 @@ class Kylo @Inject()(ws :WSClient, config: ConfigurationProvider){
   val KYLOURL = config.get.getString("kylo.url").get
   val KYLOUSER = config.get.getString("kylo.user").getOrElse("dladmin")
   val KYLOPWD = config.get.getString("kylo.userpwd").getOrElse("XXXXXXXXXXX")
+  val SFTPHOSTNAME = config.get.getString("sftp.hostname").getOrElse("XXXXXXXXXXX")
 
   import scala.concurrent.ExecutionContext.Implicits._
 
@@ -196,7 +197,7 @@ class Kylo @Inject()(ws :WSClient, config: ConfigurationProvider){
       val modifiedTemplates: List[JsObject] = templatesEditable.map { temp =>
         val key = (temp \ "key").as[String]
         val transTemplate = key match {
-          case "Hostname" => temp.transform(KyloTrasformers.transformTemplates("sftp.teamdigitale.test")).get
+          case "Hostname" => temp.transform(KyloTrasformers.transformTemplates(SFTPHOSTNAME)).get
           case "Remote Path" => temp.transform(KyloTrasformers.transformTemplates(sftpPath)).get
           case "File Filter Regex" => temp.transform(KyloTrasformers.transformTemplates(".*" + fileType)).get
         }

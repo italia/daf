@@ -18,7 +18,8 @@ package it.gov.daf.common
 
 import java.util.Optional
 
-import cats.~>
+import cats.data.State
+import cats.{ Monoid, ~> }
 
 import scala.concurrent.Future
 import scala.language.higherKinds
@@ -58,6 +59,16 @@ package object utils {
       * Alias for `natural`.
       */
     def ~>[G[_]](implicit nat: F ~> G): G[A] = natural[G]
+
+  }
+
+  implicit class StateSyntax[S, A](state: State[S, A]) {
+
+    def combine[SB, B](state2: State[SB, B])(f: (S, SB) => (S, B))(implicit M: Monoid[SB]): State[S, B] = state.flatMap { _ =>
+      State[S, B] { f(_, state2.runS(M.empty).value) }
+    }
+
+    def set[SB](state2: State[SB, Unit])(f: (S, SB) => Unit)(implicit M: Monoid[SB]): State[S, Unit] = combine[SB, Unit](state2) { (s, sb) => s -> f(s, sb) }
 
   }
 

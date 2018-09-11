@@ -16,7 +16,7 @@
 
 package client
 
-import com.thinkbiganalytics.feedmgr.rest.model.{ FeedMetadata, NifiFeed, RegisteredTemplate }
+import com.thinkbiganalytics.feedmgr.rest.model.{ FeedCategory, FeedMetadata, NifiFeed, RegisteredTemplate }
 import com.thinkbiganalytics.json.ObjectMapperSerializer
 import it.gov.daf.common.utils._
 import play.api.cache.CacheApi
@@ -38,22 +38,41 @@ class KyloClient(cache: CacheApi,
     .url(s"$feedManagerBaseUrl/$relativePath")
     .withAuth(username, password, WSAuthScheme.BASIC)
     .withHeaders(
-      ("Content-Type", "application/json")
+      "Content-Type" -> "application/json"
     )
 
   private def feedsRequest = feedRequest("feeds")
 
   private def templatesRequest = feedRequest("templates/registered")
 
-  private def updateCache(template: RegisteredTemplate) = cache.set(s"template:[${template.getTemplateName}]", template)
+  private def categoriesRequest = feedRequest("categories")
 
-  private def deleteCache(name: String) = cache.remove { s"template:[$name]" }
+  // CACHE - Template
+
+  private def updateCachedTemplate(template: RegisteredTemplate) = cache.set(s"template:[${template.getTemplateName}]", template)
+
+  private def deleteCachedTemplate(name: String) = cache.remove { s"template:[$name]" }
 
   private def findCachedTemplate(name: String): Option[RegisteredTemplate] = cache.get(s"template:[$name]")
 
+  // CACHE - Category
+
+  private def updateCachedCategory(category: FeedCategory) = cache.set(s"category:[${category.getSystemName}]", category)
+
+  private def deleteCachedCategory(systemName: String) = cache.remove { s"category:[$systemName]" }
+
+  private def findCachedCategory(systemName: String): Option[FeedCategory] = cache.get(s"category:[$systemName]")
+
+  // Calls
+
   private def updateTemplate(name: String) = getTemplate(name).andThen {
-    case Success(template)                  => updateCache(template)
-    case Failure(_: NoSuchElementException) => deleteCache(name)
+    case Success(template)                  => updateCachedTemplate(template)
+    case Failure(_: NoSuchElementException) => deleteCachedTemplate(name)
+  }
+
+  private def updateCategory(systemName: String) = getCategory(systemName).andThen {
+    case Success(category)                  => updateCachedCategory(category)
+    case Failure(_: NoSuchElementException) => deleteCachedCategory(systemName)
   }
 
   private def getTemplate(name: String): Future[RegisteredTemplate] = templatesRequest.get().flatMap {
@@ -63,6 +82,15 @@ class KyloClient(cache: CacheApi,
     case response                           => Future.failed { new RuntimeException(s"Failed to retrieve templates; reason [${response.json}]") }
   }.flatMap {
     _.find { _.getTemplateName == name }.~>[Future]
+  }
+
+  private def getCategory(systemName: String): Future[FeedCategory] = categoriesRequest.get().flatMap {
+    case response if response.status == 200 => Future.successful {
+      ObjectMapperSerializer.deserialize(response.json.toString, classOf[Array[FeedCategory]]).toList
+    }
+    case response                           => Future.failed { new RuntimeException(s"Failed to retrieve templates; reason [${response.json}]") }
+  }.flatMap {
+    _.find { _.getSystemName == systemName }.~>[Future]
   }
 
   private def postFeed(feed: FeedMetadata) = feedsRequest.post { ObjectMapperSerializer.serialize(feed) }.flatMap {
@@ -79,6 +107,11 @@ class KyloClient(cache: CacheApi,
   def findTemplate(name: String) = findCachedTemplate(name) match {
     case None           => updateTemplate(name)
     case Some(template) => Future.successful { template }
+  }
+
+  def findCategory(systemName: String) = findCachedCategory(systemName) match {
+    case None           => updateCategory(systemName)
+    case Some(category) => Future.successful { category }
   }
 
   def createFeed(feed: FeedMetadata) = postFeed(feed)

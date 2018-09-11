@@ -1,0 +1,1 @@
+version := Versions.defaultVersion

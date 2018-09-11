@@ -25,52 +25,50 @@ spec:
       labels:
         app: security-manager
     spec:
-      hostAliases:
-      - ip: "192.168.0.23"
-        hostnames:
-          - "master.platform.daf.gov.it"
-          - "master"
-      - ip: "192.168.0.22"
-        hostnames:
-          - "slave1.platform.daf.gov.it"
-          - "slave1"
-      - ip: "192.168.0.24"
-        hostnames:
-          - "slave2.platform.daf.gov.it"
-          - "slave2"
-      - ip: "192.168.0.36"
-        hostnames:
-          - "slave3.platform.daf.gov.it"
-          - "slave3"
-      - ip: "192.168.0.26"
-        hostnames:
-          - "slave4.platform.daf.gov.it"
-          - "slave4"
-      - ip: "192.168.0.26"
-        hostnames:
-          - "slave4.platform.daf.gov.it"
-          - "slave4"
-      - ip: "192.168.0.20"
-        hostnames:
-          - "edge1.platform.daf.gov.it"
-          - "edge1"
-      - ip: "192.168.0.21"
-        hostnames:
-          - "edge2.platform.daf.gov.it"
-          - "edge2"
-      - ip: "192.168.0.27"
-        hostnames:
-          - "edge3.platform.daf.gov.it"
-          - "edge3"
-      - ip: "192.168.0.29"
-        hostnames:
-          - "idm.daf.gov.it"
-          - "idm"
+#      hostAliases:
+#      - ip: "192.168.0.23"
+#        hostnames:
+#          - "master.platform.daf.gov.it"
+#          - "master"
+#      - ip: "192.168.0.22"
+#        hostnames:
+#         - "slave1.platform.daf.gov.it"
+#          - "slave1"
+#      - ip: "192.168.0.24"
+#        hostnames:
+#          - "slave2.platform.daf.gov.it"
+#          - "slave2"
+#      - ip: "192.168.0.36"
+#        hostnames:
+#          - "slave3.platform.daf.gov.it"
+#          - "slave3"
+#      - ip: "192.168.0.26"
+#        hostnames:
+#          - "slave4.platform.daf.gov.it"
+#          - "slave4"
+#      - ip: "192.168.0.26"
+#        hostnames:
+#          - "slave4.platform.daf.gov.it"
+#          - "slave4"
+#      - ip: "192.168.0.20"
+#        hostnames:
+#          - "edge1.platform.daf.gov.it"
+#          - "edge1"
+#      - ip: "192.168.0.21"
+#        hostnames:
+#          - "edge2.platform.daf.gov.it"
+#          - "edge2"
+#      - ip: "192.168.0.27"
+#        hostnames:
+#          - "edge3.platform.daf.gov.it"
+#          - "edge3"
+#      - ip: "192.168.0.29"
+#        hostnames:
+#          - "idm.daf.gov.it"
+#          - "idm"
       containers:
       - name: security-manager
-        image: nexus.daf.teamdigitale.it/daf-security-manager:1.0.2-SNAPSHOT
-        #        image: 10.98.74.120:5000/daf-security-manager:${SECURITY_MANAGER_VERSION}
-        #-Djavax.net.ssl.trustStore=cert/jssecacerts
+        image: nexus.daf.teamdigitale.it/daf-security-manager:2.0.0-SNAPSHOT
         imagePullPolicy: Always
         ports:
         - name: client
@@ -153,41 +151,47 @@ spec:
             secretKeyRef:
               name: daf-secret
               key: hdfs_user_pwd
-        #securityContext:
-          #privileged: true
-          #runAsUser: 0
         volumeMounts:
         - name: config-volume
           mountPath: /opt/docker/conf/mnt
-        - name: glusterfsvol
+        - name: security-manager-logback-volume
           mountPath: /opt/docker/conf/logback.xml
-          subPath: security-manager/conf/logback.xml
-          readOnly: true
-        - name: glusterfsvol
-          mountPath: /opt/docker/logs
-          subPath: security-manager/logs
-        - name: glusterfsvol
-          mountPath: /opt/docker/cert/master-impala.jks
-          subPath: security-manager/cert/master-impala.jks
-          readOnly: true
+          subPath: logback.xml
+#        - name: glusterfsvol
+#          mountPath: /opt/docker/logs
+#          subPath: security-manager/logs
+        - name: security-manager-cert-volume
+          mountPath: /opt/docker/cert/
         - name: config-volume-kerb
           mountPath: /etc/extKerberosConfig
 #        - name: krb5conf
 #          mountPath: /etc/krb5.conf
       imagePullSecrets:
-        - name: regsecret
+      - name: regsecret
       volumes:
+      - name: security-manager-cert-volume
+        secret:
+          secretName: security-manager-cert
+      - name: security-manager-logback-volume
+        configMap:
+          name: security-manager-logback
       - name: config-volume
         configMap:
           name: security-manager-conf
       - name: config-volume-kerb
         configMap:
           name: krb5-conf
-      - name: glusterfsvol
-        persistentVolumeClaim:
-          claimName: gluster-claim
+#      - name: glusterfsvol
+#        persistentVolumeClaim:
+#          claimName: gluster-claim
 #      - name: krb5conf
 #        hostPath:
 #          path: /etc/krb5.conf
-      nodeSelector:
-        nifi: "false"
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                - key: "nifi"
+                  operator: NotIn
+                  values: ["true"]

@@ -33,8 +33,6 @@ object WebHDFSLogin {
       val scriptName =  if(System.getProperty("STAGING") != null) "./script/kb_init_local_test.sh"
                         else "./script/kb_init.sh"
 
-      //val scriptName =  if(ConfigReader.localEnv )"./script/kb_init_local_test.sh"
-                        //else "./script/kb_init.sh"
 
       val commandStr = s"timeout 5 $scriptName $usrName $HADOOP_URL"  // Process should hang: command timeout needed
       Logger.logger.debug(s"Launching $commandStr")

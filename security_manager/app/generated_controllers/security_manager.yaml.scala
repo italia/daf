@@ -46,7 +46,7 @@ import scala.collection.immutable.StringLike
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-    
+                
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml
@@ -438,24 +438,26 @@ package security_manager.yaml {
             execInContext[Future[SftpType[T] forSome { type T }]] ("sftp"){ () =>
             val credentials = Utils.getCredentials(currentRequest, cacheWrapper )
 
-//              val relativePath = path_to_create.split(credentials.get.username)(1).tail
-              val relativePath = path_to_create.split("ftp")(1).tail
-              logger.debug(s"relative path: $relativePath")
-
             if (CredentialManager.isDafSysAdmin(currentRequest) ||
               CredentialManager.isOrgAdmin(currentRequest, orgName) ||
             CredentialManager.isOrgEditor(currentRequest, orgName)) {
               val result = credentials.flatMap { crd =>
                 val sftpInternal = new SftpHandler(crd.username, crd.password, ConfigReader.sftpHostInternal)
-                val resultInternal = sftpInternal.mkdir(relativePath)
+                logger.debug("username --> " + crd.username  + " creating path " + ConfigReader.sftpHostInternal)
+                val resultInternal = sftpInternal.mkdir(path_to_create)
+                logger.debug(s"result internal sftp: $resultInternal")
+                logger.debug("path created into daf.teamdigitale.it")
                 val sftpExternal = new SftpHandler(crd.username, crd.password, ConfigReader.sftphostExternal)
-                val resultExternal = sftpExternal.mkdir(relativePath)
+                logger.debug("username --> " + crd.username  + " creating path " + ConfigReader.sftphostExternal)
+                val resultExternal = sftpExternal.mkdir(path_to_create)
+                logger.debug(s"resutl external sftp: $resultExternal")
+                logger.debug("path created into edge2")
                 resultExternal
               }
 
               result match {
                 case scala.util.Success(path) => Sftp200(path)
-                case scala.util.Failure(ex) => Sftp500(Error(Some(404), Some(ex.getMessage), None))
+                case scala.util.Failure(ex) => logger.info(ex.toString);logger.info(ex.getMessage);Sftp500(Error(Some(404), Some(ex.getMessage), None))
               }
             } else
               Sftp500(Error(Option(1), Some("Permissions required"), None))

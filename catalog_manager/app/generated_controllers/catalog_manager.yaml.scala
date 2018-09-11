@@ -17,6 +17,7 @@ import scala.util._
 
 import javax.inject._
 
+import java.io.File
 import de.zalando.play.controllers.PlayBodyParsing._
 import it.gov.daf.catalogmanager.listeners.IngestionListenerImpl
 import it.gov.daf.catalogmanager.service.{CkanRegistry,ServiceRegistry}
@@ -30,6 +31,7 @@ import it.gov.daf.common.utils.WebServiceUtil
 import it.gov.daf.catalogmanager.service.VocServiceRegistry
 import play.api.libs.ws.WSClient
 import java.net.URLEncoder
+import it.gov.daf.catalogmanager.utilities.ConfigReader
 import play.api.libs.ws.WSResponse
 import play.api.libs.ws.WSAuthScheme
 import java.io.FileInputStream
@@ -41,6 +43,11 @@ import it.gov.daf.common.sso.common.CredentialManager
 import play.api.Logger
 import yaml.ResponseWrites.MetaCatalogWrites.writes
 import play.api.mvc.Headers
+import scala.concurrent.duration._
+import scala.concurrent.Await
+import yaml.ResponseWrites.MetaCatalogWrites.writes
+import play.api.mvc.Headers
+import it.gov.daf.common.sso.common
 
 /**
  * This controller is re-generated after each change in the specification.
@@ -116,6 +123,39 @@ package catalog_manager.yaml {
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.autocompletedummy
             NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.autocompletedummy
+        }
+        val deleteCatalog = deleteCatalogAction { input: (String, String) =>
+            val (name, org) = input
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.deleteCatalog
+            def extractMessage(response: Either[Error, Success]) = {
+                if(response.isRight) response.right.get.message
+                else response.left.get.message
+            }
+
+            val user = CredentialManager.readCredentialFromRequest(currentRequest).username
+
+            val isAdmin = CredentialManager.isDafSysAdmin(currentRequest)
+            val feedName = s"${org}.${org}_o_${name}"
+
+            val responseMongo = ServiceRegistry.catalogService.deleteCatalogByName(name, user, isAdmin)
+
+            val futureResponseKylo = responseMongo match {
+                case Right(_) => kylo.deleteFeed(feedName, user)
+                case Left(_) => Future.successful(Left(Error(s"$feedName not deleted", None, None)))
+            }
+
+            val futureResponses: Future[Either[Error, Success]] = futureResponseKylo.map{ responseKylo =>
+              if(responseMongo.isRight && responseKylo.isRight)
+                  Right(Success(s"${extractMessage(responseMongo)}, ${extractMessage(responseKylo)}", None))
+              else
+                  Left(Error(s"${extractMessage(responseMongo)}, ${extractMessage(responseKylo)}", Some(500), None))
+            }
+            futureResponses.flatMap{
+                case Right(s) => DeleteCatalog200(s)
+                case Left(e) => DeleteCatalog500(e)
+            }
+//          NotImplementedYet
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.deleteCatalog
         }
         val searchdataset = searchdatasetAction { input: (MetadataCat, MetadataCat, ResourceSize, ResourceSize) =>
             val (q, sort, rows, start) = input
@@ -250,7 +290,8 @@ package catalog_manager.yaml {
         }
         val datasetcatalogbyname = datasetcatalogbynameAction { (name: String) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.datasetcatalogbyname
-            val catalog = ServiceRegistry.catalogService.catalogByName(name)
+            val groups = CredentialManager.readCredentialFromRequest(currentRequest).groups.toList
+            val catalog = ServiceRegistry.catalogService.catalogByName(name, groups)
 
             /*
             val resutl  = catalog match {
@@ -556,13 +597,6 @@ package catalog_manager.yaml {
             }
 
 
-            // TODO use only one match case
-//            val ingest = feed.operational.input_src.sftp match {
-//                case None => "ws"
-//                case Some(_) => "sftp"
-//            }
-
-            //InputSrc(sftp: InputSrcSftp, srv_pull: InputSrcSrv_push, srv_push: InputSrcSrv_push, daf_dataset: InputSrcDaf_dataset)
             val ingest = feed.operational.input_src match {
                 case  InputSrc(Some(_), None, None, _) => "sftp"
                 case  InputSrc(None, Some(_), None, _) => "srv_pull"
@@ -583,7 +617,6 @@ package catalog_manager.yaml {
 
             logger.debug(s"$ingest: $path")
 
-//            val sftPath = s"/home/$user/ftp/$domain/$subDomain/$dsName"
 
             val templateProperties = ingest match {
                 case "sftp" => kylo.sftpRemoteIngest(file_type, path)
@@ -601,11 +634,10 @@ package catalog_manager.yaml {
                 streamKyloTemplate.close()
             }
 
-//            val sftPath =  URLEncoder.encode(s"/home/$user/$domain/$subDomain/$dsName", "UTF-8")
+            val sftpPath =  URLEncoder.encode(s"$domain/$subDomain/$dsName", "UTF-8")
 
-//            logger.info(currentRequest.headers.get("authorization").get)
-
-            val createDir = ws.url("http://security-manager.default.svc.cluster.local:9000/security-manager/v1/sftp/init/" + URLEncoder.encode(path, "UTF-8") + s"?orgName=${feed.dcatapit.owner_org.get}")
+//            val createDir = ws.url("http://security-manager.default.svc.cluster.local:9000/security-manager/v1/sftp/init/" + URLEncoder.encode(sftpPath, "UTF-8") + s"?orgName=${feed.dcatapit.owner_org.get}")
+            val createDir = ws.url(SEC_MANAGER_HOST + "/security-manager/v1/sftp/init/" + sftpPath + s"?orgName=${feed.dcatapit.owner_org.get}")
                   .withHeaders(("authorization", currentRequest.headers.get("authorization").get))
 
             //val trasformed = kyloTemplate.transform(KyloTrasformers.feedTrasform(feed))

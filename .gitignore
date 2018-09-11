@@ -10,6 +10,8 @@ logs
 */conf/prodLocal.conf
 */conf/testLocal.conf
 */localConfigs/*
+*/tempoKube/*
+test-dir/
 iot_ingestion_manager/common/src/generated
 .ipynb_checkpoints
 catalog_manager/conf/cluster_application.conf
@@ -21,3 +23,6 @@ catalog_manager/conf/cross_spec
 ingestion_manager/conf/
 storage_manager_core
 storage_manager/playApi/conf/production.conf
+storage_manager/core/opendata
+*/.ensime_cache/
+*/.ensime

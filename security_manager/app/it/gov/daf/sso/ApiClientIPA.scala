@@ -79,10 +79,19 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
       if(result != "null") {
 
         val randomPwd = (((json \ "result")\"result")\"randompassword").asOpt[String]
+        randomPwd match {
+          case Some(rpwd) => Future.successful( Right(Success(Some("User created"), randomPwd)) )
+          case None => Future.successful {
+            Left(Error(Option(0), Some(readIpaErrorMessage(json)), None))
+          }
+        }
+
+        /*
+        val randomPwd = (((json \ "result")\"result")\"randompassword").asOpt[String]
         randomPwd match{
           case Some(rpwd) => loginCkanGeo(user.uid, rpwd).map ( _ => Right(Success(Some("User created"), randomPwd)) )
           case None => Future{Left( Error(Option(0),Some(readIpaErrorMessage(json)),None) )}
-        }
+        }*/
 
       }
       else
@@ -313,7 +322,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
       case WorkGroup(_) => parentGroup match{
                                               case Some(x) => Some(Seq(WORKGROUPS_GROUP,x.toString))
                                               case None => None// must raise an error (see testEmptyness)
-      }
+                                            }
       case RoleGroup(_) => Some(Seq(ROLES_GROUP))
     }
 
@@ -394,7 +403,7 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
 
     result.value map{
       case Right( (Some(Seq(x)),_) ) => Right( DafGroupInfo(groupName, "Workgroup", Option(x), None) )
-      case Right( (_,Some(y)) )  => Right( DafGroupInfo(groupName, "Organization", None, Option(y)) )
+      case Right( (_,Some(y)) )  => Right( DafGroupInfo(groupName, "Organization", None, Option(y)) )//TODO to fix:not working when organization not have wrg
       case Right( (_,_) )  => Right( DafGroupInfo(groupName, "Generic Group", None, None) )
       case Left(l) => Left(l)
 
@@ -926,14 +935,17 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
   }
 
 
-  private def loginCkanGeo(userName:String, pwd:String):Future[String] = {
+  def loginCkanGeo(userName:String, pwd:String):Future[Either[Error,Success]] = {
 
     logger.info("login ckan geo")
 
     val loginInfo = new LoginInfo(userName,pwd,LoginClientLocal.CKAN_GEO)
-    val wsResponse = loginClientLocal.login(loginInfo,wsClient)
+    val wsResponse = Try{ loginClientLocal.login(loginInfo,wsClient) }
 
-    wsResponse.map(_=>"ok")
+    wsResponse match{
+      case scala.util.Success(s) => s.map( _=>Right(Success(Some("ok"), Some("ok"))) )
+      case scala.util.Failure(f) => logger.error(f.getMessage,f);Future.successful( Left(Error(Option(0),Some(f.getMessage),None)) )
+    }
   }
 
 

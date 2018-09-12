@@ -96,11 +96,12 @@ object JdbcQueries {
     where   = Some {
       WhereClause { Gt(NamedColumn("age"), ValueColumn(30)) }
     },
+    join    = None,
     groupBy = Some {
       GroupByClause { Seq(NamedColumn("country")) }
     },
-    having = None,
-    limit  = None
+    having  = None,
+    limit   = None
   )
 
 }

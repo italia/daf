@@ -21,6 +21,7 @@ package daf.dataset.query
   */
 case class Query(select: SelectClause,
                  where: Option[WhereClause],
+                 join: Option[Seq[JoinClause]],
                  groupBy: Option[GroupByClause],
                  having: Option[HavingClause],
                  limit: Option[LimitClause]) {
@@ -64,6 +65,17 @@ case class HavingClause(filter: FilterOperator) extends Clause
 // Limit
 
 case class LimitClause(limit: Int) extends Clause
+
+// Join
+
+sealed trait JoinClause extends Clause {
+  def on: FilterOperator
+}
+
+case class LeftJoinClause(reference: Reference, on: FilterOperator) extends JoinClause
+case class RightJoinClause(reference: Reference, on: FilterOperator) extends JoinClause
+case class OuterJoinClause(reference: Reference, on: FilterOperator) extends JoinClause
+case class InnerJoinClause(reference: Reference, on: FilterOperator) extends JoinClause
 
 // Operators
 
@@ -119,3 +131,13 @@ case class ValueColumn(value: Any) extends Column
 case object WildcardColumn extends Column
 
 case class AliasColumn(column: Column, alias: String) extends Column
+
+// Reference
+
+sealed trait Reference {
+  def target: String
+}
+
+case class UriReference(target: String) extends Reference
+
+case class TableReference(target: String) extends Reference

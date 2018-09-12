@@ -30,9 +30,9 @@ trait DownloadExecution { this: DatasetController with DatasetExport with FileSy
 
   // Failures
 
-  private def failQuickDownload(params: DatasetParams, targetFormat: FileDataFormat) = Future.successful {
+  private def failQuickDownload(params: DatasetParams, targetFormat: FileDataFormat, limit: Option[Int]) = Future.successful {
     TemporaryRedirect {
-      s"${controllers.routes.DatasetController.getDataset(params.catalogUri, targetFormat.show, "batch").url}"
+      s"${controllers.routes.DatasetController.getDataset(params.catalogUri, targetFormat.show, "batch", limit).url}"
     }
   }
 
@@ -58,7 +58,7 @@ trait DownloadExecution { this: DatasetController with DatasetExport with FileSy
 
   private def quickFileDownload(params: FileDatasetParams, userId: String, targetFormat: FileDataFormat, limit: Option[Int]) = retrieveFileInfo(params.path, userId) match {
     case Success(pathInfo) if pathInfo.estimatedSize <= exportConfig.sizeThreshold => doQuickFile(params, targetFormat, limit)
-    case Success(pathInfo)                                                         => failQuickDownload(params, targetFormat)
+    case Success(pathInfo)                                                         => failQuickDownload(params, targetFormat, limit)
     case Failure(error)                                                            => Future.failed { error }
   }
 
@@ -66,7 +66,7 @@ trait DownloadExecution { this: DatasetController with DatasetExport with FileSy
 
   protected def quickDownload(params: DatasetParams, userId: String, targetFormat: FileDataFormat, limit: Option[Int] = None) = params match {
     case fileParams: FileDatasetParams => quickFileDownload(fileParams, userId, targetFormat, limit)
-    case kuduParams: KuduDatasetParams => failQuickDownload(kuduParams, targetFormat) // no quick download option for kudu
+    case kuduParams: KuduDatasetParams => failQuickDownload(kuduParams, targetFormat, limit) // no quick download option for kudu
   }
 
   protected def batchDownload(params: DatasetParams, userId: String, targetFormat: FileDataFormat, limit: Option[Int] = None) = params match {

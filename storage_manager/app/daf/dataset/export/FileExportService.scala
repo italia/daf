@@ -38,13 +38,13 @@ import scala.util.{ Failure, Success }
   * @param actorRefFactory the `ActorRefFactory` used to generate the router pool and its actors
   * @param fileSystem the `FileSystem` instance used for direct HDFS access
   */
-class FileExportService(fileExportConfig: FileExportConfig, kuduMaster: String)(implicit actorRefFactory: ActorRefFactory, fileSystem: FileSystem) {
+class FileExportService(fileExportConfig: FileExportConfig, kuduMaster: String, defaultLimit: Option[Int] = None)(implicit actorRefFactory: ActorRefFactory, fileSystem: FileSystem) {
 
   private implicit val askTimeout = Timeout.durationToTimeout { fileExportConfig.exportTimeout }
 
   private val exportRouter = actorRefFactory.actorOf {
     RoundRobinPool(fileExportConfig.numSessions).props {
-      FileExportActor.props(new HttpClientFactory, kuduMaster, fileExportConfig)
+      FileExportActor.props(new HttpClientFactory, kuduMaster, fileExportConfig, defaultLimit)
     }
   }
 

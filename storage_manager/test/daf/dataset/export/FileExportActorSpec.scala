@@ -57,7 +57,8 @@ class FileExportActorSpec extends WordSpec with Matchers with ConfigurationInsta
       new Properties,
       "",
       workingDir.asUriString,
-      30.minutes
+      30.minutes,
+      None
     )
   }
 

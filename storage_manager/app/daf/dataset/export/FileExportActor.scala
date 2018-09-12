@@ -54,6 +54,7 @@ import scala.util.{ Failure, Success, Try }
   * @param exportPath string representing the base path where to put the exported data
   * @param keepAliveTimeout the minimum amount of time to wait before triggering a keep-alive, which is an inexpensive
   *                         job that is triggered if livy is not utilized to keep the livy session alive
+  * @param defaultLimit the default limit to apply to queries that are run for export
   * @param fileSystem the `FileSystem` instance used for interaction
   */
 class FileExportActor(livyFactory: LivyClientFactory,
@@ -65,6 +66,7 @@ class FileExportActor(livyFactory: LivyClientFactory,
                       kuduMaster: String,
                       exportPath: String,
                       keepAliveTimeout: FiniteDuration,
+                      defaultLimit: Option[Int],
                       fileSystem: FileSystem) extends Actor {
 
   private val logger = LoggerFactory.getLogger("it.gov.daf.ExportActor")
@@ -105,12 +107,19 @@ class FileExportActor(livyFactory: LivyClientFactory,
     case false => Failure { new RuntimeException("Failed to copy files; check that the destination directory is accessible or can be created") }
   }
 
-  private def submitFileExport(inputPath: String, outputPath: String, fromFormat: FileDataFormat, toFormat: FileDataFormat, params: ExtraParams) = Try {
-    livyClient.run { FileExportJob.create(inputPath, outputPath, fromFormat, toFormat, params) }.get
+  private def chooseLimit(limit: Option[Int]) = (limit, defaultLimit) match {
+    case (None, None)                 => None
+    case (None, Some(value))          => Some { value }
+    case (Some(value), None)          => Some { value }
+    case (Some(value), Some(default)) => Some { math.min(value, default) }
   }
 
-  private def submitKuduExport(tableName: String, outputPath: String, toFormat: FileDataFormat, params: ExtraParams) = Try {
-    livyClient.run { KuduExportJob.create(tableName, kuduMaster, outputPath, toFormat, params) }.get
+  private def submitFileExport(inputPath: String, outputPath: String, fromFormat: FileDataFormat, toFormat: FileDataFormat, params: ExtraParams, limit: Option[Int]) = Try {
+    livyClient.run { FileExportJob.create(inputPath, outputPath, fromFormat, toFormat, params, chooseLimit(limit)) }.get
+  }
+
+  private def submitKuduExport(tableName: String, outputPath: String, toFormat: FileDataFormat, params: ExtraParams, limit: Option[Int]) = Try {
+    livyClient.run { KuduExportJob.create(tableName, kuduMaster, outputPath, toFormat, params, chooseLimit(limit)) }.get
   }
 
   private def submitQueryExport(query: String, outputPath: String, toFormat: FileDataFormat, params: ExtraParams) = Try {
@@ -132,11 +141,11 @@ class FileExportActor(livyFactory: LivyClientFactory,
   }
 
   def receive = {
-    case ExportFile(path, from, to, _)      if from == to => sender ! copy(path, outputPath(path))
-    case ExportFile(path, from, to, params)               => sender ! submitFileExport(path, outputPath(path), from, to, params)
-    case ExportTable(name, to, params)                    => sender ! submitKuduExport(name, outputTable(name), to, params)
-    case ExportQuery(query, to, params)                   => sender ! submitQueryExport(query, outputQuery, to, params)
-    case ReceiveTimeout                                   => keepAlive()
+    case ExportFile(path, from, to, _, None) if from == to => sender ! copy(path, outputPath(path))
+    case ExportFile(path, from, to, params, limit)         => sender ! submitFileExport(path, outputPath(path), from, to, params, limit)
+    case ExportTable(name, to, params, limit)              => sender ! submitKuduExport(name, outputTable(name), to, params, limit)
+    case ExportQuery(query, to, params)                    => sender ! submitQueryExport(query, outputQuery, to, params)
+    case ReceiveTimeout                                    => keepAlive()
   }
 
 }
@@ -145,7 +154,8 @@ object FileExportActor {
 
   def props(livyFactory: LivyClientFactory,
             kuduMaster: String,
-            exportServiceConfig: FileExportConfig)(implicit fileSystem: FileSystem): Props = props(
+            exportServiceConfig: FileExportConfig,
+            defaultLimit: Option[Int])(implicit fileSystem: FileSystem): Props = props(
     livyFactory,
     exportServiceConfig.livyHost,
     exportServiceConfig.livyAuth,
@@ -154,7 +164,8 @@ object FileExportActor {
     exportServiceConfig.livyProperties,
     kuduMaster,
     exportServiceConfig.exportPath,
-    exportServiceConfig.keepAliveTimeout
+    exportServiceConfig.keepAliveTimeout,
+    defaultLimit
   )
 
   def props(livyFactory: LivyClientFactory,
@@ -165,7 +176,8 @@ object FileExportActor {
             livyProps: Properties,
             kuduMaster: String,
             exportPath: String,
-            keepAliveTimeout: FiniteDuration)(implicit fileSystem: FileSystem): Props = Props {
+            keepAliveTimeout: FiniteDuration,
+            defaultLimit: Option[Int])(implicit fileSystem: FileSystem): Props = Props {
     new FileExportActor(
       livyFactory,
       livyHost,
@@ -176,6 +188,7 @@ object FileExportActor {
       kuduMaster,
       exportPath,
       keepAliveTimeout,
+      defaultLimit,
       fileSystem
     )
   }
@@ -184,6 +197,17 @@ object FileExportActor {
 
 sealed trait ExportMessage
 
-case class ExportFile(path: String, sourceFormat: FileDataFormat, targetFormat: FileDataFormat, extraParams: Map[String, String] = Map.empty[String, String]) extends ExportMessage
-case class ExportTable(name: String, targetFormat: FileDataFormat, extraParams: Map[String, String] = Map.empty[String, String]) extends ExportMessage
-case class ExportQuery(query: String, targetFormat: FileDataFormat, extraParams: Map[String, String] = Map.empty[String, String]) extends ExportMessage
+case class ExportFile(path: String,
+                      sourceFormat: FileDataFormat,
+                      targetFormat: FileDataFormat,
+                      extraParams: Map[String, String] = Map.empty[String, String],
+                      limit: Option[Int] = None) extends ExportMessage
+
+case class ExportTable(name: String,
+                       targetFormat: FileDataFormat,
+                       extraParams: Map[String, String] = Map.empty[String, String],
+                       limit: Option[Int] = None) extends ExportMessage
+
+case class ExportQuery(query: String,
+                       targetFormat: FileDataFormat,
+                       extraParams: Map[String, String] = Map.empty[String, String]) extends ExportMessage

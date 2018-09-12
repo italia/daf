@@ -31,8 +31,9 @@ import scala.util.{ Failure, Success, Try }
   * @param master      the location of the Kudu master
   * @param extraParams a map of additional parameters that can be passed to this job, such as a `separator` in cases
   *                    where `to` is [[daf.filesystem.CsvFileFormat]]
+  * @param limit an optional integer to limit the number of results exported
   */
-class KuduExportJob(val table: String, val master: String, val to: FileExportInfo, extraParams: Map[String, String]) extends Job[String] {
+class KuduExportJob(val table: String, val master: String, val to: FileExportInfo, extraParams: Map[String, String], limit: Option[Int]) extends Job[String] {
 
   private val csvDelimiter     = extraParams.getOrElse("separator", ",")
   private val csvIncludeHeader = true
@@ -47,6 +48,11 @@ class KuduExportJob(val table: String, val master: String, val to: FileExportInf
 
   private def read(session: SparkSession) = prepareReader { session.read }.kudu
 
+  private def addLimit(data: DataFrame) = limit match {
+    case Some(value) => data.limit(value)
+    case None        => data
+  }
+
   private def write(data: DataFrame) = to match {
     case FileExportInfo(path, CsvFileFormat)  => prepareCsvWriter(data.write).csv(path)
     case FileExportInfo(path, JsonFileFormat) => data.write.json(path)
@@ -54,8 +60,9 @@ class KuduExportJob(val table: String, val master: String, val to: FileExportInf
   }
 
   private def doExport(session: SparkSession) = for {
-    data <- Try { read(session) }
-    _    <- Try { write(data) }
+    data    <- Try { read(session) }
+    limited <- Try { addLimit(data) }
+    _       <- Try { write(limited) }
   } yield ()
 
   def call(jobContext: JobContext) = doExport { jobContext.sqlctx().sparkSession } match {
@@ -67,11 +74,17 @@ class KuduExportJob(val table: String, val master: String, val to: FileExportInf
 
 object KuduExportJob {
 
-  def create(table: String, master: String, outputPath: String, outputFormat: FileDataFormat, extraParams: Map[String, String] = Map.empty[String, String]) = new KuduExportJob(
+  def create(table: String,
+             master: String,
+             outputPath: String,
+             outputFormat: FileDataFormat,
+             extraParams: Map[String, String] = Map.empty[String, String],
+             limit: Option[Int]) = new KuduExportJob(
     table,
     master,
     FileExportInfo(outputPath, outputFormat),
-    extraParams
+    extraParams,
+    limit
   )
 
 }

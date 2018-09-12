@@ -31,8 +31,9 @@ import scala.util.{ Failure, Success, Try }
   * @param to details representing the output data
   * @param extraParams a map of additional parameters that can be passed to this job, such as a `separator` in cases
   *                    where `to` is [[daf.filesystem.CsvFileFormat]]
+  * @param limit an optional integer to limit the number of results exported
   */
-class FileExportJob(val from: FileExportInfo, val to: FileExportInfo, val extraParams: Map[String, String]) extends Job[String] {
+class FileExportJob(val from: FileExportInfo, val to: FileExportInfo, val extraParams: Map[String, String], limit: Option[Int]) extends Job[String] {
 
   private val csvDelimiter     = extraParams.getOrElse("separator", ",")
   private val csvIncludeHeader = true
@@ -56,6 +57,11 @@ class FileExportJob(val from: FileExportInfo, val to: FileExportInfo, val extraP
     case FileExportInfo(_, unsupported)                      => throw new IllegalArgumentException(s"Input file format [$unsupported] is invalid")
   }
 
+  private def addLimit(data: DataFrame) = limit match {
+    case Some(value) => data.limit(value)
+    case None        => data
+  }
+
   private def write(data: DataFrame) = to match {
     case FileExportInfo(path, CsvFileFormat)  => prepareCsvWriter(data.write).csv(path)
     case FileExportInfo(path, JsonFileFormat) => data.write.json(path)
@@ -63,8 +69,9 @@ class FileExportJob(val from: FileExportInfo, val to: FileExportInfo, val extraP
   }
 
   private def doExport(session: SparkSession) = for {
-    data <- Try { read(session) }
-    _    <- Try { write(data) }
+    data    <- Try { read(session) }
+    limited <- Try { addLimit(data) }
+    _       <- Try { write(limited) }
   } yield ()
 
   override def call(jobContext: JobContext) = doExport { jobContext.sqlctx().sparkSession } match {
@@ -76,10 +83,16 @@ class FileExportJob(val from: FileExportInfo, val to: FileExportInfo, val extraP
 
 object FileExportJob {
 
-  def create(inputPath: String, outputPath: String, from: FileDataFormat, to: FileDataFormat, extraParams: ExtraParams = Map.empty[String, String]) = new FileExportJob(
+  def create(inputPath: String,
+             outputPath: String,
+             from: FileDataFormat,
+             to: FileDataFormat,
+             extraParams: ExtraParams = Map.empty[String, String],
+             limit: Option[Int]) = new FileExportJob(
     FileExportInfo(inputPath, from),
     FileExportInfo(outputPath, to),
-    extraParams
+    extraParams,
+    limit
   )
 
 }

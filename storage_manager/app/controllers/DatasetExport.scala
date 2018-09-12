@@ -33,16 +33,16 @@ trait DatasetExport { this: DatasetController =>
     case _              => Failure { new IllegalArgumentException("Unable to prepare download; only CSV and JSON are permitted") }
   }
 
-  protected def prepareFileExport(pathInfo: PathInfo, sourceFormat: FileDataFormat, targetFormat: FileDataFormat, extraParams: ExtraParams) =
-    fileExportService.exportFile(pathInfo.path, sourceFormat, targetFormat, extraParams).map { downloadService.openPath }.flatMap {
+  protected def prepareFileExport(pathInfo: PathInfo, sourceFormat: FileDataFormat, targetFormat: FileDataFormat, extraParams: ExtraParams, limit: Option[Int] = None) =
+    fileExportService.exportFile(pathInfo.path, sourceFormat, targetFormat, extraParams, limit).map { downloadService.openPath }.flatMap {
       case Success(stream) => Future.successful {
         StreamConverters.fromInputStream { () => stream }
       }
       case Failure(error)  => Future.failed { error }
     }
 
-  protected def prepareTableExport(table: String, targetFormat: FileDataFormat, extraParams: ExtraParams) =
-    fileExportService.exportTable(table, targetFormat, extraParams).map { downloadService.openPath }.flatMap {
+  protected def prepareTableExport(table: String, targetFormat: FileDataFormat, extraParams: ExtraParams, limit: Option[Int] = None) =
+    fileExportService.exportTable(table, targetFormat, extraParams, limit).map { downloadService.openPath }.flatMap {
       case Success(stream) => Future.successful {
         StreamConverters.fromInputStream { () => stream }
       }

@@ -30,9 +30,9 @@ trait DownloadExecution { this: DatasetController with DatasetExport with FileSy
 
   // Failures
 
-  private def failQuickDownload(params: DatasetParams, targetFormat: FileDataFormat) = Future.successful {
+  private def failQuickDownload(params: DatasetParams, targetFormat: FileDataFormat, limit: Option[Int]) = Future.successful {
     TemporaryRedirect {
-      s"${controllers.routes.DatasetController.getDataset(params.catalogUri, targetFormat.show, "batch").url}"
+      s"${controllers.routes.DatasetController.getDataset(params.catalogUri, targetFormat.show, "batch", limit).url}"
     }
   }
 
@@ -44,13 +44,13 @@ trait DownloadExecution { this: DatasetController with DatasetExport with FileSy
 
   // Executions
 
-  private def doTableExport(params: KuduDatasetParams, userId: String, targetFormat: FileDataFormat) = retrieveTableInfo(params.table, userId) match {
-    case Success(_)     => prepareTableExport(params.table, targetFormat, params.extraParams).map { formatExport(_, targetFormat) }
+  private def doTableExport(params: KuduDatasetParams, userId: String, targetFormat: FileDataFormat, limit: Option[Int]) = retrieveTableInfo(params.table, userId) match {
+    case Success(_)     => prepareTableExport(params.table, targetFormat, params.extraParams, limit).map { formatExport(_, targetFormat) }
     case Failure(error) => Future.failed { error }
   }
 
-  private def doFileExport(params: FileDatasetParams, userId: String, targetFormat: FileDataFormat) = retrieveFileInfo(params.path, userId) match {
-    case Success(pathInfo) => prepareFileExport(pathInfo, params.format, targetFormat, params.extraParams).map { formatExport(_, targetFormat) }
+  private def doFileExport(params: FileDatasetParams, userId: String, targetFormat: FileDataFormat, limit: Option[Int]) = retrieveFileInfo(params.path, userId) match {
+    case Success(pathInfo) => prepareFileExport(pathInfo, params.format, targetFormat, params.extraParams, limit).map { formatExport(_, targetFormat) }
     case Failure(error)    => Future.failed { error }
   }
 
@@ -58,7 +58,7 @@ trait DownloadExecution { this: DatasetController with DatasetExport with FileSy
 
   private def quickFileDownload(params: FileDatasetParams, userId: String, targetFormat: FileDataFormat, limit: Option[Int]) = retrieveFileInfo(params.path, userId) match {
     case Success(pathInfo) if pathInfo.estimatedSize <= exportConfig.sizeThreshold => doQuickFile(params, targetFormat, limit)
-    case Success(pathInfo)                                                         => failQuickDownload(params, targetFormat)
+    case Success(pathInfo)                                                         => failQuickDownload(params, targetFormat, limit)
     case Failure(error)                                                            => Future.failed { error }
   }
 
@@ -66,17 +66,17 @@ trait DownloadExecution { this: DatasetController with DatasetExport with FileSy
 
   protected def quickDownload(params: DatasetParams, userId: String, targetFormat: FileDataFormat, limit: Option[Int] = None) = params match {
     case fileParams: FileDatasetParams => quickFileDownload(fileParams, userId, targetFormat, limit)
-    case kuduParams: KuduDatasetParams => failQuickDownload(kuduParams, targetFormat) // no quick download option for kudu
+    case kuduParams: KuduDatasetParams => failQuickDownload(kuduParams, targetFormat, limit) // no quick download option for kudu
   }
 
-  protected def batchDownload(params: DatasetParams, userId: String, targetFormat: FileDataFormat) = params match {
-    case kuduParams: KuduDatasetParams => doTableExport(kuduParams, userId, targetFormat).map { respond(_, kuduParams.table, targetFormat) }
-    case fileParams: FileDatasetParams => doFileExport(fileParams, userId, targetFormat).map { respond(_, fileParams.name, targetFormat) }
+  protected def batchDownload(params: DatasetParams, userId: String, targetFormat: FileDataFormat, limit: Option[Int] = None) = params match {
+    case kuduParams: KuduDatasetParams => doTableExport(kuduParams, userId, targetFormat, limit).map { respond(_, kuduParams.table, targetFormat) }
+    case fileParams: FileDatasetParams => doFileExport(fileParams, userId, targetFormat, limit).map { respond(_, fileParams.name, targetFormat) }
   }
 
   protected def download(params: DatasetParams, userId: String, targetFormat: FileDataFormat, method: DownloadMethod, limit: Option[Int] = None) = method match {
     case QuickDownloadMethod => quickDownload(params, userId, targetFormat, limit)
-    case BatchDownloadMethod => batchDownload(params, userId, targetFormat)
+    case BatchDownloadMethod => batchDownload(params, userId, targetFormat, limit)
   }
 
 }

@@ -79,8 +79,8 @@ class DatasetController @Inject()(configuration: Configuration,
 
   protected val datasetService    = new DatasetService(configuration.underlying)
   protected val queryService      = new JdbcQueryService(impalaConfig, defaultLimit) with ImpalaTransactorInstance
+  protected val fileExportService = new FileExportService(exportConfig, kuduMaster, defaultLimit)
   protected val downloadService   = new DownloadService(kuduMaster)
-  protected val fileExportService = new FileExportService(exportConfig, kuduMaster)
 
   protected val catalogClient = CatalogManagerClient.fromConfig(configuration)
 

@@ -63,8 +63,8 @@ class QueryFormatsSpec extends WordSpec with MustMatchers with JsonParsing {
             },
             join    = Some {
               Seq(
-                LeftJoinClause(UriReference("daf://uri/"), Eq(NamedColumn("col1"), NamedColumn("col2"))),
-                InnerJoinClause(UriReference("daf://uri/"), Eq(NamedColumn("col1"), NamedColumn("col2")))
+                LeftJoinClause(UnresolvedReference("daf://uri/"), Eq(NamedColumn("col1"), NamedColumn("col2"))),
+                InnerJoinClause(UnresolvedReference("daf://uri/"), Eq(NamedColumn("col1"), NamedColumn("col2")))
               )
             },
             groupBy = None,

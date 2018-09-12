@@ -18,6 +18,11 @@ package controllers
 
 import akka.stream.scaladsl.Source
 import cats.syntax.show.toShow
+import cats.syntax.traverse.toTraverseOps
+import cats.instances.option.catsStdInstancesForOption
+import cats.instances.try_.catsStdInstancesForTry
+import cats.instances.map.catsStdInstancesForMap
+import cats.instances.list.catsStdInstancesForList
 import daf.dataset._
 import daf.dataset.query.jdbc.{ JdbcResult, QueryFragmentWriterSyntax, Writers }
 import daf.dataset.query.Query
@@ -42,19 +47,25 @@ trait QueryExecution { this: DatasetController with DatasetExport with FileSyste
     s"${extractDatabaseName(path.getParent.getName, params)}.${path.getName.toLowerCase}"
   }
 
-  private def extractTableName(params: DatasetParams, userId: String): Try[String] = params match {
+  protected def extractTableName(params: DatasetParams, userId: String): Try[String] = params match {
     case kudu: KuduDatasetParams => (proxyUser as userId) { downloadService.tableInfo(kudu.table) } map { _ => kudu.table }
     case file: FileDatasetParams => (proxyUser as userId) { extractTableName(file.path.asHadoop.resolve, file) }
   }
 
-  private def prepareQuery(params: DatasetParams, query: Query, userId: String) = for {
+  private def extractTableMap(params: List[DatasetParams], userId: String) = params.map { p => p.catalogUri -> p }.traverse[Try, (String, String)] {
+    case (k, p) => extractTableName(p, userId).map { k -> _ }
+  }
+
+  private def prepareQuery(params: DatasetParams, otherParams: List[DatasetParams], query: Query, userId: String) = for {
     tableName <- extractTableName(params, userId)
-    fragment  <- Writers.sql(query, tableName).write
+    tableRef  <- extractTableMap(otherParams, userId)
+    fragment  <- Writers.sql(query, tableName, tableRef.toMap).write
   } yield fragment.query[Unit].sql
 
-  private def analyzeQuery(params: DatasetParams, query: Query, userId: String) = for {
+  private def analyzeQuery(params: DatasetParams, otherParams: List[DatasetParams], query: Query, userId: String) = for {
     tableName <- extractTableName(params, userId)
-    analysis  <- queryService.explain(query, tableName, userId)
+    tableRef  <- extractTableMap(otherParams, userId)
+    analysis  <- queryService.explain(query, tableName, tableRef.toMap, userId)
   } yield analysis
 
   private def transform(jdbcResult: JdbcResult, targetFormat: FileDataFormat) = targetFormat match {
@@ -80,31 +91,32 @@ trait QueryExecution { this: DatasetController with DatasetExport with FileSyste
 
   // Executions
 
-  private def doBatchExec(params: DatasetParams, query: Query, targetFormat: FileDataFormat, userId: String) = prepareQuery(params, query, userId) match {
+  private def doBatchExec(params: DatasetParams, otherParams: List[DatasetParams], query: Query, targetFormat: FileDataFormat, userId: String) = prepareQuery(params, otherParams, query, userId) match {
     case Success(sql)   => prepareQueryExport(sql, targetFormat).map { formatExport(_, targetFormat) }
     case Failure(error) => Future.failed { error }
   }
 
-  private def doQuickExec(params: DatasetParams, query: Query, targetFormat: FileDataFormat, userId: String) = for {
+  private def doQuickExec(params: DatasetParams, otherParams: List[DatasetParams], query: Query, targetFormat: FileDataFormat, userId: String) = for {
     tableName  <- extractTableName(params, userId)
-    jdbcResult <- queryService.exec(query, tableName, userId)
+    tableRef   <- extractTableMap(otherParams, userId)
+    jdbcResult <- queryService.exec(query, tableName, tableRef.toMap, userId)
     data       <- transform(jdbcResult, targetFormat)
   } yield data
 
   // API
 
-  protected def quickExec(params: DatasetParams, query: Query, targetFormat: FileDataFormat, userId: String) = analyzeQuery(params, query, userId) match {
-    case Success(analysis) if analysis.memoryEstimation <= impalaConfig.memoryEstimationLimit => doQuickExec(params, query, targetFormat, userId).~>[Future].map { respond(_, params.name, targetFormat) }
+  protected def quickExec(params: DatasetParams, otherParams: List[DatasetParams], query: Query, targetFormat: FileDataFormat, userId: String) = analyzeQuery(params, otherParams, query, userId) match {
+    case Success(analysis) if analysis.memoryEstimation <= impalaConfig.memoryEstimationLimit => doQuickExec(params, otherParams, query, targetFormat, userId).~>[Future].map { respond(_, params.name, targetFormat) }
     case Success(_)                                                                           => failQuickExec(params, targetFormat)
     case Failure(error)                                                                       => Future.failed { error }
   }
 
-  protected def batchExec(params: DatasetParams, query: Query, targetFormat: FileDataFormat, userId: String) =
-    doBatchExec(params, query, targetFormat, userId).map { respond(_, params.name, targetFormat) }
+  protected def batchExec(params: DatasetParams, otherParams: List[DatasetParams], query: Query, targetFormat: FileDataFormat, userId: String) =
+    doBatchExec(params, otherParams, query, targetFormat, userId).map { respond(_, params.name, targetFormat) }
 
-  protected def exec(params: DatasetParams, query: Query, userId: String, targetFormat: FileDataFormat, method: DownloadMethod) = method match {
-    case QuickDownloadMethod => quickExec(params, query, targetFormat, userId)
-    case BatchDownloadMethod => batchExec(params, query, targetFormat, userId)
+  protected def exec(params: DatasetParams, otherParams: List[DatasetParams], query: Query, userId: String, targetFormat: FileDataFormat, method: DownloadMethod) = method match {
+    case QuickDownloadMethod => quickExec(params, otherParams, query, targetFormat, userId)
+    case BatchDownloadMethod => batchExec(params, otherParams, query, targetFormat, userId)
   }
 
 }

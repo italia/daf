@@ -31,6 +31,13 @@ package object utils {
     }
   }
 
+  implicit val optionFutureNat: (Option ~> Try) = new (Option ~> Try) {
+    def apply[A](fa: Option[A]): Try[A] = fa match {
+      case Some(a) => Success(a)
+      case None    => Failure[A] { new NoSuchElementException }
+    }
+  }
+
   /**
     * Adds syntax to types that can be naturally transformed
     */

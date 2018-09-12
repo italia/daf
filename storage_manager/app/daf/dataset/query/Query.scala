@@ -36,6 +36,12 @@ case class Query(select: SelectClause,
 
   def hasFilters = hasWhere || hasHaving
 
+  def hasJoin = join.forall { _.nonEmpty }
+
+  def unresolvedReferences = join.getOrElse { Seq.empty }.map { _.reference }.collect {
+    case UnresolvedReference(uri) => uri
+  }
+
 }
 
 sealed trait Clause
@@ -69,6 +75,7 @@ case class LimitClause(limit: Int) extends Clause
 // Join
 
 sealed trait JoinClause extends Clause {
+  def reference: Reference
   def on: FilterOperator
 }
 
@@ -138,6 +145,6 @@ sealed trait Reference {
   def target: String
 }
 
-case class UriReference(target: String) extends Reference
+case class UnresolvedReference(target: String) extends Reference
 
-case class TableReference(target: String) extends Reference
+case class ResolvedReference(target: String) extends Reference

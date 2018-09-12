@@ -21,12 +21,15 @@ import com.google.inject.Inject
 import api.DatasetControllerAPI
 import cats.MonadError
 import cats.instances.future.catsStdInstancesForFuture
+import cats.instances.try_.catsStdInstancesForTry
+import cats.instances.list.catsStdInstancesForList
+import cats.syntax.traverse.toTraverseOps
 import config.{ FileExportConfig, ImpalaConfig }
 import daf.catalogmanager.CatalogManagerClient
 import daf.dataset.export.FileExportService
 import daf.dataset._
 import daf.dataset.query.jdbc.JdbcQueryService
-import daf.dataset.query.Query
+import daf.dataset.query.{ Query, UnresolvedReference }
 import daf.dataset.query.json.QueryFormats.reader
 import daf.error.InvalidRequestException
 import daf.instances.{ FileSystemInstance, ImpalaTransactorInstance }
@@ -42,7 +45,7 @@ import play.api.mvc._
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.higherKinds
-import scala.util.{ Failure, Success }
+import scala.util.{ Failure, Success, Try }
 
 class DatasetController @Inject()(configuration: Configuration,
                                   playSessionStore: PlaySessionStore,
@@ -89,14 +92,21 @@ class DatasetController @Inject()(configuration: Configuration,
     params  <- DatasetParams.fromCatalog(catalog)
   } yield params
 
+  private def resolveReferences(auth: String, query: Query) = query.unresolvedReferences.toList.traverse[Try, DatasetParams] { retrieveCatalog(auth, _) }
+
+  private def retrieveQueryReferences(auth: String, uri: String, query: Query) = for {
+    table  <- retrieveCatalog(auth, uri)
+    others <- resolveReferences(auth, query)
+  } yield table -> others
+
   private def retrieveBulkData(uri: String, auth: String, userId: String, targetFormat: FileDataFormat, method: DownloadMethod, limit: Option[Int]) = retrieveCatalog(auth, uri) match {
     case Success(params) => download(params, userId, targetFormat, method, limit)
     case Failure(error)  => Future.failed { error }
   }
 
-  private def executeQuery(query: Query, uri: String, auth: String, userId: String, targetFormat: FileDataFormat, method: DownloadMethod) = retrieveCatalog(auth, uri) match {
-    case Success(params) => exec(params, query, userId, targetFormat, method)
-    case Failure(error)  => Future.failed { error }
+  private def executeQuery(query: Query, uri: String, auth: String, userId: String, targetFormat: FileDataFormat, method: DownloadMethod) = retrieveQueryReferences(auth, uri, query) match {
+    case Success((mainTable, others)) => exec(mainTable, others, query, userId, targetFormat, method)
+    case Failure(error)               => Future.failed { error }
   }
 
   private def checkTargetFormat[M[_]](format: String)(implicit M: MonadError[M, Throwable]): M[FileDataFormat] = format.toLowerCase match {

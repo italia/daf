@@ -47,9 +47,10 @@ class JdbcQueryService(protected val impalaConfig: ImpalaConfig, protected val d
     * `userId`.
     * @param query the [[Query]] to execute
     * @param table the table on which to run the query, generally including the database name
+    * @param tableRef the reference for tables and logical URIs
     * @param userId the id of the user on behalf of whom the query should be executed
     */
-  def exec(query: Query, table: String, userId: String): Try[JdbcResult] = Writers.sql(query, table, defaultLimit).write.map {
+  def exec(query: Query, table: String, tableRef: Map[String, String], userId: String): Try[JdbcResult] = Writers.sql(query, table, tableRef, defaultLimit).write.map {
     exec(_).transact { transactor(userId) }.unsafeRunSync
   }
 
@@ -58,9 +59,10 @@ class JdbcQueryService(protected val impalaConfig: ImpalaConfig, protected val d
     * `userId`
     * @param query the [[Query]] to analyze
     * @param table the table on which to run the query, generally including the database name
+    * @param tableRef the reference for tables and logical URIs
     * @param userId the id of the user on behalf of whom the query should be analyzed
     */
-  def explain(query: Query, table: String, userId: String): Try[JdbcQueryAnalysis] = Writers.explain(query, table, defaultLimit).write.map {
+  def explain(query: Query, table: String, tableRef: Map[String, String], userId: String): Try[JdbcQueryAnalysis] = Writers.explain(query, table, tableRef, defaultLimit).write.map {
     explain(_).transact { transactor(userId) }.unsafeRunSync
   }
 

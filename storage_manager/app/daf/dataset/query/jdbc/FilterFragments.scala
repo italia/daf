@@ -33,10 +33,13 @@ import scala.util.Try
 object FilterFragments {
 
   private def writeColumn(column: Column): Trampoline[String] = column match {
-    case ValueColumn(value: String)     => Free.pure { s"'${escape(value)}'" }
-    case ValueColumn(value)             => Free.pure { value.toString }
-    case NamedColumn(columnRegex(name)) => Free.pure { name }
-    case _                              => recursionError[String] { new IllegalArgumentException("Invalid operand encountered: columns or constants only are allowed") }
+    case ValueColumn(value: String)                         => Free.pure { s"'${escape(value)}'" }
+    case ValueColumn(value)                                 => Free.pure { value.toString }
+    case NamedColumn(columnRegex(name))                     => Free.pure { name }
+    case NamedColumn(qualifiedColumnRegex(qualifier, name)) => Free.pure { s"$qualifier.$name" }
+    case _                                                  => recursionError[String] {
+      new IllegalArgumentException("Invalid operand encountered: columns or constants only are allowed")
+    }
   }
 
   private def _writeComparison(left: Column, right: Column)(f: (String, String) => String): Trampoline[String] = for {
@@ -76,11 +79,11 @@ object FilterFragments {
     case RightJoinClause(_, _) => Free.pure[Try, String] { "RIGHT JOIN" }
   }
 
-  private def writeJoin(joinClause: JoinClause, tableRef: Map[String, String]) = for {
+  private def writeJoin(joinClause: JoinClause, alias: String, tableRef: Map[String, String]) = for {
     join <- writeJoinType(joinClause)
     ref  <- writeReference(joinClause.reference, tableRef)
     cond <- writeFilterOp(joinClause.on)
-  } yield s"$join $ref ON $cond"
+  } yield s"$join $ref $alias ON $cond"
 
   /**
     * Creates a [[QueryFragmentWriter]] for `WHERE` clauses in a query.
@@ -96,8 +99,8 @@ object FilterFragments {
     writeFilterOp { havingClause.filter }.runTailRec.map { s => Fragment.const(s"HAVING $s") }
   }
 
-  def join(joinClause: JoinClause, tableRef: Map[String, String]) = QueryFragmentWriter.ask {
-    writeJoin(joinClause, tableRef).runTailRec.map { Fragment.const(_) }
+  def join(joinClause: JoinClause, alias: String, tableRef: Map[String, String]) = QueryFragmentWriter.ask {
+    writeJoin(joinClause, alias, tableRef).runTailRec.map { Fragment.const(_) }
   }
 
 }

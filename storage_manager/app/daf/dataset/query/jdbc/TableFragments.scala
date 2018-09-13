@@ -26,6 +26,6 @@ object TableFragments {
   /**
     * Creates a [[QueryFragmentWriter]] for `FROM` clauses in a query, validating against a `ColumnReference` instance.
     */
-  def from(tableName: String): QueryFragmentWriter[Unit] = QueryFragmentWriter.tell { Fragment.const(s"FROM $tableName") }
+  def from(tableName: String): QueryFragmentWriter[Unit] = QueryFragmentWriter.tell { Fragment.const(s"FROM $tableName AS T1") }
 
 }

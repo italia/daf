@@ -20,6 +20,8 @@ package object query {
 
   private[query] val columnRegex = "([a-zA-Z0-9_]+)".r
 
+  private[query] val qualifiedColumnRegex = "([a-zA-Z0-9_]+).([a-zA-Z0-9_]+)".r
+
   private[query] def escape(value: String) = value.replace("'", """\'""")
 
   implicit class ColumnOps(column: Column) {

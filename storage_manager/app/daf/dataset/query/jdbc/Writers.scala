@@ -32,8 +32,8 @@ object Writers {
 
   def where(query: Query): QueryFragmentWriter[Unit] = query.where.map { FilterFragments.where } getOrElse QueryFragmentWriter.unit
 
-  def join(query: Query, tableRef: Map[String, String]): QueryFragmentWriter[List[Unit]] = query.join.getOrElse { Seq.empty }.toList.traverse[QueryFragmentWriter, Unit] {
-    FilterFragments.join(_, tableRef)
+  def join(query: Query, tableRef: Map[String, String]): QueryFragmentWriter[List[Unit]] = query.join.getOrElse { Seq.empty }.toList.zipWithIndex.traverse[QueryFragmentWriter, Unit] { case (clause, index) =>
+    FilterFragments.join(clause, s"JT${index + 1}", tableRef)
   }
 
   def from(table: String): QueryFragmentWriter[Unit] = TableFragments.from(table)

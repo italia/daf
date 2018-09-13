@@ -25,13 +25,14 @@ object ComparisonOperatorFormats {
   private val stringRegex = "'(.*)'".r
 
   private val readOperandJsValue: Reads[Column] = Reads[Column] {
-    case JsString(stringRegex(value))      => JsSuccess { ValueColumn(value) }
-    case JsString(columnRegex(columnName)) => JsSuccess { NamedColumn(columnName) }
-    case JsNumber(number)                  => JsSuccess { ValueColumn(number) }
-    case JsBoolean(boolean)                => JsSuccess { ValueColumn(boolean) }
-    case _: JsObject                       => JsError { "Invalid operand [obj] representation: must be a string, number, boolean or column name" }
-    case _: JsArray                        => JsError { "Invalid operand [array] representation: must be a string, number, boolean or column name" }
-    case unsupported                       => JsError { s"Invalid operand [$unsupported] representation: must be a string, number, boolean or column name" }
+    case JsString(stringRegex(value))                         => JsSuccess { ValueColumn(value) }
+    case JsString(columnRegex(columnName))                    => JsSuccess { NamedColumn(columnName) }
+    case JsString(qualifiedColumnRegex(qualName, columnName)) => JsSuccess { NamedColumn(s"$qualName.$columnName") }
+    case JsNumber(number)                                     => JsSuccess { ValueColumn(number) }
+    case JsBoolean(boolean)                                   => JsSuccess { ValueColumn(boolean) }
+    case _: JsObject                                          => JsError { "Invalid operand [obj] representation: must be a string, number, boolean or column name" }
+    case _: JsArray                                           => JsError { "Invalid operand [array] representation: must be a string, number, boolean or column name" }
+    case unsupported                                          => JsError { s"Invalid operand [$unsupported] representation: must be a string, number, boolean or column name" }
   }
 
   private val readOperands: Reads[(Column, Column)] = for {

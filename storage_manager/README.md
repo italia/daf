@@ -59,6 +59,7 @@ A query is made up of clauses, of which the following are currently supported:
 3. groupBy
 4. having
 5. limit
+6. join
 
 ##### 1. select
 
@@ -225,6 +226,45 @@ SELECT *
 FROM table
 LIMIT 5
 ```
+
+##### 6. join
+
+The `join` clause will accepts any number of join clauses whose type is one of `left`, `right`, `inner` or `outer`. All `join` types, share the same representation, with the joined table being represented as a URI that would be used in other APIs to fetch catalog data. This URI is resolved by the engine, its permissions validated and aliases applied as shown below.
+
+```json
+
+{
+  "select": [
+    { "name": "T1.col1", "alias": "t1_col1" },
+    { "name": "JT1.col2", "alias": "t2_col2" }
+  ],
+  "join": [
+    {
+      "inner": {
+        "uri": "daf://dataset/test/otherTable",
+        "on": { 
+          "eq": { "left": "JT1.col3", "right": "T1.col3" } 
+        } 
+      }
+    }
+  ],
+  "where": { 
+    "eq": { "left": "JT1.col4", "right": 100 }
+  }
+}
+```
+
+This is equivalent to an SQL of
+
+```sql
+SELECT T1.col1 AS t1_col1, T2.col2 AS t2_col2
+FROM table T1
+JOIN otherTable JT1 
+  ON JT1.col3 = T1.col3 
+WHERE JT1.col4 = 100
+```
+
+**Note** how the aliases are applied to the tables in the SQL statement; the engine will internally apply an alias of `T1` to the main table in the relation, i.e. the table in the `FROM` part of the query. The other tables in any of the subsequent join clauses will have aliases starting from `JT1` going up. So, for instance, a table which is joined two ways would produce an alias `T1` for the main table, and then another two `JT1` and `JT2` for the joined tables.
 
 #### Appendix
 

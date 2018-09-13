@@ -16,7 +16,7 @@
 
 package daf.dataset.query.json
 
-import daf.dataset.query.{ columnRegex, _ }
+import daf.dataset.query.{ columnRegex, qualifiedColumnRegex, _ }
 import daf.web.json.CommonReads
 import play.api.libs.json._
 
@@ -35,9 +35,10 @@ object SimpleColumnFormats {
 
   private val readNamedColumn: Reads[Column] = (__ \ "name").read[JsString].andThen {
     Reads[Column] {
-      case JsString("*")                  => JsSuccess { WildcardColumn }
-      case JsString(columnRegex(colName)) => JsSuccess { NamedColumn(colName) }
-      case unsupported                    => JsError { s"Invalid value [$unsupported] for column name" }
+      case JsString("*")                                     => JsSuccess { WildcardColumn }
+      case JsString(columnRegex(colName))                    => JsSuccess { NamedColumn(colName) }
+      case JsString(qualifiedColumnRegex(qualName, colName)) => JsSuccess { NamedColumn(s"$qualName.$colName") }
+      case unsupported                                       => JsError { s"Invalid value [$unsupported] for column name" }
     }
   }
   private val readValueColumn: Reads[Column] = (__ \ "value").read[JsValue] andThen readValue

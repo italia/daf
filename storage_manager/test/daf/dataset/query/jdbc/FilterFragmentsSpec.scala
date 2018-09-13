@@ -60,14 +60,14 @@ class FilterFragmentsSpec extends WordSpec with MustMatchers {
   "A [join] fragment writer" must {
 
     "serialize a [left-join] clause in SQL with only resolved references" in {
-      FilterFragments.join(FilterClauses.leftJoin, Map.empty).run.map { _._1.toString } must be {
-        Success { fr"LEFT JOIN database.table ON col1 = col2" }
+      FilterFragments.join(FilterClauses.leftJoin, "JT1", Map.empty).run.map { _._1.toString } must be {
+        Success { fr"LEFT JOIN database.table JT1 ON col1 = col2" }
       }
     }
 
     "serialize an [inner-join] clause in SQL with only unresolved references" in {
-      FilterFragments.join(FilterClauses.innerJoin, Map("daf://uri/" -> "other.table")).run.map { _._1.toString } must be {
-        Success { fr"JOIN other.table ON col1 = col2" }
+      FilterFragments.join(FilterClauses.innerJoin, "JT2", Map("daf://uri/" -> "other.table")).run.map { _._1.toString } must be {
+        Success { fr"JOIN other.table JT2 ON col1 = col2" }
       }
     }
 

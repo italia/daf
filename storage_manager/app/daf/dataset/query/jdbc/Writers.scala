@@ -36,6 +36,10 @@ object Writers {
     FilterFragments.join(clause, s"JT${index + 1}", tableRef)
   }
 
+  def union(query: Query, tableRef: Map[String, String]): QueryFragmentWriter[List[Unit]] = query.union.getOrElse { Seq.empty }.toList.traverse[QueryFragmentWriter, Unit] {
+    FilterFragments.union(_, tableRef)
+  }
+
   def from(table: String): QueryFragmentWriter[Unit] = TableFragments.from(table)
 
   def groupBy(query: Query, reference: ColumnReference): QueryFragmentWriter[Unit] = query.groupBy.map { GroupingFragments.groupBy(_, reference) } getOrElse QueryFragmentWriter.unit
@@ -52,6 +56,7 @@ object Writers {
     _         <- from(table)
     _         <- join(query, tableReference)
     _         <- where(query)
+    _         <- union(query, tableReference)
     _         <- groupBy(query, reference)
     _         <- having(query)
     _         <- limit(query, defaultLimit)

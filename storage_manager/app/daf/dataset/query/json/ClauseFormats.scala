@@ -17,6 +17,7 @@
 package daf.dataset.query.json
 
 import daf.dataset.query._
+import daf.web.json.JsonReadsSyntax
 import play.api.libs.json._
 
 object SelectClauseFormats {
@@ -77,6 +78,24 @@ object JoinClauseFormats {
 
 }
 
+object UnionClauseFormats {
+
+  private val unionReader = for {
+    select <- SelectClauseFormats.reader.optional("select")
+    reference <- ReferenceFormats.reader
+    where     <- WhereClauseFormats.reader.optional("where")
+  } yield UnionClause(
+    reference = reference,
+    select    = select getOrElse SelectClause.*,
+    where     = where
+  )
+
+  val reader = (__ \ "union").read[JsArray].map {
+    _.value.map { _.as[UnionClause](unionReader) }
+  }
+
+}
+
 object LimitClauseFormats {
 
   val reader: Reads[LimitClause] = (__ \ "limit").read[JsNumber] andThen Reads.IntReads map { LimitClause }
@@ -94,6 +113,8 @@ object ClauseFormats {
   val groupBy = GroupByClauseFormats.reader
 
   val join    = JoinClauseFormats.reader
+
+  val union   = UnionClauseFormats.reader
 
   val limit   = LimitClauseFormats.reader
 

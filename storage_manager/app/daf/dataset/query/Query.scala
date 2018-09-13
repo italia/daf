@@ -22,6 +22,7 @@ package daf.dataset.query
 case class Query(select: SelectClause,
                  where: Option[WhereClause],
                  join: Option[Seq[JoinClause]],
+                 union: Option[Seq[UnionClause]],
                  groupBy: Option[GroupByClause],
                  having: Option[HavingClause],
                  limit: Option[LimitClause]) {
@@ -38,7 +39,11 @@ case class Query(select: SelectClause,
 
   def hasJoin = join.forall { _.nonEmpty }
 
-  def unresolvedReferences = join.getOrElse { Seq.empty }.map { _.reference }.collect {
+  private def joinReferences = join.getOrElse { Seq.empty }.map { _.reference }.toSet
+
+  private def unionReferences = union.getOrElse { Seq.empty }.map { _.reference }.toSet
+
+  def unresolvedReferences = { joinReferences union unionReferences }.collect {
     case UnresolvedReference(uri) => uri
   }
 
@@ -83,6 +88,8 @@ case class LeftJoinClause(reference: Reference, on: FilterOperator) extends Join
 case class RightJoinClause(reference: Reference, on: FilterOperator) extends JoinClause
 case class OuterJoinClause(reference: Reference, on: FilterOperator) extends JoinClause
 case class InnerJoinClause(reference: Reference, on: FilterOperator) extends JoinClause
+
+case class UnionClause(reference: Reference, select: SelectClause, where: Option[WhereClause]) extends Clause
 
 // Operators
 

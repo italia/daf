@@ -140,7 +140,7 @@ class DatasetController @Inject()(configuration: Configuration,
     for {
       targetFormat   <- checkTargetFormat[Future](format)
       downloadMethod <- checkDownloadMethod[Future](method)
-      result         <- executeQuery(request.body, uri, auth, userId, targetFormat, downloadMethod)
+      result         <- executeQuery(request.body, uri, auth, "new_andrea", targetFormat, downloadMethod)
     } yield result
   }
 

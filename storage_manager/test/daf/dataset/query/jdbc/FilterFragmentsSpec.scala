@@ -61,13 +61,29 @@ class FilterFragmentsSpec extends WordSpec with MustMatchers {
 
     "serialize a [left-join] clause in SQL with only resolved references" in {
       FilterFragments.join(FilterClauses.leftJoin, "JT1", Map.empty).run.map { _._1.toString } must be {
-        Success { fr"LEFT JOIN database.table JT1 ON col1 = col2" }
+        Success { fr"LEFT JOIN database.table JT1 ON col1 = col2".toString }
       }
     }
 
     "serialize an [inner-join] clause in SQL with only unresolved references" in {
-      FilterFragments.join(FilterClauses.innerJoin, "JT2", Map("daf://uri/" -> "other.table")).run.map { _._1.toString } must be {
-        Success { fr"JOIN other.table JT2 ON col1 = col2" }
+      FilterFragments.join(FilterClauses.innerJoin, "JT2", Map("daf://uri/" -> "other.table")).run.map { _._1.toString} must be {
+        Success { fr"JOIN other.table JT2 ON col1 = col2".toString }
+      }
+    }
+
+  }
+
+  "A [union] fragment writer" must {
+
+    "serialize a [union] clause in SQL with only resolved references" in {
+      FilterFragments.union(FilterClauses.unionResolved, Map.empty).run.map { _._1.toString } must be {
+        Success { fr"UNION ALL SELECT * FROM database.table".toString }
+      }
+    }
+
+    "serialize a [union] clause in SQL with only unresolved references" in {
+      FilterFragments.union(FilterClauses.unionUnresolved, Map("daf://uri/" -> "other.table")).run.map { _._1.toString } must be {
+        Success { fr"UNION ALL SELECT col2 FROM other.table WHERE NOT(((col1 > col2 AND col1 <> 'string') OR col1 <> col3))".toString }
       }
     }
 
@@ -105,6 +121,18 @@ object FilterClauses {
   val innerJoin = InnerJoinClause(
     reference = UnresolvedReference("daf://uri/"),
     on        = NamedColumn("col1") === NamedColumn("col2")
+  )
+
+  val unionResolved = UnionClause(
+    reference = ResolvedReference("database.table"),
+    select    = SelectClause.*,
+    where     = None
+  )
+
+  val unionUnresolved = UnionClause(
+    reference = UnresolvedReference("daf://uri/"),
+    select    = SelectClause { Seq(NamedColumn("col2")) },
+    where     = Some { simpleWhere }
   )
 
 }

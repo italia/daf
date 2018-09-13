@@ -97,6 +97,7 @@ object JdbcQueries {
       WhereClause { Gt(NamedColumn("age"), ValueColumn(30)) }
     },
     join    = None,
+    union   = None,
     groupBy = Some {
       GroupByClause { Seq(NamedColumn("country")) }
     },

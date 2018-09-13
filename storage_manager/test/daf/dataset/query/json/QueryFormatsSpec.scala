@@ -32,6 +32,7 @@ class QueryFormatsSpec extends WordSpec with MustMatchers with JsonParsing {
             select  = SelectClause { Seq(NamedColumn("col1") as "alias1", ValueColumn(1)) },
             where   = None,
             join    = None,
+            union   = None,
             groupBy = None,
             having  = None,
             limit   = None
@@ -47,6 +48,7 @@ class QueryFormatsSpec extends WordSpec with MustMatchers with JsonParsing {
               WhereClause { Gt(NamedColumn("col1"), NamedColumn("col2")) }
             },
             join    = None,
+            union   = None,
             groupBy = None,
             having  = None,
             limit   = None
@@ -67,6 +69,34 @@ class QueryFormatsSpec extends WordSpec with MustMatchers with JsonParsing {
                 InnerJoinClause(UnresolvedReference("daf://uri/"), Eq(NamedColumn("col1"), NamedColumn("col2")))
               )
             },
+            union   = None,
+            groupBy = None,
+            having  = None,
+            limit   = None
+          )
+        }
+      }
+
+
+      "reading unions" in {
+        read(QueryJson.union) { QueryFormats.reader } must be {
+          Query(
+            select  = SelectClause { Seq(NamedColumn("col1") as "alias1") },
+            where   = None,
+            join    = None,
+            union   = Some {
+              Seq(
+                UnionClause(
+                  reference = UnresolvedReference("daf://uri/"),
+                  select    = SelectClause.*,
+                  where     = Some { WhereClause(Gt(NamedColumn("col1"), NamedColumn("col2"))) }),
+                UnionClause(
+                  reference = UnresolvedReference("daf://other/uri/"),
+                  select    = SelectClause { Seq(NamedColumn("col1")) },
+                  where     = None
+                )
+              )
+            },
             groupBy = None,
             having  = None,
             limit   = None
@@ -82,6 +112,7 @@ class QueryFormatsSpec extends WordSpec with MustMatchers with JsonParsing {
               WhereClause { Gt(NamedColumn("col1"), NamedColumn("col2")) }
             },
             join    = None,
+            union   = None,
             groupBy = Some {
               GroupByClause { Seq(NamedColumn("col1") as "alias1") }
             },
@@ -99,6 +130,7 @@ class QueryFormatsSpec extends WordSpec with MustMatchers with JsonParsing {
               WhereClause { Gt(NamedColumn("col1"), NamedColumn("col2")) }
             },
             join    = None,
+            union   = None,
             groupBy = Some {
               GroupByClause { Seq(NamedColumn("col1") as "alias1") }
             },
@@ -118,6 +150,7 @@ class QueryFormatsSpec extends WordSpec with MustMatchers with JsonParsing {
               WhereClause { Gt(NamedColumn("col1"), NamedColumn("col2")) }
             },
             join    = None,
+            union   = None,
             groupBy = Some {
               GroupByClause { Seq(NamedColumn("col1") as "alias1") }
             },
@@ -137,6 +170,7 @@ class QueryFormatsSpec extends WordSpec with MustMatchers with JsonParsing {
               WhereClause { Gt(NamedColumn("col1"), NamedColumn("col2")) }
             },
             join    = None,
+            union   = None,
             groupBy = None,
             having  = None,
             limit   = None
@@ -237,6 +271,26 @@ private object QueryJson {
       |        "eq": { "left": "col1", "right": "col2" }
       |      }
       |    }
+      |  }]
+      |}
+    """.stripMargin
+
+  val union =
+    """
+      |{
+      |  "select": [{
+      |    "name": "col1", "alias": "alias1"
+      |  }],
+      |  "union": [{
+      |    "uri": "daf://uri/",
+      |    "where": {
+      |      "gt": { "left": "col1", "right": "col2" }
+      |    }
+      |  }, {
+      |    "uri": "daf://other/uri/",
+      |    "select": [{
+      |     "name": "col1"
+      |    }]
       |  }]
       |}
     """.stripMargin

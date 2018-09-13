@@ -60,6 +60,7 @@ A query is made up of clauses, of which the following are currently supported:
 4. having
 5. limit
 6. join
+7. union
 
 ##### 1. select
 
@@ -265,6 +266,40 @@ WHERE JT1.col4 = 100
 ```
 
 **Note** how the aliases are applied to the tables in the SQL statement; the engine will internally apply an alias of `T1` to the main table in the relation, i.e. the table in the `FROM` part of the query. The other tables in any of the subsequent join clauses will have aliases starting from `JT1` going up. So, for instance, a table which is joined two ways would produce an alias `T1` for the main table, and then another two `JT1` and `JT2` for the joined tables.
+
+##### 7. union
+
+The `union` clause accepts what is essentially a sub-query which supports only `select` and `where` clauses that are operated on a `uri`. Note that both `where` and `select` are optional, where no `select` clause produces an SQL equivalent of `SELECT *`.
+
+```json
+{
+  "union": [
+    {
+      "uri": "daf://dataset/test",
+      "where": { 
+        "eq": { "left": "col2", "right": 150 }
+    }
+    }
+  ],
+  "where": { 
+    "eq": { "left": "col3", "right": false }
+  }
+}
+```
+
+This is equivalent to an SQL of
+
+```sql
+SELECT *
+FROM table
+WHERE col3 = false
+UNION ALL 
+SELECT * 
+FROM otherTable 
+WHERE col2 = 150
+```
+
+**Note** that for performance reasons, only `UNION ALL` is supported. The hight cost of applying `DISTINCT` over a large union might be prohibitive for most practical cases.
 
 #### Appendix
 

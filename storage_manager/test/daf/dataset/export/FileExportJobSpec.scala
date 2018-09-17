@@ -59,7 +59,7 @@ class FileExportJobSpec extends WordSpec with Matchers with BeforeAndAfterAll wi
 
   override def afterAll() = {
     sparkSession.stop()
-//    purgeData.get
+    purgeData.get
   }
 
   "A file export job" when {

@@ -21,7 +21,7 @@ import java.time.{ LocalDateTime, ZoneOffset }
 import java.time.format.DateTimeFormatter
 import java.util.Date
 
-import akka.stream.scaladsl.{ Concat, Source }
+import akka.stream.scaladsl.{ Framing, Source }
 import akka.util.ByteString
 import daf.filesystem.{ FileDataFormat, JsonFileFormat }
 
@@ -30,6 +30,9 @@ package object dataset {
   type ExtraParams = Map[String, String]
 
   private def quote(s: String) = s""""$s""""
+
+  val defaultSeparator = System.lineSeparator
+  val jsonSeparator    = s",$defaultSeparator"
 
   /**
     * Converts anything into a string representation that may be used in CSV data.
@@ -57,11 +60,10 @@ package object dataset {
     * Converts a source of bytes into source of strings.
     * @note Each line is separated by the `System.lineSeparator()` by default.
     * @param source the `ByteString` source to be converted
-    * @param separator the string used to split each `ByteString`
     */
-  def asStringSource(source: Source[ByteString, _], separator: String = System.lineSeparator()): Source[String, _] = source.mapConcat {
-    _.utf8String.split { System.lineSeparator() }.toList
-  }
+  def asStringSource(source: Source[ByteString, _]): Source[String, _] = source.via {
+    Framing.delimiter(ByteString(defaultSeparator), Int.MaxValue, true)
+  }.map { _.utf8String }.filter { _.nonEmpty }
 
   /**
     * Wraps a JSON string source of which each line is a valid JSON object, into a JSON array.
@@ -70,23 +72,30 @@ package object dataset {
     */
   def wrapJson(source: Source[String, _]): Source[String, _] = wrapSource(source).sliding(2, 2).map {
     case Seq("<start>", "<end>") => "[]"
-    case Seq("<start>", row) => s"[${System.lineSeparator()}  $row"
-    case Seq(row, "<end>")   => s",${System.lineSeparator()}  $row${System.lineSeparator()}]"
-    case Seq("<end>")        => s"${System.lineSeparator()}]"
-    case Seq(row1, row2)     => s",${System.lineSeparator()}  $row1,${System.lineSeparator}  $row2"
-    case rows                => rows.map { row => s",${System.lineSeparator()}  $row" }.mkString
+    case Seq("<start>", row)     => s"[$defaultSeparator  $row"
+    case Seq(row, "<end>")       => s"$jsonSeparator  $row$defaultSeparator]"
+    case Seq("<end>")            => s"$defaultSeparator]"
+    case Seq(row1)               => s"$jsonSeparator  $row1"
+    case Seq(row1, row2)         => s"$jsonSeparator  $row1$jsonSeparator  $row2"
+    case rows                    => rows mkString jsonSeparator
   }
+
+  /**
+    * Wraps a string source, adding the default separator to each line.
+    * @param source the raw string source
+    * @return the same data as was in the original source, with a default separator added to each line
+    */
+  def wrapDefault(source: Source[String, _]): Source[String, _] = source.map { _ + defaultSeparator }
 
   /**
     * Converts and formats a byte source into a string.
     * @note Each line is separated by the `System.lineSeparator()` by default.
     * @param source the `ByteString` source to be converted and formatted
     * @param targetFormat the target file format
-    * @param separator the string used to split each `ByteString`
     */
-  def formatExport(source: Source[ByteString, _], targetFormat: FileDataFormat, separator: String = System.lineSeparator()) = targetFormat match {
-    case JsonFileFormat => wrapJson { asStringSource(source) }
-    case _              => asStringSource(source).map { s => s"$s${System.lineSeparator()}" }
+  def formatExport(source: Source[ByteString, _], targetFormat: FileDataFormat) = targetFormat match {
+    case JsonFileFormat => wrapJson    { asStringSource(source) }
+    case _              => wrapDefault { asStringSource(source) }
   }
 
 }

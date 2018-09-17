@@ -16,7 +16,7 @@
 
 package daf
 
-import java.io.EOFException
+import java.io.{ ByteArrayInputStream, EOFException }
 import java.nio.charset.Charset
 import java.util.Scanner
 
@@ -24,6 +24,8 @@ import cats.Show
 import org.apache.hadoop.fs.{ FSDataInputStream, FileSystem, Path }
 
 package object filesystem {
+
+  def nextStream = new ByteArrayInputStream(System.lineSeparator.getBytes("UTF-8"))
 
   implicit val fileFormatShow: Show[FileDataFormat] = new Show[FileDataFormat] {
     def show(format: FileDataFormat) = format match {

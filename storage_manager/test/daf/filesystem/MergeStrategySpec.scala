@@ -78,7 +78,7 @@ class MergeStrategySpec extends WordSpec with Matchers with BeforeAndAfterAll {
 
   override def beforeAll() = prepareData.get
 
-//  override def afterAll() = purgeData.get
+  override def afterAll() = purgeData.get
 
   "MergeStrategies info" when {
 

@@ -17,9 +17,13 @@
 package daf.filesystem
 
 import java.io._
+import java.util.Collections
 
 import org.apache.commons.io.input.NullInputStream
 import org.apache.hadoop.fs.FSDataInputStream
+
+import scala.annotation.tailrec
+import scala.collection.convert.decorateAsJava._
 
 trait MergeStrategy[+A <: FileDataFormat] {
 
@@ -30,6 +34,51 @@ trait MergeStrategy[+A <: FileDataFormat] {
     * @return a single `InputStream` that is the result of merging the input
     */
   def merge(streams: Seq[FSDataInputStream]): InputStream
+
+}
+
+object MergeStrategy {
+
+  @tailrec
+  private def _separate(streams: List[InputStream], acc: Seq[InputStream] = Vector.empty): Seq[InputStream] = streams match {
+    case Nil                          => acc
+    case head :: Nil  if acc.nonEmpty => acc :+ nextStream :+ head
+    case head :: Nil                  => acc :+ head
+    case head :: tail if acc.nonEmpty => _separate(tail, acc :+ nextStream :+ head)
+    case head :: tail                 => _separate(tail, acc :+ head)
+  }
+
+  /**
+    * Filters out empty streams and closes them immediately. Note that this method makes use of the `available` method,
+    * which may be noted to be overridden to not function as intended by certain subclasses of `InputStream`. This
+    * merge function should therefore be used with caution, knowing which `InputStream`s are being passed as arguments.
+    * Also note that any empty `InputStream`s that are found to be empty will be closed.
+    * @param streams the streams to filter
+    */
+  def nonEmpty(streams: Seq[InputStream]) = streams.partition { _.available() > 0 } match {
+    case (nonEmpty, empty) => empty.foreach { _.close() }; nonEmpty
+  }
+
+  /**
+    * Adds a separator stream between every two streams, containing just a new-line character. This is useful when a
+    * number of files is being concatenated, which do not end in an empty new-line character.
+    * @param streams the streams to be separated
+    */
+  def separated(streams: Seq[InputStream]) = _separate(streams.toList)
+
+  /**
+    * Coalesces all the supplied streams into one `SequenceInputStream`.
+    * @param streams the streams to be concatenated
+    */
+  def coalesced(streams: Seq[InputStream]) = new SequenceInputStream(
+    Collections.enumeration { streams.asJava }
+  )
+
+  /**
+    * The default merging base, this function will concatenate all the given non-empty streams, closing those that are
+    * found to be empty.
+    */
+  def default(streams: Seq[InputStream]) = coalesced { nonEmpty(streams) }
 
 }
 
@@ -49,14 +98,14 @@ object CsvMergeStrategy extends MergeStrategy[RawFileFormat.type] {
     * @return one input stream with whose content is the concatenation of the all the input streams
     */
   def merge(streams: Seq[FSDataInputStream]) = clean(streams) match {
-    case cleaned if cleaned.nonEmpty => cleaned.reduce[InputStream] { new SequenceInputStream(_, _) }
+    case cleaned if cleaned.nonEmpty => MergeStrategy.default(cleaned)
     case _                           => new NullInputStream(0)
   }
 }
 
 class DefaultMergeStrategy[A <: FileDataFormat] extends MergeStrategy[A] {
 
-  def merge(streams: Seq[FSDataInputStream]) = if (streams.nonEmpty) streams.reduce[InputStream] { new SequenceInputStream(_, _) } else new NullInputStream(0)
+  def merge(streams: Seq[FSDataInputStream]) = if (streams.nonEmpty) MergeStrategy.default(streams) else new NullInputStream(0)
 
 }
 

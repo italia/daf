@@ -1,11 +1,14 @@
 package it.gov.daf.securitymanager.service
 
+
 import com.cloudera.impala.jdbc41.DataSource
 import com.google.inject.{Inject, Singleton}
 import it.gov.daf.common.sso.common.CacheWrapper
 import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import it.gov.daf.sso
 import play.api.Logger
+
+import scala.util.Failure
 
 
 @Singleton
@@ -18,6 +21,13 @@ class ImpalaService @Inject()(implicit val cacheWrapper:CacheWrapper){
   logger.debug(s"jdbcString: $jdbcString")
   ds.setURL(jdbcString)
 
+  private val hiveDs = new com.cloudera.hive.jdbc41.HS2DataSource
+  //private val hiveJdbcString = s"""jdbc:hive2://master:10000;SSL=1;SSLKeyStore=${ConfigReader.impalaKeyStorePath};SSLKeyStorePwd=${ConfigReader.impalaKeyStorePwd};CAIssuedCertNamesMismatch=1;AuthMech=3"""
+  private val hiveJdbcString = s"""jdbc:hive2://master:10000;AuthMech=3"""
+
+  logger.debug(s"hiveJdbcString: $hiveJdbcString")
+  hiveDs.setURL(hiveJdbcString)
+
 
   def createGrant(tableName:String, name:String, permission:String,isUSer:Boolean,withGrantOpt:Boolean):Either[String,String]={
 
@@ -29,9 +39,16 @@ class ImpalaService @Inject()(implicit val cacheWrapper:CacheWrapper){
     val roleName = if(isUSer) s"${name}_user_role" else toGroupRoleName(name)
     val query = s"GRANT $permissionOnQuery ON TABLE $tableName TO ROLE $roleName $grantOption"
 
-    executeUpdate(query)
+    val res = executeHiveDDL(query)
+
+    logger.debug(s"Grant created: $res")
+
+    val res2 = invalidateMetadata()
+
+    logger.debug(s"invalidateMetadata: $res2")
+
     Right("Grant created")
-    //else Left("Can not create Impala grant")
+
   }
 
 
@@ -94,7 +111,7 @@ class ImpalaService @Inject()(implicit val cacheWrapper:CacheWrapper){
   }
 
 
-  private def toGroupRoleName(groupName:String) = if(groupName == sso.OPEN_DATA_GROUP) "default_role" else s"${groupName}_group_role"
+  private def toGroupRoleName(groupName:String) = if(groupName == sso.OPEN_DATA_GROUP) "db_default_role" else s"${groupName}_group_role"
 
   private def executeUpdate(query:String):Int={
 
@@ -113,6 +130,53 @@ class ImpalaService @Inject()(implicit val cacheWrapper:CacheWrapper){
     logger.debug("Impala query executed")
 
     conn.close()
+    res
+
+  }
+
+  private def invalidateMetadata():Boolean={
+
+    val loginInfo = readLoginInfo
+    val conn = ds.getConnection(loginInfo.user, loginInfo.password)
+
+    val out = scala.util.Try{
+
+      val stmt = conn.createStatement()
+
+      logger.debug("Invalidating metadata..")
+      val res = stmt.execute("INVALIDATE METADATA")
+      logger.debug("Invalidated")
+      conn.close()
+      res
+    }
+
+    out match {
+      case scala.util.Success(x) => x
+      case Failure(e) => conn.close; throw e
+    }
+
+  }
+
+  private def executeHiveDDL(query:String):Boolean={
+
+    val loginInfo = readLoginInfo
+
+    logger.debug("hive connection request")
+
+    val conn = hiveDs.getConnection(loginInfo.user,loginInfo.password)
+
+    logger.debug("hive connection obtained")
+    logger.debug(s" hive update query : $query")
+
+    val stmt = conn.createStatement()
+
+
+    val res = stmt.execute(query)
+
+    logger.debug("hive DDL executed")
+
+    conn.close()
+
     res
 
   }

@@ -399,12 +399,21 @@ class ApiClientIPA @Inject()(secInvokeManager:SecuredInvocationManager,loginClie
     val result = for{
       wrk <- EitherT( showGroup(groupName) )
       orgList <- EitherT( orgListFuture )
-    } yield (ApiClientIPA.extractGroupsOf(wrk.memberof_group,orgList), wrk.member_group)
+    } yield (ApiClientIPA.extractGroupsOf(wrk.memberof_group,orgList), wrk.member_group, wrk.memberof_group)
 
     result.value map{
-      case Right( (Some(Seq(x)),_) ) => Right( DafGroupInfo(groupName, "Workgroup", Option(x), None) )
-      case Right( (_,Some(y)) )  => Right( DafGroupInfo(groupName, "Organization", None, Option(y)) )//TODO to fix:not working when organization not have wrg
-      case Right( (_,_) )  => Right( DafGroupInfo(groupName, "Generic Group", None, None) )
+      /*
+      case Right( (Some(Seq(orgs)),_,_) ) => Right( DafGroupInfo(groupName, "Workgroup", Option(orgs), None) )
+      case Right( (_,Some(wrks),Some(parentGroups)) )  => logger.debug(s"parentGroups $parentGroups");
+                                                          if(parentGroups.contains(ORGANIZATIONS_GROUP)) Right( DafGroupInfo(groupName, "Organization", None, Option(wrks)) )
+                                                          else Right( DafGroupInfo(groupName, "Generic Group", None, None) )
+      case Right( (_,_,_) )  => Right( DafGroupInfo(groupName, "Generic Group", None, None) )
+      */
+
+      case Right( (orgs, memberGroups, Some(parentGroups)) )=>  if(parentGroups.contains(ORGANIZATIONS_GROUP)) Right( DafGroupInfo(groupName, "Organization", None, memberGroups) )
+                                                                else if (parentGroups.contains(WORKGROUPS_GROUP)) Right( DafGroupInfo(groupName, "Workgroup", orgs.map(_.head), None) )
+                                                                else Right( DafGroupInfo(groupName, "Generic Group", None, None) )
+      case Right( (_,_,_) ) => Right( DafGroupInfo(groupName, "Generic Group", None, None) )
       case Left(l) => Left(l)
 
     }

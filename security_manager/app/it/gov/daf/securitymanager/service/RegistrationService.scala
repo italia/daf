@@ -77,7 +77,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
       Left("Invalid chars in password")
     else if( !user.userpassword.get.matches("""^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$""") )
       Left("Password must contain al least one digit and one capital letter")
-    else if( user.uid != null && !user.uid.isEmpty && !user.uid.matches("""^[a-z0-9_\-]*$""") )
+    else if( user.uid != null && !user.uid.isEmpty && !user.uid.matches("""^[a-z0-9_]*$""") )
       Left("Invalid chars in username")
     else if( !user.mail.matches("""^[a-z0-9_@\-\.]*$""") )
       Left("Invalid chars in mail")

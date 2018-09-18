@@ -71,6 +71,8 @@ private class AppConfig @Inject()(playConfig: Configuration) {
   val impalaAdminUser :Option[String] = playConfig.getString("impala.adminUser")
   val impalaAdminUserPwd :Option[String] = playConfig.getString("impala.adminUserPwd")
 
+  val hiveServer :Option[String] = playConfig.getString("hive.server")
+
   val localEnv:Option[Boolean] = playConfig.getBoolean("localEnv")
 
   val sftpHostInternal :Option[String] = playConfig.getString("sftp.host.internal")
@@ -130,6 +132,8 @@ object ConfigReader {
 
   require(config.impalaAdminUser.nonEmpty,"Impala admin user must be specified")
   require(config.impalaAdminUserPwd.nonEmpty,"Impala admin user pwd must be specified")
+
+  require(config.hiveServer.nonEmpty,"Hive server must be specified")
 
   require(config.sftpHostInternal.nonEmpty,"sftpHostInternal must be specified")
   require(config.sftphostExternal.nonEmpty,"sftphostExternal pwd must be specified")
@@ -204,6 +208,8 @@ object ConfigReader {
   def impalaKeyStorePwd :String = config.impalaKeyStorePwd.get
   def impalaAdminUser :String = config.impalaAdminUser.get
   def impalaAdminUserPwd :String = config.impalaAdminUserPwd.get
+
+  def hiveServer :String = config.hiveServer.get
 
   def localEnv:Boolean = config.localEnv.getOrElse(false)
 

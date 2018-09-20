@@ -1,6 +1,6 @@
 package it.gov.daf.catalogmanager.repository.catalog
 
-import catalog_manager.yaml.{Dataset, MetaCatalog, MetadataCat, ResponseWrites, Success, Error}
+import catalog_manager.yaml.{Dataset, Error, MetaCatalog, MetadataCat, ResponseWrites, Success}
 import com.mongodb
 import com.mongodb.DBObject
 import com.mongodb.casbah.MongoClient
@@ -9,6 +9,8 @@ import com.mongodb.casbah.Imports._
 import it.gov.daf.catalogmanager.utilities.{CatalogManager, ConfigReader}
 import play.api.libs.ws.WSClient
 import play.api.Logger
+
+import scala.concurrent.Future
 
 /**
   * Created by ale on 18/05/17.
@@ -23,9 +25,12 @@ class CatalogRepositoryMongo extends  CatalogRepository{
   private val source = ConfigReader.database
   private val password = ConfigReader.password
 
+  private val DATIPUBBLICI_HOST = ConfigReader.datipubbliciHost
+
   val server = new ServerAddress(mongoHost, 27017)
   val credentials = MongoCredential.createCredential(userName, source, password.toCharArray)
 
+  import scala.concurrent.ExecutionContext.Implicits.global
   import catalog_manager.yaml.BodyReads._
 
   def listCatalogs(page :Option[Int], limit :Option[Int]) :Seq[MetaCatalog] = {
@@ -107,17 +112,28 @@ class CatalogRepositoryMongo extends  CatalogRepository{
     metaCatalog
   }
 
-  def deleteCatalogByName(nameCatalog: String, user: String, isAdmin: Boolean): Either[Error, Success] = {
+  def deleteCatalogByName(nameCatalog: String, user: String, token: String, isAdmin: Boolean, wsClient: WSClient): Future[Either[Error, Success]] = {
     import mongodb.casbah.query.Imports.$and
-    val query = if(isAdmin) MongoDBObject("dcatapit.name" -> nameCatalog)
-      else $and(MongoDBObject("dcatapit.name" -> nameCatalog), MongoDBObject("dcatapit.author" -> user))
-    val mongoClient = MongoClient(server, List(credentials))
-    val db = mongoClient(source)
-    val coll = db("catalog_test")
-    val result = if(coll.remove(query).getN > 0) Right(Success(s"catalog $nameCatalog deleted", None)) else Left(Error(s"catalog $nameCatalog not found", Some(404), None))
-    mongoClient.close()
-    Logger.logger.debug(s"$user deleted $nameCatalog from catalog_test result: ${result.isRight}")
-    result
+    import mongodb.casbah.commons.Imports._
+
+    val widgetsResp = wsClient.url(DATIPUBBLICI_HOST + "/dati-gov/v1/dashboard/iframesByName/" + nameCatalog)
+      .withHeaders("Authorization" -> token)
+      .get()
+
+    widgetsResp.map{ res =>
+      if(res.status == 200 && !res.body.equals("[]")) Left(Error(s"is not possible delete catalog $nameCatalog, it has some widgets", Some(403), None))
+      else {
+        val query = if(isAdmin) $and(MongoDBObject("dcatapit.name" -> nameCatalog), "operational.acl.groupName" $exists  false)
+        else $and(MongoDBObject("dcatapit.name" -> nameCatalog), MongoDBObject("dcatapit.author" -> user), "operational.acl.groupName" $exists  false)
+        val mongoClient = MongoClient(server, List(credentials))
+        val db = mongoClient(source)
+        val coll = db("catalog_test")
+        val result = if(coll.remove(query).getN > 0) Right(Success(s"catalog $nameCatalog deleted", None)) else Left(Error(s"catalog $nameCatalog not found", Some(404), None))
+        mongoClient.close()
+        Logger.logger.debug(s"$user deleted $nameCatalog from catalog_test result: ${result.isRight}")
+        result
+      }
+    }
   }
 
   def publicCatalogByName(name :String): Option[MetaCatalog] = {

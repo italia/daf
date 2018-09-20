@@ -212,7 +212,7 @@ class CkanRepositoryProd extends CkanRepository{
   def createDatasetCkanGeo(catalog: Dataset, user: String, token: String, wsClient: WSClient): Future[Either[Error, Success]] = {
     val url = LOCALURL + "/ckan/createDataset"
     val json = catalog_manager.yaml.ResponseWrites.DatasetWrites.writes(catalog)
-    wsClient.url(url).withHeaders("authorization" -> s"Bearer $token").post(json).map{ response =>
+    wsClient.url(url).withHeaders("authorization" -> token).post(json).map{ response =>
       if(response.status == 200) Right(Success(s"${catalog.name} inserted", None))
       else Left(Error(s"error: ${response.statusText}", None, None))
     }
@@ -220,7 +220,7 @@ class CkanRepositoryProd extends CkanRepository{
 
   def deleteDatasetCkanGeo(catalog: Dataset, user: String, token: String, wsClient: WSClient): Future[Either[Error, Success]] = {
     val url = LOCALURL + "/ckan/purgeDatasetCkanGeo/" + catalog.name
-    wsClient.url(url).withHeaders("authorization" -> s"Bearer $token").delete().map{ response =>
+    wsClient.url(url).withHeaders("authorization" -> token).delete().map{ response =>
       if(response.status == 200) Right(Success(s"${catalog.name} deleted by $user", None))
       else Left(Error(s"error: ${response.statusText}", None, None))
     }

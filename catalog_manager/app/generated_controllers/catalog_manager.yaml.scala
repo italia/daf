@@ -56,7 +56,7 @@ import it.gov.daf.common.sso.common
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                                                                                                                                            
+                                                                                                                                                                                
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -109,13 +109,15 @@ package catalog_manager.yaml {
             }
         }
 
-        private def readTokenFromRequest(requestHeader: Headers): Option[String] = {
+        private def readTokenFromRequest(requestHeader: Headers, allToken: Boolean): Option[String] = {
             val authHeader = requestHeader.get("authorization").get.split(" ")
             val authType = authHeader(0)
             val authCredentials = authHeader(1)
 
-            if( authType.equalsIgnoreCase("bearer")) Some(authCredentials)
-            else None
+            allToken match {
+                case true => Some(s"$authType $authCredentials")
+                case false => if( authType.equalsIgnoreCase("bearer")) Some(authCredentials) else None
+            }
         }
 
         // ----- End of unmanaged code area for constructor Catalog_managerYaml
@@ -137,19 +139,27 @@ package catalog_manager.yaml {
             val isAdmin = CredentialManager.isDafSysAdmin(currentRequest)
             val feedName = s"${org}.${org}_o_${name}"
 
-            val responseMongo = ServiceRegistry.catalogService.deleteCatalogByName(name, user, isAdmin)
+            val token = readTokenFromRequest(currentRequest.headers, true)
 
-            val futureResponseKylo = responseMongo match {
+            val futureResponseMongo = ServiceRegistry.catalogService.deleteCatalogByName(name, user, token.get, isAdmin, ws)
+
+            val futureResponseKylo = futureResponseMongo.flatMap {
                 case Right(_) => kylo.deleteFeed(feedName, user)
                 case Left(_) => Future.successful(Left(Error(s"$feedName not deleted", None, None)))
             }
 
-            val futureResponses: Future[Either[Error, Success]] = futureResponseKylo.map{ responseKylo =>
-              if(responseMongo.isRight && responseKylo.isRight)
-                  Right(Success(s"${extractMessage(responseMongo)}, ${extractMessage(responseKylo)}", None))
-              else
-                  Left(Error(s"${extractMessage(responseMongo)}, ${extractMessage(responseKylo)}", Some(500), None))
-            }
+            val futureResponses = for {
+                responseKylo <- futureResponseKylo
+                responseMongo <- futureResponseMongo
+            } yield if(responseMongo.isRight && responseKylo.isRight) Right(Success(s"${extractMessage(responseMongo)}, ${extractMessage(responseKylo)}", None)) else Left(Error(s"${extractMessage(responseMongo)}, ${extractMessage(responseKylo)}", Some(500), None))
+//
+//
+//            val futureResponses: Future[Either[Error, Success]] = futureResponseKylo.map{ responseKylo =>
+//              if(futureResponseMongo.isRight && responseKylo.isRight)
+//                  Right(Success(s"${extractMessage(futureResponseMongo)}, ${extractMessage(responseKylo)}", None))
+//              else
+//                  Left(Error(s"${extractMessage(futureResponseMongo)}, ${extractMessage(responseKylo)}", Some(500), None))
+//            }
             futureResponses.flatMap{
                 case Right(s) => DeleteCatalog200(s)
                 case Left(e) => DeleteCatalog500(e)
@@ -261,7 +271,7 @@ package catalog_manager.yaml {
             val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
             if( CredentialManager.isDafSysAdmin(currentRequest) || CredentialManager.isOrgsEditor(currentRequest, credentials.groups) ||
                 CredentialManager.isOrgsAdmin(currentRequest, credentials.groups)) {
-                val token = readTokenFromRequest(currentRequest.headers)
+                val token = readTokenFromRequest(currentRequest.headers, false)
                 token match {
                     case Some(t) => {
                         val futureKafkaResp = sendMessaggeKafkaProxy(credentials.username, catalog, t)
@@ -370,7 +380,7 @@ package catalog_manager.yaml {
             val user = CredentialManager.readCredentialFromRequest(currentRequest).username
             val datasetOrg = catalog.owner_org.getOrElse("")
             val owner= catalog.author.getOrElse("")
-            val token = readTokenFromRequest(currentRequest.headers)
+            val token = readTokenFromRequest(currentRequest.headers, true)
             val isDafSysAdmin = CredentialManager.isDafSysAdmin(currentRequest)
             if(token.isDefined && (isDafSysAdmin || CredentialManager.isOrgAdmin(currentRequest, datasetOrg) || user.equals(owner))){
                 val response = CkanRegistry.ckanService.deleteDatasetCkanGeo(catalog, user, token.get, ws)
@@ -578,7 +588,7 @@ package catalog_manager.yaml {
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.addCatalogCkanGeo
             val credential = CredentialManager.readCredentialFromRequest(currentRequest)
             val datasetOrg = catalog.owner_org.getOrElse("")
-            val token = readTokenFromRequest(currentRequest.headers)
+            val token = readTokenFromRequest(currentRequest.headers, true)
             val isDafSysAdmin = CredentialManager.isDafSysAdmin(currentRequest)
             if(token.isDefined && (isDafSysAdmin || CredentialManager.isOrgAdmin(currentRequest, datasetOrg) || CredentialManager.isOrgEditor(currentRequest, datasetOrg))){
                 val response = CkanRegistry.ckanService.createCatalogCkanGeo(catalog, credential.username, token.get, ws)

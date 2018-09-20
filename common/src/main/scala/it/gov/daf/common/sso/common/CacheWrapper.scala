@@ -59,6 +59,8 @@ class CacheWrapper(cookieTtlMin:Option[Long], credentialTtlMin:Option[Long]) {
 
   def putCredentials(user: String, pwd: String) = sync.cachingWithTTL(user)(credentialTtlMin.get.minutes){ pwd }  //TTL must be equal to jwt expiration
 
+  def putCredentialsWithoutTTL(user: String, pwd: String) = sync.caching(user)(pwd)
+
   def deleteCookie(appName: String, userName: String)= remove(s"$appName-$userName")
 
   def deleteCookies(appName: String, userName: String)= remove(s"$appName-${userName}multi")

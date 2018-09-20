@@ -29,14 +29,15 @@ data:
         <logger name="application" level="DEBUG" />
         <logger name="it.gov.daf" level="DEBUG" />
         <logger name="controllers" level="DEBUG" />
+        <logger name="com.cloudera" level="WARN" />
+
 
         <root level="ERROR">
             <appender-ref ref="STDOUT" />
-
         </root>
 
     </configuration>
-#             <appender-ref ref="TIME_BASED_FILE" />
+
 kind: ConfigMap
 metadata:
   name: security-manager-logback

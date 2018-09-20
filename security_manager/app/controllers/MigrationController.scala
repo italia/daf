@@ -60,7 +60,7 @@ class MigrationController  @Inject()(apiClientIPA: ApiClientIPA,impalaService: I
 
       val tableName = profilingService.toTableName(path)
 
-      impalaService.createGrant(tableName, name, "rwx", isUser, true) match {
+      impalaService.createGrant(tableName, name, "rwx", isUser, isUser) match {
         case Right(r) => Ok(r.toString)
         case Left(l) => InternalServerError(l.toString)
 

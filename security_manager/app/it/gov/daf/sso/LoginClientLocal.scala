@@ -33,6 +33,7 @@ class LoginClientLocal() extends LoginClient {
   private val CKAN_GEO_URL = ConfigReader.ckanGeoHost
   private val IPA_URL = ConfigReader.ipaUrl
   private val SUPERSET_URL = ConfigReader.supersetUrl
+  private val SUPERSET_OPEN_URL = ConfigReader.supersetOpenUrl
   private val METABASE_URL = ConfigReader.metabaseUrl
   private val JUPYTER_URL = ConfigReader.jupyterUrl
   private val GRAFANA_URL = ConfigReader.grafanaUrl
@@ -45,7 +46,8 @@ class LoginClientLocal() extends LoginClient {
       //case LoginClientLocal.CKAN => loginCkan(loginInfo.user, loginInfo.password, wsClient)
       case LoginClientLocal.CKAN_GEO => loginCkanGeo(loginInfo.user, loginInfo.password, wsClient)
       case LoginClientLocal.FREE_IPA => loginIPA(loginInfo.user, loginInfo.password, wsClient)
-      case LoginClientLocal.SUPERSET => loginSuperset(loginInfo.user, loginInfo.password, wsClient)
+      case LoginClientLocal.SUPERSET => loginSuperset(loginInfo.user, loginInfo.password,wsClient, false)
+      case LoginClientLocal.SUPERSET_OPEN => loginSuperset(loginInfo.user, loginInfo.password, wsClient, true)
       case LoginClientLocal.METABASE => loginMetabase(loginInfo.user, loginInfo.password, wsClient)
       case LoginClientLocal.JUPYTER => loginJupyter(loginInfo.user, loginInfo.password, wsClient)
       case LoginClientLocal.GRAFANA => loginGrafana(loginInfo.user, loginInfo.password, wsClient)
@@ -61,7 +63,8 @@ class LoginClientLocal() extends LoginClient {
       //case LoginClientLocal.CKAN => loginCkan(loginInfo.user, loginInfo.password, wsClient).map(Seq(_))
       case LoginClientLocal.CKAN_GEO => loginCkanGeo(loginInfo.user, loginInfo.password, wsClient).map(Seq(_))
       case LoginClientLocal.FREE_IPA => loginIPA(loginInfo.user, loginInfo.password, wsClient).map(Seq(_))
-      case LoginClientLocal.SUPERSET => loginSuperset(loginInfo.user, loginInfo.password, wsClient).map(Seq(_))
+      case LoginClientLocal.SUPERSET => loginSuperset(loginInfo.user, loginInfo.password, wsClient,false).map(Seq(_))
+      case LoginClientLocal.SUPERSET_OPEN => loginSuperset(loginInfo.user, loginInfo.password, wsClient,true).map(Seq(_))
       case LoginClientLocal.METABASE => loginMetabase(loginInfo.user, loginInfo.password, wsClient).map(Seq(_))
       case LoginClientLocal.JUPYTER => loginJupyter(loginInfo.user, loginInfo.password, wsClient).map(Seq(_))
       case LoginClientLocal.GRAFANA => loginGrafanaFE(loginInfo.user, loginInfo.password, wsClient)
@@ -78,7 +81,8 @@ class LoginClientLocal() extends LoginClient {
       //case LoginClientLocal.CKAN => loginCkan( ConfigReader.ckanAdminUser, ConfigReader.ckanAdminPwd, wsClient)
       case LoginClientLocal.CKAN_GEO => loginCkanGeo(ConfigReader.ckanGeoAdminUser, ConfigReader.ckanGeoAdminPwd, wsClient)
       case LoginClientLocal.FREE_IPA => loginIPA( ConfigReader.ipaUser, ConfigReader.ipaUserPwd, wsClient)
-      case LoginClientLocal.SUPERSET => loginSuperset( ConfigReader.suspersetAdminUser, ConfigReader.suspersetAdminPwd, wsClient)
+      case LoginClientLocal.SUPERSET => loginSuperset( ConfigReader.suspersetAdminUser, ConfigReader.suspersetAdminPwd, wsClient,false)
+      case LoginClientLocal.SUPERSET_OPEN => loginSuperset( ConfigReader.suspersetAdminUser, ConfigReader.suspersetAdminPwd, wsClient,true)
       case LoginClientLocal.METABASE => loginMetabase(ConfigReader.metabaseAdminUser, ConfigReader.metabaseAdminPwd, wsClient)
       case LoginClientLocal.JUPYTER => val msg="Jupyter dosen't have admins";logger.error(msg);throw new Exception(msg) //loginJupyter(loginInfo.user, loginInfo.password, wsClient)
       case LoginClientLocal.GRAFANA => loginGrafana(ConfigReader.grafanaAdminUser, ConfigReader.grafanaAdminPwd, wsClient)
@@ -163,14 +167,15 @@ class LoginClientLocal() extends LoginClient {
   }
 
 
-  private def loginSuperset(userName: String, pwd: String, wsClient: WSClient): Future[Cookie] = {
+  private def loginSuperset(userName: String, pwd: String, wsClient: WSClient, isOpenData:Boolean): Future[Cookie] = {
 
     val data = Json.obj(
       "username" -> userName,
       "password" -> pwd
     )
-    //val sessionFuture: Future[String] = ws.url(local + "/superset/session").get().map(_.body)
-    val wsResponse: Future[WSResponse] = wsClient.url(SUPERSET_URL + "/login/").withHeaders("Content-Type" -> "application/json").withFollowRedirects(false).post(data)
+
+    val supersetUrl = if(isOpenData) SUPERSET_OPEN_URL else SUPERSET_URL
+    val wsResponse: Future[WSResponse] = wsClient.url(supersetUrl + "/login/").withHeaders("Content-Type" -> "application/json").withFollowRedirects(false).post(data)
 
     logger.info("login superset")
 
@@ -275,6 +280,7 @@ object LoginClientLocal {
   val CKAN_GEO = "ckan-geo"
   val FREE_IPA = "freeIPA"
   val SUPERSET = "superset"
+  val SUPERSET_OPEN = "superset_open"
   val METABASE = "metabase"
   val JUPYTER = "jupyter"
   val GRAFANA = "grafana"

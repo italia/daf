@@ -21,7 +21,7 @@ trait CatalogRepository {
     def createCatalogExtOpenData(metaCatalog: MetaCatalog,callingUserid :MetadataCat, ws :WSClient) :Success
     def standardUris() : List[String]
     def isDatasetOnCatalog(name :String): Option[Boolean]
-    def deleteCatalogByName(nameCatalog: String, user: String, isAdmin: Boolean): Either[Error, Success]
+    def deleteCatalogByName(nameCatalog: String, user: String, token: String, isAdmin: Boolean, wsClient: WSClient): Future[Either[Error, Success]]
 
 
     // DO NOT DELETE

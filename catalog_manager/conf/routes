@@ -41,6 +41,7 @@ PUT    /ckan/updateDataset/:datasetId           controllers.ckan.CkanController.
 PUT    /ckan/updateOrganization/:orgId          controllers.ckan.CkanController.updateOrganization(orgId :String)
 PUT    /ckan/patchOrganization/:orgId           controllers.ckan.CkanController.patchOrganization(orgId :String)
 DELETE /ckan/deleteDataset/:datasetId           controllers.ckan.CkanController.deleteDataset(datasetId :String)
+DELETE /ckan/purgeDatasetCkanGeo/:datasetId    controllers.ckan.CkanController.purgeDatasetCkanGeo(datasetId :String)
 DELETE /ckan/deleteOrganization/:orgId          controllers.ckan.CkanController.deleteOrganization(orgId :String)
 DELETE /ckan/purgeDataset/:datasetId            controllers.ckan.CkanController.purgeDataset(datasetId :String)
 DELETE /ckan/purgeOrganization/:orgId           controllers.ckan.CkanController.purgeOrganization(orgId :String)

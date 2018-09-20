@@ -901,6 +901,70 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  "/ckan-geo/add":
+    post:
+      tags:
+      - Ckan-geo
+      descritpion: add catalog to ckan-geo
+      operationId: addCatalogCkanGeo
+      consumes:
+        - application/json
+      parameters:
+      - name: catalog
+        in: body
+        descritpion: dcatapit to insert in ckan-geo
+        required: true
+        schema:
+          $ref: '#/definitions/Dataset'
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Success'
+        401:
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/ckan-geo/delete":
+    post:
+      tags:
+      - Ckan-geo
+      description: delete dataset from ckan-geo
+      operationId: deleteCatalogCkanGeo
+      consumes:
+        - application/json
+      parameters:
+      - name: catalog
+        in: body
+        description: catalog to delete
+        required: true
+        schema:
+          $ref: '#/definitions/Dataset'
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Success'
+        401:
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   "/voc/themes/getall/":
     get:
       summary: Get the list of all DAF themes

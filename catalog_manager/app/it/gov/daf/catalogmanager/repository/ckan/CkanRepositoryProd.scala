@@ -2,7 +2,7 @@ package it.gov.daf.catalogmanager.repository.ckan
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import catalog_manager.yaml.{AutocompRes, Credentials, Dataset, MetadataCat, Organization, ResourceSize, User}
+import catalog_manager.yaml.{AutocompRes, Credentials, Dataset, Error, MetadataCat, Organization, ResourceSize, Success, User}
 import com.mongodb.{DBObject, MongoCredential, ServerAddress}
 import com.mongodb.casbah.MongoClient
 import com.mongodb.casbah.commons.MongoDBObject
@@ -11,6 +11,7 @@ import it.gov.daf.catalogmanager.utilities.{ConfigReader, SecurePasswordHashing}
 import it.gov.daf.common.utils.WebServiceUtil
 import play.api.Logger
 import play.api.libs.json._
+import play.api.libs.ws.WSClient
 
 import scala.concurrent.Future
 
@@ -28,6 +29,8 @@ class CkanRepositoryProd extends CkanRepository{
 
   private val LOCALURL = ConfigReader.localUrl
   private val CKAN_ERROR = "CKAN service is not working correctly"
+
+  private val CKAN_GEO_URL = ConfigReader.getCkanGeoUrl
 
   private val server = new ServerAddress(ConfigReader.getDbHost, ConfigReader.getDbPort)
   private val userName = ConfigReader.userName
@@ -204,6 +207,23 @@ class CkanRepositoryProd extends CkanRepository{
     }).andThen { case _ => wsClient.close() }
       .andThen { case _ => system.terminate() }
 
+  }
+
+  def createDatasetCkanGeo(catalog: Dataset, user: String, token: String, wsClient: WSClient): Future[Either[Error, Success]] = {
+    val url = LOCALURL + "/ckan/createDataset"
+    val json = catalog_manager.yaml.ResponseWrites.DatasetWrites.writes(catalog)
+    wsClient.url(url).withHeaders("authorization" -> token).post(json).map{ response =>
+      if(response.status == 200) Right(Success(s"${catalog.name} inserted", None))
+      else Left(Error(s"error: ${response.statusText}", None, None))
+    }
+  }
+
+  def deleteDatasetCkanGeo(catalog: Dataset, user: String, token: String, wsClient: WSClient): Future[Either[Error, Success]] = {
+    val url = LOCALURL + "/ckan/purgeDatasetCkanGeo/" + catalog.name
+    wsClient.url(url).withHeaders("authorization" -> token).delete().map{ response =>
+      if(response.status == 200) Right(Success(s"${catalog.name} deleted by $user", None))
+      else Left(Error(s"error: ${response.statusText}", None, None))
+    }
   }
 
   def createOrganization(jsonDataset: JsValue, callingUserid :MetadataCat): Future[String] = {

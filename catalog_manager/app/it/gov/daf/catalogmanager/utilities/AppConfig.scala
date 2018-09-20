@@ -14,6 +14,7 @@ import play.api.{Configuration, Environment}
 private class AppConfig @Inject()(playConfig: Configuration) {
   val userIdHeader: Option[String] = playConfig.getString("app.userid.header")
   val ckanHost: Option[String] = playConfig.getString("app.ckan.url")
+  val ckanGeoUrl = playConfig.getString("ckan-geo.url")
   val dbHost: Option[String] = playConfig.getString("mongo.host")
   val dbPort: Option[Int] = playConfig.getInt("mongo.port")
   val userName :Option[String] = playConfig.getString("mongo.username")
@@ -34,6 +35,7 @@ object ConfigReader {
   private val config = new AppConfig(Configuration.load(Environment.simple()))
   def userIdHeader: String = config.userIdHeader.getOrElse("userid")
   def getCkanHost: String = config.ckanHost.getOrElse("localhost")
+  def getCkanGeoUrl = config.ckanGeoUrl.getOrElse("")
   def getDbHost: String = config.dbHost.getOrElse("localhost")
   def getDbPort: Int = config.dbPort.getOrElse(27017)
   def database :String = config.database.getOrElse("catalog_manager")

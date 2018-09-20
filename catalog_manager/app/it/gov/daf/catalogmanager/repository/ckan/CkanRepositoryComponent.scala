@@ -1,9 +1,7 @@
 package it.gov.daf.catalogmanager.repository.ckan
 
-import catalog_manager.yaml.{AutocompRes, Credentials, User}
-import play.api.libs.json.JsValue
-
-import scala.concurrent.Future
+import catalog_manager.yaml.{AutocompRes, Credentials, Error, Success, User}
+import play.api.libs.ws.WSClient
 
 /**
   * Created by ale on 10/05/17.
@@ -26,6 +24,8 @@ trait CkanRepository {
   def createUser(jsonUser: JsValue,callingUserid :MetadataCat): Future[String]
   def getUserOrganizations(userName :String,callingUserid :MetadataCat) : Future[JsResult[Seq[Organization]]]
   def createDataset(jsonDataset: JsValue,callingUserid :MetadataCat): Future[String]
+  def createDatasetCkanGeo(catalog: Dataset, user: String, token: String, wsClient: WSClient): Future[Either[Error, Success]]
+  def deleteDatasetCkanGeo(catalog: Dataset, user: String, token: String, wsClient: WSClient): Future[Either[Error, Success]]
   def createOrganization(jsonDataset: JsValue,callingUserid :MetadataCat): Future[String]
   def dataset(datasetId: String,callingUserid :MetadataCat): JsValue
   def getOrganization(orgId :String,callingUserid :MetadataCat) : Future[JsResult[Organization]]

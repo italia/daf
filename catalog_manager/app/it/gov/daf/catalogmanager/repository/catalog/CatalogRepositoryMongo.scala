@@ -1,24 +1,14 @@
 package it.gov.daf.catalogmanager.repository.catalog
 
-import java.net.URLEncoder
-
-import javax.security.auth.login.AppConfigurationEntry
-import catalog_manager.yaml.{Dataset, DatasetCatalogFlatSchema, MetaCatalog, MetadataCat, ResponseWrites, Success, Error}
+import catalog_manager.yaml.{Dataset, MetaCatalog, MetadataCat, ResponseWrites, Success, Error}
 import com.mongodb
-import com.mongodb.{DBObject, casbah}
+import com.mongodb.DBObject
 import com.mongodb.casbah.MongoClient
-import org.bson.types.ObjectId
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import com.mongodb.casbah.Imports._
 import it.gov.daf.catalogmanager.utilities.{CatalogManager, ConfigReader}
-import it.gov.daf.catalogmanager.service.CkanRegistry
-import play.api.libs.ws.{WSClient, WSResponse}
+import play.api.libs.ws.WSClient
 import play.api.Logger
-
-import scala.concurrent.Future
-import scala.util.Try
-
-
 
 /**
   * Created by ale on 18/05/17.
@@ -32,8 +22,6 @@ class CatalogRepositoryMongo extends  CatalogRepository{
   private val userName = ConfigReader.userName
   private val source = ConfigReader.database
   private val password = ConfigReader.password
-
-  import scala.concurrent.ExecutionContext.Implicits.global
 
   val server = new ServerAddress(mongoHost, 27017)
   val credentials = MongoCredential.createCredential(userName, source, password.toCharArray)
@@ -226,8 +214,8 @@ class CatalogRepositoryMongo extends  CatalogRepository{
 
 
     // TODO think if private should go in ckan or not as backup of metadata
-    if(!metaCatalog.dcatapit.privatex.getOrElse(true))
-      CkanRegistry.ckanRepository.createDataset(datasetJs,callingUserid)
+//    if(!metaCatalog.dcatapit.privatex.getOrElse(true))
+//      CkanRegistry.ckanRepository.createDataset(datasetJs,callingUserid)
 
     // val result: Future[String] =
 

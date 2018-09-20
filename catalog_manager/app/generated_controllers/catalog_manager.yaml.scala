@@ -56,7 +56,7 @@ import it.gov.daf.common.sso.common
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-        
+                                                                                                                                                            
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -365,6 +365,25 @@ package catalog_manager.yaml {
             }
             // ----- End of unmanaged code area for action  Catalog_managerYaml.verifycredentials
         }
+        val deleteCatalogCkanGeo = deleteCatalogCkanGeoAction { (catalog: Dataset) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.deleteCatalogCkanGeo
+            val user = CredentialManager.readCredentialFromRequest(currentRequest).username
+            val datasetOrg = catalog.owner_org.getOrElse("")
+            val owner= catalog.author.getOrElse("")
+            val token = readTokenFromRequest(currentRequest.headers)
+            val isDafSysAdmin = CredentialManager.isDafSysAdmin(currentRequest)
+            if(token.isDefined && (isDafSysAdmin || CredentialManager.isOrgAdmin(currentRequest, datasetOrg) || user.equals(owner))){
+                val response = CkanRegistry.ckanService.deleteDatasetCkanGeo(catalog, user, token.get, ws)
+                response.flatMap{
+                    case Right(r) => DeleteCatalogCkanGeo200(r)
+                    case Left(l) => DeleteCatalogCkanGeo500(l)
+                }
+            }else{
+                DeleteCatalogCkanGeo401(Error(s"Unauthorized to delete dataset for organization $datasetOrg", None, None))
+            }
+//            NotImplementedYet
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.deleteCatalogCkanGeo
+        }
         val voc_dcatthemegetall = voc_dcatthemegetallAction {  _ =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.voc_dcatthemegetall
             val themeList: Seq[KeyValue] = VocServiceRegistry.vocRepository.listDcatThemeAll()
@@ -554,6 +573,24 @@ package catalog_manager.yaml {
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.voc_daf2dcattheme
             NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.voc_daf2dcattheme
+        }
+        val addCatalogCkanGeo = addCatalogCkanGeoAction { (catalog: Dataset) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.addCatalogCkanGeo
+            val credential = CredentialManager.readCredentialFromRequest(currentRequest)
+            val datasetOrg = catalog.owner_org.getOrElse("")
+            val token = readTokenFromRequest(currentRequest.headers)
+            val isDafSysAdmin = CredentialManager.isDafSysAdmin(currentRequest)
+            if(token.isDefined && (isDafSysAdmin || CredentialManager.isOrgAdmin(currentRequest, datasetOrg) || CredentialManager.isOrgEditor(currentRequest, datasetOrg))){
+                val response = CkanRegistry.ckanService.createCatalogCkanGeo(catalog, credential.username, token.get, ws)
+                response.flatMap{
+                    case Right(r) => AddCatalogCkanGeo200(r)
+                    case Left(l) => AddCatalogCkanGeo500(l)
+                }
+            }else{
+                AddCatalogCkanGeo401(Error(s"Unauthorized to insert dataset for organization $datasetOrg", None, None))
+            }
+//            NotImplementedYet
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.addCatalogCkanGeo
         }
         val voc_dcatsubthemesgetbyid = voc_dcatsubthemesgetbyidAction { (themeid: String) =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.voc_dcatsubthemesgetbyid

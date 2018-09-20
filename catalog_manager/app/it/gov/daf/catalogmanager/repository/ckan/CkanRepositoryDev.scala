@@ -2,9 +2,10 @@ package it.gov.daf.catalogmanager.repository.ckan
 
 import java.io.{FileInputStream, PrintWriter}
 
-import catalog_manager.yaml.{AutocompRes, Credentials, Dataset, MetadataCat, Organization, ResourceSize, User}
+import catalog_manager.yaml.{AutocompRes, Credentials, Dataset, Error, MetadataCat, Organization, ResourceSize, Success, User}
 import play.Environment
 import play.api.libs.json._
+import play.api.libs.ws.WSClient
 
 import scala.concurrent.Future
 
@@ -34,6 +35,14 @@ class CkanRepositoryDev extends CkanRepository{
     Future("ok")
   } finally {
     datasetWriter.flush()
+  }
+
+  def createDatasetCkanGeo(catalog: Dataset, user: String, token: String, wsClient: WSClient): Future[Either[Error, Success]] = {
+    Future.successful(Right(Success("success", None)))
+  }
+
+  def deleteDatasetCkanGeo(catalog: Dataset, user: String, token: String, wsClient: WSClient): Future[Either[Error, Success]] = {
+    Future.successful(Right(Success("success", None)))
   }
 
   def getMongoUser(name:String,callingUserid :MetadataCat): JsResult[User]={

@@ -152,14 +152,7 @@ package catalog_manager.yaml {
                 responseKylo <- futureResponseKylo
                 responseMongo <- futureResponseMongo
             } yield if(responseMongo.isRight && responseKylo.isRight) Right(Success(s"${extractMessage(responseMongo)}, ${extractMessage(responseKylo)}", None)) else Left(Error(s"${extractMessage(responseMongo)}, ${extractMessage(responseKylo)}", Some(500), None))
-//
-//
-//            val futureResponses: Future[Either[Error, Success]] = futureResponseKylo.map{ responseKylo =>
-//              if(futureResponseMongo.isRight && responseKylo.isRight)
-//                  Right(Success(s"${extractMessage(futureResponseMongo)}, ${extractMessage(responseKylo)}", None))
-//              else
-//                  Left(Error(s"${extractMessage(futureResponseMongo)}, ${extractMessage(responseKylo)}", Some(500), None))
-//            }
+
             futureResponses.flatMap{
                 case Right(s) => DeleteCatalog200(s)
                 case Left(e) => DeleteCatalog500(e)

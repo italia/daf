@@ -26,7 +26,7 @@ class SftpHandler(
 
   session.setConfig(config)
   session.setPassword(pwd)
-  session.connect(10000)
+  session.connect(60000)
 
   private val channel = session.openChannel("sftp")
   channel.connect()

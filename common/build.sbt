@@ -26,7 +26,7 @@ name := "common"
 
 Seq(gitStampSettings: _*)
 
-version in ThisBuild := sys.env.getOrElse("COMMON_VERSION", "1.0.9-SNAPSHOT")
+version in ThisBuild := sys.env.getOrElse("COMMON_VERSION", "1.0.9")
 
 //version := "1.0.1-SNAPSHOT"
 
@@ -88,7 +88,7 @@ headerMappings := headerMappings.value + (HeaderFileType.conf -> HeaderCommentSt
 
 publishTo := {
   val nexus = if(isStaging) "http://nexus.teamdigitale.test:8081/repository/"
-              else "http://nexus.default.svc.cluster.local:8081/repository/"
+              else "http://nexus.daf.teamdigitale.it:8081/repository/"
 
   if (isSnapshot.value)
     Some("snapshots" at nexus + "maven-snapshots/")
@@ -101,4 +101,3 @@ publishMavenStyle := true
 autoAPIMappings := true
 
 credentials += {if(isStaging) Credentials(Path.userHome / ".ivy2" / ".credentialsTest") else Credentials(Path.userHome / ".ivy2" / ".credentials")}
-

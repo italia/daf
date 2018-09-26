@@ -131,7 +131,7 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider, cache
     execInContext[Future[Result]] ("biOpenLogin"){ () =>
 
       val token:Option[String] = request.body("Authorization").headOption.map(str => str.substring(7,str.length))
-      val loginInfo = new LoginInfo(ConfigReader.suspersetOpenDataUser, ConfigReader.suspersetOpenDataPwd, LoginClientLocal.SUPERSET)
+      val loginInfo = new LoginInfo(ConfigReader.suspersetOpenDataUser, ConfigReader.suspersetOpenDataPwd, LoginClientLocal.SUPERSET_OPEN)
 
       logger.debug(s"token $token")
 
@@ -189,6 +189,7 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider, cache
     }
   }
 
+  /*
   def biOpenLoginH  = Action.async { implicit request =>
     execInContext[Future[Result]] ("biOpenLoginH"){ () =>
 
@@ -204,7 +205,7 @@ class SSOController @Inject()(ws: WSClient, config: ConfigurationProvider, cache
       }
 
     }
-  }
+  }*/
 
 
   //-----------------UNSECURED API-----------------------------------------

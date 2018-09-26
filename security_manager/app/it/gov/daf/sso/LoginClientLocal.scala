@@ -82,7 +82,7 @@ class LoginClientLocal() extends LoginClient {
       case LoginClientLocal.CKAN_GEO => loginCkanGeo(ConfigReader.ckanGeoAdminUser, ConfigReader.ckanGeoAdminPwd, wsClient)
       case LoginClientLocal.FREE_IPA => loginIPA( ConfigReader.ipaUser, ConfigReader.ipaUserPwd, wsClient)
       case LoginClientLocal.SUPERSET => loginSuperset( ConfigReader.suspersetAdminUser, ConfigReader.suspersetAdminPwd, wsClient,false)
-      case LoginClientLocal.SUPERSET_OPEN => loginSuperset( ConfigReader.suspersetAdminUser, ConfigReader.suspersetAdminPwd, wsClient,true)
+      case LoginClientLocal.SUPERSET_OPEN => loginSuperset( ConfigReader.suspersetOpenDataUser, ConfigReader.suspersetOpenDataPwd, wsClient,true)
       case LoginClientLocal.METABASE => loginMetabase(ConfigReader.metabaseAdminUser, ConfigReader.metabaseAdminPwd, wsClient)
       case LoginClientLocal.JUPYTER => val msg="Jupyter dosen't have admins";logger.error(msg);throw new Exception(msg) //loginJupyter(loginInfo.user, loginInfo.password, wsClient)
       case LoginClientLocal.GRAFANA => loginGrafana(ConfigReader.grafanaAdminUser, ConfigReader.grafanaAdminPwd, wsClient)

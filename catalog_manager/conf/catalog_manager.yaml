@@ -272,6 +272,10 @@ paths:
           schema:
             type: object
             $ref: '#/definitions/Success'
+        500:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
         401:
           description: Error Message
           schema:
@@ -391,6 +395,41 @@ paths:
           description: Unexpected error
           schema:
             type: object
+            $ref: '#/definitions/Error'
+  "/kafka/notifications/add":
+    post:
+      tags:
+      - notifications
+      description: send message to kafka
+      operationId: sendToKafka
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: kafkaMsgInfo
+        in: body
+        descritpion: the message and the topic
+        required: true
+        schema:
+          $ref: '#/definitions/KafkaMessageInfo'
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            $ref: '#/definitions/Success'
+        401:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
             $ref: '#/definitions/Error'
   "/ckan/create/dataset":
     post:
@@ -1343,6 +1382,27 @@ definitions:
       dcatapit:
         type: object
         $ref: '#/definitions/Dataset'
+  KafkaMessageInfo:
+    type: object
+    required:
+      - topicName
+      - description
+      - notificationType
+      - title
+      - group
+    properties:
+      title:
+        type: string
+      topicName:
+        type: string
+      description:
+        type: string
+      notificationType:
+        type: string
+      group:
+        type: string
+      link:
+        type: string
   DatasetCatalog:
      type: object
      required:

@@ -115,7 +115,7 @@ package catalog_manager.yaml {
             val jsonToken = s""""token":"$token""""
             val message = s"""{
                              |"records":[{"value":{"group":"$group","token":"$token","notificationtype": "$notificationType", "info":{
-                             |"title":"$title","description":"$description","link":"$link"}}}]}""".stripMargin
+                             |"title":"$title","description":"$description","link":"${link.getOrElse("")}"}}}]}""".stripMargin
 
             val jsonBody = Json.parse(message)
 
@@ -402,7 +402,7 @@ package catalog_manager.yaml {
                 }
                 case None => SendToKafka401(Error("need Bearer token", Some(401), None))
             }
-            NotImplementedYet
+//            NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.sendToKafka
         }
         val test = testAction {  _ =>  

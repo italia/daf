@@ -56,7 +56,7 @@ import it.gov.daf.common.sso.common
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                                                                                                                                                                
+                                                                                                                                                                                                                            
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -81,7 +81,7 @@ package catalog_manager.yaml {
         val KYLOPWD = config.get.getString("kylo.userpwd").getOrElse("XXXXXXXXXXX")
         val KAFKAPROXY = config.get.getString("kafkaProxy.url").get
 
-        private def sendMessaggeKafkaProxy(user: String, catalog: MetaCatalog, token: String): Future[Either[Error, Success]] = {
+        private def sendMessageKafkaProxy(user: String, catalog: MetaCatalog, token: String): Future[Either[Error, Success]] = {
             Logger.logger.debug(s"kafka proxy $KAFKAPROXY")
             val jsonMetacatol = writes(catalog)
             val jsonUser: String = s""""user":"$user""""
@@ -104,6 +104,32 @@ package catalog_manager.yaml {
                 }
                 else {
                     Logger.logger.debug(s"error in sending message to kafka proxy for user $user")
+                    Left(Error(s"error in sending message to kafka proxy for user $user", Some(500), None))
+                }
+            }
+        }
+
+        private def sendGenericMessageToKafka(user: String, group: String, topic: String, notificationType: String, title: String, description: String, link: Option[String], token: String) ={
+            Logger.logger.debug(s"kafka proxy $KAFKAPROXY, topic $topic")
+            val jsonUser: String = s""""user":"$user""""
+            val jsonToken = s""""token":"$token""""
+            val message = s"""{
+                             |"records":[{"value":{"group":"$group","token":"$token","notificationtype": "$notificationType", "info":{
+                             |"title":"$title","description":"$description","link":"${link.getOrElse("")}"}}}]}""".stripMargin
+
+            val jsonBody = Json.parse(message)
+
+            val responseWs = ws.url(KAFKAPROXY + s"/topics/$topic")
+              .withHeaders(("Content-Type", "application/vnd.kafka.v2+json"))
+              .post(jsonBody)
+
+            responseWs.map{ res =>
+                if( res.status == 200 ) {
+                    Logger.logger.debug(s"message sent to kakfa proxy for user $user in topic $topic")
+                    Right(Success("created",Option("created")))
+                }
+                else {
+                    Logger.logger.debug(s"error in sending message to kafka proxy for user $user in topic $topic")
                     Left(Error(s"error in sending message to kafka proxy for user $user", Some(500), None))
                 }
             }
@@ -267,7 +293,7 @@ package catalog_manager.yaml {
                 val token = readTokenFromRequest(currentRequest.headers, false)
                 token match {
                     case Some(t) => {
-                        val futureKafkaResp = sendMessaggeKafkaProxy(credentials.username, catalog, t)
+                        val futureKafkaResp = sendMessageKafkaProxy(credentials.username, catalog, t)
                         futureKafkaResp.flatMap{
                             case Right(r) => logger.info("sending to kafka");AddQueueCatalog200(r)
                             case Left(l) => AddQueueCatalog500(l)
@@ -344,16 +370,40 @@ package catalog_manager.yaml {
             val datasetOrg = catalog.dcatapit.owner_org.getOrElse("EMPTY ORG!")
             val credentials = CredentialManager.readCredentialFromRequest(currentRequest)
             if( CredentialManager.isOrgAdmin(currentRequest,datasetOrg) || CredentialManager.isOrgEditor(currentRequest,datasetOrg) ) {
-                val created: Success = ServiceRegistry.catalogService.createCatalog(catalog, Option(credentials.username), ws)
+                val created = ServiceRegistry.catalogService.createCatalog(catalog, Option(credentials.username), ws)
                 //If(!created.message.equals("Error")) sendMessaggeKafkaProxy(credentials.username, catalog)
                 //sendMessaggeKafkaProxy(credentials.username, catalog)
                 //logger.info("sending to kafka")
-                logger.debug("create catalog")
-                Createdatasetcatalog200(catalog_manager.yaml.Success("created",Option("created")) )
+                if(created.isRight) Createdatasetcatalog200(created.right.get)
+                else Createdatasetcatalog500(created.left.get)
+
             }else
                 Createdatasetcatalog401(s"Admin or editor permissions required (organization: $datasetOrg)")
             //NotImplementedYet
             // ----- End of unmanaged code area for action  Catalog_managerYaml.createdatasetcatalog
+        }
+        val sendToKafka = sendToKafkaAction { (kafkaMsgInfo: KafkaMessageInfo) =>  
+            // ----- Start of unmanaged code area for action  Catalog_managerYaml.sendToKafka
+            val token: Option[String] = readTokenFromRequest(currentRequest.headers, false)
+            val cred = CredentialManager.readCredentialFromRequest(currentRequest)
+            token match {
+                case Some(t) => {
+                    sendGenericMessageToKafka(cred.username,
+                        kafkaMsgInfo.group,
+                        kafkaMsgInfo.topicName,
+                        kafkaMsgInfo.notificationType,
+                        kafkaMsgInfo.title,
+                        kafkaMsgInfo.description,
+                        kafkaMsgInfo.link,
+                        t) flatMap{
+                        case Right(r) => SendToKafka200(r)
+                        case Left(l) => SendToKafka500(l)
+                    }
+                }
+                case None => SendToKafka401(Error("need Bearer token", Some(401), None))
+            }
+//            NotImplementedYet
+            // ----- End of unmanaged code area for action  Catalog_managerYaml.sendToKafka
         }
         val test = testAction {  _ =>  
             // ----- Start of unmanaged code area for action  Catalog_managerYaml.test

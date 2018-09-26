@@ -6,7 +6,6 @@ package controllers.ckan
 
 
 import javax.inject._
-
 import play.api.mvc._
 import play.api.libs.ws._
 
@@ -14,7 +13,8 @@ import scala.concurrent.Future
 import play.api.libs.json._
 import play.api.inject.ConfigurationProvider
 import it.gov.daf.catalogmanager.service.CkanRegistry
-import it.gov.daf.common.sso.common.{LoginInfo, SecuredInvocationManager}
+import it.gov.daf.catalogmanager.utilities.ConfigReader
+import it.gov.daf.common.sso.common.{CredentialManager, LoginInfo, SecuredInvocationManager}
 import it.gov.daf.common.utils.WebServiceUtil
 import play.api.Logger
 //import play.api.libs.ws.ahc.AhcWSClient
@@ -27,6 +27,8 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
   import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
   private val CKAN_URL :String = config.get.getString("app.ckan.url").get
+
+  private val CKAN_GEO_URL = ConfigReader.getCkanGeoUrl
 
   private val LOCAL_URL :String = config.get.getString("app.local.url").get
 
@@ -82,10 +84,7 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
 
   def createDataset = Action.async { implicit request =>
 
-
     //curl -H "Content-Type: application/json" -X POST -d @data.json http://localhost:9001/ckan/createDataset
-
-
     //val AUTH_TOKEN:String = config.get.getString("app.ckan.auth.token").get
 
     val json:JsValue = request.body.asJson.get
@@ -99,18 +98,25 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
       }
     }else{
 
-      val user = request.headers.get(USER_ID_HEADER).getOrElse("")
-
+      val user = CredentialManager.readCredentialFromRequest(request).username
+      val datasetId = (json \ "name").getOrElse(Json.parse("no name"))
       val jsonString = json.toString().replace("privatex","private")// Temporary PATCH for swagger libs issues
       def callCreateDataset(cookie: String,wsClient: WSClient):Future[WSResponse] = {
-        // wsClient.url(CKAN_URL + "/api/3/action/package_create").withHeaders("Cookie" -> cookie).post(jsonString)
-       // TODO NO GOOD URL STRING PUT IN CONFIG
-        wsClient.url("http://ckan-geo.default.svc.cluster.local:5000" + "/api/3/action/package_create").withHeaders("Cookie" -> cookie).post(jsonString)
-
+        wsClient.url(CKAN_GEO_URL + "/api/3/action/package_create").withHeaders("Cookie" -> cookie).post(jsonString)
       }
+      secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan-geo"), callCreateDataset).map { r =>
+        if((r.json \ "success").get.toString().equals("true"))
+          Logger.logger.debug(s"$user inserted $datasetId")
+        else
+          Logger.logger.debug(s"error in insert $datasetId for user $user: ${(r.json \ "error").get}")
 
-      secInvokManager.manageServiceCall(new LoginInfo(null,null,"ckan-geo"), callCreateDataset).map { r => Ok(r.body) }
-
+        r.status match {
+          case 200 => Ok(r.body)
+          case 404 => NotFound(r.body)
+          case 409 => Conflict(r.body)
+          case _ => BadRequest(r.body)
+        }
+      }
     }
   }
 
@@ -146,6 +152,33 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
 
     secInvokManager.manageServiceCall(new LoginInfo(user,null,"ckan"), callDeleteDataset)map { r => Ok(r.body) }
 
+  }
+
+  def purgeDatasetCkanGeo(datasetId :String) = Action.async { implicit request =>
+
+    val user = CredentialManager.readCredentialFromRequest(request).username
+
+    Logger.logger.debug(s"url ckan-geo $CKAN_GEO_URL")
+    Logger.logger.debug(s"$user try to delete $datasetId")
+
+    def callDeleteDataset( cookie: String, wsClient: WSClient ):Future[WSResponse] ={
+      val url = CKAN_GEO_URL + "/api/3/action//dataset_purge"
+      val body = s"""{\"id\":\"$datasetId\"}"""
+      wsClient.url(url).withHeaders("Cookie" -> cookie).post(body)
+    }
+
+    secInvokManager.manageServiceCall(new LoginInfo(null,null,"ckan-geo"), callDeleteDataset)map { r =>
+      if(r.status == 200)
+        Logger.logger.debug(s"$user deleted $datasetId")
+      else
+        Logger.logger.debug(s"$user not deleted $datasetId: ${(r.json \ "error").get}")
+      r.status match {
+        case 200 => Ok(r.body)
+        case 404 => NotFound(r.body)
+        case 409 => Conflict(r.body)
+        case _ => BadRequest(r.body)
+      }
+    }
   }
 
 

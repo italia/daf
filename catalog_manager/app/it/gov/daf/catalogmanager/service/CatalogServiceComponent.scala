@@ -49,8 +49,8 @@ trait CatalogServiceComponent {
       catalogRepository.isDatasetOnCatalog(name)
     }
 
-    def deleteCatalogByName(nameCatalog: String, user: String, isAdmin: Boolean): Either[Error, Success] = {
-      catalogRepository.deleteCatalogByName(nameCatalog, user, isAdmin)
+    def deleteCatalogByName(nameCatalog: String, user: String, token: String,  isAdmin: Boolean, wsClient: WSClient): Future[Either[Error, Success]] = {
+      catalogRepository.deleteCatalogByName(nameCatalog, user, token: String, isAdmin, wsClient)
     }
 
   }

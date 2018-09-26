@@ -3,10 +3,11 @@ package it.gov.daf.catalogmanager.service
 /**
   * Created by ale on 18/07/17.
   */
-import catalog_manager.yaml.{AutocompRes, Credentials, Dataset, MetadataCat, Organization, ResourceSize, User}
+import catalog_manager.yaml.{AutocompRes, Credentials, Dataset, Error, MetadataCat, Organization, ResourceSize, Success, User}
 import play.api.{Configuration, Environment}
 import play.api.libs.json.{JsResult, JsValue}
 import it.gov.daf.catalogmanager.repository.ckan.{CkanRepository, CkanRepositoryComponent}
+import play.api.libs.ws.WSClient
 
 import scala.concurrent.Future
 
@@ -44,6 +45,15 @@ trait CkanServiceComponent {
     def createDataset(jsonDataset: JsValue, callingUserid :MetadataCat): Future[String] = {
       ckanRepository.createDataset(jsonDataset,callingUserid)
     }
+
+    def createCatalogCkanGeo(dataset: Dataset, user: String, token: String, ws: WSClient): Future[Either[Error, Success]] = {
+      ckanRepository.createDatasetCkanGeo(dataset, user, token, ws)
+    }
+
+    def deleteDatasetCkanGeo(catalog: Dataset, user: String, token: String, wsClient: WSClient): Future[Either[Error, Success]] = {
+      ckanRepository.deleteDatasetCkanGeo(catalog, user, token, wsClient)
+    }
+
     def createOrganization(jsonDataset: JsValue, callingUserid :MetadataCat): Future[String] = {
       ckanRepository.createOrganization(jsonDataset,callingUserid)
     }

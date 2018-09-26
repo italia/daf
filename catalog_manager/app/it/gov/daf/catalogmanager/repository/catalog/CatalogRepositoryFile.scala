@@ -289,8 +289,8 @@
 
     def isDatasetOnCatalog(name :String) = None
 
-    def deleteCatalogByName(nameCatalog: String, user: String, isAdmin: Boolean): Either[Error, Success] = {
-      Right(Success("delete", None))
+    def deleteCatalogByName(nameCatalog: String, user: String, token: String, isAdmin: Boolean, wsClient: WSClient): Future[Either[Error, Success]] = {
+      Future.successful(Right(Success("delete", None)))
     }
 
   }

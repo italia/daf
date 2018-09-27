@@ -6,8 +6,7 @@ import cats.data.EitherT
 import cats.implicits._
 import it.gov.daf
 import it.gov.daf.common.sso.common.{CredentialManager, Editor, Role, Viewer}
-import it.gov.daf.securitymanager.service.utilities.ConfigReader
-import it.gov.daf.securitymanager.service.utilities.RequestContext.execInContext
+import it.gov.daf.common.utils.RequestContext.execInContext
 import it.gov.daf.securitymanager.service.{ImpalaService, ProfilingService, RegistrationService, WebHDFSApiClient}
 import it.gov.daf.sso
 import it.gov.daf.sso.{ApiClientIPA, Organization, RoleGroup, User}

@@ -29,7 +29,7 @@ import de.zalando.play.controllers.ResponseWriters
 //noinspection ScalaStyle
 trait {{controller.base}} extends Controller with PlayBodyParsing with I18nSupport with ValidationTranslator {{if controller.security_trait}} with {{controller.security_trait}} {{/if}}{
     import play.api.libs.concurrent.Execution.Implicits.defaultContext
-    var currentRequest: Request[Any] = _
+    implicit var currentRequest: Request[Any] = _
     {{for m in controller.methods}}
     sealed trait {{m.result_class_prefix}}Type[T] extends ResultWrapper[T]
     {{for result_type in m.full_result_types}}

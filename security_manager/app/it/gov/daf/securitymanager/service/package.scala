@@ -1,7 +1,7 @@
 package it.gov.daf.securitymanager
 
 import it.gov.daf.common.sso.common.{CacheWrapper, LoginInfo}
-import it.gov.daf.securitymanager.service.utilities.RequestContext
+import it.gov.daf.common.utils.RequestContext
 import it.gov.daf.sso.LoginClientLocal
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext

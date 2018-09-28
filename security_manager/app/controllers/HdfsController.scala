@@ -5,7 +5,7 @@ import javax.inject.Inject
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import it.gov.daf.securitymanager.service.{WebHDFSApiClient, WebHDFSApiProxy}
-import it.gov.daf.securitymanager.service.utilities.RequestContext.execInContext
+import it.gov.daf.common.utils.RequestContext.execInContext
 import play.api.Logger
 import play.api.http.HttpEntity
 import play.api.libs.streams

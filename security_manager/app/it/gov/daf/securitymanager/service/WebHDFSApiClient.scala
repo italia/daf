@@ -4,7 +4,7 @@ import cats.data.EitherT
 import cats.implicits._
 import com.google.inject.{Inject, Singleton}
 import it.gov.daf.common.sso.common.{CacheWrapper, LoginInfo, RestServiceResponse, SecuredInvocationManager}
-import it.gov.daf.securitymanager.service.utilities.{ConfigReader, RequestContext}
+import it.gov.daf.securitymanager.service.utilities.ConfigReader
 import it.gov.daf.sso.LoginClientLocal
 import play.api.Logger
 import play.api.libs.json._

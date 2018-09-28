@@ -17,7 +17,7 @@ trait CatalogRepository {
     def catalog(catalogId :String): Option[MetaCatalog]
     def catalogByName(name :String, groups: List[String]): Option[MetaCatalog]
     def publicCatalogByName(name: String):Option[MetaCatalog]
-    def createCatalog(metaCatalog: MetaCatalog,callingUserid :MetadataCat, ws :WSClient) :Success
+    def createCatalog(metaCatalog: MetaCatalog,callingUserid :MetadataCat, ws :WSClient): Either[Error, Success]
     def createCatalogExtOpenData(metaCatalog: MetaCatalog,callingUserid :MetadataCat, ws :WSClient) :Success
     def standardUris() : List[String]
     def isDatasetOnCatalog(name :String): Option[Boolean]

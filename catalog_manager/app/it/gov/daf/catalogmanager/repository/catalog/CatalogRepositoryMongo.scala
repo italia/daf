@@ -6,6 +6,7 @@ import com.mongodb.DBObject
 import com.mongodb.casbah.MongoClient
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import com.mongodb.casbah.Imports._
+import it.gov.daf.catalogmanager.service.CkanRegistry
 import it.gov.daf.catalogmanager.utilities.{CatalogManager, ConfigReader}
 import play.api.libs.ws.WSClient
 import play.api.Logger
@@ -216,7 +217,7 @@ class CatalogRepositoryMongo extends  CatalogRepository{
     Success(msg, Some(msg))
   }
 
-  def createCatalog(metaCatalog: MetaCatalog, callingUserid :MetadataCat, ws :WSClient) :Success = {
+  def createCatalog(metaCatalog: MetaCatalog, callingUserid :MetadataCat, ws :WSClient): Either[Error, Success] = {
 
     import catalog_manager.yaml.ResponseWrites.MetaCatalogWrites
 
@@ -272,8 +273,8 @@ class CatalogRepositoryMongo extends  CatalogRepository{
       }
       message
     }
-
-    Success(msg, Some(msg))
+    if(msg.equals("Error")) Left(Error("error in add catalog", Some(500), None))
+    else Right(Success(msg, Some(msg)))
   }
 
 

@@ -239,7 +239,7 @@
       Success(msg,Some(msg))
     }
 
-    def createCatalog(metaCatalog: MetaCatalog, callingUserid :MetadataCat, ws :WSClient) :Success = {
+    def createCatalog(metaCatalog: MetaCatalog, callingUserid :MetadataCat, ws :WSClient): Either[Error, Success] = {
       import catalog_manager.yaml.ResponseWrites.MetaCatalogWrites
 
       val fw = new FileWriter("data/data-mgt/data_test.json", true)
@@ -281,7 +281,8 @@
         case _ =>  val msg = "Error"; msg
       }
 
-      Success(msg,Some(msg))
+      if(msg.equals("Error")) Left(Error("Error in add catalog", Some(500), None))
+      else Right(Success(msg,Some(msg)))
     }
 
     // Not used

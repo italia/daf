@@ -157,15 +157,16 @@ spec:
         - name: security-manager-logback-volume
           mountPath: /opt/docker/conf/logback.xml
           subPath: logback.xml
-#        - name: glusterfsvol
-#          mountPath: /opt/docker/logs
-#          subPath: security-manager/logs
         - name: security-manager-cert-volume
-          mountPath: /opt/docker/cert/
+          mountPath: /opt/docker/cert/master-impala.jks
+          subPath: master-impala.jks
+          readOnly: true
+        - name: security-manager-cert-volume
+          mountPath: /docker-java-home/jre/lib/security/jssecacerts
+          subPath: jssecacerts
+          readOnly: true
         - name: config-volume-kerb
           mountPath: /etc/extKerberosConfig
-#        - name: krb5conf
-#          mountPath: /etc/krb5.conf
       imagePullSecrets:
       - name: regsecret
       volumes:

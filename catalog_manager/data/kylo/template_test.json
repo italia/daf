@@ -80,7 +80,7 @@
       "locked": false,
       "order": 0,
       "required": true,
-      "systemName": "dafType",
+      "systemName": "daf_type",
       "value": "{DAF_TYPE}",
       "$error": {
         "duplicate": false,
@@ -94,7 +94,7 @@
       "locked": false,
       "order": 1,
       "required": true,
-      "systemName": "dafDomain",
+      "systemName": "daf_domain",
       "value": "{DAF_DOMAIN}",
       "$error": {
         "duplicate": false,
@@ -108,7 +108,7 @@
       "locked": false,
       "order": 2,
       "required": true,
-      "systemName": "dafSubdomain",
+      "systemName": "daf_subdomain",
       "value": "{DAF_SUBDOMAIN}",
       "$error": {
         "duplicate": false,
@@ -122,7 +122,7 @@
       "locked": false,
       "order": 3,
       "required": true,
-      "systemName": "dafFormat",
+      "systemName": "daf_format",
       "value": "{DAF_FORMAT}",
       "$error": {
         "duplicate": false,
@@ -136,7 +136,7 @@
       "locked": false,
       "order": 4,
       "required": false,
-      "systemName": "dafOpendata",
+      "systemName": "daf_opendata",
       "value": false,
       "$error": {
         "duplicate": false,
@@ -150,7 +150,7 @@
       "locked": false,
       "order": 5,
       "required": false,
-      "systemName": "dafOwner",
+      "systemName": "daf_owner",
       "value": "{DAF_USERNAME}",
       "$error": {
         "duplicate": false,

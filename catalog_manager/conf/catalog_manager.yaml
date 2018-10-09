@@ -1379,7 +1379,7 @@ definitions:
         description: Description of the content of the column.
       field_type:
         type: string
-        description: It specifies if the field is a dimension ('dim'), a metric (numeric attribute, 'metric') or a descriptive attribute ('des').
+        description: It specifies if the field is a dimension ('dim'), a metric (numeric attribute, 'metric') or a descriptive attribute ('desc').
       required:
         type: integer
         description: It specifies if the field must be valorized or can be null.
@@ -1548,6 +1548,12 @@ definitions:
         description: contains info on the standardization procedure to be performed on the field (Kylo Standardization).
         items: 
           type: string
+      entity_ext:
+        type: array
+        description: contains the list of entity extraction procedures to be applied to the field.
+        items:
+          $ref: '#/definitions/KeyValue'
+           
   Operational:
     required:
       - dataset_visibility

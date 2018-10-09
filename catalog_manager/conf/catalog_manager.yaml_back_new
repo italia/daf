@@ -1,0 +1,2356 @@
+# Copyright 2017 TEAM PER LA TRASFORMAZIONE DIGITALE
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Questo e' la descrizione delle API che vengono esposte da dati.gov.it.
+# Le API sono pubbliche
+
+swagger: '2.0'
+info:
+  title: Catalog Manager API
+  description: Catalog Manager API
+  version: "BETA"
+  termsOfService: http://termofservice
+  contact:
+    name: team digitale
+    url: https://teamdigitale.governo.it
+  license:
+    name: Creative Commons 4.0 International
+    url: http://creativecommons.org/licenses/by/4.0/
+#host: catalog-manager.default.svc.cluster.local:9000
+host : localhost:9002
+# will be prefixed to all paths
+basePath: /catalog-manager/v1
+# array of all schemes that your API supports
+schemes:
+  - http
+  - https
+produces:
+  - application/json
+consumes:
+  - application/json
+#securityDefinitions:
+#  basicAuth:
+#    type: basic
+#    description: HTTP Basic Authentication. Works over `HTTP` and `HTTPS`
+paths:
+  "/test":
+    get:
+      #security:
+       #- basicAuth: []
+      operationId: test
+      responses:
+        200:
+          description:  Will send `Authenticated` if authentication is successful, otherwise it will send `Unauthorized`
+          schema:
+            $ref: '#/definitions/Token'
+  "/dataset-catalogs":
+    get:
+      #security:
+      #- basicAuth: []
+      summary: DatasetCatalog
+      description: |
+        List of MetaCatalog stored
+      tags:
+        - DatasetCatalog
+      parameters:
+        - name: page
+          in: query
+          description: number of the page
+          required: false
+          type: integer
+          format: int32
+        - name: limit
+          in: query
+          description: maximum number of results to return
+          required: false
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 500
+      operationId: datasetcatalogs
+      responses:
+        200:
+          description: An array of MetaCatalog
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/MetaCatalog'
+        401:
+          description: |
+            No Catalogs found list empty
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/dataset-catalogs/standard-uris":
+    get:
+      #security:
+      #- basicAuth: []
+      summary: DatasetCatalog standard uri
+      description: |
+        List of Standard Uri
+      tags:
+        - DatasetCatalog
+      operationId: standardsuri
+      responses:
+        200:
+          description: An array of Standard uri
+          schema:
+            type: array
+            items:
+              "$ref": "#/definitions/StdUris"
+        401:
+          description: |
+            No Standards found list empty
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/catalog-ds/get/{catalog_id}":
+    get:
+      #security:
+      #- basicAuth: []
+      summary: DatasetCatalog
+      description: |
+        DatasetCatalog data
+      tags:
+        - DatasetCatalog
+      operationId: datasetcatalogbyid
+      parameters:
+            - name: catalog_id
+              in: path
+              description: Name of catalog
+              required: true
+              type: string
+      responses:
+        200:
+          description: A Catalog
+          schema:
+            type:
+            $ref: '#/definitions/MetaCatalog'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/public/catalog-ds/getbyname/{name}":
+    get:
+        #security:
+        #- basicAuth: []
+        summary: DatasetCatalog
+        description: |
+          DatasetCatalog data
+        tags:
+          - DatasetCatalog
+        operationId: publicdatasetcatalogbyname
+        parameters:
+          - name: name
+            in: path
+            description: Name of catalog
+            required: true
+            type: string
+        responses:
+          200:
+            description: A Catalog
+            schema:
+              type:
+              $ref: '#/definitions/MetaCatalog'
+          401:
+            description: Error Message
+            schema:
+              type: string
+          default:
+            description: Unexpected error
+            schema:
+              $ref: '#/definitions/Error'
+  "/catalog-ds/getbyname/{name}":
+    get:
+      #security:
+      #- basicAuth: []
+      summary: DatasetCatalog
+      description: |
+        DatasetCatalog data
+      tags:
+        - DatasetCatalog
+      operationId: datasetcatalogbyname
+      parameters:
+        - name: name
+          in: path
+          description: Name of catalog
+          required: true
+          type: string
+      responses:
+        200:
+          description: A Catalog
+          schema:
+            type:
+            $ref: '#/definitions/MetaCatalog'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/catalog-ds/is_present/{name}":
+    get:
+      #security:
+      #- basicAuth: []
+      summary: DatasetCatalog
+      description: |
+        Check if this name is present on Catalog
+      tags:
+        - DatasetCatalog
+      operationId: isPresentOnCatalog
+      parameters:
+        - name: name
+          in: path
+          description: Name of catalog
+          required: true
+          type: string
+      responses:
+        200:
+          description: A Catalog
+          schema:
+            type:
+            $ref: '#/definitions/Success'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/catalog-ds/add":
+    post:
+      #security:
+      #- basicAuth: []
+      summary: DatasetCatalog
+      description: |
+        The DatasetCatalog for ....
+      tags:
+        - DatasetCatalog
+      operationId: createdatasetcatalog
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+      - name: catalog
+        in: body
+        description: Dataset Catalog
+        required: true
+        schema:
+          $ref: '#/definitions/MetaCatalog'
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            $ref: '#/definitions/Success'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/catalog-ds/add-queue":
+    post:
+      #security:
+      #- basicAuth: []
+      summary: DatasetCatalog
+      description: |
+        The DatasetCatalog for ....
+      tags:
+        - DatasetCatalog
+      operationId: addQueueCatalog
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+      - name: catalog
+        in: body
+        description: Dataset Catalog
+        required: true
+        schema:
+          $ref: '#/definitions/MetaCatalog'
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            $ref: '#/definitions/Success'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/catalog-ds/ext/add":
+    post:
+      #security:
+      #- basicAuth: []
+      summary: DatasetCatalog
+      description: |
+        The DatasetCatalog for ....
+      tags:
+        - DatasetCatalog
+      operationId: createdatasetcatalogExtOpenData
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+      - name: catalog
+        in: body
+        description: Dataset Catalog
+        required: true
+        schema:
+          $ref: '#/definitions/MetaCatalog'
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            $ref: '#/definitions/Success'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/catalog-ds/delete/{name}/{org}":
+    delete:
+      summary: delete a DatasetCatalog
+      description: delete DatasetCatalog identified by the name in path
+      tags:
+       - DatasetCatalog
+      operationId: deleteCatalog
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+      - name: name
+        in: path
+        description: name of the dataset to delete
+        required: true
+        type: string
+      - name: org
+        in: path
+        description: organization of the feed to delete
+        required: true
+        type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            $ref: '#/definitions/Success'
+        500:
+          description: Error
+          schema:
+           type: object
+           $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            type: object
+            $ref: '#/definitions/Error'
+  "/ckan/create/dataset":
+    post:
+      #security:
+      #- basicAuth: []
+      tags:
+        - Ckan
+      description: Create ckan dataset for ....
+      operationId: createckandataset
+      produces:
+      - application/json
+      parameters:
+      - name: dataset
+        in: body
+        description: Dataset Catalog
+        required: true
+        schema:
+          #$ref: "./imports/dataset.yaml#/definitions/Dataset"
+          $ref: '#/definitions/Dataset'
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            $ref: '#/definitions/Success'
+        401:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/ckan/datasets/{dataset_id}":
+    get:
+      #security:
+      #- basicAuth: []
+      tags:
+        - Ckan
+      description: Get ckan dataset for ....
+      operationId: getckandatasetbyid
+      produces:
+      - application/json
+      parameters:
+      - name: dataset_id
+        in: path
+        description: DatasetId
+        required: true
+        type: string
+      responses:
+        200:
+          description: Dataset
+          schema:
+            type: object
+            $ref: '#/definitions/Dataset'
+        401:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/ckan/create/organization":
+    post:
+      #security:
+      #- basicAuth: []
+      tags:
+        - Ckan
+      description: Create ckan organization
+      operationId: createckanorganization
+      produces:
+      - application/json
+      parameters:
+      - name: organization
+        in: body
+        description: Organization
+        required: true
+        schema:
+          $ref: '#/definitions/Organization'
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            $ref: '#/definitions/Success'
+        401:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/ckan/update/organization/{org_id}":
+    put:
+      #security:
+      #- basicAuth: []
+      tags:
+        - Ckan
+      description: Update ckan organization
+      operationId: updateckanorganization
+      produces:
+      - application/json
+      parameters:
+      - name: org_id
+        in: path
+        description: OrganizationId or Name
+        required: true
+        type: string
+      - name: organization
+        in: body
+        description: Organization
+        required: true
+        schema:
+          $ref: '#/definitions/Organization'
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            $ref: '#/definitions/Success'
+        401:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/ckan/patch/organization/{org_id}":
+    put:
+      #security:
+      #- basicAuth: []
+      tags:
+        - Ckan
+      description: Patch ckan organization
+      operationId: patchckanorganization
+      produces:
+      - application/json
+      parameters:
+      - name: org_id
+        in: path
+        description: OrganizationId or Name
+        required: true
+        type: string
+      - name: organization
+        in: body
+        description: Organization
+        required: true
+        schema:
+          $ref: '#/definitions/Organization'
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            $ref: '#/definitions/Success'
+        401:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/ckan/organization/{org_id}":
+    get:
+      #security:
+      #- basicAuth: []
+      tags:
+        - Ckan
+      description: Get ckan organization
+      operationId: getckanorganizationbyid
+      produces:
+      - application/json
+      parameters:
+      - name: org_id
+        in: path
+        description: OrganizationId or Name
+        required: true
+        type: string
+      responses:
+        200:
+          description: Dataset
+          schema:
+            type: object
+            $ref: '#/definitions/Organization'
+        401:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/ckan/organizations":
+    get:
+      #security:
+      #- basicAuth: []
+      tags:
+        - Ckan
+      description: Get ckan organization list
+      operationId: getckanorganizationList
+      produces:
+      - application/json
+      responses:
+        200:
+          description: An array of Organization names
+          schema:
+            type: array
+            items:
+              type: string
+        401:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+  "/ckan/userOrganizations/{username}":
+    get:
+      #security:
+      #- basicAuth: []
+      tags:
+        - Ckan
+      description: Get ckan organizations created by the user
+      operationId: getckanuserorganizationList
+      produces:
+      - application/json
+      parameters:
+      - name: username
+        in: path
+        description: Username
+        required: true
+        type: string
+      responses:
+        200:
+          description: An array of Organizations
+          schema:
+            type: array
+            items:
+              "$ref": "#/definitions/Organization"
+        401:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/ckan/datasets":
+    get:
+      #security:
+      #- basicAuth: []
+      tags:
+        - Ckan
+      description: Get ckan dataset list
+      operationId: getckandatasetList
+      produces:
+      - application/json
+      responses:
+        200:
+          description: An array of Dataset names
+          schema:
+            type: array
+            items:
+              type: string
+        401:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/ckan/datasetsWithResources":
+    get:
+      #security:
+      #- basicAuth: []
+      tags:
+        - Ckan
+      description: Get ckan dataset list with all infos associated.
+      operationId: getckandatasetListWithRes
+      produces:
+      - application/json
+      parameters:
+      - name: limit
+        in: query
+        description: If given, the list of datasets will be broken into pages
+        type: integer
+      - name: offset
+        in: query
+        description: When limit is given, the offset to start returning packages from
+        type: integer
+      responses:
+        200:
+          description: List of datasets. The list is sorted most-recently-modified first.
+          schema:
+            type: array
+            items:
+              "$ref": "#/definitions/Dataset"
+        401:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/ckan/searchDataset":
+    get:
+      #security:
+      #- basicAuth: []
+      tags:
+        - Ckan
+      description: Search ckan datasets with all infos associated.
+      operationId: searchdataset
+      produces:
+      - application/json
+      parameters:
+      - name: q
+        in: query
+        description: The solr query
+        type: string
+      - name: sort
+        in: query
+        description: Sorting of the search results
+        type: string
+      - name: rows
+        in: query
+        description: The number of matching rows to return
+        type: integer
+      - name: start
+        in: query
+        description: the offset in the complete result for where the set of returned datasets should begin
+        type: integer
+      responses:
+        200:
+          description: List of datasets. The list is sorted most-recently-modified first.
+          schema:
+            type: array
+            items:
+              "$ref": "#/definitions/Dataset"
+        401:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/ckan/autocompleteDataset":
+    get:
+      #security:
+      #- basicAuth: []
+      tags:
+        - Ckan
+      description: Autocomplete function on ckan datasets.
+      operationId: autocompletedataset
+      produces:
+      - application/json
+      parameters:
+      - name: q
+        in: query
+        description: query
+        type: string
+      - name: limit
+        in: query
+        description: The max number results returned
+        type: integer
+      responses:
+        200:
+          description: List of results.
+          schema:
+            type: array
+            items:
+              "$ref": "#/definitions/AutocompRes"
+        401:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+  "/ckan/autocompleteDummy":
+    post:
+      #security:
+      #- basicAuth: []
+      tags:
+        - Ckan
+      operationId: autocompletedummy
+      produces:
+      - application/json
+      parameters:
+      - name: autocompRes
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/AutocompRes'
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            $ref: '#/definitions/Success'
+        401:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/ckan/create/user":
+    post:
+      #security:
+      #- basicAuth: []
+      tags:
+        - Ckan
+      description: Create a user
+      operationId: createckanuser
+      produces:
+      - application/json
+      parameters:
+      - name: user
+        in: body
+        description: User
+        required: true
+        schema:
+          $ref: '#/definitions/User'
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            $ref: '#/definitions/Success'
+        401:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/ckan/verifyCredentials":
+      post:
+        #security:
+        #- basicAuth: []
+        tags:
+          - Ckan
+        description: Verify username & pwd
+        operationId: verifycredentials
+        produces:
+        - application/json
+        parameters:
+        - name: credentials
+          in: body
+          description: Credentials
+          required: true
+          schema:
+            $ref: '#/definitions/Credentials'
+        responses:
+          200:
+            description: Success
+            schema:
+              type: object
+              $ref: '#/definitions/Success'
+          401:
+            description: Error Message
+            schema:
+              $ref: '#/definitions/Error'
+          default:
+            description: Unexpected error
+            schema:
+              $ref: '#/definitions/Error'
+  "/ckan/user/{username}":
+    get:
+      #security:
+      #- basicAuth: []
+      tags:
+        - Ckan
+      description: Get ckan user info (from mongodb)
+      operationId: getckanuser
+      produces:
+      - application/json
+      parameters:
+      - name: username
+        in: path
+        description: Username
+        required: true
+        type: string
+      responses:
+        200:
+          description: User
+          schema:
+            type: object
+            $ref: '#/definitions/User'
+        401:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/themes/getall/":
+    get:
+      summary: Get the list of all DAF themes
+      description: Get the list of all DAF themes
+      tags:
+        - Themes
+      operationId: voc_themesgetall
+      produces:
+        - application/json
+      responses:
+        200:
+          description: A Catalog
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/KeyValue'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/subthemes/getall/":
+    get:
+      summary: Get the list of all DAF subthemes
+      description: Get the list of all DAF subthemes
+      tags:
+        - Subthemes
+      operationId: voc_subthemesgetall
+      produces:
+        - application/json
+      responses:
+        200:
+          description: A Catalog
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/VocKeyValueSubtheme'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/subthemes/getbyid/{themeid}":
+    get:
+      summary: Get the list of all DAF subthemes
+      description: Get the list of all DAF subthemes
+      tags:
+        - Subthemes
+      operationId: voc_subthemesgetbyid
+      parameters:
+        - name: themeid
+          in: path
+          description: DAF Theme Id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        200:
+          description: A Catalog
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/KeyValue'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/themes/dcat2daf/{themeid}":
+    get:
+      summary: Get a DAF Theme associated to a given DCATAPIT theme
+      description: Get a DAF Theme associated to a given DCATAPIT theme
+      tags:
+        - DAF
+        - Theme
+      operationId: voc_dcat2Daftheme
+      parameters:
+        - name: themeid
+          in: path
+          description: DCATAPIT Theme Id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        200:
+          description: List of Themes (id, value)
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/KeyValue'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/subthemes/dcat2daf/{themeid}/{subthemeid}":
+    get:
+      summary: Get a DAF Subtheme associated to a given DCATAPIT theme
+      description: Get a DAF Subtheme associated to a given DCATAPIT theme
+      tags:
+        - DAF
+        - Subtheme
+      operationId: voc_dcat2dafsubtheme
+      parameters:
+        - name: themeid
+          in: path
+          description: DCATAPIT Theme Id
+          required: true
+          type: string
+        - name: subthemeid
+          in: path
+          description: DCATAPIT SubTheme Id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        200:
+          description: List of Themes (id, value)
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/VocKeyValueSubtheme'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/dcatthemes/getall":
+    get:
+      summary: Get DCATAPIT Themes
+      description: Get DCATAPIT Themes
+      tags:
+        - DCATAPIT
+        - Theme
+      operationId: voc_dcatthemegetall
+      produces:
+        - application/json
+      responses:
+        200:
+          description: List of Themes (id, value)
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/KeyValue'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/dcatsubthemes/getall/":
+    get:
+      summary: Get the list of all DCATAPIT subthemes
+      description: Get the list of all DCATAPIT subthemes
+      tags:
+        - Subthemes
+      operationId: voc_dcatsubthemesgetall
+      produces:
+        - application/json
+      responses:
+        200:
+          description: A Catalog
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/VocKeyValueSubtheme'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/dcatsubthemes/getbyid/{themeid}":
+    get:
+      summary: Get the list of all DCATAPIT subthemes
+      description: Get the list of all DCATAPIT subthemes
+      tags:
+        - Subthemes
+      operationId: voc_dcatsubthemesgetbyid
+      parameters:
+        - name: themeid
+          in: path
+          description: DAF Theme Id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        200:
+          description: A Catalog
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/KeyValue'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/dcatthemes/daf2dcat/{themeid}":
+    get:
+      summary: Get a DCATAPIT Theme associated to a given DAF theme
+      description: Get a DCATAPIT Theme associated to a given DAF theme
+      tags:
+        - DCATAPIT
+        - Theme
+      operationId: voc_daf2dcattheme
+      parameters:
+        - name: themeid
+          in: path
+          description: DAF Theme Id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        200:
+          description: List of Themes (id, value)
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/KeyValue'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/voc/dcatsubthemes/daf2dcat/{themeid}/{subthemeid}":
+    get:
+      summary: Get a DCATAPIT Subtheme associated to a given DAF theme
+      description: Get a DCATAPIT Subtheme associated to a given DAF theme
+      tags:
+        - DCATAPIT
+        - Subtheme
+      operationId: voc_daf2dcatsubtheme
+      parameters:
+        - name: themeid
+          in: path
+          description: DAF Theme Id
+          required: true
+          type: string
+        - name: subthemeid
+          in: path
+          description: DAF SubTheme Id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        200:
+          description: List of Themes (id, value)
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/VocKeyValueSubtheme'
+        401:
+          description: Error Message
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  "/kylo/feed/{file_type}":
+    post:
+      #security:
+      #- basicAuth: []
+      tags:
+        - Kylo
+      description:
+      operationId: startKyloFedd
+      produces:
+      - application/json
+      parameters:
+      - name: file_type
+        in: path
+        description: File type default csv. json and csv at the moment available as options
+        required: true
+        type: string
+      - name: feed
+        in: body
+        description: Information to start a kylo feed
+        required: true
+        schema:
+          #$ref: "./imports/dataset.yaml#/definitions/Dataset"
+          $ref: '#/definitions/MetaCatalog'
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            $ref: '#/definitions/Success'
+        401:
+          description: Error Message
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+definitions:
+  KeyValue:
+    type: object
+    required:
+      - key
+      - value
+    description: Generic Key/Value pair object
+    properties:
+      key:
+        type: string
+      value:
+        type: string
+  KeyValueArray:
+      type: object
+      required:
+        - key
+        - value
+      description: Generic Key/Value pair object, where value is an array for more generic usage
+      properties:
+        key:
+          type: string
+        value:
+          type: array
+          items:
+            type: string
+
+  VocKeyValueSubtheme:
+      type: object
+      required:
+        - key
+        - value
+        - keyTheme
+      description: Generic Key/Value pair object
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+        keyTheme:
+          type: string
+        valueTheme:
+          type: string
+
+  MetaCatalog:
+    type: object
+    required:
+      - dataschema
+      - operational
+      - dcatapit
+    properties:
+      dataschema:
+        type: object
+        $ref: '#/definitions/DatasetCatalog'
+      operational:
+         type: object
+         $ref: '#/definitions/Operational'
+      #conversion:
+       # type: object
+        #$ref: '#/definitions/ConversionSchema'
+      dcatapit:
+        type: object
+        $ref: '#/definitions/Dataset'
+  DatasetCatalog:
+     type: object
+     required:
+      - avro
+      - flatSchema
+     properties:
+      encoding:
+        type: string
+        description: the encoding for the dataset. It may be null, in which case DAF will try to infer it.
+      avro:
+        $ref: '#/definitions/Avro'
+      flatSchema:
+        type: array
+        items:
+          $ref: '#/definitions/FlatSchema'
+      kyloSchema:
+        type: string
+        description: String representing json value from kylo infer
+  Avro:
+      required:
+        - namespace
+        - type
+        - name
+      properties:
+        namespace:
+          type: string
+          description: Qualifies the name of the dataset. E.g. daf.schema.mobility
+        type:
+          type: string
+          description: It must be record at the root level of the Avro Schema
+        name:
+          type: string
+          description: Name of the dataset
+        aliases:
+          type: array
+          items:
+            type: string
+          description: Alises for dataset
+        #alliases:
+        #  type: array
+        #  items:
+        #    type: string
+        fields:
+          type: array
+          items:
+            $ref: '#/definitions/Field'
+  Field:
+    required:
+      - name
+      - type
+     # - metadata
+    properties:
+      name:
+        type: string
+        description: Name of the field
+      type:
+       # $ref: '#/definitions/ActionAnyContent'
+        type: string
+        description: It can be a json object for complex type, or an array of string for primitive types (the latter may contains null in case the field can be nullable)
+  FlatSchema:
+    type: object
+    required:
+      - name
+      - type
+    properties:
+      name:
+        type: string
+      type:
+        type: string
+      metadata:
+        $ref: '#/definitions/Metadata'
+        description: JSON object containing metadata information for the field
+  Metadata:
+    required:
+    type: object
+    #  - metadata_format
+    #  - required
+    #  - constr
+    properties:
+     # name_lang:
+     #   $ref: '#/definitions/Lang'
+     # metadata_format:
+     #   type: string
+      title:
+        type: string
+        description: Human readable name or title for the column.
+      desc:
+        type: string
+        description: Description of the content of the column.
+      field_type:
+        type: string
+        description: It specifies if the field is a dimension ('dim'), a metric (numeric attribute, 'metric') or a descriptive attribute ('desc').
+      required:
+        type: integer
+        description: It specifies if the field must be valorized or can be null.
+        format: int32
+      uniq_dim:
+        type: boolean
+        description: checked if the column is part of the list of dimensions that make the row unique, such that there will not be two rows with the same values for the columns checked as uniq_dim.
+      is_createdate:
+        type: boolean
+        description: checked if the column contains the date when the row was created.
+      is_updatedate:
+        type: boolean
+        description: checked if the column contains the date when the row was updated.
+
+      #desc_lang:
+      #  $ref: '#/definitions/Lang'
+      cat:
+        type: string
+        description: Main tag in the category list. This will be supported by an appropriate service managing categories.
+      tag:
+        type: array
+        description: Main tag in the tag list. This will be supported by an appropriate service managing tag.
+        items:
+          type: string
+      semantics:
+        type: object
+        description: info on semantics annotation
+        $ref: '#/definitions/Semantic'
+      constr:
+        type: array
+        description: (key value) to add constraints to the content of the column
+        items:
+          $ref: '#/definitions/Constr'
+      personal:
+        type: object
+        description: tells if the column contains personal data, if so of what kind
+        $ref: '#/definitions/Personal'
+      format_std:
+        type: object
+        description: Add info about the specific format used for the column
+        $ref: '#/definitions/FormatStd'
+      field_profile:
+        type: object
+        description: it has info on indexing in SearchEngine and profiling of the field, plus other Kylo specific information on standard and validation.
+        $ref: '#/definitions/FieldProfile'
+
+
+  Lang:
+    type: object
+    properties:
+      eng:
+        type: string
+      ita:
+        type: string
+  Semantic:
+    type: object
+    required:
+      - id
+    properties:
+      id:
+        type: string
+        description: Semantic tag from OntonetHub, describing the conventional triplet to uniquely identify an attribute of an entity of a given ontology.
+      id_label:
+        type: string
+        description: Human readable lable for semantic tag.
+      context:
+        type: string
+        description: it gives context information. It is the semantic web URI.
+      context_label:
+        type: string
+        description: Human readable label for context.
+      subject:
+        type: string
+        description: it is used to give a better context to the info contained in the column. Technically, it is a tag for a concept described into an ontology. In most cases, it can be seen as the subject that makes an action, derived from the id attribute.
+      predicate:
+        type: string
+        description: Semantic annotation of the action the subject performs on the content of the column.
+      rdf_object: 
+        type: string
+        description: the target of the action performed by the subject.
+      uri_voc:
+        type: string
+        description: It is a unique identifier for the vocabulary. It matches with the ``dsname`` field of the dataset in DAF.
+      uri_property:
+        type: string
+        description: It is a unique identifier for the property/column of the vocabulary. It matches with the ``fields.name`` field of the dataset in DAF.
+      property_hierarchy:
+        type: array
+        description: it is of type array, and it gives info about the hierarchy, if any, to which the property/column belongs to.
+        items:
+          type: string
+      field_group:
+        type: string
+        description: a unique ID linking together columns relating to the same aspect. In the future, this may be controlled or semi-controlled by the semantic context.
+  Constr:
+    type: object
+    properties:
+      type:
+        type: string
+      param:
+        type: string
+   # required:
+   #   - rdfs:domain
+   #   - rdfs:range
+   # type: object
+   # properties:
+   #   rdfs:domain:
+   #     type: string
+   #     description: Uri of the Subject
+   #   rdfs:range:
+   #     type: string
+   #     description: Uri of the Object
+   #   owl:objectProperty:
+   #     type: string
+   #     description: Uri of the complex predicate
+   #   owl:datatypeProp:
+   #     type: string
+   #     description: Uri of the simple predicate
+  Personal:
+    type: object
+    required:
+      - ispersonal
+    properties:
+      ispersonal:
+        type: boolean
+        description: It tells if the column contains personal information.
+      cat:
+        type: string
+        description: It contains the type of personal data
+  FormatStd:
+    type: object
+    required:
+      - name
+    properties:
+      name:
+        type: string
+        description: Name of the standard format used
+      param:
+        type: array
+        description: It contains parameters needed (if needed) by the specific type of FormatStd.
+        items:
+          $ref: '#/definitions/KeyValue'
+      conv:
+        type: array
+        description: It contains name and properties of
+        items:
+          $ref: '#/definitions/KeyValueArray'
+
+
+  FieldProfile:
+    type: object
+    properties:
+      is_index:
+        type: boolean
+        description: it tells to create an index based on this field in the SearchEngine.
+      is_profile:
+        type: boolean
+        description: it tells to create a profile for the field that will be displayed as result of the SearchEngine.
+      validation:
+        type: array
+        description: contains info on the validation rules to be used for the field.
+        items: 
+          type: string
+      standardization:
+        type: array
+        description: contains info on the standardization procedure to be performed on the field (Kylo Standardization).
+        items: 
+          type: string
+          #      entity_extr:
+          #        type: array 
+          #        description: contains the list of entity extraction procedures to be applied to the field.
+          #        items:
+          #          $ref: '#/definitions/EntityExtraction'
+
+          #  EntityExtraction:
+          #    type: object
+          #    required:
+          #      - name
+          #    properties:
+          #      name:
+          #        type: string
+          #        description: Name of the entity extraction mechanism.
+          #      param:
+          #        type: array
+          #        description: Key/Value pairs list of Name/Value parameters of the selected entity extraction procedure.
+          #        items:
+          #          $ref: '#/definitions/KeyValue'
+          #           
+  Operational:
+    required:
+      - dataset_visibility
+      - logical_uri
+      - is_std
+      - group_own
+      - read_type
+      - input_src
+      - dataset_type
+      - theme
+      - subtheme
+    properties:
+      #id:
+      #  type: integer
+      #  format: int32
+      dataset_visibility:
+        type: string
+        description: tells whether the dataset is 'open' or 'private'
+      dataset_daf:
+        type: string
+        description: It tels which internal nature/goal the dataset has. It can be 'ordinary', 'std', 'voc', 'dafvoc'. 
+      dataset_type:
+        type: string
+        description: --DEPRECATED, use dataset_proc.dataset_type-- It tells whether the dataset is at rest ('batch') or realtime stream ('stream') and, orthogonally, if it is of type 'opendata' (from  national catalogue), in which case it will have a suffix '_opendata'.
+      file_type:
+        type: string
+        description: It tells wheter the dataset is a json or a csv file
+      georef:
+        type: array
+        items:
+          $ref: '#/definitions/GeoRef'
+      group_own:
+        type: string
+        description: Group of ownership to which the dataset belongs. It is set to the same group to which the user belongs to by default.
+      group_access:
+        type: array
+        description: Groups that have rights to access the datasets. It contains the name and the role associated to the group
+        items:
+          $ref: '#/definitions/GroupAccess'
+      ingestion_pipeline:
+        type: array
+        description: List of ingestion pipeline to be applied, in order of declaration, to the data to be ingested.
+        items:
+          $ref: '#/definitions/IngestionPipeline'
+      input_src:
+        description: Input sources for data to be ingested into the dataset.
+        $ref: '#/definitions/InputSrc'
+      is_voc:
+        type: string
+        description: Tells if a dataset is a controtrolled vocabulary or not.
+      is_std:
+        type: boolean
+        description: It tells if the dataset is a Standart Schema dataset (or VID). It takes values true (StdSchema Dataset), false (not a StdSchema Dataset)
+      logical_uri:
+        type: string
+        description: Unique resource identifier of the dataset. It is calculated automatically and assigned once for all
+      partitions:
+        type: array
+        description: it tells if the dataset is partitioned, and what the partitions are.
+        items:
+          $ref: '#/definitions/Partitions'
+      physical_uri:
+      #Not shure we should have this info here. This should be built programmatically
+        type: string
+        description: Physical uri. Physical storage path
+      read_type:
+        description: It tells whether the dataset is an append of snapshot ('last_update') or a time series ('time_series') and tells the program how to return the data.
+        type: string
+      std_schema:
+        type: object
+        description:
+        $ref: '#/definitions/StdSchema'
+      storage_info:
+        description: Information on the storage to be used to save the dataset.
+        type: object
+        $ref: '#/definitions/StorageInfo'
+      subtheme:
+        type: string
+        description: DAF SubTheme for the dataset
+      theme:
+        type: string
+        description: DAF Theme for the dataset
+      dataset_proc:
+        type: object
+        description: It has info about how to process and store internally the dataset. Such info includes partitioning, merge strategy, etc.
+        $ref: '#/definitions/DatasetProc'
+      ext_opendata:
+        type: object
+        description: Info about dataset imported from external ckan used to rebuild opendata relations
+        $ref: '#/definitions/ExtOpenData'
+  IngestionPipeline:
+    type: object
+    description: Object describing the properties of an ingestion pipeline
+    required: 
+      - name
+    properties:
+      name: 
+        type: string
+        description: name of the ingestion pipe
+      param:
+        type: string
+        description: parameters for the ingestion pipe in JSON format.
+  ExtOpenData:
+    type: object
+    description: Type associated with group_access
+    required:
+      - id
+      - name
+      - url
+      - resourceId
+      - resourceName
+      - resourceUrl
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      url:
+        type: string
+      resourceId:
+        type: string
+      resourceName:
+        type: string
+      resourceUrl:
+        type: string
+
+  GroupAccess:
+    type: object
+    description: Type associated with group_access
+    required:
+      - name
+      - role
+    properties:
+      name:
+        type: string
+      role:
+        type: string
+  InputSrc:
+    type: object
+    properties:
+      sftp:
+        type: array
+        description: SFTP object that specifies info to access data stored in SFTP source. This is the dafault entrypoint for batch data.
+        items:
+          $ref: '#/definitions/SourceSftp'
+      srv_pull:
+        type: array
+        items:
+          $ref: '#/definitions/SourceSrvPull'
+      srv_push:
+        type: array
+        items:
+          $ref: '#/definitions/SourceSrvPush'
+      daf_dataset:
+        type: array
+        items:
+          $ref: '#/definitions/SourceDafDataset'
+  SourceSftp:
+    type: object
+    description: Info for the ingestion source of type SFTP
+    required:
+      - name
+    properties:
+      name:
+        type: string
+        description: Name of the SFTP. Default will be 'sftp_daf' for the standard sftp
+      url:
+        type: string
+        description: Url of the sftp. It will be None if the sftp name is 'sftp_daf' that will automatically point to the standard sftp
+      username:
+        type: string
+        description: Username to use to access the SFTP. It will be None if the sftp name is 'sftp_daf'
+      password:
+        type: string
+        description: Password to use to access the SFTP. It will be None if the sftp name is 'sftp_daf'
+      param:
+        type: string
+        description: Other parameters to be passed in JSON format. It will be None by default.
+  SourceSrvPull:
+    type: object
+    description: Info for the ingestion source of type pulling a service, that is we make a call to the specified url
+    required:
+      - name
+      - url
+    properties:
+      name:
+        type: string
+        description: Name of the service to pull
+      url:
+        type: string
+        description: Url of the service to pull.
+      username:
+        type: string
+        description: Username to use to access the service.
+      password:
+        type: string
+        description: Password to use to access the service.
+      access_token:
+        type: string
+        description: Auth token to be passed to the service called.
+      param:
+        type: string
+        description: Other parameters to be passed in JSON format. It will be None by default.
+  SourceSrvPush:
+    type: object
+    description: Info for the ingestion source of type pushing a service, that is we expose a service that is continuously listening
+    required:
+      - name
+      - url
+    properties:
+      name:
+        type: string
+        description: Name of the service to push
+      url:
+        type: string
+        description: Url of the service to push.
+      username:
+        type: string
+        description: Username to use to access the service.
+      password:
+        type: string
+        description: Password to use to access the SFTP.
+      access_token:
+        type: string
+        description: Auth token to be passed to the service called.
+      param:
+        type: string
+        description: Other parameters to be passed in JSON format. It will be None by default.
+  SourceDafDataset:
+    type: object
+    description: It contains info to build the dataset based on already existing dataset in DAF.
+    required:
+      - dataset_uri.s
+    properties:
+      dataset_uri:
+        type: array
+        items:
+          type: string
+        description: List of uri of datasets to be used for the derived dataset.
+      sql:
+        type: string
+        description: Sql statement to create the derived dataset based on the ones indicated in 'dataset_uri'.
+      procedure:
+        type: string
+        description: id of the procedure to be applied to build and update the dataset
+      param:
+        type: string
+        description: Other parameters to be passed in JSON format. It will be None by default.
+  StorageInfo:
+    type: object
+    properties:
+      hdfs:
+        type: object
+        description: StorageHdfs object that contains info for the HDFS storage.
+        $ref: '#/definitions/StorageHdfs'
+      kudu:
+        type: object
+        description: StorageKudu objects info for the Kudu storage.
+        $ref: '#/definitions/StorageKudu'
+      hbase:
+        type: object
+        description: StorageHbase objects info for the Hbase storage.
+        $ref: '#/definitions/StorageHbase'
+      textdb:
+        type: object
+        description: SourceTextdb
+        $ref: '#/definitions/StorageTextdb'
+      mongo:
+        type: object
+        description: MongoDB storage
+        $ref: '#/definitions/StorageMongo'
+  StorageHdfs:
+    type: object
+    description: If compiled, will tell the ingestion manager to store the data into HDFS.
+    required:
+      - name
+    properties:
+      name:
+        type: string
+        description: It is the name of the HDFS storage configuration to use. It is 'hdfs_daf' by default, with which will follow the DAF path convention.
+      path:
+        type: string
+        description: It is the hdfs path where data will be stored. It is None if the default 'hdfs_daf' is used.
+      param:
+        type: string
+        description: Other parameters to be passed in JSON format. It will be None by default.
+  StorageKudu:
+    type: object
+    description: If compiled, will tell the ingestion manager to store the data into Kudu.
+    required:
+      - name
+    properties:
+      name:
+        type: string
+        description: It is the name of the Kudu storage configuration to use. It is 'kudu_daf' by default, with which will follow the DAF convention.
+      table_name:
+        type: string
+        description: it is the name of the table where data are stored.
+      param:
+        type: string
+        description: Other parameters to be passed in JSON format. It will be None by default.
+  StorageHbase:
+    type: object
+    description: If compiled, will tell the ingestion manager to store the data into Hbase.
+    required:
+      - name
+    properties:
+      name:
+        type: string
+        description: It is the name of the Kudu storage configuration to use. It is 'hbase_daf' by default, with which will follow the DAF convention.
+      metric:
+        type: string
+        description: It is the name of the metric we want to store i.e. speed, cpu temperature and so on.
+      tags:
+        description: it a list containing any metadata about the value (e.g. host, region, server, street_name)
+        type: array
+        items:
+          type: string
+      param:
+        type: string
+        description: Other parameters to be passed in JSON format. It will be None by default.
+  StorageTextdb:
+    type: object
+    description: If compiled, will tell the ingestion manager to store the data into Textdb.
+    required:
+      - name
+    properties:
+      name:
+        type: string
+        description: It is the name of the Textdb storage configuration to use. It is 'textdb_daf' by default, with which will follow the DAF convention.
+      path:
+        type: string
+        description: It is the Kudu path where data will be stored. It is None if the default 'textdb_daf' is used.
+      param:
+        type: string
+        description: Other parameters to be passed in JSON format. It will be None by default.
+  StorageMongo:
+    type: object
+    description: If compiled, will tell the ingestion manager to store the data into Kudu.
+    required:
+      - name
+    properties:
+      name:
+        type: string
+        description: It is the name of the MongoDB storage configuration to use. It is 'mongo_daf' by default, with which will follow the DAF convention.
+      path:
+        type: string
+        description: It is the MongoDB path where data will be stored. It is None if the default 'mongo_daf' is used.
+      param:
+        type: string
+        description: Other parameters to be passed in JSON format. It will be None by default.
+  Partitions:
+    type: object
+    description: it contains info about how the dataset has been partitioned, if applicable.
+    required:
+      - name
+      - field
+      - formula
+    properties:
+      name:
+        type: string
+        description: name of the partition
+      field:
+        type: string
+        description: field name (it must correspond to one of the 'name' of the dataschema).
+      formula:
+        type: string
+        description: the formula to be applied to the field to get the partition value.
+  DatasetProc:
+    type: object
+    description: It contains procedural info that helps to manage the ingestion and egestion of the dataset.
+    required:
+      - dataset_type
+      - read_type
+      - merge_strategy
+      - cron
+    properties:
+      dataset_type:
+        type: string
+        description: It tells whether the dataset is at rest ('batch') or realtime stream ('stream') and, orthogonally, if it is of type 'opendata' (from  national catalogue), in      which case it will have a suffix '_opendata'.. It should be an enum, to be changed when we upgrade to OpenApi 3.
+      read_type:
+        type: string
+        description: It tells whether the dataset is an append of snapshot ('last_update') or a time series ('time_series') and tells the program how to return the data. It should be an enum, to be changed when we upgrade to OpenApi 3.
+      partitions:
+        type: array
+        description: Info on how dataset are partitioned into HDFS.
+        items:
+          $ref: '#/definitions/Partitions'
+      merge_strategy:
+        type: string
+        description: It tells how new data should be ingested into the existing dataset. User must choose among the following options. 'SYNC' to replace the existing content with the new one; 'MERGE' to append the data into the target partitions; 'DEDUPE_AND_MERGE' to insert into the target partition but ensure no duplicate rows are remaining; 'PK_MERGE' to insert or update existing rows matching the  same primary key; 'ROLLING_SYNC' to overwrite target partitions only when present in source.
+      cron:
+        type: string
+        description:  It tells the shedule frequency of feed to start
+
+  GeoRef:
+    type: object
+    required:
+      - lat
+      - lon
+    properties:
+      lat:
+        type: number
+        format: double
+      lon:
+        type: number
+        format: double
+  StdSchema:
+    type: object
+    required:
+      - std_uri
+      - fields_conv
+    properties:
+      std_uri:
+        type: string
+      fields_conv:
+        type: array
+        items:
+          $ref: '#/definitions/ConversionField'
+  ConversionSchema:
+    type: object
+    required:
+      - fields_conv
+    properties:
+      fields_conv:
+        description: Array containing the conversion from the incoming schema to the standard one
+        type: array
+        items:
+          $ref: '#/definitions/ConversionField'
+      fields_custom:
+        description: Array containing the list of custom fields, that are on top of the ones defined in the Std Schema
+        type: array
+        items:
+          $ref: '#/definitions/CustomField'
+  ConversionField:
+    type: object
+    required:
+      - field_std
+      - formula
+    properties:
+      field_std:
+        type: string
+        description: Field name of the desired dataschema chosen
+      formula:
+        type: string
+        description: Formula to use for conversion from input data source
+  CustomField:
+    type: object
+    required:
+      - name
+    properties:
+      name:
+        type: string
+        description: Field name of the custom field
+  Error:
+    type: object
+    required:
+      - message
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+      fields:
+        type: string
+  Success:
+    type: object
+    required:
+      - message
+    properties:
+      message:
+        type: string
+      fields:
+        type: string
+  Dataset:
+    #type: Object
+    required:
+      #- frequency
+      #- holder_identifier
+      #- holder_name
+      #- identifier
+      #- modified
+      - name
+      - notes
+      #- publisher_identifier
+      #- publisher_name
+      #- theme
+    properties:
+      accrual_period: 
+        type: string
+      alternate_identifier:
+        type: string
+      author:
+        type: string
+      #author_email:
+        #type: string
+      #conforms_to:
+       # type: string
+      #contact:
+        #type: string
+      #creation_date:
+        #type: string
+      #creator_identifier:
+        #type: string
+      #creator_name:
+        #type: string
+      #creator_user_id:
+        #type: string
+      description:
+        type: string
+      #encoding:
+        #type: string
+      #fields_description:
+        #type: string
+      frequency:
+        type: string
+      #geographical_geonames_url:
+        #type: string
+      #geographical_name:
+        #type: string
+      groups:
+        type: array
+        items:
+          $ref: '#/definitions/Group'
+      holder_identifier:
+        type: string
+      holder_name:
+        type: string
+      identifier:
+        type: string
+
+      #is_version_of:
+        #type: string
+      #isopen:
+        #type: boolean
+      #issued:
+        #type: string
+      #language:
+        #type: string
+      license_id:
+        type: string
+      #license_title:
+      #  type: string
+      #maintainer:
+        #type: string
+      #maintainer_email:
+        #type: string
+      #metadata_created:
+        #type: string
+      #metadata_modified:
+        #type: string
+      modified:
+        type: string
+      name:
+        type: string
+      notes:
+        type: string
+      #num_resources:
+        #type: integer
+      #num_tags:
+        #type: integer
+      organization:
+        $ref: '#/definitions/Organization'
+      owner_org:
+        type: string
+      privatex:
+        type: boolean
+      publisher_identifier:
+        type: string
+      publisher_name:
+        type: string
+      relationships_as_object:
+        type: array
+        items:
+          $ref: '#/definitions/Relationship'
+      relationships_as_subject:
+        type: array
+        items:
+          $ref: '#/definitions/Relationship'
+      resources:
+        type: array
+        items:
+          $ref: '#/definitions/Resource'
+      #revision_id:
+        #type: string
+      #site_url:
+       # type: string
+      #state:
+        #type: string
+      tags:
+        type: array
+        items:
+          $ref: '#/definitions/Tag'
+      #temporal_end:
+        #type: string
+      #temporal_start:
+        #type: string
+      theme:
+        type: string
+      title:
+        type: string
+      #type:
+        #type: string
+      #url:
+        #type: string
+      #version:
+        #type: string
+  Group:
+    type: object
+    properties:
+      display_name:
+        type: string
+      description:
+        type: string
+      image_display_url:
+        type: string
+      title:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+  Organization:
+    type: object
+    required:
+      - name
+    properties:
+      approval_status:
+        type: string
+      created:
+        type: string
+      description:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      image_url:
+        type: string
+      is_organization:
+        type: boolean
+      name:
+        type: string
+      revision_id:
+        type: string
+      state:
+        type: string
+      title:
+        type: string
+      type:
+        type: string
+      users:
+        type: array
+        items:
+          $ref: '#/definitions/UserOrg'
+  Relationship:
+    type: object
+    properties:
+      subject:
+        type: string
+      object:
+        type: string
+      type:
+        type: string
+      comment:
+        type: string
+  Resource:
+    type: object
+    properties:
+      cache_last_updated:
+        type: string
+      cache_url:
+        type: string
+      created:
+        type: string
+      datastore_active:
+        type: boolean
+      description:
+        type: string
+      distribution_format:
+        type: string
+      format:
+        type: string
+      hash:
+        type: string
+      id:
+        type: string
+      last_modified:
+        type: string
+      mimetype:
+        type: string
+      mimetype_inner:
+        type: string
+      name:
+        type: string
+      package_id:
+        type: string
+      position:
+        type: integer
+      resource_type:
+        type: string
+      revision_id:
+        type: string
+      size:
+        type: integer
+      state:
+        type: string
+      url:
+        type: string
+      #url_type:
+        #type: string
+      #webstore_last_updated:
+        #type: string
+      #webstore_url:
+        #type: string
+  Tag:
+    type: object
+    properties:
+      display_name:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      state:
+        type: string
+      vocabulary_id:
+        type: string
+  Extra:
+    type: object
+    properties:
+      key:
+        type: string
+      value:
+        type: string
+  StdUris:
+    type: object
+    properties:
+      label:
+        type: string
+      value:
+        type: string
+  Token:
+    type: object
+    properties:
+      token:
+        type: string
+  User:
+    type: object
+    properties:
+      name:
+        type: string
+      email:
+        type: string
+      password:
+        type: string
+      fullname:
+        type: string
+      about:
+        type: string
+  AutocompRes:
+    type: object
+    properties:
+      match_field:
+        type: string
+      match_displayed:
+        type: string
+      name:
+        type: string
+      title:
+        type: string
+  UserOrg:
+    type: object
+    properties:
+      name:
+        type: string
+      capacity:
+        type: string
+  Credentials:
+    type: object
+    properties:
+      username:
+        type: string
+      password:
+        type: string

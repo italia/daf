@@ -1548,7 +1548,7 @@ definitions:
         description: contains info on the standardization procedure to be performed on the field (Kylo Standardization).
         items: 
           type: string
-      entity_ext:
+      entity_extr:
         type: array
         description: contains the list of entity extraction procedures to be applied to the field.
         items:

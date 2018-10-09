@@ -1549,8 +1549,22 @@ definitions:
         items: 
           type: string
       entity_extr:
-        type: array
+        type: array 
         description: contains the list of entity extraction procedures to be applied to the field.
+        items:
+          $ref: '#/definitions/EntityExtraction'
+
+  EntityExtraction:
+    type: object
+    required:
+      - name
+    properties:
+      name:
+        type: string
+        description: Name of the entity extraction mechanism.
+      param:
+        type: array
+        description: Key/Value pairs list of Name/Value parameters of the selected entity extraction procedure.
         items:
           $ref: '#/definitions/KeyValue'
            

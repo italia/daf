@@ -1549,7 +1549,7 @@ definitions:
         items: 
           type: string
       entity_extr:
-        type: array 
+        type: array
         description: contains the list of entity extraction procedures to be applied to the field.
         items:
           $ref: '#/definitions/EntityExtraction'
@@ -1567,7 +1567,7 @@ definitions:
         description: Key/Value pairs list of Name/Value parameters of the selected entity extraction procedure.
         items:
           $ref: '#/definitions/KeyValue'
-           
+
   Operational:
     required:
       - dataset_visibility
@@ -1588,10 +1588,10 @@ definitions:
         description: tells whether the dataset is 'open' or 'private'
       dataset_daf:
         type: string
-        description: It tels which internal nature/goal the dataset has. It can be: 'ordinary', 'std', 'voc', 'dafvoc'. 
+        description: It tels which internal nature/goal the dataset has. It can be 'ordinary', 'std', 'voc', 'dafvoc'.
       dataset_type:
         type: string
-        description: [DEPRECATED, use dataset_proc.dataset_type] It tells whether the dataset is at rest ('batch') or realtime stream ('stream') and, orthogonally, if it is of type 'opendata' (from  national catalogue), in which case it will have a suffix '_opendata'.
+        description: --DEPRECATED, use dataset_proc.dataset_type instead-- It tells whether the dataset is at rest ('batch') or realtime stream ('stream') and, orthogonally, if it is of type 'opendata' (from  national catalogue), in which case it will have a suffix '_opendata'.
       file_type:
         type: string
         description: It tells wheter the dataset is a json or a csv file
@@ -1616,7 +1616,7 @@ definitions:
         description: Input sources for data to be ingested into the dataset.
         $ref: '#/definitions/InputSrc'
       is_voc:
-        type: string
+        type: boolean
         description: Tells if a dataset is a controtrolled vocabulary or not.
       is_std:
         type: boolean
@@ -1661,10 +1661,10 @@ definitions:
   IngestionPipeline:
     type: object
     description: Object describing the properties of an ingestion pipeline
-    required: 
+    required:
       - name
     properties:
-      name: 
+      name:
         type: string
         description: name of the ingestion pipe
       param:
@@ -2057,8 +2057,9 @@ definitions:
       #- publisher_name
       #- theme
     properties:
-      accrual_period: 
-        type: string
+#TODO - PROBLEM non si riesce ad aggiungere questa proprietà. Serve per DCATAP-IT required, va trovata forse altra soluzione.
+#      accrual_period:
+#        type: string
       alternate_identifier:
         type: string
       author:
@@ -2077,8 +2078,6 @@ definitions:
         #type: string
       #creator_user_id:
         #type: string
-      description:
-        type: string
       #encoding:
         #type: string
       #fields_description:

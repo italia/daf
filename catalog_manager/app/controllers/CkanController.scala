@@ -107,6 +107,8 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
         val datasetId = (json \ "name").getOrElse(Json.parse("no name"))
         val jsonString = json.toString().replace("privatex", "private")
 
+        Logger.logger.debug(s"$user try to insert $datasetId")
+
         // Temporary PATCH for swagger libs issues
         def callCreateDataset(cookie: String, wsClient: WSClient): Future[WSResponse] = {
           wsClient.url(CKAN_GEO_URL + "/api/3/action/package_create").withHeaders("Cookie" -> cookie).post(jsonString)

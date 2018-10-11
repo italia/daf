@@ -178,7 +178,7 @@ class CkanController @Inject() (wsc: WSClient, config: ConfigurationProvider, se
       Logger.logger.debug(s"$user try to delete $datasetId")
 
       def callDeleteDataset(cookie: String, wsClient: WSClient): Future[WSResponse] = {
-        val url = CKAN_GEO_URL + "/api/3/action//dataset_purge"
+        val url = CKAN_GEO_URL + "/api/3/action/dataset_purge"
         val body = s"""{\"id\":\"$datasetId\"}"""
         wsClient.url(url).withHeaders("Cookie" -> cookie).post(body)
       }

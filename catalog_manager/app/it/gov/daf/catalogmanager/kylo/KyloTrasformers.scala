@@ -51,26 +51,20 @@ object KyloTrasformers {
     val result = userProps.map(x => {
       val systemName = (x \ "systemName").as[String]
       systemName match {
-//        case "dafType" => { if (metaCatalog.operational.is_std)
-        case "daf_type" => { if (metaCatalog.operational.is_std)
+        case "dafType" => { if (metaCatalog.operational.is_std)
                                 x + ("value" -> JsString("standard"))
                               else
                                 x + ("value" -> JsString("ordinary"))
                             }
-//        case "dafDomain" => x + ("value" -> JsString(metaCatalog.operational.theme))
-        case "daf_domain" => x + ("value" -> JsString(metaCatalog.operational.theme))
-//        case "dafSubdomain" => x + ("value" -> JsString(metaCatalog.operational.subtheme))
-        case "daf_subdomain" => x + ("value" -> JsString(metaCatalog.operational.subtheme))
-//        case "dafFormat" => x + ("value" -> JsString(fileType))
-        case "daf_format" => x + ("value" -> JsString(fileType))
-//        case "dafOpendata" => { if (metaCatalog.dcatapit.privatex.getOrElse(true))
-        case "daf_opendata" => { if (metaCatalog.dcatapit.privatex.getOrElse(true))
+        case "dafDomain" => x + ("value" -> JsString(metaCatalog.operational.theme))
+        case "dafSubdomain" => x + ("value" -> JsString(metaCatalog.operational.subtheme))
+        case "dafFormat" => x + ("value" -> JsString(fileType))
+        case "dafOpendata" => { if (metaCatalog.dcatapit.privatex.getOrElse(true))
                                    x + ("value" -> JsBoolean(false))
                                  else
                                    x + ("value" -> JsBoolean(true))
         }
-//        case "dafOwner" => x + ("value" -> JsString(metaCatalog.dcatapit.author.getOrElse("")))
-        case "daf_owner" => x + ("value" -> JsString(metaCatalog.dcatapit.author.getOrElse("")))
+        case "dafOwner" => x + ("value" -> JsString(metaCatalog.dcatapit.author.getOrElse("")))
       }
     })
     JsArray(result)

@@ -2369,7 +2369,7 @@ definitions:
     properties:
       key:
         type: string
-      key_value:
+      value:
         type: string
   StdUris:
     type: object

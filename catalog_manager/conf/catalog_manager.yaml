@@ -2239,6 +2239,10 @@ definitions:
         #type: string
       #version:
         #type: string
+#      extra:
+#        type: array
+#        items:
+#          $ref: '#/definitions/Extra'
   Group:
     type: object
     properties:
@@ -2365,7 +2369,7 @@ definitions:
     properties:
       key:
         type: string
-      value:
+      key_value:
         type: string
   StdUris:
     type: object

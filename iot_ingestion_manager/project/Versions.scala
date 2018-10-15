@@ -24,7 +24,7 @@ object Versions {
 
   lazy val hadoop         = "2.6.0-cdh5.12.0"
 
-  lazy val kafka          = "0.10.0.1"
+  lazy val kafka          = "0.11.0.1"
 
   lazy val kudu           = "1.4.0-cdh5.12.0"
 

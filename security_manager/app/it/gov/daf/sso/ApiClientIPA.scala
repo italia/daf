@@ -7,7 +7,7 @@ import com.google.inject.{Inject, Singleton}
 import it.gov.daf.common.sso.common.{LoginInfo, Role, SecuredInvocationManager}
 import it.gov.daf.common.utils.WebServiceUtil
 import it.gov.daf.securitymanager.service.IntegrationService
-import it.gov.daf.securitymanager.service.utilities.{AppConstants, ConfigReader}
+import it.gov.daf.securitymanager.utilities.{AppConstants, ConfigReader}
 import play.api.libs.json._
 import play.api.libs.ws.{WSAuthScheme, WSClient, WSResponse}
 import security_manager.yaml.{DafGroupInfo, Error, GroupList, IpaGroup, IpaUser, Success}

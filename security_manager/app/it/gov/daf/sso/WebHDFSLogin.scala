@@ -3,7 +3,7 @@ package it.gov.daf.sso
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.nio.charset.StandardCharsets
 
-import it.gov.daf.securitymanager.service.utilities.ConfigReader
+import it.gov.daf.securitymanager.utilities.ConfigReader
 import play.api.Logger
 
 import scala.concurrent.Future

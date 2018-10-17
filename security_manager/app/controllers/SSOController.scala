@@ -6,7 +6,7 @@ import it.gov.daf.common.authentication.Authentication
 import it.gov.daf.common.sso.common.{CacheWrapper, CredentialManager, LoginInfo}
 import it.gov.daf.common.utils.Credentials
 import it.gov.daf.common.utils.RequestContext.execInContext
-import it.gov.daf.securitymanager.service.utilities.{ConfigReader, Utils}
+import it.gov.daf.securitymanager.utilities.{ConfigReader, Utils}
 import it.gov.daf.sso.LoginClientLocal
 import play.api.Logger
 import play.api.inject.ConfigurationProvider

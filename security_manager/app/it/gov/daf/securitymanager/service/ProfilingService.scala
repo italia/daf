@@ -10,7 +10,7 @@ import ProcessHandler.{stepOverF, _}
 import cats.data.EitherT
 import it.gov.daf.common.sso.common.{Admin, Role}
 import it.gov.daf.common.utils.WebServiceUtil
-import it.gov.daf.securitymanager.service.utilities.ConfigReader
+import it.gov.daf.securitymanager.utilities.ConfigReader
 import it.gov.daf.common.utils.RequestContext._
 import it.gov.daf.sso.{ApiClientIPA, OPEN_DATA_GROUP}
 import play.api.Logger

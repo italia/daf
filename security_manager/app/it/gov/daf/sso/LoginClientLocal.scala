@@ -6,7 +6,7 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import com.google.inject.Singleton
 import it.gov.daf.common.sso.common.{LoginClient, LoginInfo}
-import it.gov.daf.securitymanager.service.utilities.ConfigReader
+import it.gov.daf.securitymanager.utilities.ConfigReader
 import play.api.Logger
 import play.api.libs.json.Json
 import play.api.libs.ws.{WSClient, WSResponse}

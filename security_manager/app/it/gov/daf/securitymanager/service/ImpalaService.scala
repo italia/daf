@@ -4,7 +4,7 @@ package it.gov.daf.securitymanager.service
 import com.cloudera.impala.jdbc41.DataSource
 import com.google.inject.{Inject, Singleton}
 import it.gov.daf.common.sso.common.CacheWrapper
-import it.gov.daf.securitymanager.service.utilities.ConfigReader
+import it.gov.daf.securitymanager.utilities.ConfigReader
 import it.gov.daf.sso
 import play.api.Logger
 

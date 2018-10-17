@@ -1,6 +1,6 @@
 import com.google.inject.{AbstractModule, Singleton}
 import it.gov.daf.common.sso.common.{CacheWrapper, LoginClient}
-import it.gov.daf.securitymanager.service.utilities.ConfigReader
+import it.gov.daf.securitymanager.utilities.ConfigReader
 import it.gov.daf.sso.LoginClientLocal
 import play.api.{Configuration, Environment, Logger}
 

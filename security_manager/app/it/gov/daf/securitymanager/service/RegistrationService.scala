@@ -2,7 +2,7 @@ package it.gov.daf.securitymanager.service
 
 import cats.data.EitherT
 import com.google.inject.{Inject, Singleton}
-import it.gov.daf.securitymanager.service.utilities.{AppConstants, BearerTokenGenerator, ConfigReader}
+import it.gov.daf.securitymanager.utilities.{AppConstants, BearerTokenGenerator, ConfigReader}
 import play.api.libs.json.{JsError, JsSuccess, JsValue}
 import security_manager.yaml.{Error, IpaUser, IpaUserMod, Success}
 import cats.implicits._
@@ -236,11 +236,8 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
     //logger.debug( s"createUser yelding: $result" )
 
-    result.value.map{ in=>
-      //logger.debug( s"createUser mapping: $in" )
-
-      in match {
-        case Right(r) => logger.debug( s"todelete1" );Right(Success(Some("User created"), Some("ok")))
+    result.value.map{
+        case Right(r) => Right(Success(Some("User created"), Some("ok")))
         case Left(l) => logger.debug( s"todelete2 ${l.steps}" );if (l.steps != 0) {
           logger.debug( s"todelete3" )
           hardDeleteUser(user.uid).onSuccess { case e =>
@@ -255,7 +252,7 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
         }
           Left(l.error)
       }
-    }
+
 
   }
 
@@ -379,6 +376,8 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
 
   private def checkUserModsRoles(roleTodeletes:Option[Seq[String]], roleToAdds:Option[Seq[String]], userOrgs:Option[Seq[String]]):Either[Error,Success] = {
 
+      Logger.debug(s"checkUserModsRoles roleTodeletes: $roleTodeletes roleToAdds: $roleToAdds userOrgs: $userOrgs")
+
       val possibleRoles = userOrgs.getOrElse(Seq.empty[String]).foldRight[List[String]](List(SysAdmin.toString))  { (curs, out) => out ::: List( Admin+curs.toString,
                                                                                                                                       Editor+curs.toString,
                                                                                                                                       Viewer+curs.toString)
@@ -387,18 +386,27 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
       val deletes = roleTodeletes.getOrElse(Seq.empty[String]).toSet[String]
       val adds = roleToAdds.getOrElse(Seq.empty[String]).toSet[String]
       val intersection = deletes intersect adds
+      Logger.debug(s"intersection: $intersection")
+
+      val union = deletes union adds
+      Logger.debug(s"union: $union")
+
+      val orgDeletes = roleTodeletes.getOrElse(Seq.empty[String]).map(_.substring(8)).toSet[String]
+      val orgAdds = roleToAdds.getOrElse(Seq.empty[String]).map(_.substring(8)).toSet[String]
+      val orgIntersection = orgDeletes intersect orgAdds
+
+      Logger.debug(s"orgIntersection: $orgIntersection")
 
       if( intersection.nonEmpty )
         Left(Error(Option(1), Some("Same roles founded to add and to delete"), None))
-      else{
-        val union = deletes union adds
-
-        if( union subsetOf possibleRoles )
-          Right(Success(Some("Ok"), Some("ok")))
-        else
-          Left(Error(Option(1), Some("Some roles does not exist, or does not belong to user organizations"), None))
-
-      }
+      else if ( !(union subsetOf possibleRoles) )
+        Left(Error(Option(1), Some("Some roles does not exist, or does not belong to user organizations"), None))
+      else if( deletes.size != adds.size )
+        Left(Error(Option(1), Some("Roles to delete must match to the roles to add"), None))
+      else if( orgIntersection.size!=deletes.size )
+        Left(Error(Option(1), Some("User must always have a role in an organization"), None))
+      else
+        Right(Success(Some("Ok"), Some("ok")))
 
   }
 
@@ -416,6 +424,9 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
       b <- EitherT( apiClientIPA.removeMemberFromGroups(userMods.rolesToDelete,User(uid)) )
       b1 <- EitherT( apiClientIPA.addMemberToGroups(userMods.rolesToAdd,User(uid)) )
 
+      b2 <- EitherT( ckanApiClient.removeUserFromOrgsInGeoCkan(userMods.rolesToDelete,uid) )
+      b3 <- EitherT( ckanApiClient.addUserToOrgsInGeoCkan(userMods.rolesToAdd,uid) )
+
       c<- EitherT( apiClientIPA.updateUser( uid,userMods.givenname.getOrElse(user.givenname),
                                             userMods.sn.getOrElse(user.sn)) )
 
@@ -425,6 +436,52 @@ class RegistrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient
       case Right(r) => Right( Success(Some("User modified"), Some("ok")) )
       case Left(l) => Left(l)
     }
+  }
+
+
+  private def handleRolesModification(uid: String, userMods:IpaUserMod):Future[Either[Error,Success]]={
+
+    val result = for {
+      a <- step( apiClientIPA.removeMemberFromGroups(userMods.rolesToDelete,User(uid)) )
+      b <- step(a, apiClientIPA.addMemberToGroups(userMods.rolesToAdd,User(uid)) )
+
+      c <- step( b, ckanApiClient.removeUserFromOrgsInGeoCkan(userMods.rolesToDelete,uid) )
+      d <- step( c, ckanApiClient.addUserToOrgsInGeoCkan(userMods.rolesToAdd,uid) )
+    } yield d
+
+    result.value.map{
+
+        case Right(r) => Right(Success(Some("Roles updated"), Some("ok")))
+
+        case Left(l) =>
+          if (l.steps != 0) {
+            resetRolesModification(uid,userMods:IpaUserMod).onSuccess { case e =>
+
+              val steps = e.fold(ll => ll.steps, rr => rr.steps)
+              if (l.steps != steps)
+                throw new Exception(s"CreateUser rollback issue: process steps=${l.steps} rollback steps=$steps")
+
+            }
+
+        }
+          Left(l.error)
+
+    }
+
+  }
+
+
+  private def resetRolesModification(uid: String, userMods:IpaUserMod):Future[Either[ErrorWrapper,SuccessWrapper]]= {
+
+    val result = for {
+      a <- step(apiClientIPA.addMemberToGroups(userMods.rolesToDelete, User(uid)))
+      b <- step(a, apiClientIPA.removeMemberFromGroups(userMods.rolesToAdd, User(uid)))
+
+      c <- step(b, ckanApiClient.addUserToOrgsInGeoCkan(userMods.rolesToDelete, uid))
+      d <- step(c, ckanApiClient.removeUserFromOrgsInGeoCkan(userMods.rolesToAdd, uid))
+    } yield d
+
+    result.value
   }
 
 /*

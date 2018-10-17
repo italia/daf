@@ -1,7 +1,7 @@
 package it.gov.daf.securitymanager.service
 
 import com.google.inject.Inject
-import it.gov.daf.securitymanager.service.utilities.ConfigReader
+import it.gov.daf.securitymanager.utilities.ConfigReader
 import play.api.Logger
 import play.api.libs.json.{JsUndefined, JsValue, Json}
 import play.api.libs.ws.{WSAuthScheme, WSClient}

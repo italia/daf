@@ -8,7 +8,7 @@ import ProcessHandler._
 
 import scala.concurrent.Future
 import cats.implicits._
-import it.gov.daf.securitymanager.service.utilities.ConfigReader
+import it.gov.daf.securitymanager.utilities.ConfigReader
 import IntegrationService._
 import it.gov.daf.common.sso.common.{Admin, Editor, Viewer}
 import play.api.Logger
@@ -304,8 +304,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
       a <- EitherT( supersetApiClient.deleteUser(supersetUserInfo._1) )
       b <- EitherT( supersetApiClient.createUserWithRoles(user,roleIds:_*) )
       */
-      org <- stepOverF( a, ckanApiClient.getOrganizationAsAdminInGeoCkan(groupCn) )
-      c <- step( a, ckanApiClient.putUserInOrganizationAsAdminInGeoCkan(userName,org) )
+      c <- step( a, ckanApiClient.addUserToOrgInGeoCkan(groupCn,userName,Viewer) )
 
       //d <- EitherT( grafanaApiClient.addUserInOrganization(groupCn,userName) ) TODO re-enable when Grafana is integrated
     } yield c
@@ -348,8 +347,7 @@ class IntegrationService @Inject()(apiClientIPA:ApiClientIPA, supersetApiClient:
       a <- EitherT( supersetApiClient.deleteUser(supersetUserInfo._1) )
       b <- EitherT( supersetApiClient.createUserWithRoles(user,roleIds:_*) )*/
 
-      org <- stepOverF(a, ckanApiClient.getOrganizationAsAdminInGeoCkan(groupCn) )
-      c <- step(a, ckanApiClient.removeUserInOrganizationAsAdminInGeoCkan(userName, org) )
+      c <- step(a, ckanApiClient.removeUserFromOrgInGeoCkan(groupCn,userName) )
 
       //d <- EitherT( grafanaApiClient ) TODO re-enable when Grafana is integrated (review)
     } yield c

@@ -4,7 +4,7 @@ import scala.concurrent.Future
 import javax.mail.internet.InternetAddress
 
 import courier.{Envelope, Mailer, Text}
-import it.gov.daf.securitymanager.service.utilities.ConfigReader
+import it.gov.daf.securitymanager.utilities.ConfigReader
 import security_manager.yaml.{Success,Error}
 
 

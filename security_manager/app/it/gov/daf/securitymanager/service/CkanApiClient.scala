@@ -1,15 +1,21 @@
 package it.gov.daf.securitymanager.service
 
+import cats.data.EitherT
 import com.google.inject.Inject
-import it.gov.daf.common.sso.common.{CacheWrapper, LoginInfo, SecuredInvocationManager}
+import it.gov.daf.common.sso.common._
 import it.gov.daf.common.utils.WebServiceUtil
-import it.gov.daf.securitymanager.service.utilities.ConfigReader
+import it.gov.daf.securitymanager.utilities.ConfigReader
 import it.gov.daf.sso.LoginClientLocal
 import play.api.Logger
 import play.api.libs.json._
 import play.api.libs.ws.{WSClient, WSResponse}
 import security_manager.yaml.{Error, Success}
+import cats.implicits._
+
 import scala.concurrent.Future
+import it.gov.daf.common.sso.common.{Admin, Editor, Viewer}
+
+import scala.annotation.switch
 
 
 
@@ -195,6 +201,7 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
 
     }*/
 
+  /*
   def putUserInOrganizationAsAdminInGeoCkan(userName:String, ckanOrg:CkanOrg):Future[Either[Error, Success]] = {
 
     val updatedCkanOrg = ckanOrg.copy( users=ckanOrg.users :+ CkanOrgUser(userName,"admin") )
@@ -210,7 +217,32 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
 
     secInvokeManager.manageRestServiceCall( ckanGeoAdminLogin, serviceInvoke, 200) map ( evaluateResult(_,"User added") )
 
+  }*/
+
+
+  def putUserInOrganizationAsAdminInGeoCkan(userName:String, ckanOrg:CkanOrg, role:Role):Future[Either[Error, Success]] = {
+
+    val ckanRole = role match{
+      case Admin => "admin"
+      case Editor => "editor"
+      case Viewer => "member"
+    }
+
+    val updatedCkanOrg = ckanOrg.copy( users=ckanOrg.users :+ CkanOrgUser(userName,ckanRole) )
+
+    val jsonRequest: JsValue = Json.toJson(updatedCkanOrg)
+
+    Logger.logger.debug("putUsersInOrganization request: " + jsonRequest.toString())
+
+
+    def serviceInvoke(cookie: String, wsClient: WSClient): Future[WSResponse] = {
+      wsClient.url(ConfigReader.ckanGeoHost + "/api/3/action/organization_patch?id=" + updatedCkanOrg.name).withHeaders("Cookie" -> cookie).post(jsonRequest)
+    }
+
+    secInvokeManager.manageRestServiceCall( ckanGeoAdminLogin, serviceInvoke, 200) map ( evaluateResult(_,"User added") )
+
   }
+
 
   /*
   def removeUserInOrganizationAsAdmin(userName:String, ckanOrg:CkanOrg):Future[Either[Error, Success]] = {
@@ -280,6 +312,7 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
 
   }*/
 
+
   def getOrganizationAsAdminInGeoCkan( groupCn:String):Future[Either[Error, CkanOrg]] = {
 
     Logger.logger.info("getUsersOfOrganization groupCn: " + groupCn)
@@ -291,6 +324,111 @@ class CkanApiClient @Inject()(secInvokeManager: SecuredInvocationManager, cacheW
     }
 
     secInvokeManager.manageRestServiceCall(ckanGeoAdminLogin, serviceInvoke, 200) map getOrgFromJson
+
+  }
+
+
+  def addUserToOrgsInGeoCkan(dafRoles:Option[Seq[String]], userName:String):Future[Either[Error,Success]] = {
+
+    Logger.logger.debug(s"addUserToOrgsInGeoCkan dafRoles: $dafRoles userName $userName")
+
+    handleMultipleCalls( dafRoles, addUserWithRoleInGeoCkan(_,userName) )
+  }
+
+  def removeUserFromOrgsInGeoCkan(dafRoles:Option[Seq[String]], userName:String):Future[Either[Error,Success]] = {
+
+    handleMultipleCalls( dafRoles, removeUserWithRoleInGeoCkan(_,userName) )
+  }
+
+  private def handleMultipleCalls(dafRoles:Option[Seq[String]], fx:(String)=>Future[Either[Error,Success]]):Future[Either[Error,Success]]= {
+
+
+    dafRoles match{
+
+      case Some(roles) =>
+
+        val traversed : Future[List[Either[Error, Success]]] = roles.toList.traverse(fx(_))
+
+        traversed.map { list =>
+
+          val start = Right(Success(Some("ok"), Some("ok")))
+          list.foldLeft[Either[Error, Success]](start)( (a, b) => a match {
+            case Right(r) => b
+            case _ => a
+          })
+
+        }
+
+      case _ => Future.successful{ Right(Success(Some("ok"), Some("ok"))) }
+
+    }
+
+
+  }
+
+  private def addUserWithRoleInGeoCkan(roleString:String, userName:String):Future[Either[Error,Success]]={
+
+    val roleOnOrg = getRoleAndOrgFromRoleString(roleString)
+    addUserToOrgInGeoCkan(roleOnOrg._2,userName,roleOnOrg._1)
+
+  }
+
+  private def removeUserWithRoleInGeoCkan(roleString:String, userName:String):Future[Either[Error,Success]]={
+    val roleOnOrg = getRoleAndOrgFromRoleString(roleString)
+    removeUserFromOrgInGeoCkan(roleOnOrg._2,userName)
+  }
+
+  private def getRoleAndOrgFromRoleString(roleString:String):(Role,String)={
+
+    Logger.logger.debug(s"getRoleAndOrgFromRoleString in roleString: $roleString")
+
+    val prefix = roleString.substring(0,8)
+    val admin = Admin.toString
+    val editor = Editor.toString
+    val viewer = Viewer.toString
+
+    val role = prefix match{
+      case `admin` => Admin
+      case `editor` => Editor
+      case `viewer` => Viewer
+    }
+
+    val org = roleString.substring(8)
+
+    Logger.logger.debug(s"getRoleAndOrgFromRoleString out: role: $role org: $org")
+
+    (role,org)
+  }
+
+  def addUserToOrgInGeoCkan(org:String, userName:String, role:Role):Future[Either[Error,Success]]= {
+
+    val result = for {
+
+      org <- EitherT( getOrganizationAsAdminInGeoCkan(org) )
+      a <- EitherT(  putUserInOrganizationAsAdminInGeoCkan(userName,org,role) )
+
+    } yield a
+
+    result.value.map{
+      case Right(r) => Right( Success(Some("Ckan org modified"), Some("ok")) )
+      case Left(l) => Left(l)
+    }
+
+  }
+
+  def removeUserFromOrgInGeoCkan(org:String, userName:String):Future[Either[Error,Success]]= {
+
+    val result = for {
+
+      org <- EitherT( getOrganizationAsAdminInGeoCkan(org) )
+      a <- EitherT(  removeUserInOrganizationAsAdminInGeoCkan(userName,org) )
+
+    } yield a
+
+    result.value.map{
+      case Right(r) => Right( Success(Some("Ckan org modified"), Some("ok")) )
+      case Left(l) => Left(l)
+    }
 
   }
 

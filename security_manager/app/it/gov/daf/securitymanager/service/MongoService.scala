@@ -6,7 +6,7 @@ import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.casbah.query.Imports.DBObject
 import com.mongodb.{BasicDBObject, ServerAddress}
 import com.mongodb.casbah.{Imports, MongoClient, MongoCredential}
-import it.gov.daf.securitymanager.service.utilities.ConfigReader
+import it.gov.daf.securitymanager.utilities.ConfigReader
 import it.gov.daf.sso
 import play.api.Logger
 import play.api.libs.json.{JsNull, JsValue, Json}

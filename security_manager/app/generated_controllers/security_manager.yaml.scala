@@ -25,13 +25,13 @@ import play.api.Configuration
 import it.gov.daf.securitymanager.service.RegistrationService
 import scala.concurrent.Future
 import it.gov.daf.sso.ApiClientIPA
-import it.gov.daf.securitymanager.service.utilities.ConfigReader
+import it.gov.daf.securitymanager.utilities.ConfigReader
 import it.gov.daf.securitymanager.service.IntegrationService
 import it.gov.daf.ftp.SftpHandler
 import it.gov.daf.common.sso.common.CredentialManager
 import it.gov.daf.common.utils.RequestContext._
 import it.gov.daf.common.sso.common.CacheWrapper
-import it.gov.daf.securitymanager.service.utilities.Utils
+import it.gov.daf.securitymanager.utilities.Utils
 import it.gov.daf.securitymanager.service.ProfilingService
 import cats.data.EitherT
 import it.gov.daf.sso
@@ -46,7 +46,7 @@ import scala.collection.immutable.StringLike
 
 package security_manager.yaml {
     // ----- Start of unmanaged code area for package Security_managerYaml
-                                            
+                                                                            
     // ----- End of unmanaged code area for package Security_managerYaml
     class Security_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Security_managerYaml

@@ -1,4 +1,4 @@
-package it.gov.daf.securitymanager.service.utilities
+package it.gov.daf.securitymanager.utilities
 
 object AppConstants {
 

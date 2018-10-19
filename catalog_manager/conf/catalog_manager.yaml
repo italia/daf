@@ -2302,6 +2302,13 @@ definitions:
         type: string
       comment:
         type: string
+  DafOpendataFlag:
+    type: object
+    required:
+      - isDafOpen
+    properties:
+      isDafOpen:
+        type: boolean
   Resource:
     type: object
     properties:

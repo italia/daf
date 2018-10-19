@@ -56,7 +56,7 @@ import it.gov.daf.common.utils.RequestContext
 
 package catalog_manager.yaml {
     // ----- Start of unmanaged code area for package Catalog_managerYaml
-                                                                                                                                                                                                                                                                                                                        
+                                                                                                                                                                                                                                                                                                                                                                            
     // ----- End of unmanaged code area for package Catalog_managerYaml
     class Catalog_managerYaml @Inject() (
         // ----- Start of unmanaged code area for injections Catalog_managerYaml
@@ -403,8 +403,14 @@ package catalog_manager.yaml {
                     //If(!created.message.equals("Error")) sendMessaggeKafkaProxy(credentials.username, catalog)
                     //sendMessaggeKafkaProxy(credentials.username, catalog)
                     //logger.info("sending to kafka")
-                    if(created.isRight) Createdatasetcatalog200(created.right.get)
-                    else Createdatasetcatalog500(created.left.get)
+                    if(created.isRight){
+                        Logger.logger.debug(s"${credentials.username} added ${catalog.dcatapit.name.get}")
+                        Createdatasetcatalog200(created.right.get)
+                    }
+                    else{
+                        Logger.logger.debug(s"error in create catalog ${catalog.dcatapit.name.get}")
+                        Createdatasetcatalog500(created.left.get)
+                    }
 
                 }else Createdatasetcatalog401(s"Admin or editor permissions required (organization: $datasetOrg)")
             }

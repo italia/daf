@@ -2,7 +2,7 @@ package it.gov.daf.catalogmanager.repository.ckan
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import catalog_manager.yaml.{AutocompRes, Credentials, Dataset, Error, MetadataCat, Organization, ResourceSize, Success, User}
+import catalog_manager.yaml.{AutocompRes, Credentials, Relationship, Dataset, Error, MetadataCat, Organization, ResourceSize, Success, User}
 import com.mongodb.{DBObject, MongoCredential, ServerAddress}
 import com.mongodb.casbah.MongoClient
 import com.mongodb.casbah.commons.MongoDBObject
@@ -12,6 +12,7 @@ import it.gov.daf.common.utils.WebServiceUtil
 import play.api.Logger
 import play.api.libs.json._
 import play.api.libs.ws.WSClient
+import java.time.{Instant, ZoneOffset}
 
 import scala.concurrent.Future
 
@@ -210,8 +211,29 @@ class CkanRepositoryProd extends CkanRepository{
   }
 
   def createDatasetCkanGeo(catalog: Dataset, user: String, token: String, wsClient: WSClient): Future[Either[Error, Success]] = {
+    import java.time.LocalDateTime
+
+    def formatTimestap(timestamp: String) = {
+      val arrayTimestamp = timestamp.split('.')
+      val sec = arrayTimestamp(1)
+      val secOut = sec.length match {
+        case x if x > 6 => sec.substring(0, 6)
+        case x if x < 6 => sec + "0".*(6-x)
+        case _ => sec
+      }
+      List(arrayTimestamp(0), secOut).mkString(".")
+    }
+
     val url = LOCALURL + "/ckan/createDataset"
-    val json = catalog_manager.yaml.ResponseWrites.DatasetWrites.writes(catalog)
+    val timestamp = LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).toString
+    val jsonString = catalog_manager.yaml.ResponseWrites.DatasetWrites.writes(
+      catalog.copy(
+//        relationships_as_object = Some(Seq(Relationship(None, None, Some("has_derivation"), Some("opendataDaf")))),
+        resources = Some(catalog.resources.get.map(f => f.copy(created = Some(formatTimestap(timestamp)))))
+    )).toString().replace("`", "")
+    val json = Json.parse(jsonString)
+    Logger.logger.debug(s"json: $json")
+
     wsClient.url(url).withHeaders("authorization" -> token).post(json).map{ response =>
       if(response.status == 200) Right(Success(s"${catalog.name} inserted", None))
       else Left(Error(s"error: ${response.statusText}", None, None))

@@ -228,7 +228,7 @@ class CkanRepositoryProd extends CkanRepository{
     val timestamp = LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).toString
     val jsonString = catalog_manager.yaml.ResponseWrites.DatasetWrites.writes(
       catalog.copy(
-//        relationships_as_object = Some(Seq(Relationship(None, None, Some("has_derivation"), Some("opendataDaf")))),
+        relationships_as_object = Some(Seq(Relationship(None, None, Some("has_derivation"), Some("opendataDaf")))),
         resources = Some(catalog.resources.get.map(f => f.copy(created = Some(formatTimestap(timestamp)))))
     )).toString().replace("`", "")
     val json = Json.parse(jsonString)

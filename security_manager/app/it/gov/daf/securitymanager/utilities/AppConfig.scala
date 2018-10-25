@@ -64,6 +64,7 @@ private class AppConfig @Inject()(playConfig: Configuration) {
   val kyloUserPwd :Option[String] = playConfig.getString("kylo.userpwd")
 
   val hadoopUrl :Option[String] = playConfig.getString("hadoop.url")
+  val hadoopUrl2 :Option[String] = playConfig.getString("hadoop.url2")
 
   val impalaServer :Option[String] = playConfig.getString("impala.server")
   val impalaKeyStorePath :Option[String] = playConfig.getString("impala.keyStorePath")
@@ -202,6 +203,7 @@ object ConfigReader {
   def kyloUserPwd :String = config.kyloUserPwd.get
 
   def hadoopUrl :String = config.hadoopUrl.get
+  def hadoopUrl2 :String = config.hadoopUrl2.getOrElse("")
 
   def impalaServer :String = config.impalaServer.get
   def impalaKeyStorePath :String = config.impalaKeyStorePath.get

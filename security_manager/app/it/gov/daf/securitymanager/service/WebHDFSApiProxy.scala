@@ -1,11 +1,14 @@
 package it.gov.daf.securitymanager.service
 
+import java.time.Instant
+
 import com.google.inject.{Inject, Singleton}
 import it.gov.daf.common.sso.common.{CacheWrapper, LoginInfo, RestServiceResponse, SecuredInvocationManager}
 import it.gov.daf.securitymanager.utilities.ConfigReader
 import play.api.Logger
 import play.api.libs.json._
 import play.api.libs.ws.{WSClient, WSResponse}
+import java.util.Date
 
 import scala.concurrent.Future
 
@@ -14,9 +17,26 @@ import scala.concurrent.Future
 class WebHDFSApiProxy @Inject()(secInvokeManager: SecuredInvocationManager, implicit val cacheWrapper:CacheWrapper){
 
   import play.api.libs.concurrent.Execution.Implicits._
+  import scala.language.implicitConversions
 
   private val logger = Logger(this.getClass.getName)
-  private val HADOOP_URL = ConfigReader.hadoopUrl
+  private val HADOOP_URLS = Array(ConfigReader.hadoopUrl,ConfigReader.hadoopUrl2)
+
+  private var hadoopUrlIdx = false
+  private var endpointSwitchDate = Date.from(Instant.EPOCH)
+
+  implicit def bool2int(b:Boolean):Int= if (b) 1 else 0
+
+  def switchEndpoint():Unit = synchronized {
+
+    if( HADOOP_URLS(1).length > 0 && ((new Date).getTime-endpointSwitchDate.getTime) > 5000 ) {
+      endpointSwitchDate = new Date
+      hadoopUrlIdx = !hadoopUrlIdx
+
+      logger.info(s"Switching hadoop url to ${HADOOP_URLS(hadoopUrlIdx)}")
+    }
+
+  }
 
 
   private def handleServiceCall( serviceInvoke:(String,WSClient)=> Future[WSResponse], loginInfoParam:Option[LoginInfo] )={
@@ -40,7 +60,7 @@ class WebHDFSApiProxy @Inject()(secInvokeManager: SecuredInvocationManager, impl
     def serviceInvoke(cookie: String, wsClient: WSClient): Future[WSResponse] = {
       val prmList = params.toList
       logger.debug(s"---->$prmList")
-      val response = wsClient.url(s"$HADOOP_URL/webhdfs/v1/$path").withHeaders("Cookie" -> cookie).withFollowRedirects(false).withMethod(httpMethod).withQueryString(prmList:_*).execute
+      val response = wsClient.url(s"${HADOOP_URLS(hadoopUrlIdx)}/webhdfs/v1/$path").withHeaders("Cookie" -> cookie).withFollowRedirects(false).withMethod(httpMethod).withQueryString(prmList:_*).execute
       logger.debug(s"callHdfsService Response: $response")
       response
     }

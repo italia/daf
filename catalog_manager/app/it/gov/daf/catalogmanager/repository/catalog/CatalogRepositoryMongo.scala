@@ -82,6 +82,27 @@ class CatalogRepositoryMongo extends  CatalogRepository{
     metaCatalog
   }
 
+  def internalCatalogByName(name: String) = {
+    val query = MongoDBObject("dcatapit.name" -> name)
+    val mongoClient = MongoClient(server, List(credentials))
+    val db = mongoClient(source)
+    val coll = db("catalog_test")
+    val result = coll.findOne(query)
+    mongoClient.close()
+    result match {
+      case Some(catalog) => {
+        val jsonString = com.mongodb.util.JSON.serialize(catalog)
+        val json = Json.parse(jsonString)
+        val metaCatalogJs = json.validate[MetaCatalog]
+        metaCatalogJs match {
+          case s: JsSuccess[MetaCatalog] => Some(s.get)
+          case _: JsError => None
+        }
+      }
+      case _ => None
+    }
+  }
+
   def catalogByName(name :String, groups: List[String]): Option[MetaCatalog] = {
     import mongodb.casbah.query.Imports._
 
@@ -113,7 +134,7 @@ class CatalogRepositoryMongo extends  CatalogRepository{
     metaCatalog
   }
 
-  def deleteCatalogByName(nameCatalog: String, user: String, token: String, isAdmin: Boolean, wsClient: WSClient): Future[Either[Error, Success]] = {
+  def deleteCatalogByName(nameCatalog: String, user: String, token: String, wsClient: WSClient): Future[Either[Error, Success]] = {
     import mongodb.casbah.query.Imports.$and
     import mongodb.casbah.commons.Imports._
 
@@ -123,9 +144,8 @@ class CatalogRepositoryMongo extends  CatalogRepository{
 
     widgetsResp.map{ res =>
       if(res.status == 200 && !res.body.equals("[]")) Left(Error(s"is not possible delete catalog $nameCatalog, it has some widgets", Some(403), None))
-      else {
-        val query = if(isAdmin) $and(MongoDBObject("dcatapit.name" -> nameCatalog), "operational.acl.groupName" $exists  false)
-        else $and(MongoDBObject("dcatapit.name" -> nameCatalog), MongoDBObject("dcatapit.author" -> user), "operational.acl.groupName" $exists  false)
+      else if(res.status == 200) {
+        val query = $and(MongoDBObject("dcatapit.name" -> nameCatalog), MongoDBObject("dcatapit.author" -> user), "operational.acl.groupName" $exists  false)
         val mongoClient = MongoClient(server, List(credentials))
         val db = mongoClient(source)
         val coll = db("catalog_test")
@@ -133,7 +153,7 @@ class CatalogRepositoryMongo extends  CatalogRepository{
         mongoClient.close()
         Logger.logger.debug(s"$user deleted $nameCatalog from catalog_test result: ${result.isRight}")
         result
-      }
+      } else {Logger.logger.debug("connection error");Left(Error(s"connection error", Some(500), None))}
     }
   }
 

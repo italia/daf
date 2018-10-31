@@ -16,12 +16,13 @@ trait CatalogRepository {
     def listCatalogs(page :Option[Int], limit :Option[Int]) :Seq[MetaCatalog]
     def catalog(catalogId :String): Option[MetaCatalog]
     def catalogByName(name :String, groups: List[String]): Option[MetaCatalog]
+    def internalCatalogByName(name: String): Option[MetaCatalog]
     def publicCatalogByName(name: String):Option[MetaCatalog]
     def createCatalog(metaCatalog: MetaCatalog,callingUserid :MetadataCat, ws :WSClient): Either[Error, Success]
     def createCatalogExtOpenData(metaCatalog: MetaCatalog,callingUserid :MetadataCat, ws :WSClient) :Success
     def standardUris() : List[String]
     def isDatasetOnCatalog(name :String): Option[Boolean]
-    def deleteCatalogByName(nameCatalog: String, user: String, token: String, isAdmin: Boolean, wsClient: WSClient): Future[Either[Error, Success]]
+    def deleteCatalogByName(nameCatalog: String, user: String, token: String, wsClient: WSClient): Future[Either[Error, Success]]
 
 
     // DO NOT DELETE

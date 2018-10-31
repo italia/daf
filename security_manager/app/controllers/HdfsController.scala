@@ -44,17 +44,27 @@ class HdfsController @Inject()(ws: WSClient, webHDFSApiClient:WebHDFSApiClient, 
 
       logger.debug("Request:" + request)
 
-      webHDFSApiProxy.callHdfsService(request.method, path, queryString, None).flatMap {
-        case Right(r) =>  if( r.httpCode == 307 && r.locationHeader.nonEmpty)
-                            request.method match{
-                              case "GET" => callGetFileService(r.locationHeader.get)
-                              case "PUT" => callPutFileService(r.locationHeader.get,request.body)
-                            }
-                          else
-                            Future.successful{Ok(r.jsValue)}
+      def handleRequest(isHaRequest: Boolean):Future[Result] = webHDFSApiProxy.callHdfsService(request.method, path, queryString, None).flatMap {
 
-        case Left(l) => Future.successful{ new Status(l.httpCode).apply(l.jsValue.toString()) }
+        case Right(r) =>
+                        if( r.httpCode == 307 && r.locationHeader.nonEmpty)
+                        request.method match{
+                          case "GET" => callGetFileService(r.locationHeader.get)
+                          case "PUT" => callPutFileService(r.locationHeader.get,request.body)
+                        }else
+                          Future.successful{Ok(r.jsValue)}
+
+        case Left(l) =>
+                        val excp = (l.jsValue \ "RemoteException" \ "exception").asOpt[String]
+                        if( l.httpCode == 403 && isHaRequest && excp.nonEmpty && excp.get.equals("StandbyException") ){
+                          webHDFSApiProxy.switchEndpoint()
+                          handleRequest(false)
+                        }else
+                          Future.successful{ new Status(l.httpCode).apply(l.jsValue.toString()) }
+
       }
+
+      handleRequest(true)
 
     }
 

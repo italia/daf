@@ -27,6 +27,10 @@ trait CatalogServiceComponent {
       catalogRepository.catalog(catalogId)
     }
 
+    def internalCatalogByName(name: String) = {
+      catalogRepository.internalCatalogByName(name)
+    }
+
     def catalogByName(name :String, groups: List[String]): Option[MetaCatalog] = {
       catalogRepository.catalogByName(name, groups)
     }
@@ -49,8 +53,8 @@ trait CatalogServiceComponent {
       catalogRepository.isDatasetOnCatalog(name)
     }
 
-    def deleteCatalogByName(nameCatalog: String, user: String, token: String,  isAdmin: Boolean, wsClient: WSClient): Future[Either[Error, Success]] = {
-      catalogRepository.deleteCatalogByName(nameCatalog, user, token: String, isAdmin, wsClient)
+    def deleteCatalogByName(nameCatalog: String, user: String, token: String, wsClient: WSClient): Future[Either[Error, Success]] = {
+      catalogRepository.deleteCatalogByName(nameCatalog, user, token: String, wsClient)
     }
 
   }
